@@ -8,6 +8,8 @@ public class CatBase : CatCharacter
 {
     private const float CANNON_CHARGE_TIME = 50f;
     private const string CANNON_UNIT_PATH = "Units/CatBases/effectUnits/{0}/cannonUnit";
+    private const string CANNON_INSTALL_COMPLETE_EFFECT_PATH = "Units/CatBases/effectUnits/5/eff/1";
+    private const float CANNON_INSTALL_DURATION = 10f;
     private int cannon_type = 0;
 
     private Transform main;
@@ -21,6 +23,8 @@ public class CatBase : CatCharacter
     private Button cannonButton;
     private Image cannonButtonImage;
     private Animator cannonButtonAnimation;
+    private bool isCannonInstalling = false;
+    private bool isBaseDefeated = false;
     public override void SetAttackRange(float far, float near) { }
     //public override void GetStrategy() { }
     public override void InitializeCharacter()
@@ -100,6 +104,7 @@ public class CatBase : CatCharacter
     public override void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 350) { }
     public override void Dead()
     {
+        isBaseDefeated = true;
         GameObject.Find("Level Initializer").GetComponent<LevelController>().Failed();
         StartCoroutine(BreakingDown());
     }
@@ -134,6 +139,7 @@ public class CatBase : CatCharacter
     public void ChargeCannon()
     {
         if (cannonButton == null || cannonButtonImage == null || cannonButtonAnimation == null) return;
+        if (isCannonInstalling) return;
 
         cannonCharged++;
         RefreshCannonUI();
@@ -145,6 +151,7 @@ public class CatBase : CatCharacter
     public void CannonFire()
     {
         if (cannonButton == null || cannonButtonAnimation == null) return;
+        if (isCannonInstalling) return;
 
         cannonCharged = 0;
         cannonButton.interactable = false;
@@ -173,8 +180,58 @@ public class CatBase : CatCharacter
     public void SetCannonHead(int headIndex)
     {
         int clamped = Mathf.Max(0, headIndex);
+        ApplyCannonHeadImmediate(clamped, false);
+    }
+
+    public bool TrySetCannonHead(int headIndex)
+    {
+        int clamped = Mathf.Max(0, headIndex);
+        if (clamped == cannon_type) return true;
+        if (isBaseDefeated || realHealth <= 0) return false;
+        if (isCannonInstalling) return false;
+
+        StartCoroutine(InstallCannonHeadRoutine(clamped));
+        return true;
+    }
+
+    private IEnumerator InstallCannonHeadRoutine(int nextHead)
+    {
+        isCannonInstalling = true;
+
+        if (cannonButton != null) cannonButton.interactable = false;
+        if (cannonButtonAnimation != null) cannonButtonAnimation.enabled = false;
+
+        float width = 6f;
+        float height = 6f;
+        float elapsed = 0f;
+        while (elapsed < CANNON_INSTALL_DURATION)
+        {
+            elapsed += Time.deltaTime;
+            float px = Random.Range(-0.05f, 0.05f);
+            if (main != null) main.localPosition = new Vector3(px, 0, 0);
+            float dx = Random.Range(0f, width);
+            float dy = Random.Range(0f, height);
+            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, dy, false);
+            yield return new WaitForFixedUpdate();
+        }
+        if (main != null) main.localPosition = Vector3.zero;
+
+        ApplyCannonHeadImmediate(nextHead, true);
+        var completeFx = Resources.Load<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
+        if (completeFx != null)
+        {
+            Instantiate(completeFx, transform.position, Quaternion.identity);
+        }
+
+        isCannonInstalling = false;
+        RefreshCannonUI();
+    }
+
+    private void ApplyCannonHeadImmediate(int headIndex, bool savePref)
+    {
+        int clamped = Mathf.Max(0, headIndex);
         cannon_type = clamped;
-        PlayerPrefs.SetInt(UXPref.BASE_CannonNum, clamped);
+        if (savePref) PlayerPrefs.SetInt(UXPref.BASE_CannonNum, clamped);
 
         if (main == null || main.childCount <= 2) return;
         SpriteRenderer renderer_head = main.GetChild(2).GetComponent<SpriteRenderer>();

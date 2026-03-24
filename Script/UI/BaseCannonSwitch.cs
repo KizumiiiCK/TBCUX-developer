@@ -6,15 +6,17 @@ public class BaseCannonSwitch : MonoBehaviour
 {
     [SerializeField] private Button mainButton;
     [SerializeField] private Transform optionsRoot;
+    [SerializeField] private Image currentHeadImage;
 
     private readonly List<Button> optionButtons = new List<Button>();
-    private const string BaseHeadKey = "base_head";
+    private const string BaseHeadKey = UXPref.BASE_CannonNum;
 
     private void Awake()
     {
         CacheRefs();
         BindEvents();
         SetOptionsVisible(false);
+        RefreshCurrentHeadImage(PlayerPrefs.GetInt(BaseHeadKey, 0));
     }
 
     private void CacheRefs()
@@ -56,15 +58,22 @@ public class BaseCannonSwitch : MonoBehaviour
 
     private void OnOptionClicked(int index)
     {
-        PlayerPrefs.SetInt(BaseHeadKey, index);
-        PlayerPrefs.Save();
+        bool changed;
 
         var baseGo = GameObject.Find("CatBase");
         if (baseGo != null)
         {
             var catBase = baseGo.GetComponent<CatBase>();
-            if (catBase != null) catBase.SetCannonHead(index);
+            changed = catBase != null && catBase.TrySetCannonHead(index);
         }
+        else
+        {
+            PlayerPrefs.SetInt(BaseHeadKey, index);
+            PlayerPrefs.Save();
+            changed = true;
+        }
+
+        if (changed) RefreshCurrentHeadImage(index);
 
         SetOptionsVisible(false);
     }
@@ -72,5 +81,12 @@ public class BaseCannonSwitch : MonoBehaviour
     private void SetOptionsVisible(bool visible)
     {
         if (optionsRoot != null) optionsRoot.gameObject.SetActive(visible);
+    }
+
+    private void RefreshCurrentHeadImage(int headIndex)
+    {
+        if (currentHeadImage == null) return;
+        Sprite head = Resources.Load<Sprite>($"Units/CatBases/head/{Mathf.Max(0, headIndex)}");
+        currentHeadImage.sprite = head;
     }
 }
