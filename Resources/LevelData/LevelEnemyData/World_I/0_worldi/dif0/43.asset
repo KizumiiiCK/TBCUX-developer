@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 43
+  m_EditorClassIdentifier: 
+  levelName: id:lasvegas
+  gainXP: 13900
+  BaseHealth: 25000
+  mapSize: 5000
+  maxEmenyCount: 20
+  maxCatCount: 50
+  BackgroundID: 2
+  BaseImageID: 43
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e010
+      ratio: 150
+      bossShock: 0
+      repeat: -1
+      firstAppear: 170
+      repeatMin: 700
+      repeatMax: 700
+    - enemyID: e010
+      ratio: 150
+      bossShock: 0
+      repeat: -1
+      firstAppear: 270
+      repeatMin: 700
+      repeatMax: 700
+    - enemyID: e010
+      ratio: 150
+      bossShock: 0
+      repeat: -1
+      firstAppear: 370
+      repeatMin: 700
+      repeatMax: 700
+    - enemyID: e006
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 90
+      repeatMin: 900
+      repeatMax: 900
+    - enemyID: e004
+      ratio: 500
+      bossShock: 0
+      repeat: 12
+      firstAppear: 150
+      repeatMin: 700
+      repeatMax: 700
+    - enemyID: e004
+      ratio: 500
+      bossShock: 0
+      repeat: -1
+      firstAppear: 120
+      repeatMin: 700
+      repeatMax: 700
+  - HealthPercentageOnBreak: 90
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e013
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+    - enemyID: e014
+      ratio: 150
+      bossShock: 0
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 750
+      repeatMax: 750

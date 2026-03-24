@@ -1,0 +1,188 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 49
+  m_EditorClassIdentifier: 
+  levelName: id:moonexpruins
+  gainXP: 56560
+  BaseHealth: 121200
+  mapSize: 5500
+  maxEmenyCount: 50
+  maxCatCount: 50
+  BackgroundID: 17
+  BaseImageID: 334
+  CombatAura:
+  - AuraType: 1
+    Parameters: {x: 10, y: 0.9, z: 5, w: 1}
+    AuraColor: {r: 0.7227894, g: 0.4433961, b: 1, a: 0}
+  - AuraType: 2
+    Parameters: {x: 0.25, y: 1, z: 1, w: 1}
+    AuraColor: {r: 0.34597206, g: 0, b: 1, a: 0}
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 12
+    drawtimes: 1500
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 11
+    drawtimes: 23333
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 7
+    drawtimes: 7
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 69
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 70
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 71
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 72
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 73
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 004
+    enemySummonInfos:
+    - enemyID: e017
+      ratio: 500
+      bossShock: 0
+      repeat: -1
+      firstAppear: 800
+      repeatMin: 600
+      repeatMax: 1000
+      previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
+    - enemyID: e012
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 990
+      repeatMin: 1550
+      repeatMax: 1550
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}
+  - HealthPercentageOnBreak: 90
+    bgm: 004
+    enemySummonInfos:
+    - enemyID: e032
+      ratio: 100
+      bossShock: 0
+      repeat: 4
+      firstAppear: 0
+      repeatMin: 444
+      repeatMax: 444
+      previewSprite: {fileID: 21300000, guid: 00c533e9b6492594eaf4a202a6ee64ff, type: 3}
+    - enemyID: e103
+      ratio: 1000
+      bossShock: 0
+      repeat: -1
+      firstAppear: 40
+      repeatMin: 880
+      repeatMax: 880
+      previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
+  - HealthPercentageOnBreak: 60
+    bgm: 004
+    enemySummonInfos:
+    - enemyID: e007
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 440
+      repeatMin: 1660
+      repeatMax: 1880
+      previewSprite: {fileID: 21300000, guid: 0971a63f649b62a43a85fae116aad0bc, type: 3}
+    - enemyID: e011
+      ratio: 500
+      bossShock: 0
+      repeat: 2
+      firstAppear: 0
+      repeatMin: 1000
+      repeatMax: 1100
+      previewSprite: {fileID: 21300000, guid: 67916a9f6b1342c43a365813ac28635c, type: 3}
+    - enemyID: e024
+      ratio: 500
+      bossShock: 0
+      repeat: 2
+      firstAppear: 0
+      repeatMin: 850
+      repeatMax: 850
+      previewSprite: {fileID: 21300000, guid: b6cc1136cc8fc414d8c9464907748fe1, type: 3}
+  - HealthPercentageOnBreak: 50
+    bgm: dct
+    enemySummonInfos:
+    - enemyID: e099
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 54a4a33f0f5efb742b3ca32d4aa8c9d2, type: 3}
+    - enemyID: e047
+      ratio: 100
+      bossShock: 0
+      repeat: 2
+      firstAppear: 150
+      repeatMin: 900
+      repeatMax: 1000
+      previewSprite: {fileID: 21300000, guid: e17ae62588195904685acd4618e8ee15, type: 3}
+    - enemyID: e042
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 90
+      repeatMin: 880
+      repeatMax: 990
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
+    - enemyID: e042
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 100
+      repeatMin: 880
+      repeatMax: 990
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
+    - enemyID: e105
+      ratio: 600
+      bossShock: 0
+      repeat: 2
+      firstAppear: 550
+      repeatMin: 750
+      repeatMax: 850
+      previewSprite: {fileID: 21300000, guid: c8263f91b93fc684c95a338a946b54d6, type: 3}

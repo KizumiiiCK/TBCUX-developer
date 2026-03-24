@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 37
+  m_EditorClassIdentifier: 
+  levelName: id:brazil
+  gainXP: 15200
+  BaseHealth: 40000
+  mapSize: 4800
+  maxEmenyCount: 7
+  maxCatCount: 50
+  BackgroundID: 7
+  BaseImageID: 37
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e004
+      ratio: 1000
+      bossShock: 0
+      repeat: -1
+      firstAppear: 120
+      repeatMin: 250
+      repeatMax: 250
+  - HealthPercentageOnBreak: 99
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e010
+      ratio: 400
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+    - enemyID: e008
+      ratio: 400
+      bossShock: 1
+      repeat: 3
+      firstAppear: 0
+      repeatMin: 80
+      repeatMax: 180

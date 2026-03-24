@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 1
+  m_EditorClassIdentifier: 
+  sectionName: World I Zombies
+  mapName: worldmap
+  unlockRestriction: 
+  hardness: 1
+  difficulty: 010100000000000000000000
+  coverColor: {r: 0.86274517, g: 0.8745099, b: 0.8196079, a: 1}
+  titleColor: 3
+  levelsOnMap:
+  - levelNameID: id:korea
+    levelPosition: {x: 29.5, y: -0.1}
+    tileType: 2
+  - levelNameID: id:mongolia
+    levelPosition: {x: 20.1, y: 3.6}
+    tileType: 0
+  - levelNameID: id:china
+    levelPosition: {x: 21.4, y: -1.5}
+    tileType: 0
+  - levelNameID: id:thailand
+    levelPosition: {x: 19.1, y: -8}
+    tileType: 0
+  - levelNameID: id:cambodia
+    levelPosition: {x: 20.1, y: -9.1}
+    tileType: 0
+  - levelNameID: id:philippines
+    levelPosition: {x: 27.2, y: -9.6}
+    tileType: 0
+  - levelNameID: id:japan
+    levelPosition: {x: 33.6, y: 0}
+    tileType: 0

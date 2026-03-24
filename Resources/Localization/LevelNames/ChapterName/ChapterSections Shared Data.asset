@@ -1,0 +1,124 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: ChapterSections Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: ChapterSections
+  m_TableCollectionNameGuidString: ffaee174c4f452f48ac0f982aec5606c
+  m_Entries:
+  - m_Id: 107672322048
+    m_Key: 0_worldi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 258960867328
+    m_Key: 0_worldii
+    m_Metadata:
+      m_Items: []
+  - m_Id: 262500859904
+    m_Key: 0_worldiii
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402435424256
+    m_Key: 1_worldizombie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 446295261184
+    m_Key: 1_worldiIzombie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 468684455936
+    m_Key: 1_worldiiizombie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1113206374400
+    m_Key: World_I
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1275270086656
+    m_Key: World_II
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1277283352576
+    m_Key: World_III
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19973236700037120
+    m_Key: LEGEND
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19973579714412544
+    m_Key: 0_L
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19974612188479488
+    m_Key: 1_L
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19974630773440512
+    m_Key: 2_L
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19974632660877312
+    m_Key: 3_L
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23480932006969344
+    m_Key: 0_greeting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23490336676724736
+    m_Key: Dungeon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23510438486818816
+    m_Key: 1_c0_red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23510723212951552
+    m_Key: 1_c1_purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23510964200882176
+    m_Key: 1_c2_green
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23510985809936384
+    m_Key: 1_c3_yellow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23511021839007744
+    m_Key: 1_c4_blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38368224823558144
+    m_Key: 0_d00
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38368515589488640
+    m_Key: Dream_Pre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 44245547233918976
+    m_Key: 1_a0_xpm
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 8963715930294845466
+  references:
+    version: 2
+    RefIds:
+    - rid: 8963715930294845466
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1757249632698

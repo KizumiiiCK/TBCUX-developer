@@ -1,0 +1,393 @@
+fileFormatVersion: 2
+guid: 08867ed364879fa46abc98a2eb8a1a7d
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Cpt_World
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 758
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce162596fa56a574fb3da30931a27c27
+      internalID: -815085957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cpt_Cosmos
+      rect:
+        serializedVersion: 2
+        x: 661
+        y: 760
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72fc079b69b75384fb3e0c3e24e8df9a
+      internalID: -1728324100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img011_00_chapter_button_2
+      rect:
+        serializedVersion: 2
+        x: 991
+        y: 738
+        width: 17
+        height: 285
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70ffe4c76f9d1dc46853b58b2c4cf0c0
+      internalID: 332657217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img011_00_chapter_button_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 495
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 743819749d950e64b9753d59730ef270
+      internalID: -415770630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cpt_Legend
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 495
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d11e2e1bb00fd264cac803a7d394faa6
+      internalID: 1729097107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cpt_Labyrinth
+      rect:
+        serializedVersion: 2
+        x: 661
+        y: 496
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 128a96e21dcaa2443a58f3276d0b56ae
+      internalID: -602185483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img011_00_chapter_button_9
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 230
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c429a894a5ad52a4aba514ea9b6f14ec
+      internalID: -1334049955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img011_00_chapter_button_10
+      rect:
+        serializedVersion: 2
+        x: 661
+        y: 230
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e9da45b9ee395474da0f5d5f023afb1a
+      internalID: 904429441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cpt_Future
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 760
+        width: 328
+        height: 263
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e74c2ac4ad36604a8c09239ac552a8c
+      internalID: -1169934472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Cpt_Cosmos: -1728324100
+      Cpt_Future: -1169934472
+      Cpt_Labyrinth: -602185483
+      Cpt_Legend: 1729097107
+      Cpt_World: -815085957
+      img011_00_chapter_button_10: 904429441
+      img011_00_chapter_button_11: -1345628361
+      img011_00_chapter_button_12: -1647530618
+      img011_00_chapter_button_13: 583421950
+      img011_00_chapter_button_14: 672385096
+      img011_00_chapter_button_15: -819781097
+      img011_00_chapter_button_16: -52298928
+      img011_00_chapter_button_17: -1922950028
+      img011_00_chapter_button_18: -1531993749
+      img011_00_chapter_button_19: 1682433860
+      img011_00_chapter_button_2: 332657217
+      img011_00_chapter_button_20: 1848753179
+      img011_00_chapter_button_21: 1090583103
+      img011_00_chapter_button_22: -690335114
+      img011_00_chapter_button_23: 327230321
+      img011_00_chapter_button_24: -1405376117
+      img011_00_chapter_button_25: 384852334
+      img011_00_chapter_button_26: -951510659
+      img011_00_chapter_button_27: -262112100
+      img011_00_chapter_button_28: -608758864
+      img011_00_chapter_button_29: 200475657
+      img011_00_chapter_button_3: -415770630
+      img011_00_chapter_button_30: -510807188
+      img011_00_chapter_button_31: 84214563
+      img011_00_chapter_button_32: 782879336
+      img011_00_chapter_button_33: 1017789286
+      img011_00_chapter_button_34: 1004669555
+      img011_00_chapter_button_35: -350288842
+      img011_00_chapter_button_36: -353199355
+      img011_00_chapter_button_37: -1581218204
+      img011_00_chapter_button_38: 1157872526
+      img011_00_chapter_button_39: 836509877
+      img011_00_chapter_button_40: 123552349
+      img011_00_chapter_button_41: 917967717
+      img011_00_chapter_button_42: -1367416090
+      img011_00_chapter_button_43: 852882477
+      img011_00_chapter_button_44: 2108902766
+      img011_00_chapter_button_45: 540363155
+      img011_00_chapter_button_46: 1097086232
+      img011_00_chapter_button_47: -1833628166
+      img011_00_chapter_button_48: -988019930
+      img011_00_chapter_button_49: 341396349
+      img011_00_chapter_button_50: 680101238
+      img011_00_chapter_button_51: -1857464526
+      img011_00_chapter_button_52: 1278959372
+      img011_00_chapter_button_53: 556241828
+      img011_00_chapter_button_54: 763323667
+      img011_00_chapter_button_55: 606438559
+      img011_00_chapter_button_56: -907368893
+      img011_00_chapter_button_57: 1235172491
+      img011_00_chapter_button_58: -836593299
+      img011_00_chapter_button_59: -520032949
+      img011_00_chapter_button_6: 562006043
+      img011_00_chapter_button_60: 1183946955
+      img011_00_chapter_button_61: -1667345584
+      img011_00_chapter_button_62: 7428249
+      img011_00_chapter_button_7: -1974079346
+      img011_00_chapter_button_8: 650335166
+      img011_00_chapter_button_9: -1334049955
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

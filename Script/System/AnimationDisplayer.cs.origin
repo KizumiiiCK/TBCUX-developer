@@ -1,0 +1,1100 @@
+﻿using System;
+//using System.Collections;
+//using System.Collections.Generic;
+//using System.Reflection;
+//using Microsoft.Unity.VisualStudio.Editor;
+//using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+
+public class AnimationDisplayer : MonoBehaviour
+{
+    protected class MaanimNode
+    {
+        public class Point
+        {
+            int frame;
+            int value;
+            int easing;
+            int parameter;
+            public int Frame { get => frame; }
+            public int Value { get => value; }
+            public int Easing { get => easing; }
+            public int Parameter { get => parameter; }
+            public Point(int _Frame, int _Value, int _Easing, int _Parameter)
+            {
+                frame = _Frame;
+                value = _Value;
+                easing = _Easing;
+                parameter = _Parameter;
+            }
+            public string GetDetails()
+            {
+                string p = "F: " + Frame + " V: " + Value + " E: " + Easing + " P: " + Parameter;
+                return p;
+            }
+        }
+        int controllPart;
+        public int ControllPart { get => controllPart; }
+        int modificationID;
+        public int ModificationID { get => modificationID; }
+        int loop;
+        public int Loop { get => loop; }
+        string Name;
+        public int LastPoint = 0;
+        int startFrame = 0;
+        int endFrame = 0;
+        int totalFrame = 0;
+        public int StartFrame { get => startFrame; }
+        public int EndFrame { get => endFrame; }
+        public int TotalFrame { get => totalFrame; }
+        Point[] pointList;
+        public Point[] PointList { get => pointList; }
+        public MaanimNode(int Object, int _ModificationID, int _Loop, string _Name, int _TotalPoint)
+        {
+            controllPart = Object;
+            modificationID = _ModificationID;
+            loop = _Loop;
+            Name = _Name;
+            pointList = new Point[_TotalPoint];
+        }
+        public string GetDetails()
+        {
+            string p = "Node- C: " + ControllPart + " M: " + ModificationID + " L: " + Loop + " N:" + Name + '\n';
+            for (int i = 0; i < pointList.Length; i++)
+            {
+                p = p + pointList[i].GetDetails() + '\n';
+            }
+            return p;
+        }
+        public void AddPoint(int _Frame, int _Value, int _Easing, int _Parameter, int _Point)
+        {
+            pointList[_Point] = new Point(_Frame, _Value, _Easing, _Parameter);
+        }
+        public void Initialize()
+        {
+            startFrame = pointList[0].Frame;
+            endFrame = pointList[pointList.Length - 1].Frame;
+            totalFrame = -StartFrame + EndFrame;
+        }
+    }
+    public GameObject Target = null;
+    public GameObject Empty;
+    [SerializeField] protected Texture2D picture;
+    public TextAsset ImgcutTextAsset;
+    public TextAsset ModelTextAsset;
+    [SerializeField] protected int maanimPointer = 0;
+    public int MaanimPointer {get => maanimPointer;}
+    public TextAsset[] MaanimTextAsset = new TextAsset[4];
+    public Material additiveMaterial;
+    public Material changeMaterial;
+    [SerializeField] protected Sprite[] SpritesList;
+    [SerializeField] protected GameObject[] ObjectList;//存子物件
+    protected string[,] ImgcutData;
+    protected string[,] ModelData;
+    protected MaanimNode[][] MaanimData;
+    protected float[,] ModelTree;//0 parent  1 near  2 first child  3 opacity 4 muti
+    protected float[,] ModelTree_Fixed;
+    protected int[] animationTotalFrame;
+    public int[] AnimationTotalFrame {get => animationTotalFrame;}
+    protected const int PARENT = 0;
+    protected const int NEAR = 1;
+    protected const int FIRST_CHILD = 2;
+    protected const int OPACITY = 3;
+    protected const int MULTIPLY = 4;
+    protected const int SCALE = 5;
+    protected const int SCALE_X = 6;
+    protected const int SCALE_Y = 7;
+    protected const int HORIZONTAL_FLIP = 8;
+    protected const int VERTICAL_FLIP = 9;
+    protected const int ROTATION_FLIP = 10;
+    protected const int ROTATION = 11;
+    [SerializeField] protected int PixelPerUnit = 100;
+    [SerializeField] protected float PositionRate = 1;
+    [SerializeField] protected float PivotRate = 1;
+    [SerializeField] protected float ScaleRate = 0.001f;
+    [SerializeField] protected float RotationRate = 0.1f;
+    [SerializeField] protected float OpacityRate = 0.001f;
+    [SerializeField] protected float GlowRate = 0.5f;
+    [SerializeField] protected float AnimationSpeedRate = 1;
+    [SerializeField] protected float CurrentFrame = 0;
+    [SerializeField] protected int CheckControlPart = -1;
+    [SerializeField] protected int CheckModificationID = -1;
+    [SerializeField] protected bool InitializeWhenStart = false;
+    [SerializeField] string DisplayLayer = "Charater";
+    //MODIFIED
+    protected int baseSortingOrder = 0;
+    public void SetBaseSortingOrder(int sl) {  baseSortingOrder = sl*100; }
+    //
+    protected void Decrypt_Imgcut()
+    {
+        int TotalLine_Imgcut;
+        string[] _LineImgData = ImgcutTextAsset.text.Split('\n');
+        TotalLine_Imgcut = int.Parse(_LineImgData[3]);
+        ImgcutData = new string[TotalLine_Imgcut, 5];
+        for (int i = 0; i < TotalLine_Imgcut; i++)
+        {
+            string[] _ImgData = _LineImgData[4 + i].Split(",");
+            string p = i + " : ";
+            for (int j = 0; j < 5; j++)
+            {
+                if (j != 4 || (j == 4 && _ImgData.Length >= 5))
+                {
+                    ImgcutData[i, j] = _ImgData[j];
+                }
+                p += ImgcutData[i, j] + " ";
+            }
+            //Debug.Log(p);
+        }
+
+        SpritesList = new Sprite[TotalLine_Imgcut];
+        for (int i = 0; i < TotalLine_Imgcut; i++)
+        {
+            int x = int.Parse(ImgcutData[i, 0]);
+            int y = picture.height - int.Parse(ImgcutData[i, 1]) - int.Parse(ImgcutData[i, 3]) + 1;
+            int width = int.Parse(ImgcutData[i, 2]);
+            int height = int.Parse(ImgcutData[i, 3]);
+            try
+            {
+                SpritesList[i] = Sprite.Create(picture, new Rect(x, y, width, height), new Vector2(0, 1f));
+            }
+            catch//
+            {
+                y -= 1;
+                SpritesList[i] = Sprite.Create(picture, new Rect(x, y, width, height), new Vector2(0, 1f));
+            }
+            SpritesList[i].name = ImgcutData[i, 4];
+        }
+    }
+    protected void Decrypt_Mamodel()
+    {
+        int TotalLine_Mamodel;
+        string[] _LineModelData = ModelTextAsset.text.Split('\n');
+        TotalLine_Mamodel = int.Parse(_LineModelData[2]);
+        ModelData = new string[TotalLine_Mamodel, 14];
+
+        for (int i = 0; i < TotalLine_Mamodel; i++)
+        {
+            string[] _ModelData = _LineModelData[3 + i].Split(",");
+            string p = i + " : ";
+            for (int j = 0; j < 14; j++)
+            {
+                if (j != 13 || (j == 13 && _ModelData.Length >= 14))
+                {
+                    ModelData[i, j] = _ModelData[j];
+                }
+                p += ModelData[i, j] + " ";
+            }
+            //Debug.Log(p);
+        }
+    }
+    protected void PrintMaanimData()
+    {
+        string p = "Maanim data Pointer:" + maanimPointer + " -" + '\n';
+        for (int i = 0; i < MaanimData[maanimPointer].Length; i++)
+        {
+            p = p + MaanimData[maanimPointer][i].GetDetails();
+        }
+        Debug.Log(p);
+    }
+    protected void PrintTree()
+    {
+        string p = "tree frame:" + CurrentFrame + " =" + '\n';
+        p = p + "0 parent  1 near  2 first child  3 opacity 4 muti 5 scale 6 scale_x 7 scale_y 8 horizon 9 vertical 10 rotation_flip 11 rotation" + '\n';
+        for (int i = 0; i < ModelTree.GetLength(0); i++)
+        {
+            p = p + i + ": ";
+            for (int j = 0; j < ModelTree.GetLength(1); j++)
+            {
+                p = p + ModelTree[i, j] + " ";
+            }
+            p = p + '\n';
+        }
+        Debug.Log(p);
+
+        p = "tree(fixed) frame:" + CurrentFrame + " =" + '\n';
+        p = p + "0 parent  1 near  2 first child  3 opacity" + '\n';
+        for (int i = 0; i < ModelTree_Fixed.GetLength(0); i++)
+        {
+            for (int j = 0; j < ModelTree_Fixed.GetLength(1); j++)
+            {
+                p = p + ModelTree_Fixed[i, j] + " ";
+            }
+            p = p + '\n';
+        }
+        //Debug.Log(p);
+    }
+    protected void ResetOpacity(int from)
+    {
+        bool IsVisited = false;
+        if (ModelTree[from, PARENT] != -1)
+        {
+            ModelTree[from, MULTIPLY] = ModelTree[(int)ModelTree[from, PARENT], MULTIPLY] * ModelTree[from, OPACITY] * OpacityRate;
+        }
+        else
+        {
+            ModelTree[from, MULTIPLY] = ModelTree[from, OPACITY] * OpacityRate;
+        }
+
+        float glow = 1;
+        if (int.Parse(ModelData[from, 12]) > 0)
+        {
+            glow = GlowRate;
+        }
+        ObjectList[from].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, ModelTree[from, MULTIPLY] * glow);
+        int point = (int)ModelTree[from, FIRST_CHILD];
+        if (point == -1)
+        {
+            return;
+        }
+
+        try
+        {
+            while (point != from)
+            {
+                if (int.Parse(ModelData[point, 12]) > 0)
+                {
+                    glow = GlowRate;
+                }
+                else
+                {
+                    glow = 1;
+                }
+                ModelTree[point, MULTIPLY] = ModelTree[(int)ModelTree[point, PARENT], MULTIPLY] * ModelTree[point, OPACITY] * OpacityRate;
+                ObjectList[point].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, ModelTree[point, MULTIPLY] * glow);
+                if (ModelTree[point, FIRST_CHILD] != -1 && IsVisited == false)//down
+                {
+                    point = (int)ModelTree[point, FIRST_CHILD];
+                }
+                else if (ModelTree[point, NEAR] != -1)
+                {
+                    point = (int)ModelTree[point, NEAR];
+                    IsVisited = false;
+                }
+                else//up
+                {
+                    IsVisited = true;
+                    point = (int)ModelTree[point, PARENT];
+                }
+            }
+        }
+        catch
+        {
+            UnityEngine.Debug.LogError("OpacityRate tree error");
+        }
+    }
+    protected void SetOpacity(int from, int value/*raw value*/)
+    {
+        ModelTree[from, OPACITY] = ModelTree_Fixed[from, OPACITY] * (value * OpacityRate);
+        ResetOpacity(from);
+    }
+    protected enum ScaleType
+    {
+        x = SCALE_X, y = SCALE_Y, both = SCALE
+    }
+    protected void ResetScaleTree(int from)
+    {
+        bool IsVisited = false;
+        int flip = 1;
+        if (ModelTree[from, SCALE_X] * ModelTree[from, SCALE_Y] <= 0)
+        {
+            flip = -1;
+        }
+        ModelTree[from, ROTATION_FLIP] = GetParentRotationFlip(from) * flip;
+
+        Quaternion rotation = ObjectList[from].transform.parent.localRotation;
+        ObjectList[from].transform.parent.localEulerAngles = new Vector3(0, 0, ModelTree[from, HORIZONTAL_FLIP] * ModelTree[from, VERTICAL_FLIP] * GetParentRotationFlip(from) * ModelTree[from, ROTATION]);
+
+        int point = (int)ModelTree[from, FIRST_CHILD];
+        if (point == -1)
+        {
+            //  Debug.Log(p);
+            return;
+        }
+
+        try
+        {
+            while (point != from)
+            {
+                flip = 1;
+                if (ModelTree[point, SCALE_X] * ModelTree[point, SCALE_Y] <= 0)
+                {
+                    flip = -1;
+                }
+                ModelTree[point, ROTATION_FLIP] = GetParentRotationFlip(point) * flip;
+                rotation = ObjectList[point].transform.parent.localRotation;
+                ObjectList[point].transform.parent.localRotation = Quaternion.Euler(0, 0, ModelTree[point, HORIZONTAL_FLIP] * ModelTree[point, VERTICAL_FLIP] *GetParentRotationFlip(point) * ModelTree[point, ROTATION]);
+
+                if (ModelTree[point, FIRST_CHILD] != -1 && IsVisited == false)//down
+                {
+                    point = (int)ModelTree[point, FIRST_CHILD];
+                }
+                else if (ModelTree[point, NEAR] != -1)//near
+                {
+                    point = (int)ModelTree[point, NEAR];
+                    IsVisited = false;
+                }
+                else//up
+                {
+                    IsVisited = true;
+                    point = (int)ModelTree[point, PARENT];
+                }
+            }
+        }
+        catch
+        {
+            UnityEngine.Debug.LogError("scale tree set error");
+        }
+    }
+    protected void SetScaleTree(int from, int value, ScaleType type)
+    {
+        if (ModelTree[from, (int)type] * value > 0 || value == 0 || type == ScaleType.both)//do not fix rotation flip
+        {
+            ModelTree[from, (int)type] = ModelTree_Fixed[from, (int)type] * (value * ScaleRate);
+            return;
+        }
+        ModelTree[from, (int)type] = ModelTree_Fixed[from, (int)type] * (value * ScaleRate);
+        //ResetScaleTree(from);
+    }
+    protected void ResetCurrentRotation(int from)
+    {
+        ObjectList[from].transform.parent.localEulerAngles = new Vector3(0, 0, ModelTree[from, HORIZONTAL_FLIP] * ModelTree[from, VERTICAL_FLIP] * GetParentRotationFlip(from) * ModelTree[from, ROTATION]);
+    }
+    protected void SetRotation(int from, int value)
+    {
+        ModelTree[from, ROTATION] = ModelTree_Fixed[from, ROTATION] + RotationRate * value;
+        ResetCurrentRotation(from);
+    }
+    protected int GetParentRotationFlip(int from)
+    {
+        int parent_rotation_flip = -1;
+        if (ModelTree[from, PARENT] != -1)
+        {
+            parent_rotation_flip = (int)ModelTree[(int)ModelTree[from, PARENT], ROTATION_FLIP];
+        }
+        return parent_rotation_flip;
+    }
+
+    protected void ModelReset()
+    {
+        ModelTree = new float[ModelTree_Fixed.GetLength(0), ModelTree_Fixed.GetLength(1)];
+        for (int i = 0; i < ModelTree.GetLength(0); i++)
+        {
+            for (int j = 0; j < ModelTree.GetLength(1); j++)
+            {
+                ModelTree[i, j] = ModelTree_Fixed[i, j];
+            }
+        }
+
+        for (int i = 0; i < ModelData.GetLength(0); i++)
+        {
+            if (i != 0)
+            {
+                ObjectList[i].transform.parent.parent = ObjectList[int.Parse(ModelData[i, 0])].transform.parent;
+            }
+            ObjectList[i].GetComponent<SpriteRenderer>().sprite = SpritesList[int.Parse(ModelData[i, 2])];
+
+            if (int.Parse(ModelData[i, 1]) == -1)
+            {
+                ObjectList[i].GetComponent<SpriteRenderer>().enabled = false;
+            }
+            else
+            {
+                ObjectList[i].GetComponent<SpriteRenderer>().enabled = true;
+            }
+
+            ObjectList[i].GetComponent<SpriteRenderer>().sortingOrder = baseSortingOrder+int.Parse(ModelData[i, 3]);
+            //position
+            ObjectList[i].transform.parent.localPosition = new Vector3(PositionRate * int.Parse(ModelData[i, 4]) / PixelPerUnit, -PositionRate * int.Parse(ModelData[i, 5]) / PixelPerUnit, 0);
+            //pivot
+            ObjectList[i].transform.localPosition = new Vector3(-PivotRate * int.Parse(ModelData[i, 6]) / PixelPerUnit, PivotRate * int.Parse(ModelData[i, 7]) / PixelPerUnit, 0);
+            //scale
+            ObjectList[i].transform.parent.localScale = new Vector3(ScaleRate * int.Parse(ModelData[i, 8]), ScaleRate * int.Parse(ModelData[i, 9]), 1);
+            //rotation
+            ObjectList[i].transform.parent.localRotation = Quaternion.Euler(0, 0, GetParentRotationFlip(i) * ModelTree_Fixed[i, ROTATION]); ;
+        }
+        //opacity 要在編排後才能設置
+        ResetOpacity(0);
+        ResetScaleTree(0);
+    }
+    protected void ModelSummon()
+    {
+        if (Target == null)
+        {
+            Target = new GameObject("animation");
+            Target.tag = "Animation";
+        }
+        ObjectList = new GameObject[ModelData.GetLength(0)];
+        ModelTree_Fixed = new float[ModelData.GetLength(0), 12];
+        for (int i = 0; i < ModelData.GetLength(0); i++)
+        {
+            GameObject parent;
+            if (int.Parse(ModelData[i, 0]) == -1)
+            {
+                parent = Instantiate(Empty, Target.transform);
+                parent.name = i + "_" + ModelData[i, 13] + "_parent";
+                ObjectList[0] = Instantiate(Empty, parent.transform);
+                ObjectList[0].name = i + "_" + ModelData[i, 13] + "_child";
+            }
+            else
+            {
+                parent = Instantiate(Empty);
+                parent.name = i + "_" + ModelData[i, 13] + "_parent";
+                ObjectList[i] = Instantiate(Empty, parent.transform, true);
+                ObjectList[i].name = i + "_" + ModelData[i, 13] + "_child";
+            }
+            ObjectList[i].AddComponent<SpriteRenderer>();
+            ObjectList[i].GetComponent<SpriteRenderer>().sortingLayerName = DisplayLayer;
+            if (int.Parse(ModelData[i, 12]) == 1)
+            {
+                ObjectList[i].GetComponent<SpriteRenderer>().material = additiveMaterial;
+            }
+            else ObjectList[i].GetComponent<SpriteRenderer>().material = changeMaterial;//MODIFIED
+            //model tree for setting opacity
+            ModelTree_Fixed[i, PARENT] = int.Parse(ModelData[i, 0]);
+            ModelTree_Fixed[i, NEAR] = -1;
+            ModelTree_Fixed[i, FIRST_CHILD] = -1;
+            ModelTree_Fixed[i, OPACITY] = int.Parse(ModelData[i, 11]);
+            ModelTree_Fixed[i, SCALE] = 1;
+            ModelTree_Fixed[i, SCALE_X] = int.Parse(ModelData[i, 8]) * ScaleRate;
+            ModelTree_Fixed[i, SCALE_Y] = int.Parse(ModelData[i, 9]) * ScaleRate;
+            ModelTree_Fixed[i, HORIZONTAL_FLIP] = 1;
+            ModelTree_Fixed[i, VERTICAL_FLIP] = 1;
+            ModelTree_Fixed[i, ROTATION] = int.Parse(ModelData[i, 10]) * RotationRate;
+        }
+
+        for (int i = 0; i < ModelTree_Fixed.GetLength(0); i++)
+        {
+            int Child = -1;
+            for (int j = 0; j < ModelTree_Fixed.GetLength(0); j++)
+            {
+                if (ModelTree_Fixed[j, PARENT] == i && Child == -1)
+                {
+                    Child = j;
+                    ModelTree_Fixed[i, FIRST_CHILD] = Child;
+                }
+                else if (ModelTree_Fixed[j, PARENT] == i && Child != -1)
+                {
+                    ModelTree_Fixed[Child, NEAR] = j;
+                    Child = j;
+                }
+
+            }
+        }
+
+        string p = "set muti" + '\n';//
+        bool IsVisited = false;
+        ModelTree_Fixed[0, MULTIPLY] = ModelTree_Fixed[0, OPACITY] * OpacityRate;
+        ModelTree_Fixed[0, ROTATION_FLIP] = -1;
+        int point = (int)ModelTree_Fixed[0, FIRST_CHILD];
+        while (point != 0)
+        {
+            ModelTree_Fixed[point, MULTIPLY] = ModelTree_Fixed[(int)ModelTree_Fixed[point, PARENT], MULTIPLY] * ModelTree_Fixed[point, OPACITY] * OpacityRate;
+            int flip = 1;
+            if (ModelTree_Fixed[point, SCALE_X] * ModelTree_Fixed[point, SCALE_Y] <= 0)
+            {
+                flip = -1;
+            }
+            ModelTree_Fixed[point, ROTATION_FLIP] = ModelTree_Fixed[(int)ModelTree_Fixed[point, PARENT], ROTATION_FLIP] * flip;
+            if (ModelTree_Fixed[point, FIRST_CHILD] != -1 && IsVisited == false)//down
+            {
+                point = (int)ModelTree_Fixed[point, FIRST_CHILD];
+            }
+            else if (ModelTree_Fixed[point, NEAR] != -1)//near
+            {
+                point = (int)ModelTree_Fixed[point, NEAR];
+                IsVisited = false;
+            }
+            else//up
+            {
+                IsVisited = true;
+                point = (int)ModelTree_Fixed[point, PARENT];
+            }
+        }
+
+        ModelReset();
+    }
+    protected void Decrypt_Maanim()
+    {
+        for (int k = 0; k < MaanimTextAsset.Length; k++)
+        {
+            Decrypt_Maanim(k);
+        }
+    }
+    protected void Decrypt_Maanim(int target)//for singe decrpty
+    {
+        TextAsset text = MaanimTextAsset[target];
+        string[] _LineData = text.text.Split('\n');
+        int TotalLine = int.Parse(_LineData[2]);
+        MaanimData[target] = new MaanimNode[TotalLine];
+
+        int CurrentLine = 3;
+        for (int i = 0; i < TotalLine; i++)
+        {
+            string[] data = _LineData[CurrentLine].Split(",");
+            int TotalPoint = int.Parse(_LineData[CurrentLine + 1]);   
+
+            string name = " ";
+            if(data.Length>=6)
+            {
+                name = data[5];
+            }
+
+         
+            if(TotalPoint == 0)
+            {
+                CurrentLine = CurrentLine + 2 + TotalPoint;
+                MaanimData[target][i] = new MaanimNode(int.Parse(data[0]), int.Parse(data[1]), int.Parse(data[2]), name, 1);
+                MaanimData[target][i].AddPoint(0, 0, -1, 0, 0);//easing = -1
+                MaanimData[target][i].Initialize();
+                continue;
+            }
+            MaanimData[target][i] = new MaanimNode(int.Parse(data[0]), int.Parse(data[1]), int.Parse(data[2]), name, TotalPoint);
+            for (int j = 0; j < TotalPoint; j++)
+            {
+                data = _LineData[CurrentLine + 2 + j].Split(",");
+                MaanimData[target][i].AddPoint(int.Parse(data[0]), int.Parse(data[1]), int.Parse(data[2]), int.Parse(data[3]), j);
+            }
+            MaanimData[target][i].Initialize();
+            CurrentLine = CurrentLine + 2 + TotalPoint;
+        }
+
+    }
+    protected void AnimationReset()
+    {
+        CurrentFrame = 0;
+        ModelReset();
+        //ResetOpacity(0);
+        //ResetScaleTree(0);
+        //ResetCurrentRotation(0);
+    }
+    protected void AnimationNodeExecute(int ControllPart, int ModificationID, int value)
+    {
+        //if(ModificationID==12){Debug.Log("C:"+ControllPart+" M:"+ModificationID+" V:"+value);}
+        float OriginalValue = 0;
+        switch (ModificationID)
+        {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                OriginalValue = int.Parse(ModelData[ControllPart, 4]) * PositionRate / PixelPerUnit;
+                break;
+            case 5:
+                OriginalValue = int.Parse(ModelData[ControllPart, 5]) * PositionRate / PixelPerUnit;
+                break;
+            case 6:
+                OriginalValue = int.Parse(ModelData[ControllPart, 6]) * PivotRate / PixelPerUnit;
+                break;
+            case 7:
+                OriginalValue = int.Parse(ModelData[ControllPart, 7]) * PivotRate / PixelPerUnit;
+                break;
+            case 8:
+                break;
+            case 9:
+                OriginalValue = int.Parse(ModelData[ControllPart, 8]) * ScaleRate;
+                break;
+            case 10:
+                OriginalValue = int.Parse(ModelData[ControllPart, 9]) * ScaleRate;
+                break;
+            case 11:
+                OriginalValue = int.Parse(ModelData[ControllPart, 10]) * RotationRate;
+                break;
+            case 12:
+                break;
+            case 13:
+                break;
+            case 14:
+                break;
+            default:
+                UnityEngine.Debug.Log("modify method doesnt exist   " + ModificationID);
+                break;
+        }
+        switch (ModificationID)
+        {
+            case 0:
+                {
+                    bool check = false;
+                    if(ControllPart==value)
+                    {
+                        Debug.LogError("you cant set parent to itself");
+                        return;
+                    }
+                    else if ((int)ModelTree[ControllPart, PARENT] == value)
+                    {
+                        //  if(check){Debug.Log("same controllpart:"+ControllPart+" Parent:"+value);};
+                        return;
+                    }
+                    ObjectList[ControllPart].transform.parent.parent = ObjectList[value].transform.parent;
+                    if(check){PrintTree();};
+                    int Pointer;
+                    Pointer = (int)ModelTree[ControllPart, PARENT];
+                    if (Pointer == -1)
+                    {
+                        return;
+                    }
+                    if (ModelTree[Pointer, FIRST_CHILD] == ControllPart)
+                    {
+                        ModelTree[Pointer, FIRST_CHILD] = (int)ModelTree[ControllPart, NEAR];
+                    }
+                    else
+                    {
+                        string p = "try find near location"+'\n';
+                        Pointer = (int)ModelTree[ControllPart, PARENT];
+                        if(check){p = p+"find near from:" + ControllPart + " Pointer(parent):" + Pointer+'\n';}
+                        Pointer = (int)ModelTree[Pointer, FIRST_CHILD];
+                        if(check){p = p+"find near from:" + ControllPart + " Pointer(first child):" + Pointer+'\n';}
+                        for (int i = 0; i < ModelTree.GetLength(0); i++)
+                        {
+                            if ((int)ModelTree[Pointer, NEAR] != ControllPart)
+                            {
+                                Pointer = (int)ModelTree[Pointer, NEAR];
+                                if(check){p = p+"i:" + i + " Pointer(near):" + Pointer+'\n';}
+                            }
+                            else if ((int)ModelTree[Pointer, NEAR] == -1)
+                            {
+                                if(check){p = p+"near=-1 i:" + i + " Pointer(near):" + Pointer+'\n';}
+                                break;
+                            }
+                            else
+                            {
+                                if(check){p =p+"done " + Pointer+'\n';}
+                                break;
+                            }
+                            if(i==ModelTree.GetLength(0)-1)
+                            {
+                                Debug.LogError("fall find Controllpart"+ControllPart+" point:"+Pointer);
+                                PrintTree();
+                            }
+                        }
+                        if(check){p = p+"left:" + Pointer + " mid:" + ControllPart + " right:" + ModelTree[ControllPart, NEAR]+'\n';
+                        Debug.Log(p);}
+                        ModelTree[Pointer, NEAR] = (int)ModelTree[ControllPart, NEAR];
+                    }
+
+                    ModelTree[ControllPart, PARENT] = value;
+                    ModelTree[ControllPart, NEAR] = -1;
+                    
+                    if (ModelTree[value, FIRST_CHILD] == -1)
+                    {
+                        ModelTree[value, FIRST_CHILD] = ControllPart;
+                        if(check){Debug.Log(value + " first=-1");}
+                    }
+                    else
+                    {
+                        string p ="try find new parent's child location"+'\n';
+                        if(check){p = p+"target " + value+'\n';}
+                        Pointer = (int)ModelTree[value, FIRST_CHILD];
+                        if(check){p = p+"pointer(first child):" + Pointer+'\n';}
+                        for (int i = 0; i < ModelTree.GetLength(0); i++)
+                        {
+                            if ((int)ModelTree[Pointer, NEAR] != -1)
+                            {
+                                Pointer = (int)ModelTree[Pointer, NEAR];
+                                if(check){p = p+"pointer(near):" + Pointer+'\n';}
+                            }
+                            else
+                            {
+                                if(check){p = p+"Done " + Pointer+'\n';}
+                                break;
+                            }
+                            if (i == ModelTree.GetLength(0) - 1)
+                            {
+                                Debug.LogError("false to find " + value);
+                            }
+                        }
+                        if(check){Debug.Log(p+"find out parent:" + value + " near:" + Pointer + " right:" + ModelTree[Pointer, NEAR]);}
+                        ModelTree[Pointer, NEAR] = ControllPart;
+                    }
+                    
+                    ResetOpacity(0);
+                    //ResetScaleTree(0);
+                    ResetCurrentRotation(0);
+                    break;
+                }
+            case 1:
+                if (value == -1)
+                {
+                    ObjectList[ControllPart].GetComponent<SpriteRenderer>().enabled = false;
+                }
+                else
+                {
+                    ObjectList[ControllPart].GetComponent<SpriteRenderer>().enabled = true;
+                }
+                break;
+            case 2:
+                ObjectList[ControllPart].GetComponent<SpriteRenderer>().sprite = SpritesList[value];
+                break;
+            case 3:
+                ObjectList[ControllPart].GetComponent<SpriteRenderer>().sortingOrder = baseSortingOrder+value;
+                break;
+            case 4:
+                ObjectList[ControllPart].transform.parent.localPosition = new Vector3(OriginalValue + PositionRate * value / PixelPerUnit, ObjectList[ControllPart].transform.parent.localPosition.y, 0);
+                break;
+            case 5:
+                ObjectList[ControllPart].transform.parent.localPosition = new Vector3(ObjectList[ControllPart].transform.parent.localPosition.x, -(OriginalValue + PositionRate * value / PixelPerUnit), 0);
+                break;
+            case 6:
+                ObjectList[ControllPart].transform.localPosition = new Vector3(-OriginalValue - PivotRate * value / PixelPerUnit, ObjectList[ControllPart].transform.localPosition.y, 0);
+                break;
+            case 7:
+                ObjectList[ControllPart].transform.localPosition = new Vector3(ObjectList[ControllPart].transform.localPosition.x, OriginalValue + PivotRate * value / PixelPerUnit, 0);
+                break;
+            case 8:
+                SetScaleTree(ControllPart, value, ScaleType.both);
+                ObjectList[ControllPart].transform.parent.localScale = new Vector3(ModelTree[ControllPart, HORIZONTAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_X], ModelTree[ControllPart, VERTICAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_Y], ObjectList[ControllPart].transform.parent.localScale.z);
+                break;
+            case 9:
+                SetScaleTree(ControllPart, value, ScaleType.x);
+                ObjectList[ControllPart].transform.parent.localScale = new Vector3(ModelTree[ControllPart, HORIZONTAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_X], ObjectList[ControllPart].transform.parent.localScale.y, ObjectList[ControllPart].transform.parent.localScale.z);
+                break;
+            case 10:
+                SetScaleTree(ControllPart, value, ScaleType.y);
+                ObjectList[ControllPart].transform.parent.localScale = new Vector3(ObjectList[ControllPart].transform.parent.localScale.x, ModelTree[ControllPart, VERTICAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_Y], ObjectList[ControllPart].transform.parent.localScale.z);
+                break;
+            case 11://修改
+                {
+                    SetRotation(ControllPart, value);
+                    break;
+                }
+            case 12:
+                SetOpacity(ControllPart, value);
+                break;
+            case 13:
+                if (value > 0)
+                {
+                    value = -1;
+                }
+                else
+                {
+                    value = 1;
+                }
+                ModelTree[ControllPart, HORIZONTAL_FLIP] = value;
+                ObjectList[ControllPart].transform.parent.localScale = new Vector3(ModelTree[ControllPart, HORIZONTAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_X], ModelTree[ControllPart, VERTICAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_Y], ObjectList[ControllPart].transform.parent.localScale.z);
+                //ResetScaleTree(ControllPart);
+                ResetCurrentRotation(ControllPart);
+                break;
+            case 14:
+                if (value > 0)
+                {
+                    value = -1;
+                }
+                else
+                {
+                    value = 1;
+                }
+                ModelTree[ControllPart, VERTICAL_FLIP] = value;
+                ObjectList[ControllPart].transform.parent.localScale = new Vector3(ModelTree[ControllPart, HORIZONTAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_X], ModelTree[ControllPart, VERTICAL_FLIP] * ModelTree[ControllPart, SCALE] * ModelTree[ControllPart, SCALE_Y], ObjectList[ControllPart].transform.parent.localScale.z);
+                //ResetScaleTree(ControllPart);
+                ResetCurrentRotation(ControllPart);
+                break;
+            default:
+                //UnityEngine.Debug.Log("modify method doesnt exist   "+ModificationID);
+                break;
+        }
+    }
+    public void FrameUpdate()
+    {
+        if (maanimPointer < 0)
+        {
+            return;
+        }
+        for (int k = 0; k < MaanimData[maanimPointer].Length; k++)
+        {
+            float frame = (int)Math.Floor(CurrentFrame);
+            MaanimNode node = MaanimData[maanimPointer][k];
+            if(node.PointList[0].Easing==-1)
+            {
+                break;
+            }
+            else if (frame >= node.EndFrame && node.Loop == -1)
+            {
+                if (node.StartFrame < 0 && node.EndFrame<0)
+                {
+                    // frame = frame - node.StartFrame + node.EndFrame;
+                    // frame = frame - node.TotalFrame * (int)(frame / node.TotalFrame) + node.StartFrame;
+                    frame = frame - node.TotalFrame - node.TotalFrame * (int)((frame - node.EndFrame) / node.TotalFrame) ;
+                    // if(node.ModificationID==CheckModificationID&&node.ControllPart==CheckControlPart){Debug.Log("s,e<0 Currentframe:"+CurrentFrame+" Frame:"+frame);}
+                }
+                else if (node.StartFrame < 0)
+                {
+                    frame -= node.EndFrame;
+                    frame = frame - node.TotalFrame * (int)(frame / node.TotalFrame) + node.StartFrame;
+                }
+                else if (node.StartFrame == 0)
+                {
+                    frame = frame - node.TotalFrame * (int)(frame / node.TotalFrame);
+                }
+                else if (node.StartFrame >= 0)
+                {
+                    frame -= node.StartFrame;
+                    frame = frame - node.TotalFrame * (int)(frame / node.TotalFrame);
+                    frame += node.StartFrame;
+                }
+            }
+            
+            for (int i = 0; i < node.PointList.Length; i++)
+            {
+                int value = 0;
+                int checkControlPart = CheckControlPart;
+                int checkModificationID = CheckModificationID;
+                //if(node.ModificationID==checkModificationID&&node.ControllPart==checkControlPart){UnityEngine.Debug.Log(" CF:"+CurrentFrame+" F:"+frame+" M:"+node.ModificationID+" V:"+value+" obj:"+node.ControllPart+" point length:"+node.PointList.Length+" IN");}
+                if (frame < node.StartFrame &&node.PointList[0].Easing!=1)
+                {
+                    if(node.ModificationID==checkModificationID&&node.ControllPart==checkControlPart){Debug.Log(" CF:"+CurrentFrame+" F:"+frame+" M:"+node.ModificationID+" obj:"+node.ControllPart+" break frame<startframe st:"+node.StartFrame);}
+
+                    break;
+                }
+                else if(frame < node.StartFrame &&node.PointList[0].Easing==1)
+                {
+                    value = node.PointList[0].Value;
+                    AnimationNodeExecute(node.ControllPart, node.ModificationID, value);
+                    if (node.ModificationID == checkModificationID && node.ControllPart == checkControlPart) { UnityEngine.Debug.Log(" CF:" + CurrentFrame + " F:" + frame + " M:" + node.ModificationID + " V:" + value + " obj:" + node.ControllPart); }
+                    break;
+                }
+                else if (node.PointList[(node.LastPoint + i) % node.PointList.Length].Frame == frame)
+                {
+                    value = node.PointList[(node.LastPoint + i) % node.PointList.Length].Value;
+                    AnimationNodeExecute(node.ControllPart, node.ModificationID, value);
+                    node.LastPoint = (node.LastPoint + i) % node.PointList.Length;
+                    if (node.ModificationID == checkModificationID && node.ControllPart == checkControlPart) { UnityEngine.Debug.Log(" CF:" + CurrentFrame + " F:" + frame + " M:" + node.ModificationID + " V:" + value + " obj:" + node.ControllPart); }
+                    break;
+                }
+                else if (node.EndFrame < frame && node.Loop == 1)
+                {
+                    value = node.PointList[node.PointList.Length-1].Value;
+                    AnimationNodeExecute(node.ControllPart, node.ModificationID, value);
+                    node.LastPoint = node.PointList.Length-1;
+                    if (node.ModificationID == checkModificationID && node.ControllPart == checkControlPart) { UnityEngine.Debug.Log(" CF:" + CurrentFrame + " F:" + frame + " M:" + node.ModificationID + " V:" + value + " obj:" + node.ControllPart); }
+                    break;
+                }
+                else if (node.PointList[(node.LastPoint + i) % node.PointList.Length].Frame < frame && node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Frame > frame)
+                {
+                    int F0 = node.PointList[(node.LastPoint + i) % node.PointList.Length].Frame;
+                    int F1 = node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Frame;
+                    float rate = (frame - F0) / (F1 - F0);
+                    switch (node.PointList[(node.LastPoint + i) % node.PointList.Length].Easing)
+                    {
+                        case 1:
+                            value = node.PointList[(node.LastPoint + i) % node.PointList.Length].Value;
+                            break;
+                        case 2:
+                            switch (node.PointList[(node.LastPoint + i) % node.PointList.Length].Parameter)
+                            {
+                                case 0:
+                                    value = node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Value;
+                                    break;
+                                case > 0:
+                                    {
+                                        value = (int)Math.Ceiling(node.PointList[(node.LastPoint + i) % node.PointList.Length].Value
+                                        + (node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Value - node.PointList[(node.LastPoint + i) % node.PointList.Length].Value)
+                                        * (1 - Math.Sqrt(1 - Math.Pow(rate, node.PointList[(node.LastPoint + i) % node.PointList.Length].Parameter))));
+                                        break;
+                                    }
+                                case < 0:
+                                    {
+                                        value = (int)Math.Ceiling(node.PointList[(node.LastPoint + i) % node.PointList.Length].Value
+                                        + (node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Value - node.PointList[(node.LastPoint + i) % node.PointList.Length].Value)
+                                        * Math.Sqrt(1 - Math.Pow(1 - rate, -node.PointList[(node.LastPoint + i) % node.PointList.Length].Parameter)));
+                                        break;
+                                    }
+                            }
+                            break;
+                        case 3:
+                            {
+                                int st_point = (node.LastPoint + i) % node.PointList.Length;
+                                int end_point = (node.LastPoint + i) % node.PointList.Length;
+                                for (int j = st_point; j >= 0; j--)
+                                {
+                                    if (node.PointList[j].Easing != 3)
+                                    {
+                                        break;
+                                    }
+                                    st_point = j;
+                                }
+                                for (int j = end_point; j < node.PointList.Length; j++)
+                                {
+                                    end_point = j;
+                                    if (node.PointList[j].Easing != 3)
+                                    {
+                                        break;
+                                    }
+                                }
+                                float value_ = 0;
+                                float x = frame;
+                                for (int j = st_point; j <= end_point; j++)//j sum
+                                {
+                                    float L = 1;
+                                    for (int g = st_point; g <= end_point; g++)//prob
+                                    {
+                                        if (g == j)
+                                        {
+                                            continue;
+                                        }
+                                        L *= (x - node.PointList[g].Frame) / (node.PointList[j].Frame - node.PointList[g].Frame);
+                                    }
+                                    value_ += node.PointList[j].Value * L;
+                                }
+                                value = (int)System.Math.Ceiling(value_);
+                                break;
+                            }
+                        default:// 0
+                            {
+                                value = (int)System.Math.Ceiling(rate * (node.PointList[(node.LastPoint + i + 1) % node.PointList.Length].Value - node.PointList[(node.LastPoint + i) % node.PointList.Length].Value)
+                                + node.PointList[(node.LastPoint + i) % node.PointList.Length].Value);
+                                break;
+                            }
+                    }   
+                    node.LastPoint = (node.LastPoint + i) % node.PointList.Length;
+                    AnimationNodeExecute(node.ControllPart, node.ModificationID, value);
+                    if (node.ModificationID == checkModificationID && node.ControllPart == checkControlPart) { UnityEngine.Debug.Log(" CF:" + CurrentFrame + " F:" + frame + " M:" + node.ModificationID + " V:" + value + " obj:" + node.ControllPart); }//
+                    break;
+                }
+                else if ((frame < node.PointList[0].Frame || frame > node.PointList[node.PointList.Length - 1].Frame) && node.Loop == -1 && node.TotalFrame > 0)
+                {
+                    Debug.LogError("frame out of range CF:" + CurrentFrame + " F:" + frame + " M:" + node.ModificationID + " V:-" + " obj:" + node.ControllPart);
+                }
+            }
+        }
+        // ResetOpacity(0);
+        ResetScaleTree(0);
+        CurrentFrame += 1 * AnimationSpeedRate;
+    }
+    
+    public void SetImage(Texture2D _picture)
+    {
+        picture = _picture;
+    }
+    public void SetImgcut(TextAsset imgcut)
+    {
+        ImgcutTextAsset = imgcut;
+    }
+    public void SetModel(TextAsset model)
+    {
+        ModelTextAsset = model;
+    }
+    public void SetMaanim(TextAsset maanim,int index)
+    {
+        if(MaanimTextAsset.Length<index)
+        {
+            Debug.LogError("Index error : Length:"+MaanimTextAsset.Length+" index:"+index);
+            return;
+        }
+        MaanimTextAsset[index] = maanim;
+    }
+    public void AppendMaanim(TextAsset maanim)
+    {
+        MaanimTextAsset[MaanimTextAsset.Length] = maanim;
+    }//MODIFIED
+    public void SetMaanimLength(int length)
+    {
+        TextAsset[] MaanimTextAsset = new TextAsset[length];
+    }
+    public void DestroyAnimation()
+    {
+        Destroy(Target);
+        Destroy(this.gameObject);
+    }
+    void SetAnimationTotalFrame()
+    {
+        animationTotalFrame = new int[MaanimTextAsset.Length];
+        for(int i=0;i<MaanimTextAsset.Length;i++)
+        {
+            int total = 0;
+            for(int j=0;j<MaanimData[i].Length;j++)
+            {
+                if(MaanimData[i][j].EndFrame>total)
+                {
+                    total = MaanimData[i][j].EndFrame;
+                }
+            }
+            animationTotalFrame[i] = total;
+        }
+    }
+    public void Initialization(int sortingOrder)//MODIFIED
+    {
+        MaanimData = new MaanimNode[MaanimTextAsset.Length][];
+        Decrypt_Imgcut();
+        Decrypt_Mamodel();
+        SetBaseSortingOrder(sortingOrder);
+        ModelSummon();
+        Decrypt_Maanim();
+        SetAnimationTotalFrame();
+    }
+    public void SetMaanimPointer(int point)
+    {
+        if (point == maanimPointer) return;
+        if(point<MaanimTextAsset.Length)
+        {
+            maanimPointer = point;
+            AnimationReset();
+        }
+        else
+        {
+            Debug.LogError("Set point:"+point+" is out of range :"+MaanimTextAsset.Length);
+        }
+    }
+    public int GetCurrentFrame() { return (int)Math.Floor(CurrentFrame); }
+    public void SetAnimationSpeed(float spd) { AnimationSpeedRate = spd; }
+    void Start()
+    {
+        if (InitializeWhenStart)
+        {
+            Initialization(10);
+            FrameUpdate();
+        }
+    }
+
+    void Update()
+    {
+        FrameUpdate();
+        //---------------------------------------------MODIFIED
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            maanimPointer += 1;
+            AnimationReset();
+        }
+        //else if (Input.GetKeyDown(KeyCode.W))
+        //{
+        //    PrintTree();
+        //    Debug.Log(ModelTree.GetLength(0));
+        //}
+        //else if (Input.GetKeyDown(KeyCode.E))
+        //{
+        //    FrameUpdate();
+        //    if (AnimationSpeedRate == 0)
+        //    {
+        //        CurrentFrame += 1;
+        //    }
+        //}
+        //else if (Input.GetKeyDown(KeyCode.R))
+        //{
+        //    ResetOpacity(0);
+        //    ResetScaleTree(0);
+        //    ResetCurrentRotation(0);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.T))
+        //{
+        //}
+        //else if (Input.GetKeyDown(KeyCode.A))
+        //{
+        //    SetMaanimPointer(0);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.S))
+        //{
+        //    SetMaanimPointer(1);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.D))
+        //{
+        //    SetMaanimPointer(2);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.F))
+        //{
+        //    SetMaanimPointer(3);
+        //}
+    }
+}

@@ -1,0 +1,712 @@
+fileFormatVersion: 2
+guid: 55ae3b9c7e135bb479dae89c1a067b99
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: head
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 547
+        width: 58
+        height: 53
+      alignment: 9
+      pivot: {x: 0.2898486, y: 0.31337178}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 231feafbbed0cc84cbbf0a5223dc3dc5
+      internalID: 274041647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: head_feather_0
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 527
+        width: 25
+        height: 73
+      alignment: 9
+      pivot: {x: 0.6657831, y: 0.082056336}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 66b9f5235c21a1d448f44c2293d6e64a
+      internalID: -1592540842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: head_feather_1
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 519
+        width: 58
+        height: 81
+      alignment: 9
+      pivot: {x: 0.89905196, y: 0.070017874}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0dcb476a12fabdb41b24be4d98c1c327
+      internalID: 721209813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: head_feather_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 520
+        width: 51
+        height: 26
+      alignment: 9
+      pivot: {x: 0.86330885, y: 0.20529644}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e5958e4fde443e4c8b504776ee31cd3
+      internalID: -478726192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eye_0
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 516
+        width: 15
+        height: 11
+      alignment: 9
+      pivot: {x: 0.4999995, y: 0.34801692}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e15833b813e2c354886ceeecb6ed2d9e
+      internalID: -1700174964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eye_1
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 510
+        width: 16
+        height: 17
+      alignment: 9
+      pivot: {x: 0.42163563, y: 0.36887854}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2abdf1bd1878ccd4b9d648c2ebd50194
+      internalID: 1848540074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: neck_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 440
+        width: 49
+        height: 79
+      alignment: 9
+      pivot: {x: 0.42892137, y: 0.089111716}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b2d9e378296cb244bfb7f2811cc5ce7
+      internalID: -2097854544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: neck_0
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 424
+        width: 51
+        height: 94
+      alignment: 9
+      pivot: {x: 0.8336819, y: 0.085403115}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a35881f5ae50a044dbc7c34e468eca7d
+      internalID: 1621764645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: neck_feather
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 424
+        width: 28
+        height: 85
+      alignment: 9
+      pivot: {x: 0.39768615, y: 0.8914784}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6fc5cb6bfbdd1444f86414abe021806b
+      internalID: 1210184660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mouth_up
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 232
+        width: 42
+        height: 78
+      alignment: 9
+      pivot: {x: 0.23014323, y: 0.8980838}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4f2d950d6996514592229540d015a10
+      internalID: -1609231982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mouth_down
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 446
+        width: 12
+        height: 66
+      alignment: 9
+      pivot: {x: 0.42826524, y: 0.88346124}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6bd30deeb4d8fad4b800f0ff737a24b7
+      internalID: 1694139781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: body
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 307
+        width: 125
+        height: 115
+      alignment: 9
+      pivot: {x: 0.49200383, y: 0.140763}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 537a732ffa86a0a40bb8622d606d62dd
+      internalID: -1004993224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 180
+        width: 99
+        height: 126
+      alignment: 9
+      pivot: {x: 0.8367096, y: 0.32395318}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 499e06a7c8892b14298ffc17e9c9b450
+      internalID: -274746068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_0
+      rect:
+        serializedVersion: 2
+        x: 126
+        y: 311
+        width: 93
+        height: 112
+      alignment: 9
+      pivot: {x: 0.836499, y: 0.29766628}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b0d88bac7b124640bcf1b84d67b592a
+      internalID: -774121282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_1
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 185
+        width: 86
+        height: 120
+      alignment: 9
+      pivot: {x: 0.21277742, y: 0.87875086}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 014d87a87ae7d464c87fcf6b472a1e2c
+      internalID: -1354864209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_feather_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 102
+        width: 69
+        height: 77
+      alignment: 9
+      pivot: {x: 0.8325032, y: 0.12482472}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a31095296306a004ea4f7570e0db7a6f
+      internalID: 1026178460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_feather_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 41
+        width: 69
+        height: 61
+      alignment: 9
+      pivot: {x: 0.8351362, y: 0.23436087}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8c8fc20e0ad6374fb7a5ee11c412665
+      internalID: -1594909680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: flame
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 54
+        height: 41
+      alignment: 9
+      pivot: {x: 0.7105, y: 0.47050512}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 634b1ea3ddcc49841a185f3c890aba1b
+      internalID: -1054187658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wing_feather_2
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 128
+        width: 65
+        height: 51
+      alignment: 9
+      pivot: {x: 0.78391147, y: 0.18838413}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd95720e7a58f124e9a8fc33af0404e9
+      internalID: -297407116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tail_0
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 0
+        width: 115
+        height: 128
+      alignment: 9
+      pivot: {x: 0.8823729, y: 0.12462173}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c481769f37ec8e47b1d424b78d545a4
+      internalID: 1667282547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tail_1
+      rect:
+        serializedVersion: 2
+        x: 135
+        y: 138
+        width: 78
+        height: 44
+      alignment: 9
+      pivot: {x: 0.8822536, y: 0.280623}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 61908be96019f2e4d8e7f91aa21cd19e
+      internalID: -366542693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tail_2
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 535
+        width: 29
+        height: 65
+      alignment: 9
+      pivot: {x: 0.62492055, y: 0.10190242}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04cbabb607b62e04e9f18046619c01fb
+      internalID: 1654757120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: shadow
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 459
+        width: 14
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cdeb24aa887941c40ad8851342fa20a2
+      internalID: -915461568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: leg_0
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 461
+        width: 11
+        height: 138
+      alignment: 9
+      pivot: {x: 0.5297255, y: 0.93481094}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10caa67470fb9524d932990c94babd69
+      internalID: -548763942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: leg_1
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 456
+        width: 12
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5309372, y: 0.961447}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e4eb38e0ce9abf42bd16b77f2ff7ff2
+      internalID: -1863202321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: feet
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 423
+        width: 61
+        height: 32
+      alignment: 9
+      pivot: {x: 0.12279314, y: 0.60178596}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90af038565e8fcb40a20de1c7c941480
+      internalID: -965240964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      body: -1004993224
+      eye_0: -1700174964
+      eye_1: 1848540074
+      feet: -965240964
+      flame: -1054187658
+      head: 274041647
+      head_feather_0: -1592540842
+      head_feather_1: 721209813
+      head_feather_2: -478726192
+      leg_0: -548763942
+      leg_1: -1863202321
+      mouth_down: 1694139781
+      mouth_up: -1609231982
+      neck_0: 1621764645
+      neck_1: -2097854544
+      neck_feather: 1210184660
+      shadow: -915461568
+      tail_0: 1667282547
+      tail_1: -366542693
+      tail_2: 1654757120
+      wing_0: -774121282
+      wing_1: -1354864209
+      wing_2: -274746068
+      wing_feather_0: 1026178460
+      wing_feather_1: -1594909680
+      wing_feather_2: -297407116
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

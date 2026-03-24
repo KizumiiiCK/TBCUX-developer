@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
+  m_Name: data
+  m_EditorClassIdentifier: 
+  Name: 20211
+  isEliteUnit: 0
+  ATKType: 
+  atkInfos:
+  - ATK: 20
+    frame: 2
+    DoNotTriggerEffects: 0
+    ATKRange: {x: 0, y: 250}
+  - ATK: 5
+    frame: 8
+    DoNotTriggerEffects: 0
+    ATKRange: {x: 0, y: 250}
+  - ATK: 74
+    frame: 16
+    DoNotTriggerEffects: 0
+    ATKRange: {x: 0, y: 250}
+  areaATK: 0
+  atkDuration: 28
+  one_off: 0
+  Health: 480
+  KB: 3
+  Speed: 9
+  Reload: 40
+  DetectionRange: 250
+  Cost: 540
+  Cooldown: 276
+  UNITYAnimated: 0
+  traits:
+    Red: 0
+    Flt: 0
+    Blk: 0
+    Mtl: 0
+    Ang: 0
+    Aln: 0
+    Z: 1
+    Re: 0
+    Aku: 0
+    None: 0
+  traitSpecials:
+    barrierValue: 0
+    akuSheildValue: 0
+    zombieReviveTimes: 0
+    zombieDiveTime: 0
+    revivePercentage: 0
+  subtraits:
+    Starred: 0
+    Colossus: 0
+    Behemoth: 0
+    Sage: 0
+  career:
+    Warrior: 1
+    Deffender: 0
+    Magician: 0
+    Supporter: 0
+    Practician: 0
+  againstCareer:
+    AggainstWarrior: 0
+    AggainstMagician: 0
+    AggainstDeffender: 0
+    AggainstSuppoter: 0
+    AggainstPractician: 0
+  DRE:
+    massiveDamage: 0
+    insaneDamage: 0
+    tough: 0
+    aegis: 0
+    strongAgainst: 0
+  characterEffects:
+  - name: 4
+    probability: 16
+    duration: 1
+    intensity: 0
+  abilities:
+  - name: 6
+    probability: 100
+    duration: 0
+    intensity: 0
+  atkTypeResis: []
+  effectResistances: []

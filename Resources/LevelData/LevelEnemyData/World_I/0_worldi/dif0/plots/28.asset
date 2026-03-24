@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 373cbc5a1c45ee84286cb20306813a8b, type: 3}
+  m_Name: 28
+  m_EditorClassIdentifier: 
+  contentID: w1-28
+  dialogues:
+  - DialoguerName: KK
+    DialoguerImage: KK_0
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cow
+    DialoguerImage: Cow_0
+    faceToRight: 1
+    clearImage: 0
+  - DialoguerName: Cow
+    DialoguerImage: Cow_angry
+    faceToRight: 1
+    clearImage: 0
+  - DialoguerName: Cow
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: KK
+    DialoguerImage: KK_blank
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cow
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cow
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: Cat_0
+    faceToRight: 1
+    clearImage: 1
+  - DialoguerName: Wall
+    DialoguerImage: Wall_0
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: KK_blank
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: KK
+    DialoguerImage: KK_disappointed
+    faceToRight: 0
+    clearImage: 0

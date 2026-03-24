@@ -1,0 +1,24 @@
+# Ignore everything by default
+/*
+
+# Keep this file
+!/.gitignore
+
+# Include only Unity folders we want to version
+!/Resources/
+!/Script/
+
+# Keep folder meta files for GUID stability
+!/Resources.meta
+!/Script.meta
+
+# Include all content under allowed folders
+!/Resources/**
+!/Script/**
+
+# Optional local/OS noise
+*.tmp
+*.bak
+*.swp
+Thumbs.db
+Desktop.ini

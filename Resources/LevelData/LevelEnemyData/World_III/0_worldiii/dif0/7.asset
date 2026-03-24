@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 7
+  m_EditorClassIdentifier: 
+  levelName: id:australia
+  gainXP: 43210
+  BaseHealth: 71234
+  mapSize: 4800
+  maxEmenyCount: 50
+  maxCatCount: 50
+  BackgroundID: 0
+  BaseImageID: 7
+  CombatEffect:
+  - moon
+  CombatAura:
+  - AuraType: 3
+    Parameters: {x: 0, y: 10, z: 10, w: 0}
+    AuraColor: {r: 1, g: 0.78431374, b: 0.78431374, a: 1}
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e047
+      ratio: 150
+      bossShock: 1
+      repeat: 1
+      firstAppear: 30
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: e17ae62588195904685acd4618e8ee15, type: 3}
+    - enemyID: e013
+      ratio: 700
+      bossShock: 0
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: ecc007087949ca24ca431a23e5fb70b0, type: 3}
+    - enemyID: e012
+      ratio: 700
+      bossShock: 0
+      repeat: 3
+      firstAppear: 500
+      repeatMin: 80
+      repeatMax: 120
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}
+    - enemyID: e023
+      ratio: 100
+      bossShock: 0
+      repeat: 10
+      firstAppear: 1400
+      repeatMin: 6
+      repeatMax: 6
+      previewSprite: {fileID: 21300000, guid: 0e0b093f85ab44942877041f2da731af, type: 3}
+    - enemyID: e010
+      ratio: 100
+      bossShock: 0
+      repeat: 10
+      firstAppear: 1400
+      repeatMin: 6
+      repeatMax: 6
+      previewSprite: {fileID: 21300000, guid: 0e554634d2a647041815ee12faa0917c, type: 3}
+  - HealthPercentageOnBreak: 99
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e018
+      ratio: 150
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 814ffec8c29a1504eb3fb0e41088d928, type: 3}

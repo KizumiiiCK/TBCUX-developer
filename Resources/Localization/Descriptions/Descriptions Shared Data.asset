@@ -1,0 +1,580 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Descriptions Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Descriptions
+  m_TableCollectionNameGuidString: c7dee7b04726ba849b73e11e5c47ef6f
+  m_Entries:
+  - m_Id: 1617378492416
+    m_Key: N:e:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2015300501504
+    m_Key: N:e:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2086884687872
+    m_Key: N:e:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2120506228736
+    m_Key: N:e:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2166127673344
+    m_Key: N:e:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2206627872768
+    m_Key: N:e:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2243919429632
+    m_Key: N:e:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2279390658560
+    m_Key: N:e:8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2313859448832
+    m_Key: N:e:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2355366281216
+    m_Key: N:e:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3013301583872
+    m_Key: D:e:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5307799781376
+    m_Key: D:e:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7044094836736
+    m_Key: D:e:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7057529192448
+    m_Key: D:e:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7070443454464
+    m_Key: D:e:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7082430775296
+    m_Key: D:e:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7095798022144
+    m_Key: D:e:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7112109670400
+    m_Key: D:e:8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7777754103808
+    m_Key: D:e:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7793797316608
+    m_Key: D:e:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55728509632512
+    m_Key: N:dre:m
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55879223558144
+    m_Key: N:dre:i
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55958751756288
+    m_Key: N:dre:t
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56007523123200
+    m_Key: N:dre:a
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56062988599296
+    m_Key: N:dre:s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755136
+    m_Key: D:dre:m
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755137
+    m_Key: D:dre:i
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755138
+    m_Key: D:dre:t
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755139
+    m_Key: D:dre:a
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755140
+    m_Key: D:dre:s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56583673692160
+    m_Key: N:a:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56726150004736
+    m_Key: N:a:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755141
+    m_Key: N:a:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755142
+    m_Key: N:a:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755143
+    m_Key: N:a:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755144
+    m_Key: N:a:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755145
+    m_Key: N:a:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755146
+    m_Key: N:a:8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755147
+    m_Key: N:a:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755148
+    m_Key: N:a:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755149
+    m_Key: N:a:11
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755150
+    m_Key: N:a:12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755151
+    m_Key: N:a:13
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755152
+    m_Key: N:a:14
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755153
+    m_Key: N:a:15
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755154
+    m_Key: N:a:16
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755155
+    m_Key: N:a:17
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755156
+    m_Key: N:a:18
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755157
+    m_Key: N:a:19
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755158
+    m_Key: N:a:20
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755159
+    m_Key: N:a:21
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755160
+    m_Key: N:a:22
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755161
+    m_Key: N:a:23
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755162
+    m_Key: N:a:24
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755163
+    m_Key: N:a:25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755164
+    m_Key: N:a:26
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755165
+    m_Key: N:a:27
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755166
+    m_Key: N:a:28
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755167
+    m_Key: N:a:29
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9849289107128320
+    m_Key: N:a:30
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12492316984295424
+    m_Key: N:a:31
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895505240064
+    m_Key: N:a:32
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291968
+    m_Key: N:a:33
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755168
+    m_Key: D:a:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755169
+    m_Key: D:a:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755170
+    m_Key: D:a:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755171
+    m_Key: D:a:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755172
+    m_Key: D:a:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755173
+    m_Key: D:a:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755174
+    m_Key: D:a:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755175
+    m_Key: D:a:8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755176
+    m_Key: D:a:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755177
+    m_Key: D:a:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755178
+    m_Key: D:a:11
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755179
+    m_Key: D:a:12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755180
+    m_Key: D:a:13
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755181
+    m_Key: D:a:14
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949440
+    m_Key: D:a:15
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949441
+    m_Key: D:a:16
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949442
+    m_Key: D:a:17
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949443
+    m_Key: D:a:18
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949444
+    m_Key: D:a:19
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949445
+    m_Key: D:a:20
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949446
+    m_Key: D:a:21
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949447
+    m_Key: D:a:22
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949448
+    m_Key: D:a:23
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949449
+    m_Key: D:a:24
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949450
+    m_Key: D:a:25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949451
+    m_Key: D:a:26
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949452
+    m_Key: D:a:27
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949453
+    m_Key: D:a:28
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949454
+    m_Key: D:a:29
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9849289182625792
+    m_Key: D:a:30
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12492317059792896
+    m_Key: D:a:31
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291969
+    m_Key: D:a:32
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291970
+    m_Key: D:a:33
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183168
+    m_Key: N:ra:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183169
+    m_Key: N:ra:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183170
+    m_Key: N:ra:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183171
+    m_Key: D:ra:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183172
+    m_Key: D:ra:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183173
+    m_Key: D:ra:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183174
+    m_Key: N:re:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183175
+    m_Key: N:re:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183176
+    m_Key: N:re:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183177
+    m_Key: N:re:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183178
+    m_Key: N:re:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183179
+    m_Key: N:re:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183180
+    m_Key: N:re:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183181
+    m_Key: N:re:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183182
+    m_Key: N:re:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183183
+    m_Key: D:re:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183184
+    m_Key: D:re:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183185
+    m_Key: D:re:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183186
+    m_Key: D:re:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183187
+    m_Key: D:re:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183188
+    m_Key: D:re:6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183189
+    m_Key: D:re:7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183190
+    m_Key: D:re:9
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183191
+    m_Key: D:re:10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039744
+    m_Key: N:ac:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039745
+    m_Key: N:ac:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039746
+    m_Key: N:ac:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039747
+    m_Key: N:ac:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039748
+    m_Key: N:ac:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039749
+    m_Key: D:ac:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039750
+    m_Key: D:ac:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039751
+    m_Key: D:ac:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039752
+    m_Key: D:ac:4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039753
+    m_Key: D:ac:5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11635609110396928
+    m_Key: N:s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11635609152339968
+    m_Key: D:s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184057888768
+    m_Key: N:p
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803328
+    m_Key: D:p:0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803329
+    m_Key: D:p:1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803330
+    m_Key: D:p:2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803331
+    m_Key: D:p:3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803332
+    m_Key: D:p:4
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 8816580517451268098
+  references:
+    version: 2
+    RefIds:
+    - rid: 8816580517451268098
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1760329726192

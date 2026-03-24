@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: DialogueNames Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: DialogueNames
+  m_TableCollectionNameGuidString: 335fc8b7bef292f45b0dd9a6d6706856
+  m_Entries:
+  - m_Id: 30197491777536
+    m_Key: char:???
+    m_Metadata:
+      m_Items: []
+  - m_Id: 27171045376
+    m_Key: char:KK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 57781075968
+    m_Key: char:Cat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764759863296
+    m_Key: char:Wall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360768
+    m_Key: char:Axe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360769
+    m_Key: char:Gross
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360770
+    m_Key: char:Cow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360771
+    m_Key: char:Bird
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360772
+    m_Key: char:Fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360773
+    m_Key: char:Lizard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16493764835360774
+    m_Key: char:Titan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 35694756936105984
+    m_Key: char:Reisen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 35710284308234240
+    m_Key: char:Moneko
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36040990620205056
+    m_Key: char:Piercer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36707851326275584
+    m_Key: char:XPM
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 8963716405731524610
+  references:
+    version: 2
+    RefIds:
+    - rid: 8963716405731524610
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1759029428351

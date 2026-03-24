@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 0_worldi
+  m_EditorClassIdentifier: 
+  sectionName: 0_worldi
+  mapName: worldmap
+  unlockRestriction: 
+  hardness: 1
+  difficulty: 010101000000000000000000
+  coverColor: {r: 0.86274517, g: 0.8745099, b: 0.8196079, a: 1}
+  titleColor: 0
+  levelsOnMap:
+  - levelNameID: id:korea
+    levelPosition: {x: 29.5, y: -0.1}
+    tileType: 0
+  - levelNameID: id:mongolia
+    levelPosition: {x: 20.1, y: 3.6}
+    tileType: 0
+  - levelNameID: id:china
+    levelPosition: {x: 21.4, y: -1.5}
+    tileType: 0
+  - levelNameID: id:thailand
+    levelPosition: {x: 19.1, y: -8}
+    tileType: 0
+  - levelNameID: id:cambodia
+    levelPosition: {x: 20.1, y: -9.1}
+    tileType: 0
+  - levelNameID: id:philippines
+    levelPosition: {x: 27.2, y: -9.6}
+    tileType: 0
+  - levelNameID: id:japan
+    levelPosition: {x: 33.6, y: 0}
+    tileType: 10
+  - levelNameID: id:australia
+    levelPosition: {x: 33, y: -25}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:maldives
+    levelPosition: {x: 8.7, y: -14.6}
+    tileType: 0
+  - levelNameID: id:india
+    levelPosition: {x: 10.3, y: -7}
+    tileType: 0
+  - levelNameID: id:nepal
+    levelPosition: {x: 13, y: -3.4}
+    tileType: 0
+  - levelNameID: id:dubai
+    levelPosition: {x: 2.3, y: -4.5}
+    tileType: 0
+  - levelNameID: id:saudiarabia
+    levelPosition: {x: 2.3, y: -4.5}
+    tileType: 0
+  - levelNameID: id:kenya
+    levelPosition: {x: -4.5, y: -4.7}
+    tileType: 0
+  - levelNameID: id:madagascar
+    levelPosition: {x: -1, y: -22.5}
+    tileType: 0
+  - levelNameID: id:southafrica
+    levelPosition: {x: -9.5, y: -26.2}
+    tileType: 0
+  - levelNameID: id:ghana
+    levelPosition: {x: -19, y: -12}
+    tileType: 0
+  - levelNameID: id:sahara
+    levelPosition: {x: -16.5, y: -6.5}
+    tileType: 0
+  - levelNameID: id:egypt
+    levelPosition: {x: -7.5, y: -4.5}
+    tileType: 0
+  - levelNameID: id:turkey
+    levelPosition: {x: -5.5, y: 0.5}
+    tileType: 0
+  - levelNameID: id:russia
+    levelPosition: {x: -3, y: 7.5}
+    tileType: 0
+  - levelNameID: id:greece
+    levelPosition: {x: -10.5, y: -0.5}
+    tileType: 0
+  - levelNameID: id:italy
+    levelPosition: {x: -14.5, y: 1.5}
+    tileType: 0
+  - levelNameID: id:monaco
+    levelPosition: {x: -17.5, y: 2.8}
+    tileType: 0
+  - levelNameID: id:spain
+    levelPosition: {x: -22.5, y: 1}
+    tileType: 0
+  - levelNameID: id:france
+    levelPosition: {x: -19.5, y: 4}
+    tileType: 0
+  - levelNameID: id:germany
+    levelPosition: {x: -16.5, y: 5.5}
+    tileType: 0
+  - levelNameID: id:denmark
+    levelPosition: {x: -16.8, y: 7.8}
+    tileType: 0
+  - levelNameID: id:norway
+    levelPosition: {x: -16, y: 10.5}
+    tileType: 0
+  - levelNameID: id:unitedkingdom
+    levelPosition: {x: -21.5, y: 7}
+    tileType: 0
+  - levelNameID: id:greenland
+    levelPosition: {x: -44, y: 11}
+    tileType: 0
+  - levelNameID: id:canada
+    levelPosition: {x: -65, y: 7}
+    tileType: 0
+  - levelNameID: id:newyork
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: id:bermuda
+    levelPosition: {x: -53, y: -3}
+    tileType: 0
+  - levelNameID: id:jamaica
+    levelPosition: {x: -56, y: -7}
+    tileType: 0
+  - levelNameID: id:colombia
+    levelPosition: {x: -54, y: -12.5}
+    tileType: 0
+  - levelNameID: id:brazil
+    levelPosition: {x: -45.5, y: -18.5}
+    tileType: 0
+  - levelNameID: id:argentina
+    levelPosition: {x: -51, y: -28}
+    tileType: 0
+  - levelNameID: id:machupicchu
+    levelPosition: {x: -54, y: -19}
+    tileType: 0
+  - levelNameID: id:easterialand
+    levelPosition: {x: -65, y: -22}
+    tileType: 0
+  - levelNameID: id:mexico
+    levelPosition: {x: -64, y: -7}
+    tileType: 0
+  - levelNameID: id:nasa
+    levelPosition: {x: -62, y: -2}
+    tileType: 0
+  - levelNameID: id:lasvegas
+    levelPosition: {x: -69, y: 0}
+    tileType: 0
+  - levelNameID: id:hollywood
+    levelPosition: {x: -71, y: -1}
+    tileType: 0
+  - levelNameID: id:alaska
+    levelPosition: {x: -83.5, y: 10.5}
+    tileType: 0
+  - levelNameID: id:hawaii
+    levelPosition: {x: -85.5, y: -6.5}
+    tileType: 0
+  - levelNameID: id:moon
+    levelPosition: {x: -90, y: -65}
+    tileType: 0

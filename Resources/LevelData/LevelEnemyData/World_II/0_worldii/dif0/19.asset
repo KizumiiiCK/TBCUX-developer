@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 19
+  m_EditorClassIdentifier: 
+  levelName: id:egypt
+  gainXP: 9000
+  BaseHealth: 18000
+  mapSize: 4800
+  maxEmenyCount: 15
+  maxCatCount: 50
+  BackgroundID: 4
+  BaseImageID: 19
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 030
+    enemySummonInfos:
+    - enemyID: e061
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 400
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 5168eb8f9c13d08439510eb5d38b541a, type: 3}
+    - enemyID: e004
+      ratio: 500
+      bossShock: 0
+      repeat: 15
+      firstAppear: 80
+      repeatMin: 80
+      repeatMax: 80
+      previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
+    - enemyID: e012
+      ratio: 200
+      bossShock: 0
+      repeat: 1
+      firstAppear: 1200
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}
+    - enemyID: e017
+      ratio: 200
+      bossShock: 0
+      repeat: -1
+      firstAppear: 400
+      repeatMin: 400
+      repeatMax: 400
+      previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
+    - enemyID: e104
+      ratio: 500
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1000
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}

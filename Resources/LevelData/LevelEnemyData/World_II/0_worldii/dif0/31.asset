@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 31
+  m_EditorClassIdentifier: 
+  levelName: id:greenland
+  gainXP: 13000
+  BaseHealth: 40000
+  mapSize: 3600
+  maxEmenyCount: 15
+  maxCatCount: 50
+  BackgroundID: 22
+  BaseImageID: 31
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e016
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 80
+      repeatMin: 590
+      repeatMax: 590
+      previewSprite: {fileID: 21300000, guid: 398adfb02260fd84ea72fdd7cd8d276a, type: 3}
+  - HealthPercentageOnBreak: 80
+    bgm: 030
+    enemySummonInfos:
+    - enemyID: e063
+      ratio: 60
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 6714c271a398a884884778a71a53521b, type: 3}
+    - enemyID: e016
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 120
+      repeatMin: 220
+      repeatMax: 660
+      previewSprite: {fileID: 21300000, guid: 398adfb02260fd84ea72fdd7cd8d276a, type: 3}
+    - enemyID: e016
+      ratio: 300
+      bossShock: 0
+      repeat: 5
+      firstAppear: 420
+      repeatMin: 20
+      repeatMax: 220
+      previewSprite: {fileID: 21300000, guid: 398adfb02260fd84ea72fdd7cd8d276a, type: 3}
+    - enemyID: e013
+      ratio: 175
+      bossShock: 0
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: ecc007087949ca24ca431a23e5fb70b0, type: 3}

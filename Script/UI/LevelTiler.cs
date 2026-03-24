@@ -1,0 +1,295 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class LevelTiler : UICanvasMain
+{
+    [Header("Prefabs")]
+    [SerializeField] private GameObject LevelPrefab;
+    //[SerializeField] private RectTransform swapArea;
+    [SerializeField] private GameObject mapPoints;
+    //[SerializeField] private GameObject ZDKS;
+    [SerializeField] private Sprite slot_empty;
+    [Header("Others")]
+    [SerializeField] private Button ReturnBtn;
+    [SerializeField] private Button TeamBtn;
+    [SerializeField] private TMP_Text team_txt;
+    [SerializeField] private Button ShowteamBtn;
+    [SerializeField] private Button CombatBtn;
+    [SerializeField] private GameObject characterBoard;
+    [SerializeField] private Transform selectedCharacters;
+    [SerializeField] private Transform selectedGuests;
+    [SerializeField] private ShowEnemyBoard SEB;
+    [SerializeField] private LevelRewardBoard LRB;
+    [SerializeField] private LevelDragSelector dragSelector;
+    public RectTransform target; // 需要移动的子物体
+    private Camera cam;
+    private MapInfo MI;
+    public float minX = 0f; // 最小X值
+    public float maxX = 375f; // 最大X值
+    public static float moveSpeed = 5f; // Lerp速度
+    public static float level_tile_gap = 375;
+
+    private Vector3 desiredPosition;
+    private int current_level_num = 0;
+    private int team_num = 0;
+    private string[,] enemyAppears;
+    private List<Reward[]> rewardlist=new List<Reward[]>();
+
+    public GameProgressSave.SectionClearList secClearList;
+
+    private void Start()
+    {
+        cam=GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        GetComponent<Canvas>().worldCamera = cam;
+        InitializeMap();
+        ReturnBtn.onClick.AddListener(delegate { 
+            GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().ReturnFromMap(); }
+        );
+        TeamBtn.onClick.AddListener(SwitchTeamBtn);
+        ShowteamBtn.onClick.AddListener(delegate { ShowCharacterBoard(!characterBoard.activeSelf); });
+        CombatBtn.onClick.AddListener(LaunchAttack);
+        cam.backgroundColor = MI.coverColor;
+        InitializeDragSelector();
+    }
+    private void OnEnable()
+    {
+        ChangeTeamShowInfo();
+        TeamBtn.interactable = true;
+    }
+    void Update()
+    {
+        target.anchoredPosition = Vector2.Lerp(target.anchoredPosition, desiredPosition, Time.deltaTime * moveSpeed);
+        ChangeCurrentLevelNum((int)(-desiredPosition.x / level_tile_gap));
+        //current_level_num = (int)(-desiredPosition.x/ level_tile_gap);
+        CombatBtn.interactable = (Mathf.Abs(desiredPosition.x - target.anchoredPosition.x))<100;
+        cam.transform.position = Vector2.Lerp(cam.transform.position, MI.levelsOnMap[current_level_num].levelPosition, Time.deltaTime * moveSpeed);
+        cam.transform.position = new Vector3(cam.transform.position.x, cam.transform.position.y, -10);
+    }
+
+    public void ApplyDragDelta(float deltaX)
+    {
+        desiredPosition = target.anchoredPosition + new Vector2(deltaX, 0);
+        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+        desiredPosition.x = Mathf.Round(desiredPosition.x / level_tile_gap) * level_tile_gap;
+    }
+
+    public void SnapToNearestLevel()
+    {
+        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+        desiredPosition.x = Mathf.Round(desiredPosition.x / level_tile_gap) * level_tile_gap;
+    }
+    public void SetMapInfo(MapInfo mi) { MI = mi; }
+    public void SetLevelMapSize(int levelNums){minX = -levelNums * level_tile_gap; maxX = 0;}
+    private void InitializeMap()
+    {
+        Transform mapt=GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().GetCurrentMap();
+        string chapter = PlayerPrefs.GetString(UXPref.ChapterName, UXPref.DefaultChapterName);
+        string sectionName= PlayerPrefs.GetString(UXPref.SectionName);
+        int sectionNum= PlayerPrefs.GetInt(UXPref.SectionNum, 0);
+        int diff= PlayerPrefs.GetInt(UXPref.Difficulty, 0);
+        //
+        int mark_label = 0;
+        if(sectionName=="0_worldi"|| sectionName == "0_worldii" || sectionName == "0_worldiii") mark_label = 60;
+        //
+        string levelLoadPath = $"LevelData/LevelEnemyData/{chapter}/{sectionName}/dif{diff}/";
+        secClearList = GameProgressSave.LoadSectionProgress(chapter, sectionName);
+        enemyAppears = new string[MI.levelsOnMap.Length,16];
+        int exact_maplength = MI.levelsOnMap.Length;
+        for (int i = 0; i < exact_maplength; i++)
+        {
+            LevelPoint lp = Instantiate(mapPoints, MI.levelsOnMap[i].levelPosition, Quaternion.identity).GetComponent<LevelPoint>();
+            lp.transform.SetParent(mapt);
+            if (i > 0) lp.SetPathLine(MI.levelsOnMap[i - 1].levelPosition);
+            if (secClearList.clear_times[diff, i] > 0) lp.UnlockPoint();
+        }
+        for (int i=0;i< exact_maplength; i++)
+        {
+            RectTransform lvl=Instantiate(LevelPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
+            lvl.SetParent(target);//
+            lvl.anchoredPosition = new Vector2(i * level_tile_gap, 350);
+            Level L = lvl.GetComponent<Level>();
+            L.SetLevelInfo(MI.levelsOnMap[i]);
+            L.SetLT(this);
+            L.SetClearedInfo(secClearList.clear_times[diff, i], secClearList.level_score[diff,i]);
+            if (mark_label > 0)
+            {
+                if (secClearList.reward_gained[i]) L.SetMark(mark_label);
+            }
+            try { 
+                SetEnemyAppears(i, Resources.Load<LevelData>(levelLoadPath + i.ToString())); 
+            }
+            catch 
+            { 
+                Debug.LogError($"Error Loading level {i}."); 
+                exact_maplength = i-1;
+                SetLevelMapSize(exact_maplength);
+                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
+                {
+                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
+                }
+                else
+                {
+                    MoveToLevel(exact_maplength);
+                }
+                break; 
+            }
+
+            if (secClearList.clear_times[diff, i] <= 0) 
+            { 
+                SetLevelMapSize(i);
+                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
+                {
+                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
+                }
+                else
+                {
+                    MoveToLevel(i);
+                }
+                break; 
+            }
+            if (i == MI.levelsOnMap.Length - 1)
+            {
+                SetLevelMapSize(MI.levelsOnMap.Length - 1);
+                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
+                {
+                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
+                }
+                else
+                {
+                    MoveToLevel(MI.levelsOnMap.Length - 1);
+                }
+            }
+        }
+        PlayerPrefs.DeleteKey(UXPref.DirectMark);
+        
+    }
+    private void MoveToLevel(int levelnum)
+    {
+        desiredPosition = new Vector2(-levelnum * level_tile_gap, target.anchoredPosition.y);
+    }
+    private void OnDestroy()
+    {
+        Scene currentScene = SceneManager.GetActiveScene();
+        GameObject[] rootGameObjects = currentScene.GetRootGameObjects();
+        foreach (GameObject rootObject in rootGameObjects)
+        {
+            if (rootObject.name.Contains("LevelPoint"))Destroy(rootObject);
+        }
+        if (cam!=null)cam.transform.position =new Vector3(0,0,-10);
+    }
+    private void LaunchAttack()
+    {
+        Image bc=Instantiate(Resources.Load<GameObject>("UI/ZDKS")).transform.GetChild(1).GetComponent<Image>();
+        Sprite[] chars_img = Resources.LoadAll<Sprite>("DialogueImage");
+        bc.sprite = chars_img[PlayerPrefs.GetInt("base_character", 0)];
+        PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
+        this.enabled = false;
+    }
+    private void ChangeTeamShowInfo()
+    {
+        team_num = PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0);
+        team_txt.text = $"Team {team_num + 1}";
+        string[] codes = SelectionsSave.GetRow(team_num);
+        for (int i = 0; i < 10; i++)
+        {
+            Sprite s;
+            if (codes[i] == null || codes[i] == string.Empty) s = slot_empty;
+            else s = Resources.Load<Sprite>($"Units/Cat Units/{codes[i][0]}/{codes[i].Substring(1, 3)}/{codes[i][4]}/icon_deploy");
+            if (s == null) s = slot_empty;
+            selectedCharacters.GetChild(i).GetComponent<Image>().sprite = s;
+        }
+        for (int i = 10; i < 13; i++)
+        {
+            Sprite s;
+            if (codes[i] == null || codes[i] == string.Empty) s = slot_empty;
+            else s = Resources.Load<Sprite>($"Units/Cat Units/{codes[i][0]}/{codes[i].Substring(1, 3)}/{codes[i][4]}/icon_deploy");
+            if (s == null) s = slot_empty;
+            selectedGuests.GetChild(i-10).GetComponent<Image>().sprite = s;
+        }
+    }
+    private void ShowCharacterBoard(bool show) {
+        characterBoard.SetActive(show);
+    }
+    public void SetEnemyAppears(int levelNum, LevelData led)
+    {
+        for (int i = 0; i < led.enemySummoners.Length; i++)
+        {
+            for (int j = 0; j < led.enemySummoners[i].enemySummonInfos.Length; j++)
+            {
+                string e = led.enemySummoners[i].enemySummonInfos[j].enemyID;
+                for (int k = 0; k < 16; k++)
+                {
+                    if (enemyAppears[levelNum,k] == null || enemyAppears[levelNum,k] == string.Empty)
+                    {
+                        enemyAppears[levelNum, k] = e; break;
+                    }
+                    if (enemyAppears[levelNum, k] == e) break;
+                }
+            }
+        }
+        rewardlist.Add(led.rewardlist);
+    }
+    private void ChangeCurrentLevelNum(int cln)
+    {
+        if (current_level_num == cln) return;
+        current_level_num = cln;
+        ChanageSEBShowInfo(current_level_num);
+    }
+    public void ShowSEB()
+    {
+        SEB.gameObject.SetActive(!SEB.gameObject.activeSelf);
+        LRB.gameObject.SetActive(SEB.gameObject.activeSelf);
+        ChanageSEBShowInfo(current_level_num);
+    }
+    public void ChanageSEBShowInfo(int level_num)
+    {
+        if (!SEB.gameObject.activeSelf) return;
+        SEB.ShowEnemies(GetCurrentEnemies(level_num));
+        ChangeLRBInfo();
+    }
+    public void ChangeLRBInfo()
+    {
+        LRB.SetRewards(rewardlist[current_level_num]);
+        LRB.ShowLevelRewards(secClearList.reward_gained[current_level_num]);
+    }
+    private string[] GetCurrentEnemies(int level_num)
+    {
+        int realLength = 0;
+        for (int i = 0; i < enemyAppears.GetLength(1); i++) if (enemyAppears[level_num, i] == null || enemyAppears[level_num, i] == string.Empty) break; else realLength++;
+        string[] ens = new string[realLength];
+        for (int i = 0; i < realLength; i++) ens[i] = enemyAppears[level_num, i];
+        return ens;
+    }
+    private void SwitchTeamBtn()
+    {
+        TeamBtn.interactable = false; 
+        GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().MapToEquip(GetCurrentEnemies(current_level_num));
+    }
+
+    public override IEnumerator OnEnter()
+    {
+        yield break;
+    }
+
+    public override IEnumerator OnExit()
+    {
+        yield break;
+    }
+
+    public override string GetPageBgmName()
+    {
+        if (MI != null && !string.IsNullOrEmpty(MI.BGM)) return MI.BGM;
+        return base.GetPageBgmName();
+    }
+
+    private void InitializeDragSelector()
+    {
+        if (dragSelector == null) dragSelector = GetComponentInChildren<LevelDragSelector>(true);
+        if (dragSelector != null) dragSelector.Configure(this);
+    }
+}

@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 16
+  m_EditorClassIdentifier: 
+  levelName: id:southafrica
+  gainXP: 5800
+  BaseHealth: 7000
+  mapSize: 5000
+  maxEmenyCount: 50
+  maxCatCount: 50
+  BackgroundID: 7
+  BaseImageID: 16
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e008
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 500
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 0d9f2e5373c92a64ea9900d13a9ac147, type: 3}
+    - enemyID: e005
+      ratio: 100
+      bossShock: 0
+      repeat: 2
+      firstAppear: 300
+      repeatMin: 400
+      repeatMax: 400
+      previewSprite: {fileID: 21300000, guid: 73afddee46a0df64a807af75a5b1170b, type: 3}
+    - enemyID: e004
+      ratio: 100
+      bossShock: 0
+      repeat: 25
+      firstAppear: 175
+      repeatMin: 48
+      repeatMax: 48
+      previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
+    - enemyID: e002
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 150
+      repeatMin: 425
+      repeatMax: 425
+      previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}

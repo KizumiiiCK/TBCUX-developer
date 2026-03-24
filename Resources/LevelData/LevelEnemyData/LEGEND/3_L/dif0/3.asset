@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 3
+  m_EditorClassIdentifier: 
+  levelName: 
+  gainXP: 84000
+  BaseHealth: 175000
+  mapSize: 6000
+  maxEmenyCount: 14
+  maxCatCount: 50
+  BackgroundID: 181
+  BaseImageID: 312
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 7
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 148
+    enemySummonInfos:
+    - enemyID: e002
+      ratio: 1600
+      bossShock: 0
+      repeat: -1
+      firstAppear: 30
+      repeatMin: 150
+      repeatMax: 600
+    - enemyID: e003
+      ratio: 1600
+      bossShock: 0
+      repeat: -1
+      firstAppear: 550
+      repeatMin: 400
+      repeatMax: 600
+    - enemyID: e004
+      ratio: 1600
+      bossShock: 0
+      repeat: -1
+      firstAppear: 200
+      repeatMin: 150
+      repeatMax: 300
+    - enemyID: e038
+      ratio: 200
+      bossShock: 0
+      repeat: 6
+      firstAppear: 450
+      repeatMin: 1200
+      repeatMax: 1800
+    - enemyID: e053
+      ratio: 100
+      bossShock: 0
+      repeat: 3
+      firstAppear: 1200
+      repeatMin: 1600
+      repeatMax: 1700
+  - HealthPercentageOnBreak: 99
+    bgm: 031
+    enemySummonInfos:
+    - enemyID: e054
+      ratio: 75
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+    - enemyID: e031
+      ratio: 100
+      bossShock: 0
+      repeat: 2
+      firstAppear: 1200
+      repeatMin: 1200
+      repeatMax: 1300
+    - enemyID: e053
+      ratio: 100
+      bossShock: 0
+      repeat: 6
+      firstAppear: 0
+      repeatMin: 600
+      repeatMax: 800

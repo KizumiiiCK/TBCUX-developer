@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 37
+  m_EditorClassIdentifier: 
+  levelName: id:brazil
+  gainXP: 12100
+  BaseHealth: 20000
+  mapSize: 4000
+  maxEmenyCount: 24
+  maxCatCount: 50
+  BackgroundID: 7
+  BaseImageID: 37
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e007
+      ratio: 100
+      bossShock: 0
+      repeat: 5
+      firstAppear: 300
+      repeatMin: 600
+      repeatMax: 600
+    - enemyID: e009
+      ratio: 100
+      bossShock: 0
+      repeat: 11
+      firstAppear: 300
+      repeatMin: 90
+      repeatMax: 90
+    - enemyID: e002
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 80
+      repeatMin: 420
+      repeatMax: 420
+    - enemyID: e006
+      ratio: 400
+      bossShock: 0
+      repeat: 3
+      firstAppear: 500
+      repeatMin: 240
+      repeatMax: 240
+  - HealthPercentageOnBreak: 90
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e010
+      ratio: 200
+      bossShock: 0
+      repeat: 2
+      firstAppear: 0
+      repeatMin: 700
+      repeatMax: 700
+  - HealthPercentageOnBreak: 80
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e014
+      ratio: 150
+      bossShock: 0
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+  - HealthPercentageOnBreak: 70
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e024
+      ratio: 150
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0

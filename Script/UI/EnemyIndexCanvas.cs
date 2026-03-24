@@ -1,0 +1,202 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Localization.SmartFormat.Core.Parsing;
+using UnityEngine.UI;
+
+public class EnemyIndexCanvas : UICanvasMain
+{
+    private struct EnemyListEntry
+    {
+        public string Code;
+        public Sprite Icon;
+        public bool Unlocked;
+    }
+
+    private GameObject mainCamera;
+    public string current_code = "e002";
+    private GameObject current_display_character;
+    [SerializeField] private Button Animation_switch_btn;
+    [SerializeField] private Button Back_btn;
+    [SerializeField] private Image background;
+    [SerializeField] private TMP_Text name_txt;
+    [SerializeField] private Sprite UnknownImage;
+    [Header("Instantiators")]
+    private static Vector3 scroll_gap = new Vector3(0, -150, 0);
+    [SerializeField] private RectTransform HeadIcon_ScrollingArea;
+    [SerializeField] private ScrollRect headIconScrollRect;
+    [SerializeField] private GameObject EnemyHeadIcon;
+    [SerializeField] private int headIconColumns = 1;
+    [SerializeField] private float headIconCellWidth = 270f;
+    [SerializeField] private float headIconCellHeight = 150f;
+    [SerializeField] private int headIconPreloadRows = 2;
+    //[SerializeField] private CustomScrollbar scrollbar_setting;
+    [SerializeField] private GameObject indexUnit;
+    [SerializeField] private IndexViewer IV;
+    private bool UnityAnimated = false;
+    private int current_animation_num = 0;
+    [Header("Main Controllers")]
+    private BaseCanvas baseCanvas;
+    //
+
+    private static bool indexShowAll = true;
+    private readonly List<EnemyListEntry> enemyListEntries = new List<EnemyListEntry>();
+    private VirtualizedScrollGrid<EnemyListEntry> headIconGrid;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        mainCamera = GameObject.Find("Main Camera");
+        GetComponent<Canvas>().worldCamera=mainCamera.GetComponent<Camera>();
+        baseCanvas=GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>();
+        InitializeButtons();
+        InitializeHeadIconGrid();
+        LoadEnemies();
+        UpdateBackground();
+    }
+    public void LoadEnemies()
+    {
+        enemyListEntries.Clear();
+        for (int i = 2; i < 1000; i++)
+        {
+            string ucformat = "e" + i.ToString("000");
+            bool unlocked = indexShowAll ? true : EnemyMeetSave.GetUnlocked(i);
+            Sprite ccd = Resources.Load<Sprite>($"Units/Enemy Units/{ucformat}/enemy_icon");
+            if (ccd == null) { continue; }
+            if (!unlocked) ccd = UnknownImage;
+            enemyListEntries.Add(new EnemyListEntry
+            {
+                Code = ucformat,
+                Icon = ccd,
+                Unlocked = unlocked
+            });
+        }
+
+        if (headIconGrid != null) headIconGrid.SetData(enemyListEntries, true);
+        ShowCertainCharacter("e002");
+        //scrollbar_setting.SetMaxY(unit_count+2,-scroll_gap.y);
+    }
+    public void ShowCertainCharacter(string char_code, bool resetAnimation=true)
+    {
+        current_code = char_code;
+        if (resetAnimation)
+        {
+            Application.targetFrameRate = 30;
+            if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
+            string loadPath = $"Units/Enemy Units/{current_code}/";
+            CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
+            current_display_character = CharacterSummoner.CreateACharacter(false,current_code, true);
+            CharacterSummoner.SetCharacterPosition(current_display_character,
+                mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? 2 : 0, -4, 10));
+            CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+            UnityAnimated = CD.UNITYAnimated;
+            current_animation_num = 0;
+            CharacterSummoner.SwitchAnimation(current_display_character,UnityAnimated,current_animation_num);
+            if (UnityAnimated) current_display_character.transform.localScale *= 1.25f;
+            IV.ShowCharacterDetails(CD,false,1);
+            LocalizationHelper.GetLocalizedText("UnitNames", current_code, localizedText => name_txt.text = localizedText ?? current_code);
+        }
+        //
+    }
+    public void InitializeButtons()
+    {
+        Animation_switch_btn.onClick.AddListener(SwitchAnimation);
+        Back_btn.onClick.AddListener(BackToBase);
+    }
+    private void SwitchAnimation()
+    {
+        if (current_display_character == null) return;
+        current_animation_num = (current_animation_num + 1) % 4;
+        if (UnityAnimated)
+        {
+            Debug.Log($"Unity animate: {current_animation_num}");
+            current_display_character.GetComponent<Animator>().SetInteger("state", current_animation_num);
+        }
+        else current_display_character.GetComponent<AnimationDisplayer>().PlayAnimation(current_animation_num);
+    }
+    private void BackToBase()
+    {
+        //baseCanvas.EnemyBacktoBase();
+        baseCanvas.SubBacktoBase();
+    }
+    public void ShowChangeBGPage()
+    {
+        Transform t = Instantiate(Resources.Load<GameObject>("UI/ChangeBackgroundPage")).transform;
+        t.SetParent(gameObject.transform, false);
+        t.localScale = Vector3.one;
+        t.position = Vector3.zero;
+        if (current_display_character != null) Destroy(current_display_character);
+    }
+    public void UpdateBackground()
+    {
+        int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
+        background.sprite = Resources.Load<Sprite>($"Background/Maps/{bgn}");
+        ShowCertainCharacter(current_code);
+    }
+    private void OnDestroy()
+    {
+        Destroy(current_display_character);
+        if (headIconGrid != null) headIconGrid.Dispose();
+    }
+    //private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
+    //{
+    //    if (go == null) return;
+    //    if (go.TryGetComponent(out SpriteRenderer sr))
+    //    {
+    //        sr.sortingLayerName = sortingLayer;
+    //        sr.sortingOrder = order;
+    //    }
+    //    foreach (Transform child in go.transform) ResetAnimationOrderLayer(child.gameObject, sortingLayer, order);
+    //}
+    public override IEnumerator OnEnter()
+    {
+        yield break;
+    }
+
+    public override IEnumerator OnExit()
+    {
+        yield break;
+    }
+
+    private void InitializeHeadIconGrid()
+    {
+        if (HeadIcon_ScrollingArea == null || EnemyHeadIcon == null) return;
+        if (headIconScrollRect == null) headIconScrollRect = HeadIcon_ScrollingArea.GetComponentInParent<ScrollRect>();
+        if (headIconScrollRect == null) return;
+
+        headIconGrid = new VirtualizedScrollGrid<EnemyListEntry>(
+            new VirtualizedScrollGrid<EnemyListEntry>.Settings
+            {
+                Content = HeadIcon_ScrollingArea,
+                ScrollRect = headIconScrollRect,
+                ItemPrefab = EnemyHeadIcon,
+                Columns = Mathf.Max(1, headIconColumns),
+                CellWidth = Mathf.Max(1f, headIconCellWidth),
+                CellHeight = Mathf.Max(1f, headIconCellHeight),
+                PreloadRows = Mathf.Max(0, headIconPreloadRows),
+                DisableAutoLayout = true
+            },
+            BindEnemyHeadIcon
+        );
+        headIconGrid.Initialize();
+    }
+
+    private void BindEnemyHeadIcon(GameObject iconGO, int _, EnemyListEntry data)
+    {
+        if (iconGO == null) return;
+
+        var image = iconGO.GetComponent<Image>();
+        if (image != null) image.sprite = data.Icon;
+
+        var button = iconGO.GetComponent<Button>();
+        if (button != null)
+        {
+            button.interactable = data.Unlocked;
+            button.onClick.RemoveAllListeners();
+            if (data.Unlocked) button.onClick.AddListener(() => ShowCertainCharacter(data.Code));
+        }
+    }
+}

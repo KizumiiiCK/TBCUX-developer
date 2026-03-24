@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 0
+  m_EditorClassIdentifier: 
+  levelName: id:korea
+  gainXP: 3000
+  BaseHealth: 2000
+  mapSize: 3000
+  maxEmenyCount: 3
+  maxCatCount: 50
+  BackgroundID: 0
+  BaseImageID: 0
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e002
+      ratio: 400
+      bossShock: 0
+      repeat: 4
+      firstAppear: 70
+      repeatMin: 450
+      repeatMax: 450

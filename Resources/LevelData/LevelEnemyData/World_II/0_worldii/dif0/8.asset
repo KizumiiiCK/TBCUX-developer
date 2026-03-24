@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 8
+  m_EditorClassIdentifier: 
+  levelName: id:singapore
+  gainXP: 58000
+  BaseHealth: 5000
+  mapSize: 4800
+  maxEmenyCount: 20
+  maxCatCount: 50
+  BackgroundID: 1
+  BaseImageID: 8
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 030
+    enemySummonInfos:
+    - enemyID: e024
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+    - enemyID: e002
+      ratio: 1000
+      bossShock: 0
+      repeat: 10
+      firstAppear: 90
+      repeatMin: 150
+      repeatMax: 150
+    - enemyID: e033
+      ratio: 150
+      bossShock: 1
+      repeat: 1
+      firstAppear: 90
+      repeatMin: 0
+      repeatMax: 0
+    - enemyID: e042
+      ratio: 100
+      bossShock: 0
+      repeat: 4
+      firstAppear: 1100
+      repeatMin: 80
+      repeatMax: 80

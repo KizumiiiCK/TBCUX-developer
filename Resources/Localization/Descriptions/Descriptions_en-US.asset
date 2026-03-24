@@ -1,0 +1,649 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Descriptions_en-US
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en-US
+  m_SharedData: {fileID: 11400000, guid: c7dee7b04726ba849b73e11e5c47ef6f, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 1617378492416
+    m_Localized: Weaken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2015300501504
+    m_Localized: Freeze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2086884687872
+    m_Localized: Slow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2120506228736
+    m_Localized: Knockback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2166127673344
+    m_Localized: Warp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2206627872768
+    m_Localized: Curse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2243919429632
+    m_Localized: Toxic
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2279390658560
+    m_Localized: Dodge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2313859448832
+    m_Localized: Lacerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2355366281216
+    m_Localized: Death Mark
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3013301583872
+    m_Localized: 'Has a {0}% chance to <color=#00FFFF>weaken</color> the attack of
+      enemies to {2}% of its original for {1}f.
+
+      (Only affect enemies with
+      matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5307799781376
+    m_Localized: 'Has a {0}% chance to <color=#00FFFF>freeze</color> enemies for
+      {1}f .
+
+      (Only affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7044094836736
+    m_Localized: 'Has a {0}% chance to slow the speed of enemies to 1 for {1}f .
+
+      (Only
+      affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7057529192448
+    m_Localized: 'Has a {0}% chance to <color=#00FFFF>knockback</color> enemies.
+
+      (Only
+      affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7070443454464
+    m_Localized: 'Has a {0}% chance to <color=#00FFFF>warp</color> enemies for {2}
+      distance after {1}f.
+
+      (Only affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7082430775296
+    m_Localized: 'Has a {0}% chance to curve enemies for {1}f , disabling all their
+      trait effects.
+
+      (Only affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7095798022144
+    m_Localized: "Has a {0}% chance to deal true damage equal to {1}% of the enemy\u2019s
+      max HP.\n(Only affect enemies with matched traits for cats)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7112109670400
+    m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
+      all damage from them.
+
+      (Only affect enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7777754103808
+    m_Localized: 'Has a  {0}% chance to inflict lacerate on enemies for {1}f , causing
+      them to lose 5% of their max HP everytime they attack.
+
+      (Only affect
+      enemies with matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7793797316608
+    m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , reflecting
+      {2}% of the damage they take towards them.
+
+      (Only affect enemies with
+      matched traits for cats)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55728509632512
+    m_Localized: Massive Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55879223558144
+    m_Localized: Insane Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55958751756288
+    m_Localized: Resistant
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56007523123200
+    m_Localized: Insanely Tough
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56062988599296
+    m_Localized: Strong  Against
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56583673692160
+    m_Localized: Support
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56726150004736
+    m_Localized: Strategic Units
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755141
+    m_Localized: Strengthen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755142
+    m_Localized: Survive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755143
+    m_Localized: Critical
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755144
+    m_Localized: Zombie Killer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755145
+    m_Localized: Soul Strike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755146
+    m_Localized: Barrier Breaker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755147
+    m_Localized: Shield Piercing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755148
+    m_Localized: Savage Blow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755149
+    m_Localized: Extra Money
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755150
+    m_Localized: Metal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755151
+    m_Localized: Mini-Wave
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755152
+    m_Localized: Wave Attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755153
+    m_Localized: Wave Shield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755154
+    m_Localized: Mini-Surge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755155
+    m_Localized: Surge Attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755156
+    m_Localized: Counter-Surge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755157
+    m_Localized: Explosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755158
+    m_Localized: Conjure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755159
+    m_Localized: Shield Provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755160
+    m_Localized: Damage Shield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755161
+    m_Localized: Talent-Defense
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755162
+    m_Localized: Talent-Attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755163
+    m_Localized: Talent-Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755164
+    m_Localized: Talent-Knockback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755165
+    m_Localized: Talent-Cost Down
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755166
+    m_Localized: Talent-Recovery Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755167
+    m_Localized: Talent-Attack Frequency
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755136
+    m_Localized: Deals 3x damage to the enemies with matched traits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755137
+    m_Localized: Deals 5x damage to the enemies with matched traits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755138
+    m_Localized: Take 1/4 damage when facing enemies with matched traits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755139
+    m_Localized: Take 1/4 damage when facing enemies with matched traits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755140
+    m_Localized: Take 1/2 damage and deal 1.8x damage when facing enemies with matched
+      traits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755168
+    m_Localized: This unit will work on friendly units.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755169
+    m_Localized: This elite unit will be affected by battlefield strategies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755170
+    m_Localized: This unit's attack will be buffed by {1}% when its hp reaches below
+      {0}%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755171
+    m_Localized: Has a {0}% chance to survive 1 lethal attack with 1 HP remaining.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755172
+    m_Localized: Has a {0}% chance to land a critical strike, dealing 125% damage
+      to all enemies including Metal.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755173
+    m_Localized: This unit can prevent Zombie enemies from reviving after landing
+      the killing blow.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755174
+    m_Localized: This unit can clear out enemy corpses that are on the ground.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755175
+    m_Localized: Has a {0}% chance to break the barriers of Alien enemies, dealing
+      extra damage to them as well.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755176
+    m_Localized: Has a {0}% chance to break the barriers of Aku enemies, dealing
+      extra damage to them as well.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755177
+    m_Localized: Has a {0}% chance to land a Savage Blow, dealing 3 times the original
+      damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755178
+    m_Localized: This unit gains double the cash when defeating enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755179
+    m_Localized: This unit is a Metal unit, all non-crit attacks can only deal 1
+      damage at max.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755180
+    m_Localized: "Has a {0}% chance to create a level {1} Mini-Wave that deals 20%
+      of the unit\u2019s attack."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776097755181
+    m_Localized: "Has a {0}% chance to create a level {1} Wave Attack that deals
+      100% of the unit\u2019s attack."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949440
+    m_Localized: This unit can cancel wave attacks on contact, taking no damage from
+      them.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949441
+    m_Localized: "Has a {0}% chance to create a level {1} Mini-Surge that deals 20%
+      of the unit\u2019s attack each level."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949442
+    m_Localized: "Has a {0}% chance to create a level {1} Surge Attack that deals
+      100% of the unit\u2019s attack each level."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949443
+    m_Localized: This unit strikes back with a Surge Attack of equal level when struck
+      by an enemy Surge Attack.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949444
+    m_Localized: "Has a {0}% chance to create an Explosion\u3002"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949445
+    m_Localized: This unit is a conjurer. Has a {0}% chance to conjure a spirit {2}
+      when triggered {1} .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949446
+    m_Localized: This unit will provide an Aku shield equivalent to {0}% of its hp
+      to nearby units, this cannot be stacked with units that have the Aku shield
+      ability.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949447
+    m_Localized: This unit will not take more than {0}% of its total HP from any
+      single hit .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949448
+    m_Localized: This talent increases the unit's HP by {0}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949449
+    m_Localized: This talent increases the unit's attack by {0}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949450
+    m_Localized: This talent increases the unit's speed by {0}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949451
+    m_Localized: This talent increases the unit's kb count by {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949452
+    m_Localized: This talent decreases the unit's cost by {0}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949453
+    m_Localized: This talent increases the unit's recovery speed by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69776101949454
+    m_Localized: This talent increases the unit's attack frequency by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183168
+    m_Localized: Resist-Wave
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183169
+    m_Localized: Resist-Surge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183170
+    m_Localized: Resist-Explosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183171
+    m_Localized: Damage taken from <color=#00FFFF>Wave Attacks</color> is reduced
+      by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183172
+    m_Localized: Damage taken from <color=#00FFFF>Surge Attacks</color> is reduced
+      by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183173
+    m_Localized: Damage taken from <color=#00FFFF>Explosions</color> is reduced by
+      {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183174
+    m_Localized: Resist-Weaken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183175
+    m_Localized: Resist-Freeze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183176
+    m_Localized: Resist-Slow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183177
+    m_Localized: Resist-Knockback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183178
+    m_Localized: Resist-Warp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183179
+    m_Localized: Resist-Curse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183180
+    m_Localized: Resist-Toxic
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183181
+    m_Localized: Resist-Lacerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183182
+    m_Localized: Resist-Death Mark
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183183
+    m_Localized: Enemy <color=#00FFFF>Weaken</color> duration is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183184
+    m_Localized: Enemy <color=#00FFFF>Freeze</color> duration is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183185
+    m_Localized: Enemy <color=#00FFFF>Slow</color> duration is reduced by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183186
+    m_Localized: Enemy <color=#00FFFF>Knockback</color> effect is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183187
+    m_Localized: Enemy <color=#00FFFF>Warp</color> trigger chance is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183188
+    m_Localized: Enemy <color=#00FFFF>Curse</color> duration is reduced by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183189
+    m_Localized: Enemy <color=#00FFFF>Toxic</color> effect is reduced by {0}% .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183190
+    m_Localized: Enemy <color=#00FFFF>Lacerate</color> duration is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73122242183191
+    m_Localized: Enemy <color=#00FFFF>Death Mark</color> duration is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9849289107128320
+    m_Localized: Practician
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9849289182625792
+    m_Localized: "<size=36>While this character launchs an attack <color=#00FFFF>that
+      triggers effects</color>, accumulate 1 stack of <color=#FF4040>20%</color>
+      attack damage, and launches a special attack after <color=#FF4040>6</color>
+      stacks\u3002If the character is knocked back\uFF0Cinstantly launches special
+      attack with {2} range\u3002Special attack (animation) once consumes all stacks
+      off attack damage\u3002</size>"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039744
+    m_Localized: Against Warrior
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039745
+    m_Localized: Against Deffender
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039746
+    m_Localized: Against Magician
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039747
+    m_Localized: Against Supporter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039748
+    m_Localized: Against Pratician
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039749
+    m_Localized: Deals <color=#00FFFF>4x</color> damage to Warrior type enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039750
+    m_Localized: Deals <color=#00FFFF>4x</color> damage to Deffender type enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039751
+    m_Localized: Deals <color=#00FFFF>4x</color> damage to Magician type enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039752
+    m_Localized: Deals <color=#00FFFF>4x</color> damage to Supporter type enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9850967483039753
+    m_Localized: Deals <color=#00FFFF>4x</color> damage to Practician type enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11635609110396928
+    m_Localized: Elite Unit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11635609152339968
+    m_Localized: <size=36>This unit is affected by combat strategy. Under <color=#00FFFF>Attack
+      Mode</color>,  none Supporter characters reduce their detection range by <color=#FF6060>50%</color>,
+      with their effect trigger rate reduced by <color=#FF6060>25%</color>. Under
+      <color=#00FFFF>Defense Mode</color>, none Deffender characters retreat to the
+      furthest detection point to the most front enemy in detected, with their effect
+      trigger rate increased by <color=#FF6060>25%</color>.</size>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12492316984295424
+    m_Localized: One Off
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12492317059792896
+    m_Localized: This unit attacks only one time.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184057888768
+    m_Localized: 'Character Proficiency: Lvl <color=#00FFFF>{0}</color> '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803328
+    m_Localized: "Deploy the character for 100 times. \nProf reward: Character HP
+      +<color=#FF6060>5</color>% \n\nProgress:  {0} / 100."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803329
+    m_Localized: "The character deals stack up to 50000000 damage to enemies. \nProf
+      reward: Character ATK +<color=#FF6060>5</color>% \n\nProgress:  {0} / 50000000."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803330
+    m_Localized: "The character suffers stack up to 20000000 damage.\nProf reward:
+      Cost -<color=#FF6060>10</color>% \n\nProgress:  {0} / 20000000."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803331
+    m_Localized: "The duration of buffs / debuffs suffered stack up to 300000f. \nProf
+      reward: In team, all teammates' HP and ATK +<color=#FF6060>2</color>% \n\nProgress: 
+      {0} / 300000."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 20812184120803332
+    m_Localized: You reaches the highest proficency level for this character!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895505240064
+    m_Localized: Encourage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291968
+    m_Localized: The Fractured Omen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291969
+    m_Localized: Increases allies' ATK to {2}% (stackable).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32395895614291970
+    m_Localized: "This unit steals your stage clear reward after each successful
+      attack! (\uFF03\xB0\u0414\xB0)"
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

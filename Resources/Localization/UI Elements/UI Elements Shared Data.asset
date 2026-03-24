@@ -1,0 +1,248 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: UI Elements Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: UI Elements
+  m_TableCollectionNameGuidString: d125a9c4666d07a4c820d89d766bd5f7
+  m_Entries:
+  - m_Id: 20020035584
+    m_Key: id:start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215306829824
+    m_Key: id:upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 514612363264
+    m_Key: id:equip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113563440611328
+    m_Key: id:catguide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113676443549696
+    m_Key: id:enemyguide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113748384251904
+    m_Key: id:medal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113777677271040
+    m_Key: id:gamatoto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113810422202368
+    m_Key: id:storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113854311399424
+    m_Key: id:mission
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113889279311872
+    m_Key: id:catcaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113917729275904
+    m_Key: id:rarecaps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5842816790528000
+    m_Key: id:t0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5842878526488576
+    m_Key: id:t1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5842887586185216
+    m_Key: id:t2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5842918087163904
+    m_Key: id:t3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5842939427782656
+    m_Key: id:t4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5843426935930880
+    m_Key: id:t5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22914238612062208
+    m_Key: id:giveup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23009835243356160
+    m_Key: id:mainmenu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23612921133481984
+    m_Key: id:retry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23957268420968448
+    m_Key: id:evolve
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23961738081026048
+    m_Key: id:talent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24056294109691904
+    m_Key: id:combat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24056454902530048
+    m_Key: id:changeteam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32760435099123712
+    m_Key: id:choosebg
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33039943211499520
+    m_Key: id:clearedtimes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33041146448265216
+    m_Key: id:highest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 35305294532001792
+    m_Key: id:enemyappear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 35947163418968064
+    m_Key: id:draw1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 35947411256197120
+    m_Key: id:draw10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36031519063883776
+    m_Key: id:owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 39537452117213184
+    m_Key: id:startgametitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 39554311394770944
+    m_Key: id:options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 39554833640144896
+    m_Key: id:dev
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40202542537588736
+    m_Key: id:devcontent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41356657716183040
+    m_Key: id:use
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41356725546467328
+    m_Key: id:exchange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42185972225753088
+    m_Key: id:rewardgain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46349264116596736
+    m_Key: id:rbreward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46349381473222656
+    m_Key: id:rbrate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46349494069313536
+    m_Key: id:rbcount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52995561607217152
+    m_Key: id:t6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56256493066207232
+    m_Key: id:cancle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59415637243805696
+    m_Key: id:maxdeployed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61666557008625664
+    m_Key: id:checkin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64127774302224384
+    m_Key: id:cplockstate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100909798958383104
+    m_Key: id:loadretry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 100909926138068992
+    m_Key: id:loadabandon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101228825362644992
+    m_Key: id:user_start_create
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101228954991804416
+    m_Key: id:user_restore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101229180230123520
+    m_Key: id:user_first_guild
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101229628001435648
+    m_Key: id:user_create
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101230045921886208
+    m_Key: id:user_cancle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101252670299652096
+    m_Key: id:user_retake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 101253789935550464
+    m_Key: id:user_nameinput
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 5891850197241167881
+  references:
+    version: 2
+    RefIds:
+    - rid: 5891850197241167881
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1748232555797

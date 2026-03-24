@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 44
+  m_EditorClassIdentifier: 
+  levelName: id:hollywood
+  gainXP: 14200
+  BaseHealth: 20000
+  mapSize: 4800
+  maxEmenyCount: 12
+  maxCatCount: 50
+  BackgroundID: 22
+  BaseImageID: 44
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e024
+      ratio: 100
+      bossShock: 0
+      repeat: 3
+      firstAppear: 0
+      repeatMin: 30
+      repeatMax: 30
+    - enemyID: e013
+      ratio: 125
+      bossShock: 0
+      repeat: 2
+      firstAppear: 76
+      repeatMin: 840
+      repeatMax: 840
+    - enemyID: e012
+      ratio: 160
+      bossShock: 0
+      repeat: 3
+      firstAppear: 700
+      repeatMin: 60
+      repeatMax: 60

@@ -1,0 +1,211 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &452250030866080918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5895638389257191312}
+  m_Layer: 0
+  m_Name: main
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5895638389257191312
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452250030866080918}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 5496172430388549426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2872332879833712171
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5496172430388549426}
+  - component: {fileID: 6492325148580696741}
+  - component: {fileID: 3752804070224087391}
+  m_Layer: 0
+  m_Name: cannonUnit
+  m_TagString: Cat
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5496172430388549426
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2872332879833712171}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 5895638389257191312}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6492325148580696741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2872332879833712171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a9cac350f3dd7e4caa62a054359a5a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Targets: []
+  UNITYAnimated: 0
+  animatorDisplayer: {fileID: 0}
+  levelController: {fileID: 0}
+  BlockAnimationSwitch: 0
+  Health: 0
+  KB: 0
+  Speed: 0
+  Reload: 0
+  DetectionRange: 0
+  Cost: 0
+  Cooldown: 0
+  ATKTypes: 0d000000
+  atkInfos: []
+  areaATK: 0
+  atkDuration: 0
+  one_off: 0
+  traits:
+    Red: 1
+    Flt: 1
+    Blk: 1
+    Mtl: 1
+    Ang: 1
+    Aln: 1
+    Z: 1
+    Re: 1
+    Aku: 1
+    None: 1
+  traitSpecials:
+    barrierValue: 0
+    akuSheildValue: 0
+    zombieReviveTimes: 0
+    zombieDiveTime: 0
+    revivePercentage: 0
+  subtraits:
+    Starred: 0
+    Colossus: 0
+    Behemoth: 0
+    Sage: 0
+  career:
+    Warrior: 0
+    Deffender: 0
+    Magician: 0
+    Supporter: 0
+    Practician: 0
+  againstCareer:
+    AggainstWarrior: 0
+    AggainstMagician: 0
+    AggainstDeffender: 0
+    AggainstSuppoter: 0
+    AggainstPractician: 0
+  DRE:
+    massiveDamage: 0
+    insaneDamage: 0
+    tough: 0
+    aegis: 0
+    strongAgainst: 0
+  characterEffects:
+  - name: 6
+    probability: 100
+    duration: 200
+    intensity: 0
+  characterAbilities: []
+  atkTypeResis: []
+  effectResistances: []
+  effectMarkedSlots: 0000000000
+  EM: {fileID: 0}
+  cannon_type: 7
+  max_times: -1
+  damage_multiplier: 0.05
+  cannon_patterns:
+  - eff_flow_num: 0
+    eff_flow_time: 3
+    eff_flow_pos: {x: -80, y: 675}
+    eff_dmg_range: {x: 0, y: 400}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: -50, y: 600}
+    eff_dmg_range: {x: 400, y: 800}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: -50, y: 600}
+    eff_dmg_range: {x: 800, y: 1200}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: -50, y: 600}
+    eff_dmg_range: {x: 1200, y: 1600}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: -50, y: 600}
+    eff_dmg_range: {x: 1600, y: 2000}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 2200, y: -100}
+    eff_dmg_range: {x: 2000, y: 2400}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 2600, y: -100}
+    eff_dmg_range: {x: 2400, y: 2800}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 3000, y: -100}
+    eff_dmg_range: {x: 2800, y: 3200}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 3400, y: -100}
+    eff_dmg_range: {x: 3200, y: 3600}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 3800, y: -100}
+    eff_dmg_range: {x: 3600, y: 4000}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 4200, y: -100}
+    eff_dmg_range: {x: 4000, y: 4400}
+  - eff_flow_num: 1
+    eff_flow_time: 3
+    eff_flow_pos: {x: 4600, y: 0}
+    eff_dmg_range: {x: 4400, y: 4800}
+--- !u!114 &3752804070224087391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2872332879833712171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12944805d46ead8478821f3c1cb517c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exist_duration: 150

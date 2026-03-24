@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 2
+  m_EditorClassIdentifier: 
+  levelName: id:china
+  gainXP: 4200
+  BaseHealth: 2000
+  mapSize: 4500
+  maxEmenyCount: 15
+  maxCatCount: 50
+  BackgroundID: 0
+  BaseImageID: 2
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e002
+      ratio: 700
+      bossShock: 0
+      repeat: -1
+      firstAppear: 200
+      repeatMin: 880
+      repeatMax: 880
+      previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}
+    - enemyID: e008
+      ratio: 300
+      bossShock: 0
+      repeat: 5
+      firstAppear: 420
+      repeatMin: 960
+      repeatMax: 960
+      previewSprite: {fileID: 21300000, guid: 0d9f2e5373c92a64ea9900d13a9ac147, type: 3}
+    - enemyID: e008
+      ratio: 300
+      bossShock: 0
+      repeat: 10
+      firstAppear: 450
+      repeatMin: 960
+      repeatMax: 960
+      previewSprite: {fileID: 21300000, guid: 0d9f2e5373c92a64ea9900d13a9ac147, type: 3}
+    - enemyID: e008
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 480
+      repeatMin: 960
+      repeatMax: 960
+      previewSprite: {fileID: 21300000, guid: 0d9f2e5373c92a64ea9900d13a9ac147, type: 3}
+    - enemyID: e014
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 480
+      repeatMin: 960
+      repeatMax: 960
+      previewSprite: {fileID: 21300000, guid: aa73b353554b85a498b943043838a8d7, type: 3}

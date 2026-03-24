@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 1_a0_xpm
+  m_EditorClassIdentifier: 
+  sectionName: 1_a0_xpm
+  mapName: XPM_bg
+  BGM: 
+  unlockRestriction: World_I+0_worldi
+  hardness: 1
+  difficulty: 010101010101010101010101
+  coverColor: {r: 0.2, g: 0.2, b: 0, a: 1}
+  titleColor: 4
+  levelsOnMap:
+  - levelNameID: xpm_0
+    levelPosition: {x: 14, y: 5}
+    tileType: 10
+  - levelNameID: xpm_1
+    levelPosition: {x: 9, y: 3.8}
+    tileType: 10
+  - levelNameID: xpm_2
+    levelPosition: {x: 12, y: 2.2}
+    tileType: 10
+  - levelNameID: xpm_3
+    levelPosition: {x: 8, y: 3}
+    tileType: 10
+  - levelNameID: xpm_4
+    levelPosition: {x: 4, y: 3.5}
+    tileType: 10
+  - levelNameID: comingsoon
+    levelPosition: {x: 3, y: 0.5}
+    tileType: 0
+  - levelNameID: xpm_6
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_7
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_8
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_9
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_10
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_11
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_12
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_13
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_14
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_15
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_16
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_17
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_18
+    levelPosition: {x: 0, y: 0}
+    tileType: 0
+  - levelNameID: xpm_19
+    levelPosition: {x: 0, y: 0}
+    tileType: 0

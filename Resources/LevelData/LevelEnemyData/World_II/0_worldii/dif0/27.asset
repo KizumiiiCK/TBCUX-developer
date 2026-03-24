@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 27
+  m_EditorClassIdentifier: 
+  levelName: id:germany
+  gainXP: 12000
+  BaseHealth: 30000
+  mapSize: 3600
+  maxEmenyCount: 15
+  maxCatCount: 50
+  BackgroundID: 2
+  BaseImageID: 27
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 032
+    enemySummonInfos:
+    - enemyID: e005
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 950
+      repeatMin: 450
+      repeatMax: 450
+      previewSprite: {fileID: 21300000, guid: 73afddee46a0df64a807af75a5b1170b, type: 3}
+    - enemyID: e042
+      ratio: 100
+      bossShock: 0
+      repeat: 3
+      firstAppear: 550
+      repeatMin: 360
+      repeatMax: 480
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
+  - HealthPercentageOnBreak: 95
+    bgm: 033
+    enemySummonInfos:
+    - enemyID: e050
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: a55e39ea0ab7cf24e8480695c1e49c65, type: 3}
+    - enemyID: e005
+      ratio: 400
+      bossShock: 0
+      repeat: 4
+      firstAppear: 0
+      repeatMin: 180
+      repeatMax: 180
+      previewSprite: {fileID: 21300000, guid: 73afddee46a0df64a807af75a5b1170b, type: 3}

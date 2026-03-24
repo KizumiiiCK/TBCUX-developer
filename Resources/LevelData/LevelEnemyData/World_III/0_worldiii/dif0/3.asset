@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 3
+  m_EditorClassIdentifier: 
+  levelName: id:thailand
+  gainXP: 37500
+  BaseHealth: 52000
+  mapSize: 4000
+  maxEmenyCount: 10
+  maxCatCount: 50
+  BackgroundID: 7
+  BaseImageID: 3
+  CombatEffect:
+  - rain
+  CombatAura:
+  - AuraType: 3
+    Parameters: {x: 5, y: 30, z: 30, w: 0}
+    AuraColor: {r: 1, g: 0.78431374, b: 0.78431374, a: 1}
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e103
+      ratio: 800
+      bossShock: 0
+      repeat: -1
+      firstAppear: 100
+      repeatMin: 300
+      repeatMax: 300
+      previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
+  - HealthPercentageOnBreak: 95
+    bgm: 031
+    enemySummonInfos:
+    - enemyID: e033
+      ratio: 200
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: c3935eb6e3f3d1f4d80c750978233c4a, type: 3}
+    - enemyID: e003
+      ratio: 1000
+      bossShock: 0
+      repeat: 10
+      firstAppear: 40
+      repeatMin: 120
+      repeatMax: 180
+      previewSprite: {fileID: 21300000, guid: 60b338ddf69762045993db867d6dbd71, type: 3}
+    - enemyID: e012
+      ratio: 400
+      bossShock: 0
+      repeat: 6
+      firstAppear: 0
+      repeatMin: 60
+      repeatMax: 60
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}

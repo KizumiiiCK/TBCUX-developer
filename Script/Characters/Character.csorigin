@@ -1,0 +1,272 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public abstract class Character : MonoBehaviour
+{
+    public string Name;
+    public bool isEliteUnit = false;
+    public bool affectByStrategy = false;
+    //public bool isBase = false;
+    public float Power = 1;
+    public ATKInfo[] atkInfos;
+    public bool areaATK;
+    public int atkDuration;
+    public bool one_off;
+    public int Health;
+    public int KB;
+    public int Speed;
+    public int Reload;
+    public int DetectionRange;
+    public int Cost;
+    public int Cooldown;
+
+    public Traits traits = new Traits();
+    public TraitSpecials traitSpecials=new TraitSpecials();
+    public SubTraits subtraits = new SubTraits();
+    public Careers career = new Careers();
+    public CareerEffector careerEffects = new CareerEffector();
+    public Effect effects = new Effect();
+    public Ability ability=new Ability();
+    public CounterAbility counterAbility=new CounterAbility();
+
+    //
+    protected int level = 1;
+    protected int maxHealth;
+    protected int realHealth;
+    protected int[] realDamage;
+    protected int animateStep = 0;
+    protected int realKBtimes;
+    protected int realSpeed;
+    protected int realReload;
+    protected float hardness;
+    protected int strategy = 0;
+    protected float ATKmuiltipier = 1;
+
+    //protected Animator animator;
+    protected BoxCollider2D attackBox;
+    protected AnimationDisplayer animatorDisplayer;
+    protected int animatedframes = 0;
+    //protected TargetReceiver receiver;
+
+    protected bool onKB = false;
+    protected bool onATK = false;
+    protected bool onCurse = false;
+    public bool[] effectMarkedSlots= new bool[5];
+    protected float startingY = 1;
+    protected Coroutine coroutineKB = null;
+    protected EffectManager EM;
+    protected List<PassiveNode> passiveEffects = new List<PassiveNode>();
+    protected void StartPos()
+    {
+        //float lay = UnityEngine.Random.Range(-0.1f, 0.1f);
+        //this.transform.position = new Vector3(transform.position.x, lay, -lay);
+        startingY=transform.position.y;
+    }
+    protected string compareTagName = "";
+    //protected float bcLength;
+    protected List<GameObject> Targets=new List<GameObject>();
+
+    /*------------------------------------------------------------------------------------------------------------------*/
+    // Start is called before the first frame update
+    void Start()
+    {
+        if (!name.Contains("Base"))
+        {
+            //animator = GetComponent<Animator>();
+            animatorDisplayer = GetComponent<AnimationDisplayer>();
+            Rigidbody2D rb = transform.AddComponent<Rigidbody2D>();
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            BoxCollider2D bc = transform.AddComponent<BoxCollider2D>();
+            bc.offset = new Vector2(CompareTag("Cat") ? 1 : -1, 2);
+            bc.size = new Vector2(2, 4);
+            GameObject atkbox = Instantiate(Resources.Load<GameObject>("Units/AttackBox"), Vector3.zero, Quaternion.identity);
+            atkbox.transform.SetParent(transform, false);
+            attackBox = atkbox.GetComponent<BoxCollider2D>();
+        }
+        realSpeed = Speed;
+        StartPos();
+        EM = GameObject.Find("Effects").GetComponent<EffectManager>();
+        InitializeCharacter();
+    }
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        realReload++;
+    }
+    private void Update()
+    {
+        UpdateAnimation();
+    }
+    /*------------------------------------------------------------------------------------------------------------------*/
+    public abstract void InitializeCharacter();
+    protected GameObject FindNearest()
+    {
+        if (Targets.Count == 0) return null;
+        bool positive = compareTagName == "Enemy";
+        GameObject target = Targets[0];
+        foreach (var go in Targets)
+        {
+            if (target.transform.position.x < go.transform.position.x == positive) target = go;
+        }
+        return target;
+    }//Find the min-distance inside the targets list
+    protected IEnumerator DisplayKB(bool bossShock=false, bool knockback=false, int DX=350)
+    {
+        int duration = knockback?11:24;
+        float speedY = knockback ? 0 : 9;
+        if (bossShock) { duration = 45; DX = 1050; speedY = 18; }
+        //int DX = knockback?165:350;
+        float speedX = (float)DX/duration*0.3f;
+        int d1 = duration*2/3;
+        int d2 = duration-d1;
+        attackBox.enabled = false;
+        onKB = true; onATK = false;
+        //if(animator!=null)animator.SetInteger("state", 2);//
+        if(animatorDisplayer!=null) animatorDisplayer.SetMaanimPointer(3);
+
+        int sign = gameObject.tag == "Cat"?1:-1;
+        for (int i = 0; i < duration; i++)
+        {
+            if (i <= d1) this.transform.Translate(new Vector2(sign* speedX, speedY - (speedY * i / (d1/2))) * Time.deltaTime);
+            else this.transform.Translate(new Vector2(sign* speedX, speedY - (speedY * (i-d1) / (d2 / 2))) * Time.deltaTime);
+            if (i == duration - 1)
+            {
+                if (realHealth <= 0)
+                {
+                    StopCoroutine(DisplayKB());
+                    EM.InstantiateEffect(SEnums.soul, transform.position.x);
+                    Destroy(this.gameObject);
+                }// check death
+                transform.position = new Vector2(transform.position.x, startingY);
+                //if (animator != null) animator.SetInteger("state", 0);//
+                if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(0);
+                attackBox.enabled = true;
+                onKB = false;
+                coroutineKB = null;
+                GetStrategy();
+            }
+            yield return new WaitForFixedUpdate();//Operate per frame
+        }
+
+    }//Play KB animation, with disable everything else
+    public abstract void Attack(GameObject specific=null);
+    public abstract void ReceiveAttack(int DMG, Traits opponentTraits, SubTraits opponentSubtraits, CareerEffector opponentCE, Effect opponentEffect);
+    protected void TakeDMG(int DMG)
+    {
+        foreach (var effect in passiveEffects){effect.OnBeforeTakeDamage(this);}
+        //
+        int afterhealth = realHealth - DMG;
+        if (afterhealth < maxHealth - (realKBtimes + 1) * hardness)
+        {
+            realKBtimes = (int)((maxHealth - afterhealth) / hardness);
+            if(coroutineKB==null)coroutineKB=StartCoroutine(DisplayKB());
+        }
+        //
+        foreach (var effect in passiveEffects){effect.OnAfterTakeDamage(this);}
+        //
+        realHealth = afterhealth;
+    }
+    public void SetNewTarget(GameObject newTarget, bool quickTrigger) {if (quickTrigger) Attack(newTarget); else Targets.Add(newTarget); }
+    public void RemoveTarget(GameObject newTarget) { Targets.Remove(newTarget); }
+    public void SetSearchTagName(string name) { compareTagName = name; }
+    protected void FinishAttack()
+    {
+        realReload = 0; animateStep = 0; GetStrategy(); 
+    }
+    protected void ExitAttack() { 
+        if (one_off) { Destroy(gameObject); } 
+        onATK = false;
+        animatedframes = 0;
+        //if(animator!=null)animator.SetInteger("state", 0); 
+        if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(0); 
+    }
+    public abstract void UpdateAnimation();
+    protected static bool AreCorrespondingTraits(Traits traits1, Traits traits2)
+    {
+        return (traits1.Red && traits2.Red) ||
+               (traits1.Flt && traits2.Flt) ||
+               (traits1.Blk && traits2.Blk) ||
+               (traits1.Mtl && traits2.Mtl) ||
+               (traits1.Ang && traits2.Ang) ||
+               (traits1.Aln && traits2.Aln) ||
+               (traits1.Z && traits2.Z) ||
+               (traits1.Re && traits2.Re) ||
+               (traits1.Aku && traits2.Aku) ||
+               (traits1.None && traits2.None);
+    }
+    protected Effect DetermineATKEffects()
+    {
+        Effect de = new Effect();
+        float skillfactor=GetFactor();
+        if (effects.weaken.effective) if (Random.Range(0, 100) < effects.weaken.probability * skillfactor) de.weaken.effective = true;
+        if (effects.stop.effective) if (Random.Range(0, 100) < effects.stop.probability * skillfactor) de.stop.effective = true;
+        if (effects.slow.effective) if (Random.Range(0, 100) < effects.slow.probability * skillfactor) de.slow.effective = true;
+        if (effects.knockback.effective) if (Random.Range(0, 100) < effects.knockback.probability * skillfactor) de.knockback.effective = true;
+        if (effects.wrap.effective) if (Random.Range(0, 100) < effects.wrap.probability * skillfactor) de.wrap.effective = true;
+        //if (effects.dodge.effective) if (Random.Range(0, 100) < effects.dodge.probability) decision.dodge.effective = true;
+        if (effects.curse.effective) if (Random.Range(0, 100) < effects.curse.probability * skillfactor) de.curse.effective = true;
+        return de;
+    }
+    protected void TakeEffects(bool sageBuff, Effect enemyEffect)
+    {
+        float sagemultiplier = sageBuff ? 0.3f : 1;
+        if (enemyEffect.weaken.effective) EffectInstaller.Inflict(gameObject, 'a', enemyEffect.weaken.duration * sagemultiplier * CounterT(enemyEffect.weaken.duration), enemyEffect.weaken.intensity);
+        if (enemyEffect.stop.effective) EffectInstaller.Inflict(gameObject, 'b', enemyEffect.stop.duration * sagemultiplier * CounterT(enemyEffect.stop.duration), 0);
+        if (enemyEffect.slow.effective) EffectInstaller.Inflict(gameObject, 'c', enemyEffect.slow.duration * sagemultiplier * CounterT(enemyEffect.slow.duration),0);
+        if (enemyEffect.knockback.effective) if(enemyEffect.slow.probability<100) if (coroutineKB == null) coroutineKB = StartCoroutine(DisplayKB(false,true,(int)(165 * sagemultiplier * CounterT(enemyEffect.slow.probability))));
+        if (enemyEffect.wrap.effective && !effects.wrap.effective && coroutineKB==null) EffectInstaller.Inflict(gameObject, 'e', enemyEffect.wrap.duration * sagemultiplier, enemyEffect.wrap.intensity * sagemultiplier);
+        if (enemyEffect.curse.effective) EffectInstaller.Inflict(gameObject, 'f', enemyEffect.curse.duration * sagemultiplier * CounterT(enemyEffect.curse.duration), 0);
+        if (enemyEffect.toxic.effective) TakeDMG((int)(enemyEffect.toxic.intensity / 100f * Health * sagemultiplier * CounterT(enemyEffect.toxic.intensity)));
+    }
+    public abstract float GetFactor();
+    public void SetPower(float pw) { Power = pw; }
+    protected float TBCspeedTranslator(int spd) { return spd / 10f; }
+    protected float CounterT(int duration) { return (100 - duration) / 100f; }
+    public abstract void GetStrategy();
+    public abstract void SetAttackRange(float far,float near);
+    protected void SummonEffect()
+    {
+        //Under attacked
+        EM.InstantiateEffect(SEnums.bite, transform.position.x);
+    }
+    public void LoadCharacterData(char tag, string code)
+    {
+        CharacterData cd;
+        string path;
+        if (tag == 'c') { path=$"Units/Cat Units/{code[0]}/{code[1]}{code[2]}{code[3]}/{code[4]}/data";}
+        else path=$"Units/Enemy Units/{code}/data";
+        cd = Resources.Load<CharacterData>(path);
+        SaveSystem.TestSave(Application.streamingAssetsPath+ $"/{code}.json", cd);
+        Name = cd.Name;
+        isEliteUnit= cd.isEliteUnit;
+        affectByStrategy= cd.affectByStrategy;
+        atkInfos = cd.atkInfos;
+        areaATK=cd.areaATK;
+        atkDuration=cd.atkDuration;
+        one_off =cd.one_off;
+        Health=cd.Health;
+        KB=cd.KB;
+        Speed=cd.Speed;
+        Reload=cd.Reload;
+        DetectionRange=cd.DetectionRange;
+        Cost=cd.Cost;
+        Cooldown=cd.Cooldown;
+
+        traits = cd.traits;
+        traitSpecials = cd.traitSpecials;
+        subtraits = cd.subtraits;
+        career = cd.career;
+        careerEffects = cd.careerEffects;
+        effects = cd.effects;
+    }
+    public void ChangeSpeed(int spd) { realSpeed = spd; }
+    public void SetATKmuiltipier(float ratio) { ATKmuiltipier = ratio;}
+    public void SetCurseStatus(bool curse) { onCurse = curse; }
+    public float GetHealth() { return realHealth; }
+    public void SetHealth(int rh) { realHealth = rh; }
+    public void AddPassiveEffect(PassiveNode passiveEffect) { passiveEffects.Add(passiveEffect); }
+    public void RemovePassiveEffect(PassiveNode passiveEffect) { passiveEffects.Remove(passiveEffect); }
+}
+

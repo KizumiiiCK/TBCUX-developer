@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 30
+  m_EditorClassIdentifier: 
+  levelName: id:unitedkingdom
+  gainXP: 12800
+  BaseHealth: 15000
+  mapSize: 3000
+  maxEmenyCount: 4
+  maxCatCount: 50
+  BackgroundID: 1
+  BaseImageID: 30
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 003
+    enemySummonInfos:
+    - enemyID: e014
+      ratio: 350
+      bossShock: 0
+      repeat: 1
+      firstAppear: 250
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: aa73b353554b85a498b943043838a8d7, type: 3}
+    - enemyID: e033
+      ratio: 100
+      bossShock: 0
+      repeat: 3
+      firstAppear: 200
+      repeatMin: 880
+      repeatMax: 880
+      previewSprite: {fileID: 21300000, guid: c3935eb6e3f3d1f4d80c750978233c4a, type: 3}
+    - enemyID: e006
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 450
+      repeatMin: 450
+      repeatMax: 450
+      previewSprite: {fileID: 21300000, guid: 56c2226b6241f60479322e460afe9982, type: 3}
