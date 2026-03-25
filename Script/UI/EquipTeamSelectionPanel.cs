@@ -196,6 +196,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         {
             btn.SetCover(null);
             btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
             btn.SetText(string.Empty);
             return;
         }
@@ -206,6 +207,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         if (icon != null && cd != null)
         {
             btn.SetOutfit(KiOutfit.Border, rality + 1);
+            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
             btn.SetCover(icon);
             btn.SetText(cd.Cost + " $");
         }
@@ -213,6 +215,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         {
             btn.SetCover(null);
             btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
             btn.SetText(string.Empty);
         }
     }

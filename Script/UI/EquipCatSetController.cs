@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,10 @@ public class EquipCatSetController : MonoBehaviour
     private int[] tireCosts = Array.Empty<int>();
     private int currentTire;
     private int maxUnlockedTire;
+    private bool isSelected;
     private Action<int, string, int> onSelect;
+    private Coroutine rainbowCoroutine;
+    private float rainbowSpeed = 0.6f;
 
     private void Awake()
     {
@@ -30,7 +34,8 @@ public class EquipCatSetController : MonoBehaviour
         Sprite[] tireIcons,
         int[] tireCosts,
         Action<int, string, int> onSelect,
-        int initialTire = -1)
+        int initialTire = -1,
+        bool isSelected = false)
     {
         this.rality = rality;
         this.code = code ?? "000";
@@ -38,6 +43,7 @@ public class EquipCatSetController : MonoBehaviour
         this.tireIcons = tireIcons ?? Array.Empty<Sprite>();
         this.tireCosts = tireCosts ?? Array.Empty<int>();
         this.onSelect = onSelect;
+        this.isSelected = isSelected;
 
         maxUnlockedTire = FindMaxUnlockedTire();
         if (initialTire >= 0)
@@ -74,9 +80,51 @@ public class EquipCatSetController : MonoBehaviour
             Sprite icon = GetCurrentIcon();
             characterButton.SetCover(icon);
             characterButton.SetText($"{GetCurrentCost()} $");
+            UpdateSelectionFrameEffect();
         }
 
         if (switchButton != null) switchButton.gameObject.SetActive(maxUnlockedTire > 0);
+    }
+
+    private void UpdateSelectionFrameEffect()
+    {
+        if (characterButton == null) return;
+        if (isSelected)
+        {
+            if (rainbowCoroutine == null)
+            {
+                rainbowCoroutine = StartCoroutine(RainbowFrameRoutine());
+            }
+            return;
+        }
+
+        StopRainbowFrameRoutine();
+        characterButton.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
+    }
+
+    private IEnumerator RainbowFrameRoutine()
+    {
+        float hue = 0f;
+        while (true)
+        {
+            hue += Time.deltaTime * Mathf.Max(0.01f, rainbowSpeed);
+            if (hue > 1f) hue -= 1f;
+            characterButton.SetFrameColorPersistent(Color.HSVToRGB(hue, 1f, 1f));
+            yield return null;
+        }
+    }
+
+    private void StopRainbowFrameRoutine()
+    {
+        if (rainbowCoroutine == null) return;
+        StopCoroutine(rainbowCoroutine);
+        rainbowCoroutine = null;
+    }
+
+    private void OnDisable()
+    {
+        StopRainbowFrameRoutine();
+        if (characterButton != null) characterButton.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
     }
 
     private Sprite GetCurrentIcon()
@@ -100,63 +148,6 @@ public class EquipCatSetController : MonoBehaviour
         }
         return max;
     }
-
-    //private void AutoCacheRefs()
-    //{
-    //    if (switchButton == null)
-    //    {
-    //        Button[] allButtons = GetComponentsInChildren<Button>(true);
-    //        for (int i = 0; i < allButtons.Length; i++)
-    //        {
-    //            if (allButtons[i] == null) continue;
-    //            switchButton = allButtons[i];
-    //            break;
-    //        }
-    //    }
-
-    //    if (characterButton == null)
-    //    {
-    //        KiButton[] allKiButtons = GetComponentsInChildren<KiButton>(true);
-    //        if (allKiButtons != null)
-    //        {
-    //            for (int i = 0; i < allKiButtons.Length; i++)
-    //            {
-    //                var kb = allKiButtons[i];
-    //                if (kb == null) continue;
-    //                if (switchButton != null && kb == switchButton) continue;
-    //                if (kb.transform.Find("Cover") != null)
-    //                {
-    //                    characterButton = kb;
-    //                    break;
-    //                }
-    //            }
-    //            if (characterButton == null)
-    //            {
-    //                for (int i = 0; i < allKiButtons.Length; i++)
-    //                {
-    //                    var kb = allKiButtons[i];
-    //                    if (kb == null) continue;
-    //                    if (switchButton != null && kb == switchButton) continue;
-    //                    characterButton = kb;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    if (switchButton == null)
-    //    {
-    //        Button[] allButtons = GetComponentsInChildren<Button>(true);
-    //        for (int i = 0; i < allButtons.Length; i++)
-    //        {
-    //            if (allButtons[i] == null) continue;
-    //            if (characterButton != null && allButtons[i] == characterButton) continue;
-    //            switchButton = allButtons[i];
-    //            break;
-    //        }
-    //    }
-    //}
-
     private void BindEvents()
     {
         if (characterButton != null)

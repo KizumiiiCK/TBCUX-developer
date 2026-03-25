@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
@@ -31,6 +31,7 @@ public class UnitDeployer : MonoBehaviour
     private TextAsset maanim_kb;
     //
     private Button btn;
+    private KiButton kiButton;
     [SerializeField] private Image blackShade;
     [SerializeField] private TMP_Text cost_txt;
     private LevelController LI;
@@ -49,12 +50,12 @@ public class UnitDeployer : MonoBehaviour
         blackShade.fillAmount = 1 - Mathf.Clamp01((float)t / cd);
         bool enoughMoney = LI.currentMoney >= unitCost;
         MoneyColor(enoughMoney);
-        if (t >= cd && enoughMoney) DeployAvailable(true);
-        else DeployAvailable(false);
+        DeployAvailable(t >= cd && enoughMoney);
     }
     public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel=1)
     {
         btn = GetComponent<Button>();
+        kiButton = GetComponent<KiButton>();
         //blackShade = transform.GetChild(0).GetComponent<Image>();
         //cost_txt = transform.GetChild(1).GetComponent<TMP_Text>();
         catBasePosition = GameObject.Find("CatBase").transform.position;
@@ -112,6 +113,7 @@ public class UnitDeployer : MonoBehaviour
         if (proficency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
         if (proficency > 2) { CD.Cost = CD.Cost * 9 / 10; unitCost = CD.Cost; }
         cost_txt.text = unitCost + " $";
+        ApplyRarityFrameColor();
     }
     public void SetProficiencyMark(int lvl)
     {
@@ -162,6 +164,22 @@ public class UnitDeployer : MonoBehaviour
     {
         if(enough)cost_txt.color = Color.white;
         else cost_txt.color = Color.red;
+    }
+
+    private void ApplyRarityFrameColor()
+    {
+        if (kiButton == null)
+        {
+            kiButton = GetComponent<KiButton>();
+            if (kiButton == null) return;
+        }
+
+        int rarity = 0;
+        if (!string.IsNullOrEmpty(unitCode) && unitCode.Length > 0)
+        {
+            rarity = Mathf.Clamp(unitCode[0] - '0', 0, 6);
+        }
+        kiButton.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rarity));
     }
     private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
     {

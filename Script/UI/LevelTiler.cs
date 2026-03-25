@@ -62,6 +62,7 @@ public class LevelTiler : UICanvasMain
         team_txt.text = TeamNameSave.GetTeamNameOrDefault(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0));
         if (selectionsPanel != null) selectionsPanel.SetTeamDisplay(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0), team_txt.text);
         TeamBtn.interactable = true;
+        RestoreMapVisibility();
     }
     void Update()
     {
@@ -346,6 +347,16 @@ public class LevelTiler : UICanvasMain
                 OnDragSettleStateChanged
             );
             dragSelector.MoveToLevel(current_level_num, true);
+        }
+    }
+
+    private void RestoreMapVisibility()
+    {
+        BaseCanvas baseCanvas = GameObject.Find("BaseCanvas")?.GetComponent<BaseCanvas>();
+        Transform mapRoot = baseCanvas != null ? baseCanvas.GetCurrentMap() : null;
+        if (mapRoot != null && !mapRoot.gameObject.activeSelf)
+        {
+            mapRoot.gameObject.SetActive(true);
         }
     }
 

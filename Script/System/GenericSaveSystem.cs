@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -13,39 +12,62 @@ using static CharacterUpgradeSave;
 public static class UXPref
 {
     //Player Pref.
-    public static readonly string UserPrefKey = "USER";
-    public static readonly string ChapterName = "CN";
-    public static readonly string SectionName = "SN";
-    public static readonly string SectionNum = "SNN";
-    public static readonly string Difficulty = "DF";
-    public static readonly string LevelNum = "LN";
-    public static readonly string DirectMark = "DR";
-    public static readonly string DefaultChapterName = "World_I";
-    public static readonly string LANG = "Lang";
-    public static readonly string TIREUPUNLOCKMARK = "TireUp_{0}";
-    public static readonly string Localized_BGnum = "BGnum_cat";
-    public static readonly string BGM_PARAM = "BGMVolume";
-    public static readonly string SE_PARAM = "SEVolume";
-    public static readonly string BASE_CannonNum = "BCN";
-    public static readonly string BASE_DecorationNum = "BDN";
-    public static readonly string BASE_BaseNum = "BBN";
-    public static readonly string Login_Date= "LDate";
+    public const string UserPrefKey = "USER";
+    public const string ChapterName = "CN";
+    public const string SectionName = "SN";
+    public const string SectionNum = "SNN";
+    public const string Difficulty = "DF";
+    public const string LevelNum = "LN";
+    public const string DirectMark = "DR";
+    public const string DefaultChapterName = "World_I";
+    public const string LANG = "Lang";
+    public const string TIREUPUNLOCKMARK = "TireUp_{0}";
+    public const string Localized_BGnum = "BGnum_cat";
+    public const string BGM_PARAM = "BGMVolume";
+    public const string SE_PARAM = "SEVolume";
+    public const string BASE_CannonNum = "BCN";
+    public const string BASE_DecorationNum = "BDN";
+    public const string BASE_BaseNum = "BBN";
+    public const string Login_Date= "LDate";
     //Localization Table
-    public static readonly string Localized_LevelNames = "LevelNames";
-    public static readonly string Localized_UI = "UI Elements";
-    public static readonly string Localized_Dialogue = "Dialogues";
-    public static readonly string Localized_DialogueNames = "DialogueNames";
-    public static readonly string Localized_Descriptions = "Descriptions";
-    public static readonly string Localized_CS = "ChapterSections";
-    public static readonly string Localized_BM = "BaseMessages";
+    public const string Localized_LevelNames = "LevelNames";
+    public const string Localized_UI = "UI Elements";
+    public const string Localized_Dialogue = "Dialogues";
+    public const string Localized_DialogueNames = "DialogueNames";
+    public const string Localized_Descriptions = "Descriptions";
+    public const string Localized_CS = "ChapterSections";
+    public const string Localized_BM = "BaseMessages";
     public static readonly DateTime REASONABLEDATE_LATE = new DateTime(year: 2026, month: 12, day: 11);
     public static readonly DateTime REASONABLEDATE_EARLY = new DateTime(year: 2025, month: 11, day: 15);
     // Specials
-    public static readonly string RewardPenalty = "reward-p";
+    public const string RewardPenalty = "reward-p";
 
     // Supabase (global fixed values)
-    public static readonly string SupabaseUrl = "https://udnacihdrcqwjbnavyau.supabase.co";
-    public static readonly string SupabaseKey = "sb_publishable_icguQw1JHoIlGDk8TBxECw_Mj_-ABem";
+    public const string SupabaseUrl = "https://udnacihdrcqwjbnavyau.supabase.co";
+    public const string SupabaseKey = "sb_publishable_icguQw1JHoIlGDk8TBxECw_Mj_-ABem";
+
+    // UI rarity frame colors
+    public static readonly Color FrameColorDefault = Color.white;
+    public static readonly Color FrameColorRarity1 = new Color(0.40f, 1.00f, 0.40f); // light green
+    public static readonly Color FrameColorRarity2 = new Color(0.20f, 0.70f, 1.00f); // light blue
+    public static readonly Color FrameColorRarity3 = new Color(0.82f, 0.42f, 0.95f); // purple
+    public static readonly Color FrameColorRarity4 = new Color(1.00f, 0.85f, 0.35f); // gold
+    public static readonly Color FrameColorRarity5 = new Color(1.000f, 0.40f, 0.75f); // pink
+    public static readonly Color FrameColorRarity6 = new Color(1.000f, 0.20f, 0.20f); // red
+
+    public static Color GetRarityFrameColor(int rarity)
+    {
+        switch (rarity)
+        {
+            case 1: return FrameColorRarity1;
+            case 2: return FrameColorRarity2;
+            case 3: return FrameColorRarity3;
+            case 4: return FrameColorRarity4;
+            case 5: return FrameColorRarity5;
+            case 6: return FrameColorRarity6;
+            default: return FrameColorDefault;
+        }
+    }
 }
 public static class GenericSaveSystem
 {

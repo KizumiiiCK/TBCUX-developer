@@ -370,7 +370,8 @@ public class EquipCanvas : UICanvasMain
             entry.TireIcons,
             entry.TireCosts,
             OnEquipSetRequestedSelection,
-            preferredTire
+            preferredTire,
+            IsCharacterSelected(entry.Rality, entry.Code)
         );
     }
 
@@ -392,6 +393,19 @@ public class EquipCanvas : UICanvasMain
             int tire = cc[4] - '0';
             displayTireByCharacter[key] = tire;
         }
+    }
+
+    private bool IsCharacterSelected(int rarity, string code)
+    {
+        if (char_codes == null) return false;
+        string key = $"{rarity}{code}";
+        for (int i = 0; i < char_codes.Length; i++)
+        {
+            string cc = char_codes[i];
+            if (string.IsNullOrEmpty(cc) || cc.Length < 4) continue;
+            if (cc.Substring(0, 4) == key) return true;
+        }
+        return false;
     }
 
 }
