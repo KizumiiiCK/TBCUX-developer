@@ -298,7 +298,6 @@ GameObject:
   - component: {fileID: 1750711378421123827}
   - component: {fileID: 5589598365301438852}
   - component: {fileID: 7952525916451590661}
-  - component: {fileID: 1230009706097655216}
   m_Layer: 5
   m_Name: UnitDeployer
   m_TagString: Untagged
@@ -351,6 +350,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Proficiency_Mark: {fileID: 3330918928145345587}
   unitCode: 
+  deployPanel: {fileID: 5526715226689527954}
   blackShade: {fileID: 6183051248826810623}
   cost_txt: {fileID: 1119909027129582729}
 --- !u!114 &1750711378421123827
@@ -535,22 +535,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1230009706097655216
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9215110859329183114}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee2ef42f4b853c04faeda65bc453772d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Proficiency_Mark: {fileID: 0}
-  unitCode: 00000
-  blackShade: {fileID: 0}
-  cost_txt: {fileID: 0}
 --- !u!1001 &2412092061434009306
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -793,3 +777,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3765583191199354956, guid: 2af23d2c1c0fc0c4fb015da768c29ff5, type: 3}
   m_PrefabInstance: {fileID: 2412092061434009306}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5526715226689527954 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7911609330242303560, guid: 2af23d2c1c0fc0c4fb015da768c29ff5, type: 3}
+  m_PrefabInstance: {fileID: 2412092061434009306}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44bd4314d4853954b9cc5d32de2b0d6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

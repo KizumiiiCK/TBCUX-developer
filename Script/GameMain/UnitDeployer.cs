@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,21 +21,15 @@ public class UnitDeployer : MonoBehaviour
     private int lvl = 1;
     private Vector2 catBasePosition=Vector2.zero;
     private string loadPath;
-    private Texture2D unitTexture;
-    private TextAsset imagecut;
-    private TextAsset mamodel;
-    private TextAsset maanim_walk;
-    private TextAsset maanim_idle;
-    private TextAsset maanim_attack;
-    private TextAsset maanim_kb;
     //
     private Button btn;
-    private KiButton kiButton;
+    [SerializeField] private KiPanel deployPanel;
     [SerializeField] private Image blackShade;
     [SerializeField] private TMP_Text cost_txt;
     private LevelController LI;
     private CharacterData CD;
-    AnimDecryptPack characterDecryptedFiles;
+    private AnimDecryptPack characterDecryptedFiles;
+    private bool isRuntimeInitialized;
 
     // Start is called before the first frame update
     void Start()
@@ -55,11 +48,13 @@ public class UnitDeployer : MonoBehaviour
     public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel=1)
     {
         btn = GetComponent<Button>();
-        kiButton = GetComponent<KiButton>();
+        if (deployPanel == null) deployPanel = GetComponent<KiPanel>();
         //blackShade = transform.GetChild(0).GetComponent<Image>();
         //cost_txt = transform.GetChild(1).GetComponent<TMP_Text>();
         catBasePosition = GameObject.Find("CatBase").transform.position;
         unitCode = code;
+        isRuntimeInitialized = false;
+        characterDecryptedFiles = null;
         try { loadPath = $"Units/Cat Units/{code[0]}/{code.Substring(1,3)}/{code[4]}/"; }
         catch
         {
@@ -81,23 +76,6 @@ public class UnitDeployer : MonoBehaviour
         Image icon=GetComponent<Image>();
         icon.sprite = Resources.Load<Sprite>(loadPath+"icon_deploy");
         //CharacterData C = Resources.Load<CharacterData>(loadPath + "data");
-        if (!CD.UNITYAnimated)
-        {
-            unitTexture = Resources.Load<Texture2D>(loadPath + "sprite");
-            imagecut = Resources.Load<TextAsset>(loadPath + "imgcut");
-            mamodel = Resources.Load<TextAsset>(loadPath + "mamodel");
-            maanim_walk = Resources.Load<TextAsset>(loadPath + "maanim_walk");
-            maanim_idle = Resources.Load<TextAsset>(loadPath + "maanim_idle");
-            maanim_attack = Resources.Load<TextAsset>(loadPath + "maanim_attack");
-            maanim_kb = Resources.Load<TextAsset>(loadPath + "maanim_kb");
-            List<TextAsset> maanims=new List<TextAsset> { maanim_walk, maanim_idle, maanim_attack, maanim_kb };
-            if (CD.career.Practician)
-            {
-                maanims.Add(Resources.Load<TextAsset>(loadPath + "maanim_p"));
-            }
-            AnimEncryptPack animEncryptPack = new AnimEncryptPack(unitTexture, imagecut, mamodel, maanims.ToArray());
-            characterDecryptedFiles = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
-        }
         //
         if (forceLevel > 1) lvl = forceLevel;
         else try { lvl = CharacterUpgradeSave.GetDetails(code.Substring(0,4)).TotalLevel(); if (lvl < 1) lvl = 1; }
@@ -133,6 +111,7 @@ public class UnitDeployer : MonoBehaviour
     {
         if (!LI.DeployCost(unitCost)) return;
         if (!LI.DeployACat()) return;
+        if (!EnsureRuntimeInitialized()) return;
         ResetCoolDown();
         int sortingOrder = Random.Range(0, 11);
         int sr_samelayer = Random.Range(0, 6);
@@ -156,6 +135,38 @@ public class UnitDeployer : MonoBehaviour
         // Proficiency
         LI.RecordProficency_Deploy(unitCode);
     }
+
+    private bool EnsureRuntimeInitialized()
+    {
+        if (isRuntimeInitialized) return true;
+        if (CD == null) return false;
+
+        if (!CD.UNITYAnimated)
+        {
+            Texture2D unitTexture = Resources.Load<Texture2D>(loadPath + "sprite");
+            TextAsset imagecut = Resources.Load<TextAsset>(loadPath + "imgcut");
+            TextAsset mamodel = Resources.Load<TextAsset>(loadPath + "mamodel");
+            TextAsset maanim_walk = Resources.Load<TextAsset>(loadPath + "maanim_walk");
+            TextAsset maanim_idle = Resources.Load<TextAsset>(loadPath + "maanim_idle");
+            TextAsset maanim_attack = Resources.Load<TextAsset>(loadPath + "maanim_attack");
+            TextAsset maanim_kb = Resources.Load<TextAsset>(loadPath + "maanim_kb");
+
+            List<TextAsset> maanims = new List<TextAsset> { maanim_walk, maanim_idle, maanim_attack, maanim_kb };
+            if (CD.career.Practician)
+            {
+                TextAsset maanim_p = Resources.Load<TextAsset>(loadPath + "maanim_p");
+                if (maanim_p != null) maanims.Add(maanim_p);
+            }
+
+            AnimEncryptPack animEncryptPack = new AnimEncryptPack(unitTexture, imagecut, mamodel, maanims.ToArray());
+            characterDecryptedFiles = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+
+            if (characterDecryptedFiles == null) return false;
+        }
+
+        isRuntimeInitialized = true;
+        return true;
+    }
     private void DeployAvailable(bool a)
     {
         btn.interactable = a;
@@ -168,18 +179,15 @@ public class UnitDeployer : MonoBehaviour
 
     private void ApplyRarityFrameColor()
     {
-        if (kiButton == null)
-        {
-            kiButton = GetComponent<KiButton>();
-            if (kiButton == null) return;
-        }
+        if (deployPanel == null) return;
 
         int rarity = 0;
         if (!string.IsNullOrEmpty(unitCode) && unitCode.Length > 0)
         {
             rarity = Mathf.Clamp(unitCode[0] - '0', 0, 6);
         }
-        kiButton.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rarity));
+        deployPanel.SetOutfit(KiOutfit.Border, rarity + 1);
+        deployPanel.ApplyFrameColor(UXPref.GetRarityFrameColor(rarity));
     }
     private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
     {
