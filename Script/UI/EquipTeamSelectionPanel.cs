@@ -21,7 +21,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     [SerializeField] private TMP_InputField teamNameInput;
 
     [Header("Feedback")]
-    [SerializeField] private float normalScale = 1.8f;
+    [SerializeField] private float normalScale = 0.9f;
     [SerializeField] private float maxScaleMultiplier = 1.5f;
     [SerializeField] private float feedbackDuration = 0.3f;
 
@@ -30,45 +30,64 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private Action onRemoveClicked;
     private Action<bool> onChangeTeamClicked;
     private Action<string> onTeamNameChanged;
+    private Action<int, string> onTeamStateChanged;
     private readonly Coroutine[] feedbackCoroutines = new Coroutine[13];
     private readonly string[] cachedCharCodes = new string[13];
     private bool suppressTeamNameNotify;
+    private int currentModifyingSlot = -1;
+    private int currentTeamIndex = 0;
+    private string currentTeamName = string.Empty;
 
     public void Initialize(
         Action<int> onSlotClicked,
         Action<int> onSwapTargetClicked,
         Action onRemoveClicked,
         Action<bool> onChangeTeamClicked,
-        Action<string> onTeamNameChanged)
+        Action<string> onTeamNameChanged,
+        Action<int, string> onTeamStateChanged = null)
     {
         this.onSlotClicked = onSlotClicked;
         this.onSwapTargetClicked = onSwapTargetClicked;
         this.onRemoveClicked = onRemoveClicked;
         this.onChangeTeamClicked = onChangeTeamClicked;
         this.onTeamNameChanged = onTeamNameChanged;
+        this.onTeamStateChanged = onTeamStateChanged;
 
         BindEvents();
         HideSwapPanel();
+        LoadCurrentTeamFromPrefs();
     }
 
     public void SetTeamDisplay(int teamNumber, string teamName)
     {
+        currentTeamIndex = Mathf.Clamp(teamNumber, 0, SelectionsSave.TeamNum - 1);
+        currentTeamName = TeamNameSave.NormalizeTeamName(currentTeamIndex, teamName);
         if (teamNameInput == null) return;
         suppressTeamNameNotify = true;
-        string fallback = $"Team {teamNumber + 1}";
-        teamNameInput.text = string.IsNullOrWhiteSpace(teamName) ? fallback : teamName.Trim();
+        string fallback = $"Team {currentTeamIndex + 1}";
+        teamNameInput.text = string.IsNullOrWhiteSpace(currentTeamName) ? fallback : currentTeamName;
         suppressTeamNameNotify = false;
     }
 
     public void RefreshSlots(string[] charCodes)
     {
         if (charCodes == null) return;
-        int max = Mathf.Min(currentSelectedButtons.Length, charCodes.Length);
+        string[] source = charCodes;
+        if (ReferenceEquals(source, cachedCharCodes))
+        {
+            source = (string[])charCodes.Clone();
+        }
+
+        int max = Mathf.Min(currentSelectedButtons.Length, source.Length);
         Array.Clear(cachedCharCodes, 0, cachedCharCodes.Length);
-        Array.Copy(charCodes, cachedCharCodes, max);
+        Array.Copy(source, cachedCharCodes, max);
+        for (int i = 0; i < cachedCharCodes.Length; i++)
+        {
+            if (cachedCharCodes[i] == null) cachedCharCodes[i] = string.Empty;
+        }
         for (int i = 0; i < max; i++)
         {
-            ApplySlotVisual(i, charCodes[i]);
+            ApplySlotVisual(i, cachedCharCodes[i]);
         }
     }
 
@@ -119,7 +138,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             int idx = i;
             if (currentSelectedButtons[idx] == null) continue;
             currentSelectedButtons[idx].onClick.RemoveAllListeners();
-            currentSelectedButtons[idx].onClick.AddListener(() => onSlotClicked?.Invoke(idx));
+            currentSelectedButtons[idx].onClick.AddListener(() => HandleSlotClicked(idx));
         }
 
         for (int i = 0; i < changePositionButtons.Length; i++)
@@ -127,24 +146,24 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             int idx = i;
             if (changePositionButtons[idx] == null) continue;
             changePositionButtons[idx].onClick.RemoveAllListeners();
-            changePositionButtons[idx].onClick.AddListener(() => onSwapTargetClicked?.Invoke(idx));
+            changePositionButtons[idx].onClick.AddListener(() => HandleSwapTargetClicked(idx));
         }
 
         if (removeCharacterButton != null)
         {
             removeCharacterButton.onClick.RemoveAllListeners();
-            removeCharacterButton.onClick.AddListener(() => onRemoveClicked?.Invoke());
+            removeCharacterButton.onClick.AddListener(HandleRemoveClicked);
         }
 
         if (changeTeamPrevButton != null)
         {
             changeTeamPrevButton.onClick.RemoveAllListeners();
-            changeTeamPrevButton.onClick.AddListener(() => onChangeTeamClicked?.Invoke(false));
+            changeTeamPrevButton.onClick.AddListener(() => HandleChangeTeamClicked(false));
         }
         if (changeTeamNextButton != null)
         {
             changeTeamNextButton.onClick.RemoveAllListeners();
-            changeTeamNextButton.onClick.AddListener(() => onChangeTeamClicked?.Invoke(true));
+            changeTeamNextButton.onClick.AddListener(() => HandleChangeTeamClicked(true));
         }
         if (teamNameInput != null)
         {
@@ -156,7 +175,15 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private void OnTeamNameInputValueChanged(string value)
     {
         if (suppressTeamNameNotify) return;
-        onTeamNameChanged?.Invoke(value);
+        if (onTeamNameChanged != null)
+        {
+            onTeamNameChanged.Invoke(value);
+            return;
+        }
+
+        currentTeamName = TeamNameSave.NormalizeTeamName(currentTeamIndex, value);
+        TeamNameSave.SetTeamName(currentTeamIndex, currentTeamName);
+        NotifyTeamStateChanged();
     }
 
     private void ApplySlotVisual(int slotIndex, string fullCode)
@@ -165,32 +192,28 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         var btn = currentSelectedButtons[slotIndex];
         if (btn == null) return;
 
-        TMP_Text costText = btn.transform.childCount > 0 ? btn.transform.GetChild(0).GetComponent<TMP_Text>() : null;
-        Image image = btn.GetComponent<Image>();
-        if (image == null) return;
-
         if (string.IsNullOrEmpty(fullCode))
         {
             btn.SetCover(null);
-            btn.SetOutfit(KiOutfit.Panel, 0);
-            if (costText != null) costText.text = string.Empty;
+            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+            btn.SetText(string.Empty);
             return;
         }
 
-        int rarity = fullCode[0] - '0';
+        int rality = fullCode[0] - '0';
         Sprite icon = ResolveIconSprite(fullCode);
         CharacterData cd = Resources.Load<CharacterData>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/data");
         if (icon != null && cd != null)
         {
-            btn.SetOutfit(KiOutfit.Panel, rarity + 1);
+            btn.SetOutfit(KiOutfit.Border, rality + 1);
             btn.SetCover(icon);
-            if (costText != null) costText.text = cd.Cost + " $";
+            btn.SetText(cd.Cost + " $");
         }
         else
         {
             btn.SetCover(null);
-            btn.SetOutfit(KiOutfit.Panel, 0);
-            if (costText != null) costText.text = string.Empty;
+            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+            btn.SetText(string.Empty);
         }
     }
 
@@ -198,6 +221,96 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     {
         if (string.IsNullOrEmpty(fullCode) || fullCode.Length < 5) return null;
         return Resources.Load<Sprite>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/icon_deploy");
+    }
+
+    private void HandleSlotClicked(int index)
+    {
+        if (onSlotClicked != null)
+        {
+            onSlotClicked.Invoke(index);
+            return;
+        }
+
+        if (index < 0 || index >= cachedCharCodes.Length) return;
+        if (string.IsNullOrEmpty(cachedCharCodes[index])) return;
+        currentModifyingSlot = index;
+        ShowSwapPanel(index);
+    }
+
+    private void HandleSwapTargetClicked(int index)
+    {
+        if (onSwapTargetClicked != null)
+        {
+            onSwapTargetClicked.Invoke(index);
+            return;
+        }
+
+        HideSwapPanel();
+        if (currentModifyingSlot == index) return;
+        if (currentModifyingSlot < 0 || currentModifyingSlot >= cachedCharCodes.Length) return;
+        if (index < 0 || index >= cachedCharCodes.Length) return;
+        if (currentModifyingSlot >= 10) return;
+
+        string destination = cachedCharCodes[index];
+        cachedCharCodes[index] = cachedCharCodes[currentModifyingSlot];
+        cachedCharCodes[currentModifyingSlot] = destination;
+        SaveCurrentTeamState();
+        RefreshSlots(cachedCharCodes);
+        PlaySlotChangeFeedback(currentModifyingSlot);
+        PlaySlotChangeFeedback(index);
+    }
+
+    private void HandleRemoveClicked()
+    {
+        if (onRemoveClicked != null)
+        {
+            onRemoveClicked.Invoke();
+            return;
+        }
+
+        HideSwapPanel();
+        if (currentModifyingSlot < 0 || currentModifyingSlot >= cachedCharCodes.Length) return;
+        cachedCharCodes[currentModifyingSlot] = string.Empty;
+        SaveCurrentTeamState();
+        RefreshSlots(cachedCharCodes);
+    }
+
+    private void HandleChangeTeamClicked(bool after)
+    {
+        if (onChangeTeamClicked != null)
+        {
+            onChangeTeamClicked.Invoke(after);
+            return;
+        }
+
+        SaveCurrentTeamState();
+        int addon = after ? 1 : -1;
+        currentTeamIndex = (currentTeamIndex + addon) % SelectionsSave.TeamNum;
+        if (currentTeamIndex < 0) currentTeamIndex = SelectionsSave.TeamNum - 1;
+        PlayerPrefs.SetInt(SelectionsSave.pref_teamnum, currentTeamIndex);
+        LoadCurrentTeamFromPrefs();
+    }
+
+    private void LoadCurrentTeamFromPrefs()
+    {
+        currentTeamIndex = Mathf.Clamp(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0), 0, SelectionsSave.TeamNum - 1);
+        string[] codes = SelectionsSave.GetRow(currentTeamIndex);
+        currentTeamName = TeamNameSave.GetTeamNameOrDefault(currentTeamIndex);
+        SetTeamDisplay(currentTeamIndex, currentTeamName);
+        RefreshSlots(codes);
+        NotifyTeamStateChanged();
+    }
+
+    private void SaveCurrentTeamState()
+    {
+        SelectionsSave.SetRow(currentTeamIndex, cachedCharCodes);
+        TeamNameSave.SetTeamName(currentTeamIndex, currentTeamName);
+        NotifyTeamStateChanged();
+    }
+
+    private void NotifyTeamStateChanged()
+    {
+        onTeamStateChanged?.Invoke(currentTeamIndex, currentTeamName);
     }
 
     private IEnumerator PlaySlotFeedbackRoutine(int position, Transform target)

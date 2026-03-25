@@ -573,7 +573,11 @@ public class DrawCapsuleCanvas : UICanvasMain
 
     public override IEnumerator OnEnter()
     {
-        yield break;
+        if (FrameUI != null)
+        {
+            FrameUI.OpenDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
     }
 
     public override IEnumerator OnExit()

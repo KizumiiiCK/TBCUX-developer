@@ -31,8 +31,8 @@ public class UnitDeployer : MonoBehaviour
     private TextAsset maanim_kb;
     //
     private Button btn;
-    private Image blackShade;
-    private TMP_Text cost_txt;
+    [SerializeField] private Image blackShade;
+    [SerializeField] private TMP_Text cost_txt;
     private LevelController LI;
     private CharacterData CD;
     AnimDecryptPack characterDecryptedFiles;
@@ -55,8 +55,8 @@ public class UnitDeployer : MonoBehaviour
     public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel=1)
     {
         btn = GetComponent<Button>();
-        blackShade = transform.GetChild(0).GetComponent<Image>();
-        cost_txt = transform.GetChild(1).GetComponent<TMP_Text>();
+        //blackShade = transform.GetChild(0).GetComponent<Image>();
+        //cost_txt = transform.GetChild(1).GetComponent<TMP_Text>();
         catBasePosition = GameObject.Find("CatBase").transform.position;
         unitCode = code;
         try { loadPath = $"Units/Cat Units/{code[0]}/{code.Substring(1,3)}/{code[4]}/"; }

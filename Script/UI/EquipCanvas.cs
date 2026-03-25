@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,13 +20,11 @@ public class EquipCanvas : UICanvasMain
     public int team_num = 0;
     private string[] char_codes = new string[13];
     [SerializeField] private RalityOption ralityOption;
-    [SerializeField] private Button Back_btn;
     [SerializeField] private Button GoToCatIndex_btn;
     [SerializeField] private EquipTeamSelectionPanel teamSelectionPanel;
     [SerializeField] private Image background;
     [SerializeField] private ShowEnemyBoard SEB;
     [Header("Instantiators")]
-    private static Vector3 scroll_gap = new Vector3(0, -200, 0);
     [SerializeField] private RectTransform HeadIcon_ScrollingArea;
     [SerializeField] private ScrollRect headIconScrollRect;
     [SerializeField] private GameObject EquipHeadIcon;
@@ -38,12 +34,11 @@ public class EquipCanvas : UICanvasMain
     [SerializeField] private int headIconPreloadRows = 2;
     //[SerializeField] private CustomScrollbar scrollbar_setting;
     [Header("Main Controllers")]
-    private BaseCanvas baseCanvas;
     private int current_modifying_slot = 0;
     private string currentTeamName;
     private GameObject current_display_character;
-    [SerializeField] private GameObject indexUnit;
     private readonly List<EquipListEntry> equipListEntries = new List<EquipListEntry>();
+    private readonly Dictionary<string, int> displayTireByCharacter = new Dictionary<string, int>();
     private VirtualizedScrollGrid<EquipListEntry> headIconGrid;
     private const string CatIndexCanvasPrefab = "UpgradeCanvas";
 
@@ -52,13 +47,13 @@ public class EquipCanvas : UICanvasMain
     {
         mainCamera = GameObject.Find("Main Camera");
         GetComponent<Canvas>().worldCamera=mainCamera.GetComponent<Camera>();
-        baseCanvas=GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>();
         InitializeButtons();
         InitializeHeadIconGrid();
         UpdateBackground();
         InitializeRalityOption();
         team_num = PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0);
         char_codes = SelectionsSave.GetRow(team_num);
+        BuildDisplayTireCacheFromTeam();
         currentTeamName = TeamNameSave.GetTeamNameOrDefault(team_num);
         teamSelectionPanel?.SetTeamDisplay(team_num, currentTeamName);
         ShowSelectionList();
@@ -75,6 +70,8 @@ public class EquipCanvas : UICanvasMain
     public void LoadCharatersFromRality(int R)
     {
         rality = R;
+        displayTireByCharacter.Clear();
+        BuildDisplayTireCacheFromTeam();
         equipListEntries.Clear();
         for(int i=0;i<1000;i++)
         {
@@ -122,8 +119,6 @@ public class EquipCanvas : UICanvasMain
                 OnTeamNameChanged
             );
         }
-        if(GameObject.FindObjectsOfType<GameObject>().Any(go => go.name.Contains("LevelsCanvas"))) Back_btn.onClick.AddListener(BackToMap);
-        else Back_btn.onClick.AddListener(BackToBase);
         if (GoToCatIndex_btn != null) GoToCatIndex_btn.onClick.AddListener(OpenCatIndexFromEquip);
     }
 
@@ -144,15 +139,6 @@ public class EquipCanvas : UICanvasMain
     {
         LoadCharatersFromRality(selectedRarity);
     }
-    private void BackToBase()
-    {
-        baseCanvas.SubBacktoBase();
-    }
-    private void BackToMap()
-    {
-        baseCanvas.EquipBackToMap();
-    }
-
     private void OpenCatIndexFromEquip()
     {
         if (FrameUI == null) return;
@@ -164,7 +150,7 @@ public class EquipCanvas : UICanvasMain
                 if (catIndex != null) catIndex.SetReturnToEquipMode(true);
             },
             null,
-            FrameUIDisplayer.DoorAction.Open
+            FrameUIDisplayer.DoorAction.None
         );
     }
     private void ShowSelectionList()
@@ -266,6 +252,7 @@ public class EquipCanvas : UICanvasMain
         if (team_num == -1) team_num = 9;
         PlayerPrefs.SetInt(SelectionsSave.pref_teamnum, team_num);
         char_codes = SelectionsSave.GetRow(team_num);
+        BuildDisplayTireCacheFromTeam();
         currentTeamName = TeamNameSave.GetTeamNameOrDefault(team_num);
         teamSelectionPanel?.SetTeamDisplay(team_num, currentTeamName);
         ShowSelectionList();
@@ -299,16 +286,6 @@ public class EquipCanvas : UICanvasMain
 
         current_display_character.transform.localScale *= 1.5f;
     }
-    private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
-    {
-        if (go == null) return;
-        if (go.TryGetComponent(out SpriteRenderer sr))
-        {
-            sr.sortingLayerName = sortingLayer;
-            sr.sortingOrder = order;
-        }
-        foreach (Transform child in go.transform) ResetAnimationOrderLayer(child.gameObject, sortingLayer, order);
-    }
     public void ShowChangeBGPage()
     {
         Transform t = Instantiate(Resources.Load<GameObject>("UI/ChangeBackgroundPage")).transform;
@@ -334,11 +311,20 @@ public class EquipCanvas : UICanvasMain
 
     public override IEnumerator OnEnter()
     {
-        yield break;
+        if (FrameUI != null)
+        {
+            FrameUI.OpenDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
     }
 
     public override IEnumerator OnExit()
     {
+        if (current_display_character != null)
+        {
+            Destroy(current_display_character);
+            current_display_character = null;
+        }
         if (FrameUI != null)
         {
             FrameUI.CloseDoor();
@@ -375,32 +361,37 @@ public class EquipCanvas : UICanvasMain
         iconGO.name = entry.Code;
         var setController = iconGO.GetComponent<EquipCatSetController>();
         if (setController == null) setController = iconGO.AddComponent<EquipCatSetController>();
+        string key = $"{entry.Rality}{entry.Code}";
+        int preferredTire = displayTireByCharacter.TryGetValue(key, out int cachedTire) ? cachedTire : -1;
         setController.Configure(
             entry.Rality,
             entry.Code,
             entry.Unlocked,
             entry.TireIcons,
             entry.TireCosts,
-            OnEquipSetRequestedSelection
+            OnEquipSetRequestedSelection,
+            preferredTire
         );
     }
 
     private void OnEquipSetRequestedSelection(int rality, string code, int tire)
     {
+        displayTireByCharacter[$"{rality}{code}"] = tire;
         AddCharacterOrSwitchTire(rality, code, tire);
     }
 
-    private bool IsEntryTireSelected(string code, int tire)
+    private void BuildDisplayTireCacheFromTeam()
     {
-        if (string.IsNullOrEmpty(code)) return false;
-        string targetPrefix = $"{rality}{code}";
+        displayTireByCharacter.Clear();
+        if (char_codes == null) return;
         for (int i = 0; i < char_codes.Length; i++)
         {
             string cc = char_codes[i];
             if (string.IsNullOrEmpty(cc) || cc.Length < 5) continue;
-            if (!cc.StartsWith(targetPrefix)) continue;
-            return (cc[4] - '0') == tire;
+            string key = cc.Substring(0, 4);
+            int tire = cc[4] - '0';
+            displayTireByCharacter[key] = tire;
         }
-        return false;
     }
+
 }

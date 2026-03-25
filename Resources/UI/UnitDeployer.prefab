@@ -351,6 +351,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Proficiency_Mark: {fileID: 3330918928145345587}
   unitCode: 
+  blackShade: {fileID: 6183051248826810623}
+  cost_txt: {fileID: 1119909027129582729}
 --- !u!114 &1750711378421123827
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -547,6 +549,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Proficiency_Mark: {fileID: 0}
   unitCode: 00000
+  blackShade: {fileID: 0}
+  cost_txt: {fileID: 0}
 --- !u!1001 &2412092061434009306
 PrefabInstance:
   m_ObjectHideFlags: 0

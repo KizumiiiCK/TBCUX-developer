@@ -19,7 +19,7 @@ public class EquipCatSetController : MonoBehaviour
 
     private void Awake()
     {
-        AutoCacheRefs();
+        // AutoCacheRefs();
         BindEvents();
     }
 
@@ -29,7 +29,8 @@ public class EquipCatSetController : MonoBehaviour
         bool[] unlocked,
         Sprite[] tireIcons,
         int[] tireCosts,
-        Action<int, string, int> onSelect)
+        Action<int, string, int> onSelect,
+        int initialTire = -1)
     {
         this.rality = rality;
         this.code = code ?? "000";
@@ -39,7 +40,14 @@ public class EquipCatSetController : MonoBehaviour
         this.onSelect = onSelect;
 
         maxUnlockedTire = FindMaxUnlockedTire();
-        currentTire = Mathf.Clamp(maxUnlockedTire, 0, 3); // default: highest unlocked tier
+        if (initialTire >= 0)
+        {
+            currentTire = Mathf.Clamp(initialTire, 0, maxUnlockedTire);
+        }
+        else
+        {
+            currentTire = Mathf.Clamp(maxUnlockedTire, 0, 3); // default: highest unlocked tier
+        }
 
         RefreshVisuals();
     }
@@ -93,21 +101,61 @@ public class EquipCatSetController : MonoBehaviour
         return max;
     }
 
-    private void AutoCacheRefs()
-    {
-        if (characterButton == null) characterButton = GetComponentInChildren<KiButton>(true);
-        if (switchButton == null)
-        {
-            Button[] allButtons = GetComponentsInChildren<Button>(true);
-            for (int i = 0; i < allButtons.Length; i++)
-            {
-                if (allButtons[i] == null) continue;
-                if (allButtons[i] == characterButton) continue;
-                switchButton = allButtons[i];
-                break;
-            }
-        }
-    }
+    //private void AutoCacheRefs()
+    //{
+    //    if (switchButton == null)
+    //    {
+    //        Button[] allButtons = GetComponentsInChildren<Button>(true);
+    //        for (int i = 0; i < allButtons.Length; i++)
+    //        {
+    //            if (allButtons[i] == null) continue;
+    //            switchButton = allButtons[i];
+    //            break;
+    //        }
+    //    }
+
+    //    if (characterButton == null)
+    //    {
+    //        KiButton[] allKiButtons = GetComponentsInChildren<KiButton>(true);
+    //        if (allKiButtons != null)
+    //        {
+    //            for (int i = 0; i < allKiButtons.Length; i++)
+    //            {
+    //                var kb = allKiButtons[i];
+    //                if (kb == null) continue;
+    //                if (switchButton != null && kb == switchButton) continue;
+    //                if (kb.transform.Find("Cover") != null)
+    //                {
+    //                    characterButton = kb;
+    //                    break;
+    //                }
+    //            }
+    //            if (characterButton == null)
+    //            {
+    //                for (int i = 0; i < allKiButtons.Length; i++)
+    //                {
+    //                    var kb = allKiButtons[i];
+    //                    if (kb == null) continue;
+    //                    if (switchButton != null && kb == switchButton) continue;
+    //                    characterButton = kb;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    if (switchButton == null)
+    //    {
+    //        Button[] allButtons = GetComponentsInChildren<Button>(true);
+    //        for (int i = 0; i < allButtons.Length; i++)
+    //        {
+    //            if (allButtons[i] == null) continue;
+    //            if (characterButton != null && allButtons[i] == characterButton) continue;
+    //            switchButton = allButtons[i];
+    //            break;
+    //        }
+    //    }
+    //}
 
     private void BindEvents()
     {

@@ -20,6 +20,7 @@ public class CatIndexCanvas : UICanvasMain
     [SerializeField] private Image[] Char_Rarity_Btns = new Image[4];
     [SerializeField] private Button Animation_switch_btn;
     [SerializeField] private Button Show_info_btn;
+    [SerializeField] private Button GoToEquip_btn;
     //Upgrade
     [SerializeField] private KiButton Upgrade_btn;
     private RewardName cateyeConsuming = RewardName.Cateye_EX;
@@ -76,6 +77,7 @@ public class CatIndexCanvas : UICanvasMain
     private static readonly Color UpgradeButtonEnabledColor = new Color(0.55f, 0.95f, 0.9f, 1f);
     private static readonly Color UpgradeButtonDisabledColor = new Color(1f, 0.72f, 0.72f, 1f);
     private bool returnToEquipMode = false;
+    private const string EquipCanvasPrefab = "EquipCanvas";
 
     private static Dictionary<int, RewardName> CateyeConsume_rality = new Dictionary<int, RewardName>
     {
@@ -199,6 +201,13 @@ public class CatIndexCanvas : UICanvasMain
         Prof_btn.onClick.AddListener(ShowProfTable);
         EvolveComfirmCanvas.SetController(this);
         Show_info_btn.onClick.AddListener(InfoBoardDisplay);
+        if (GoToEquip_btn != null) GoToEquip_btn.onClick.AddListener(OpenEquipFromCatIndex);
+    }
+
+    private void OpenEquipFromCatIndex()
+    {
+        if (FrameUI == null) return;
+        FrameUI.OpenPage(EquipCanvasPrefab, null, null, FrameUIDisplayer.DoorAction.None);
     }
 
     private void InitializeRalityOption()
@@ -366,7 +375,7 @@ public class CatIndexCanvas : UICanvasMain
     {
         if (returnToEquipMode && FrameUI != null)
         {
-            FrameUI.ReturnToPrevious(FrameUIDisplayer.DoorAction.Open);
+            FrameUI.ReturnToPrevious(FrameUIDisplayer.DoorAction.None);
             return;
         }
         baseCanvas.SubBacktoBase();
@@ -408,7 +417,11 @@ public class CatIndexCanvas : UICanvasMain
 
     public override IEnumerator OnEnter()
     {
-        yield break;
+        if (FrameUI != null)
+        {
+            FrameUI.OpenDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
     }
 
     public override IEnumerator OnExit()

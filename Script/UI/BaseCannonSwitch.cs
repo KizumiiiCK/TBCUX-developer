@@ -5,18 +5,18 @@ using UnityEngine.UI;
 public class BaseCannonSwitch : MonoBehaviour
 {
     [SerializeField] private Button mainButton;
+    [SerializeField] private GameObject showPanelRoot;
     [SerializeField] private Transform optionsRoot;
     [SerializeField] private Image currentHeadImage;
 
     private readonly List<Button> optionButtons = new List<Button>();
-    private const string BaseHeadKey = UXPref.BASE_CannonNum;
 
     private void Awake()
     {
         CacheRefs();
         BindEvents();
         SetOptionsVisible(false);
-        RefreshCurrentHeadImage(PlayerPrefs.GetInt(BaseHeadKey, 0));
+        RefreshCurrentHeadImage(PlayerPrefs.GetInt(UXPref.BASE_CannonNum, 0));
     }
 
     private void CacheRefs()
@@ -53,7 +53,7 @@ public class BaseCannonSwitch : MonoBehaviour
     private void ToggleOptions()
     {
         if (optionsRoot == null) return;
-        SetOptionsVisible(!optionsRoot.gameObject.activeSelf);
+        SetOptionsVisible(!showPanelRoot.activeSelf);
     }
 
     private void OnOptionClicked(int index)
@@ -68,7 +68,7 @@ public class BaseCannonSwitch : MonoBehaviour
         }
         else
         {
-            PlayerPrefs.SetInt(BaseHeadKey, index);
+            PlayerPrefs.SetInt(UXPref.BASE_CannonNum, index);
             PlayerPrefs.Save();
             changed = true;
         }
@@ -80,7 +80,7 @@ public class BaseCannonSwitch : MonoBehaviour
 
     private void SetOptionsVisible(bool visible)
     {
-        if (optionsRoot != null) optionsRoot.gameObject.SetActive(visible);
+        if (showPanelRoot != null) showPanelRoot.SetActive(visible);
     }
 
     private void RefreshCurrentHeadImage(int headIndex)

@@ -95,7 +95,6 @@ public class BaseCanvas : UICanvasMain
                 if (tiler != null) tiler.SetMapInfo(map);
             });
         }
-        OpenDoor();
     }
     public void ReturnFromMap(){StartCoroutine(ReturnSectionsFromMap());}
     private IEnumerator ShowSectionPage()
@@ -133,7 +132,7 @@ public class BaseCanvas : UICanvasMain
                 UpgradeCanvasPrefab,
                 page => currentSubCanvas = page,
                 null,
-                FrameUIDisplayer.DoorAction.Open
+                FrameUIDisplayer.DoorAction.None
             );
         }
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
@@ -144,7 +143,6 @@ public class BaseCanvas : UICanvasMain
     {
         operating = true;
         if (frameUI != null) frameUI.OpenPage(EquipCanvasPrefab, page => currentSubCanvas = page);
-        OpenDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         operating = false;
     }
@@ -167,7 +165,6 @@ public class BaseCanvas : UICanvasMain
         yield return new WaitForSeconds(0.1f);
         if (currentLevelCanvas != null) currentLevelCanvas.gameObject.SetActive(false);
         if (currentMap != null) currentMap.SetActive(false);
-        OpenDoor();
     }
     private IEnumerator ShowMapFromEquip()
     {
@@ -184,7 +181,6 @@ public class BaseCanvas : UICanvasMain
     {
         operating = true;
         if (frameUI != null) frameUI.OpenPage(EnemyCanvasPrefab, page => currentSubCanvas = page);
-        OpenDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         operating = false;
     }
@@ -197,7 +193,7 @@ public class BaseCanvas : UICanvasMain
                 CapsuleDrawCanvasPrefab,
                 page => currentSubCanvas = page,
                 null,
-                FrameUIDisplayer.DoorAction.Open
+                FrameUIDisplayer.DoorAction.None
             );
         }
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
@@ -207,7 +203,6 @@ public class BaseCanvas : UICanvasMain
     {
         operating = true;
         if (frameUI != null) frameUI.OpenPage(StorageCanvasPrefab, page => currentSubCanvas = page);
-        OpenDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         operating = false;
     }
