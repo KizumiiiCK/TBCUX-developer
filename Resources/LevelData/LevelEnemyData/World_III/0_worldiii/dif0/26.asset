@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 26
+  m_EditorClassIdentifier: 
+  levelName: 26
+  gainXP: 49000
+  BaseHealth: 80000
+  mapSize: 3600
+  maxEmenyCount: 50
+  maxCatCount: 50
+  BackgroundID: 0
+  BaseImageID: 0
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist: []
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 032
+    enemySummonInfos:
+    - enemyID: e004
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 600
+      repeatMin: 120
+      repeatMax: 240
+      previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
+    - enemyID: e030
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1500
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 6ac8e8e316147584ca84036b27482c74, type: 3}
+    - enemyID: e024
+      ratio: 400
+      bossShock: 0
+      repeat: 1
+      firstAppear: 100
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: b6cc1136cc8fc414d8c9464907748fe1, type: 3}
+    - enemyID: e035
+      ratio: 100
+      bossShock: 0
+      repeat: 10
+      firstAppear: 1000
+      repeatMin: 660
+      repeatMax: 660
+      previewSprite: {fileID: 21300000, guid: 217a0e1764232b243868ecd574625cca, type: 3}
+    - enemyID: e012
+      ratio: 200
+      bossShock: 0
+      repeat: 6
+      firstAppear: 1000
+      repeatMin: 480
+      repeatMax: 660
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}
+    - enemyID: e003
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 200
+      repeatMin: 120
+      repeatMax: 240
+      previewSprite: {fileID: 21300000, guid: 60b338ddf69762045993db867d6dbd71, type: 3}

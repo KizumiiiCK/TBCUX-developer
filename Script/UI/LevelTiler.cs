@@ -43,6 +43,8 @@ public class LevelTiler : UICanvasMain
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
     private readonly List<GameObject> spawnedLevelTiles = new List<GameObject>();
+    /// <summary>关卡大地图根物体（由本组件创建与销毁，不再由 BaseCanvas 管理）。</summary>
+    private GameObject worldMapRoot;
 
     public GameProgressSave.SectionClearList secClearList;
 
@@ -82,7 +84,21 @@ public class LevelTiler : UICanvasMain
     }
     private void InitializeMap()
     {
-        Transform mapt=GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().GetCurrentMap();
+        if (MI == null)
+        {
+            Debug.LogError("LevelTiler.InitializeMap: MapInfo (MI) is null.");
+            return;
+        }
+
+        GameObject mapPrefab = Resources.Load<GameObject>($"LevelData/Maps/{MI.mapName}");
+        if (mapPrefab == null)
+        {
+            Debug.LogError($"LevelTiler: missing map prefab Resources/LevelData/Maps/{MI.mapName}");
+            return;
+        }
+        worldMapRoot = Instantiate(mapPrefab, Vector3.zero, Quaternion.identity);
+        Transform mapt = worldMapRoot.transform;
+
         string chapter = PlayerPrefs.GetString(UXPref.ChapterName, UXPref.DefaultChapterName);
         string sectionName= PlayerPrefs.GetString(UXPref.SectionName);
         int sectionNum= PlayerPrefs.GetInt(UXPref.SectionNum, 0);
@@ -188,9 +204,10 @@ public class LevelTiler : UICanvasMain
 
     private void ReleaseMapObjects()
     {
-        for (int i = 0; i < spawnedMapPoints.Count; i++)
+        if (worldMapRoot != null)
         {
-            if (spawnedMapPoints[i] != null) Destroy(spawnedMapPoints[i]);
+            Destroy(worldMapRoot);
+            worldMapRoot = null;
         }
         spawnedMapPoints.Clear();
 
@@ -199,6 +216,12 @@ public class LevelTiler : UICanvasMain
             if (spawnedLevelTiles[i] != null) Destroy(spawnedLevelTiles[i]);
         }
         spawnedLevelTiles.Clear();
+    }
+
+    /// <summary>与关卡 UI 分离时隐藏/显示大地图（例如从关卡页进入装备页）。</summary>
+    public void SetWorldMapVisible(bool visible)
+    {
+        if (worldMapRoot != null) worldMapRoot.SetActive(visible);
     }
     private void LaunchAttack()
     {
@@ -352,12 +375,8 @@ public class LevelTiler : UICanvasMain
 
     private void RestoreMapVisibility()
     {
-        BaseCanvas baseCanvas = GameObject.Find("BaseCanvas")?.GetComponent<BaseCanvas>();
-        Transform mapRoot = baseCanvas != null ? baseCanvas.GetCurrentMap() : null;
-        if (mapRoot != null && !mapRoot.gameObject.activeSelf)
-        {
-            mapRoot.gameObject.SetActive(true);
-        }
+        if (worldMapRoot != null && !worldMapRoot.activeSelf)
+            worldMapRoot.SetActive(true);
     }
 
     private void OnDragLevelChanged(int levelIndex)

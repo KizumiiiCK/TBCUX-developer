@@ -12,29 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: e
+  Name: e066
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 0
-    frame: 0
+  - ATK: 4000
+    frame: 55
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 0}
-  areaATK: 0
-  atkDuration: 0
-  Health: 0
-  KB: 0
-  Speed: 0
-  Reload: 0
-  DetectionRange: 0
-  Cost: 0
+    ATKRange: {x: 200, y: 500}
+  areaATK: 1
+  atkDuration: 143
+  Health: 80000
+  KB: 2
+  Speed: 10
+  Reload: 80
+  DetectionRange: 250
+  Cost: 2172
   Cooldown: 0
   UNITYAnimated: 0
   traits:
     Red: 0
     Flt: 0
-    Blk: 0
+    Blk: 1
     Mtl: 0
     Ang: 0
     Aln: 0

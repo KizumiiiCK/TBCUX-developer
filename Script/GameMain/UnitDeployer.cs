@@ -118,18 +118,16 @@ public class UnitDeployer : MonoBehaviour
         float deviationY = -sortingOrder / 10f;
         GameObject cat=Instantiate(catUnit,catBasePosition+new Vector2(0.5f,deviationY),Quaternion.identity);
         cat.GetComponent<Character>().LoadCharacterData(LI, CD, lvl, treasure_count);
-        if (CD.UNITYAnimated) {
-            GameObject uaunit=Instantiate(Resources.Load<GameObject>($"Units/Cat Units/{unitCode[0]}/{unitCode.Substring(1, 3)}/{unitCode[4]}/uaunit"), cat.transform.position, Quaternion.identity);
-            uaunit.transform.SetParent(cat.transform);
-            ResetAnimationOrderLayer(uaunit, "Units", sortingOrder * 1000 + sr_samelayer * 100); 
-        }
-        else
-        {
-            AnimationDisplayer ad = cat.GetComponent<AnimationDisplayer>();
-            ad.Initialization(characterDecryptedFiles);
-            ad.OrderLayerStart = sortingOrder * 1000 + sr_samelayer * 50;
-            ad.ResetModelOrderLayer();
-        }
+        CharacterSummoner.InitializeRuntimeCharacterVisual(
+            cat,
+            true,
+            unitCode,
+            CD,
+            characterDecryptedFiles,
+            "Units",
+            sortingOrder * 1000 + sr_samelayer * 100,
+            sortingOrder * 1000 + sr_samelayer * 50
+        );
         DeployAvailable(false);
         if (isGuest) { gameObject.SetActive(false); }
         // Proficiency
@@ -143,23 +141,7 @@ public class UnitDeployer : MonoBehaviour
 
         if (!CD.UNITYAnimated)
         {
-            Texture2D unitTexture = Resources.Load<Texture2D>(loadPath + "sprite");
-            TextAsset imagecut = Resources.Load<TextAsset>(loadPath + "imgcut");
-            TextAsset mamodel = Resources.Load<TextAsset>(loadPath + "mamodel");
-            TextAsset maanim_walk = Resources.Load<TextAsset>(loadPath + "maanim_walk");
-            TextAsset maanim_idle = Resources.Load<TextAsset>(loadPath + "maanim_idle");
-            TextAsset maanim_attack = Resources.Load<TextAsset>(loadPath + "maanim_attack");
-            TextAsset maanim_kb = Resources.Load<TextAsset>(loadPath + "maanim_kb");
-
-            List<TextAsset> maanims = new List<TextAsset> { maanim_walk, maanim_idle, maanim_attack, maanim_kb };
-            if (CD.career.Practician)
-            {
-                TextAsset maanim_p = Resources.Load<TextAsset>(loadPath + "maanim_p");
-                if (maanim_p != null) maanims.Add(maanim_p);
-            }
-
-            AnimEncryptPack animEncryptPack = new AnimEncryptPack(unitTexture, imagecut, mamodel, maanims.ToArray());
-            characterDecryptedFiles = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+            characterDecryptedFiles = CharacterSummoner.DecryptCharacterFiles(true, unitCode, CD);
 
             if (characterDecryptedFiles == null) return false;
         }
@@ -188,15 +170,5 @@ public class UnitDeployer : MonoBehaviour
         }
         deployPanel.SetOutfit(KiOutfit.Border, rarity + 1);
         deployPanel.ApplyFrameColor(UXPref.GetRarityFrameColor(rarity));
-    }
-    private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
-    {
-        if (go == null) return;
-        if (go.TryGetComponent(out SpriteRenderer sr))
-        {
-            sr.sortingLayerName = sortingLayer;
-            sr.sortingOrder = order;
-        }
-        foreach (Transform child in go.transform) ResetAnimationOrderLayer(child.gameObject, sortingLayer, order);
     }
 }

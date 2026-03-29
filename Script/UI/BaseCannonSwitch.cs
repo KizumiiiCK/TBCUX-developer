@@ -26,10 +26,13 @@ public class BaseCannonSwitch : MonoBehaviour
 
         optionButtons.Clear();
         if (optionsRoot == null) return;
-        for (int i = 0; i < optionsRoot.childCount; i++)
+        // Collect all Button components under optionsRoot (including inactive).
+        var buttons = optionsRoot.GetComponentsInChildren<Button>(true);
+        foreach (var btn in buttons)
         {
-            var btn = optionsRoot.GetChild(i).GetComponent<Button>();
-            if (btn != null) optionButtons.Add(btn);
+            // Avoid accidentally treating the main button as an option if it's inside the same hierarchy
+            if (btn == mainButton) continue;
+            optionButtons.Add(btn);
         }
     }
 
@@ -58,6 +61,7 @@ public class BaseCannonSwitch : MonoBehaviour
 
     private void OnOptionClicked(int index)
     {
+        Debug.Log($"BaseCannonSwitch: option {index} clicked");
         bool changed;
 
         var baseGo = GameObject.Find("CatBase");

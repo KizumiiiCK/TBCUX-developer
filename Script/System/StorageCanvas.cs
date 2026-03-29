@@ -10,12 +10,12 @@ public class StorageCanvas : UICanvasMain
     [SerializeField] private GameObject StorageItem;
     //Settings
     [SerializeField] private RectTransform storage;
-    [SerializeField] private Button returnBtn;
     public BaseCanvas baseCanvas;
 
     // Display informations
     private const int group_num = 5;
     private const int si_scale = 2;
+    private GameObject[] group_obj = new GameObject[group_num];
     private static readonly Vector2[] group_pos = new Vector2[group_num]
     {
         new Vector2(-380,-70),
@@ -69,12 +69,12 @@ public class StorageCanvas : UICanvasMain
     {
         // Initailizer
         baseCanvas = GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>();
-        returnBtn.onClick.AddListener(baseCanvas.SubBacktoBase);
         //
         if (storage == null) return;
         for(int i = 0; i < group_num; i++)
         {
             RectTransform groupT = Instantiate(new GameObject()).AddComponent<RectTransform>();
+            group_obj[i]= groupT.gameObject;
             groupT.SetParent(storage);
             groupT.localScale = Vector3.one;
             groupT.anchoredPosition = group_pos[i];
@@ -97,11 +97,23 @@ public class StorageCanvas : UICanvasMain
 
     public override IEnumerator OnEnter()
     {
-        yield break;
+        if (FrameUI != null)
+        {
+            FrameUI.OpenDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
     }
 
     public override IEnumerator OnExit()
     {
-        yield break;
+        for (int i = group_num - 1; i >= 0; i--)
+        {
+            Destroy(group_obj[i]);
+        }
+        if (FrameUI != null)
+        {
+            FrameUI.CloseDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
     }
 }

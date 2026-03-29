@@ -10,7 +10,6 @@ public class BaseCanvas : UICanvasMain
     //[SerializeField] private Transform mainCamera;
     private UICanvasMain currentLevelCanvas;
     private UICanvasMain currentSubCanvas;
-    private GameObject currentMap;
     [Header("Initializers")]
     [SerializeField] private FrameUIDisplayer frameUI;
     [SerializeField] private Button StartBtn;
@@ -78,14 +77,6 @@ public class BaseCanvas : UICanvasMain
     public void ToSectionCanvas() { StartCoroutine(ShowSectionPage()); }
     public void LoadMap(MapInfo map)
     {
-        try
-        {
-            currentMap = Instantiate(Resources.Load<GameObject>($"LevelData/Maps/{map.mapName}"), Vector3.zero, Quaternion.identity);
-        }
-        catch
-        {
-            Debug.LogError($"Error loading map: {map.mapName}");
-        }
         if (frameUI != null)
         {
             frameUI.OpenPage(LevelCanvasPrefab, page =>
@@ -108,11 +99,6 @@ public class BaseCanvas : UICanvasMain
     {
         CloseDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
-        if (currentMap != null)
-        {
-            Destroy(currentMap);
-            currentMap = null;
-        }
         currentLevelCanvas = null;
         if (frameUI != null) frameUI.ReturnToPrevious();
     }
@@ -163,8 +149,12 @@ public class BaseCanvas : UICanvasMain
             });
         }
         yield return new WaitForSeconds(0.1f);
-        if (currentLevelCanvas != null) currentLevelCanvas.gameObject.SetActive(false);
-        if (currentMap != null) currentMap.SetActive(false);
+        if (currentLevelCanvas != null)
+        {
+            var tiler = currentLevelCanvas.GetComponent<LevelTiler>();
+            if (tiler != null) tiler.SetWorldMapVisible(false);
+            currentLevelCanvas.gameObject.SetActive(false);
+        }
     }
     private IEnumerator ShowMapFromEquip()
     {
@@ -172,8 +162,12 @@ public class BaseCanvas : UICanvasMain
         CloseDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         if (currentSubCanvas != null) Destroy(currentSubCanvas.gameObject);
-        if (currentLevelCanvas != null) currentLevelCanvas.gameObject.SetActive(true);
-        if (currentMap != null) currentMap.SetActive(true);
+        if (currentLevelCanvas != null)
+        {
+            currentLevelCanvas.gameObject.SetActive(true);
+            var tiler = currentLevelCanvas.GetComponent<LevelTiler>();
+            if (tiler != null) tiler.SetWorldMapVisible(true);
+        }
         OpenDoor();
         operating = false;
     }
@@ -242,12 +236,6 @@ public class BaseCanvas : UICanvasMain
         }
         catch { Debug.LogError($"No map info at path: {loadPath}"); };
     }
-    public Transform GetCurrentMap()
-    {
-        if (currentMap == null) return null;
-        else return currentMap.transform;
-    }
-
     public override IEnumerator OnEnter()
     {
         if (canvasSize.x <= 0f)
