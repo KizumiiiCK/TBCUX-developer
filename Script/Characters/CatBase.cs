@@ -13,6 +13,7 @@ public class CatBase : CatCharacter
     private int cannon_type = 0;
 
     private Transform main;
+    private Transform headTransform;
     private GameObject TowerStrike;
     private AudioSource audioSource;
     private TMP_Text healthInfo;
@@ -179,6 +180,10 @@ public class CatBase : CatCharacter
 
     public void SetCannonHead(int headIndex)
     {
+        if (headTransform == null)
+        {
+            headTransform = main.GetChild(2);
+        }
         int clamped = Mathf.Max(0, headIndex);
         ApplyCannonHeadImmediate(clamped, false);
     }
@@ -202,19 +207,19 @@ public class CatBase : CatCharacter
         if (cannonButtonAnimation != null) cannonButtonAnimation.enabled = false;
 
         float width = 6f;
-        float height = 6f;
+        float height = 3f;
         float elapsed = 0f;
         while (elapsed < CANNON_INSTALL_DURATION)
         {
             elapsed += Time.deltaTime;
             float px = Random.Range(-0.05f, 0.05f);
-            if (main != null) main.localPosition = new Vector3(px, 0, 0);
+            if (headTransform != null) headTransform.localPosition = new Vector2(px, 0);
             float dx = Random.Range(0f, width);
-            float dy = Random.Range(0f, height);
+            float dy = Random.Range(0f, height)+3;
             EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, dy, false);
             yield return new WaitForFixedUpdate();
         }
-        if (main != null) main.localPosition = Vector3.zero;
+        if (headTransform != null) headTransform.localPosition = Vector2.zero;
 
         ApplyCannonHeadImmediate(nextHead, true);
         var completeFx = Resources.Load<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
