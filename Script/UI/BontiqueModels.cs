@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 public enum BontiqueType
 {
@@ -23,6 +24,7 @@ public enum LimitType
 public class BontiqueShopItem
 {
     public string bid;
+    public string b_name_id;
     public BontiqueType Category;
     public RewardType RewardKind;
     public int gainId;
@@ -34,28 +36,82 @@ public class BontiqueShopItem
     public DateTime LimitStart;
     public DateTime LimitEnd;
 
+    public bool IsInActiveWindow(DateTime now)
+    {
+        if (Limit == LimitType.Event)
+        {
+            return now >= LimitStart && now <= LimitEnd;
+        }
+        return true;
+    }
+
+    public bool IsPeriodExpired(DateTime firstPurchaseDate, DateTime now)
+    {
+        if (Limit == LimitType.Day) return firstPurchaseDate.Date != now.Date;
+        if (Limit == LimitType.Week) return GetWeekStart(firstPurchaseDate) != GetWeekStart(now);
+        if (Limit == LimitType.Month) return firstPurchaseDate.Year != now.Year || firstPurchaseDate.Month != now.Month;
+        if (Limit == LimitType.Year) return firstPurchaseDate.Year != now.Year;
+        return false;
+    }
+
     public static BontiqueShopItem FromCsvRow(string[] cols)
     {
-        // Expect at least 10 columns: category, rewardType, id, obtainAmount, currencyId, currencyAmount, limitType, limitCount, start, end
-        var item = new BontiqueShopItem();
-        try
+        // columns: bid, b_name_id, category, rewardType, gainId, obtainAmount, currencyId, currencyAmount, limitType, limitCount, start, end
+        var item = new BontiqueShopItem
         {
-            if (cols.Length > 0) item.bid = cols[0];
-            if (cols.Length > 1 && int.TryParse(cols[1], out int c)) item.Category = Enum.IsDefined(typeof(BontiqueType), c) ? (BontiqueType)c : BontiqueType.Unknown;
-            if (cols.Length > 2 && int.TryParse(cols[2], out int r)) item.RewardKind = Enum.IsDefined(typeof(RewardType), r) ? (RewardType)r : RewardType.item;
-            if (cols.Length > 3) int.TryParse(cols[3], out item.gainId);
-            if (cols.Length > 4) int.TryParse(cols[4], out item.ObtainAmount);
-            if (cols.Length > 5) int.TryParse(cols[5], out item.CurrencyId);
-            if (cols.Length > 6) int.TryParse(cols[6], out item.CurrencyAmount);
-            if (cols.Length > 7 && int.TryParse(cols[7], out int lt)) item.Limit = Enum.IsDefined(typeof(LimitType), lt) ? (LimitType)lt : LimitType.None;
-            if (cols.Length > 8) int.TryParse(cols[8], out item.LimitCount);
-            if (cols.Length > 9 && DateTime.TryParse(cols[9], out DateTime s)) item.LimitStart = s; else item.LimitStart = DateTime.MinValue;
-            if (cols.Length > 10 && DateTime.TryParse(cols[10], out DateTime e)) item.LimitEnd = e; else item.LimitEnd = DateTime.MaxValue;
-        }
-        catch
-        {
-            // ignore and return partially filled
-        }
+            bid = GetTrimmed(cols, 0),
+            b_name_id = GetTrimmed(cols, 1),
+            Category = ToBontiqueType(ParseInt(cols, 2)),
+            RewardKind = ToRewardType(ParseInt(cols, 3)),
+            gainId = ParseInt(cols, 4),
+            ObtainAmount = ParseInt(cols, 5),
+            CurrencyId = ParseInt(cols, 6),
+            CurrencyAmount = ParseInt(cols, 7),
+            Limit = ToLimitType(ParseInt(cols, 8)),
+            LimitCount = ParseInt(cols, 9),
+            LimitStart = ParseDate(cols, 10, DateTime.MinValue),
+            LimitEnd = ParseDate(cols, 11, DateTime.MaxValue)
+        };
         return item;
+    }
+
+    private static string GetTrimmed(string[] cols, int index)
+    {
+        if (cols == null || index < 0 || index >= cols.Length || cols[index] == null) return string.Empty;
+        return cols[index].Trim();
+    }
+
+    private static int ParseInt(string[] cols, int index)
+    {
+        if (cols == null || index < 0 || index >= cols.Length) return 0;
+        return int.TryParse(cols[index], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : 0;
+    }
+
+    private static DateTime ParseDate(string[] cols, int index, DateTime fallback)
+    {
+        if (cols == null || index < 0 || index >= cols.Length) return fallback;
+        return DateTime.TryParse(cols[index], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d) ? d : fallback;
+    }
+
+    private static BontiqueType ToBontiqueType(int value)
+    {
+        return value >= 0 && value <= 3 ? (BontiqueType)value : BontiqueType.Unknown;
+    }
+
+    private static RewardType ToRewardType(int value)
+    {
+        return Enum.IsDefined(typeof(RewardType), value) ? (RewardType)value : RewardType.item;
+    }
+
+    private static LimitType ToLimitType(int value)
+    {
+        return value >= 0 && value <= 6 ? (LimitType)value : LimitType.None;
+    }
+
+    private static DateTime GetWeekStart(DateTime dt)
+    {
+        // Monday as week start
+        int diff = ((int)dt.DayOfWeek + 6) % 7;
+        return dt.Date.AddDays(-diff);
     }
 }

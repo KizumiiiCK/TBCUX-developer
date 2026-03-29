@@ -1008,4 +1008,126 @@ public static class EnemyMeetSave
     }
 }
 
+[System.Serializable]
+public class BontiquePurchaseEntry
+{
+    public string bid;
+    public DateTime firstPurchaseDate;
+    public int purchaseCount;
+}
+
+[System.Serializable]
+public class BontiquePurchaseData
+{
+    public List<BontiquePurchaseEntry> entries = new List<BontiquePurchaseEntry>();
+}
+
+[System.Serializable]
+public static class BontiquePurchaseSave
+{
+    public static readonly string filename = "A1F1DB4C73A5434C9176FE5B2A9427E1"; // bontique_purchase
+
+    private static BontiquePurchaseData LoadOrCreate(bool saveWhenMissing = false)
+    {
+        var data = GenericSaveSystem.LoadData<BontiquePurchaseData>(filename);
+        if (data == null)
+        {
+            data = new BontiquePurchaseData();
+            if (saveWhenMissing) Save(data);
+        }
+        if (data.entries == null) data.entries = new List<BontiquePurchaseEntry>();
+        return data;
+    }
+
+    private static void Save(BontiquePurchaseData data) => GenericSaveSystem.SaveData(data, filename);
+
+    public static List<BontiquePurchaseEntry> GetAll()
+    {
+        var data = LoadOrCreate(false);
+        var result = new List<BontiquePurchaseEntry>(data.entries.Count);
+        for (int i = 0; i < data.entries.Count; i++)
+        {
+            var e = data.entries[i];
+            if (e == null) continue;
+            result.Add(new BontiquePurchaseEntry
+            {
+                bid = e.bid,
+                firstPurchaseDate = e.firstPurchaseDate,
+                purchaseCount = e.purchaseCount
+            });
+        }
+        return result;
+    }
+
+    public static bool TryGet(string bid, out BontiquePurchaseEntry entry)
+    {
+        entry = null;
+        if (string.IsNullOrEmpty(bid)) return false;
+        var data = LoadOrCreate(false);
+        for (int i = 0; i < data.entries.Count; i++)
+        {
+            var e = data.entries[i];
+            if (e == null || string.IsNullOrEmpty(e.bid)) continue;
+            if (!string.Equals(e.bid, bid, StringComparison.Ordinal)) continue;
+            entry = new BontiquePurchaseEntry
+            {
+                bid = e.bid,
+                firstPurchaseDate = e.firstPurchaseDate,
+                purchaseCount = e.purchaseCount
+            };
+            return true;
+        }
+        return false;
+    }
+
+    public static int GetPurchaseCount(string bid)
+    {
+        return TryGet(bid, out var e) ? Mathf.Max(0, e.purchaseCount) : 0;
+    }
+
+    public static void AddPurchase(string bid, DateTime now)
+    {
+        if (string.IsNullOrEmpty(bid)) return;
+        var data = LoadOrCreate(true);
+        for (int i = 0; i < data.entries.Count; i++)
+        {
+            var e = data.entries[i];
+            if (e == null || string.IsNullOrEmpty(e.bid)) continue;
+            if (!string.Equals(e.bid, bid, StringComparison.Ordinal)) continue;
+            e.purchaseCount = Mathf.Max(0, e.purchaseCount) + 1;
+            Save(data);
+            return;
+        }
+        data.entries.Add(new BontiquePurchaseEntry
+        {
+            bid = bid,
+            firstPurchaseDate = now,
+            purchaseCount = 1
+        });
+        Save(data);
+    }
+
+    public static bool RemoveBid(string bid)
+    {
+        if (string.IsNullOrEmpty(bid)) return false;
+        var data = LoadOrCreate(false);
+        int before = data.entries.Count;
+        data.entries.RemoveAll(e => e != null && string.Equals(e.bid, bid, StringComparison.Ordinal));
+        if (data.entries.Count == before) return false;
+        Save(data);
+        return true;
+    }
+
+    public static int RemoveBids(ICollection<string> bids)
+    {
+        if (bids == null || bids.Count == 0) return 0;
+        var data = LoadOrCreate(false);
+        int before = data.entries.Count;
+        data.entries.RemoveAll(e => e != null && !string.IsNullOrEmpty(e.bid) && bids.Contains(e.bid));
+        int removed = before - data.entries.Count;
+        if (removed > 0) Save(data);
+        return removed;
+    }
+}
+
 
