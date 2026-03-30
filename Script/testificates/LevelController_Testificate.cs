@@ -9,12 +9,6 @@ public class LevelController_Testificate : LevelController
     public int treasureCount_test = 0;
     [Header("是否开满级钱包")]
     public bool MaxMoney=false;
-    //[Header("（如需修改则打勾）强制修改地图大小，范围为 2100 ~ 6000 ")]
-    //public bool forceMS = false;
-    //public int forcedMapSize = 3000;
-    //[Header("（如需修改则打勾，否则按宝物设置）强制修改产钱速度，范围为 0.06 ~ 1 ")]
-    //public bool forceMuiltiplier = false;
-    //public float money_multiplier = 0.06f;
     [Header("修改放置角色，5位数代码（最后3位为嘉宾角色，可不填）")]
     public string[] cats = new string[13]
     {

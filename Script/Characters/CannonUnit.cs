@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class CannonUnit : Character
 {
+    protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
+
     // Including NULL steps of a cannon effect animation
     [System.Serializable]
     public class CannonAttackPattern

@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class CatBase : CatCharacter
 {
+    protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.PersistentBase;
+
     private const float CANNON_CHARGE_TIME = 50f;
     private const string CANNON_UNIT_PATH = "Units/CatBases/effectUnits/{0}/cannonUnit";
     private const string CANNON_INSTALL_COMPLETE_EFFECT_PATH = "Units/CatBases/effectUnits/5/eff/1";

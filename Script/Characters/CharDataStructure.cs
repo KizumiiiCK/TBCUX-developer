@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -124,7 +124,7 @@ public enum AttackType
 public enum AbilityName
 {
     none, support, strategic, strengthen, survive, critical, zombieKiller, soulStrike, barrierBreaker, shieldPiercing, savage, extraMoney, metal, miniWave, wave, wave_stop, miniSurge, surge, counter_surge, explosion, summoner, shieldProvider, maxShield,
-    buff_defence, buff_attack, buff_speed, buff_kb, buff_costdown, buff_recover, buff_atkFreq, practician, oneoff, ATK_Buffer, XP_PUNCH, sacrifice
+    buff_defence, buff_attack, buff_speed, buff_kb, buff_costdown, buff_recover, buff_atkFreq, practician, oneoff, ATK_Buffer, XP_PUNCH, sacrifice, projectile
 }
 public enum KB_Type
 {

@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class SurgeUnit : Character
 {
+    protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
+
     public int surge_level = 1;
     public float distance = 1;
     bool Mini=false;
@@ -28,7 +30,6 @@ public class SurgeUnit : Character
         foreach (var ef in characterEffects) ef.probability = 100;
         ATKTypes = new List<AttackType> { AttackType.surge };
         for (int i = 0; i < atkTypes.Count; i++) ATKTypes.Add(atkTypes[i]);
-        CharacterTargetManager.Instance.RegisterProjectile(this);
         InitializeSurge();
     }
 
@@ -96,8 +97,5 @@ public class SurgeUnit : Character
         }
     }
 
-    protected override void OnDestroy()
-    {
-        CharacterTargetManager.Instance.UnregisterProjectile(this);
-    }
+    protected override void OnDestroy() => base.OnDestroy();
 }

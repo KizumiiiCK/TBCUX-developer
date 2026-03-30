@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyCharacter : Character
+public class EnemyCharacter : AnimatorCachedCharacter
 {
     public float strengthenRate = 1;
     public override void InitializeCharacter()

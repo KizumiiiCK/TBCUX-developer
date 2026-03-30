@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class DogeBase : EnemyCharacter
 {
+    protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.PersistentBase;
+
     private Transform main;
     private GameObject NewTurret;
     private AudioSource audioSource;

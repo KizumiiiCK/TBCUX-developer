@@ -1,9 +1,9 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class CatCharacter : Character
+public class CatCharacter : AnimatorCachedCharacter
 {
     public override void InitializeCharacter()
     {

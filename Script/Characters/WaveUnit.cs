@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class WaveUnit : Character
 {
+    protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
+
     public int wave_level = 1;
     bool Mini=false;
     private GameObject W;
@@ -25,7 +27,6 @@ public class WaveUnit : Character
         foreach (var ef in characterEffects) ef.probability = 100;
         ATKTypes = new List<AttackType> { AttackType.wave };
         for (int i = 0; i < atkTypes.Count; i++) ATKTypes.Add(atkTypes[i]);
-        CharacterTargetManager.Instance.RegisterProjectile(this);
         InitializeWave();
     }
 
@@ -88,8 +89,5 @@ public class WaveUnit : Character
         }
     }
 
-    protected override void OnDestroy()
-    {
-        CharacterTargetManager.Instance.UnregisterProjectile(this);
-    }
+    protected override void OnDestroy() => base.OnDestroy();
 }

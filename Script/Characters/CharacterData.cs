@@ -20,6 +20,7 @@ public class CharacterData : ScriptableObject
     public int Cost;
     public int Cooldown;
     public bool UNITYAnimated;
+    public bool SPINEAnimated;
     // Traits
     public Traits traits;
     public TraitSpecials traitSpecials;

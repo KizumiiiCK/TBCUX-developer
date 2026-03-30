@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +27,7 @@ public static class AbilityInstaller
         { AbilityName.ATK_Buffer, typeof(ATK_Buffer)},
         { AbilityName.XP_PUNCH,   typeof(XP_PUNCH)},
         { AbilityName.sacrifice,  typeof(Sacrifice)},
+        { AbilityName.projectile, typeof(ProjectileLauncher)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -213,7 +214,7 @@ public class Practician : PassiveSkill
 public class OneOff : PassiveSkill
 {
     private bool off = false;
-    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types) => off = true;
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types) => off = true;
     public override void OnAfterKB(Character character) { if (off) character.Dead(); }
     public override void OnFinishAttack(Character character)=> character.Dead();
 }
@@ -421,5 +422,46 @@ public class Sacrifice : PassiveSkill
     public override void OnFinishAttack(Character character)
     {
         if(Triggered())character.ReceiveAttack(character.GetMaxHealth() * intensity / 100, null, null, null, null, null, null);
+    }
+}
+
+public class ProjectileLauncher : PassiveSkill
+{
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (!Triggered()) return;
+        if (character == null) return;
+
+        int step = character.GetAnimationStep();
+        if (character.atkInfos == null || step < 0 || step >= character.atkInfos.Length) return;
+        ATKInfo atk = character.atkInfos[step];
+        bool triggerEffect = !atk.DoNotTriggerEffects;
+
+        Debug.Log($"p{duration.ToString("000")}");
+        GameObject prefab = Resources.Load<GameObject>($"Units/Projectiles/p{duration.ToString("000")}/projunit");
+        if (prefab == null)
+        {
+            Debug.Log("No such projectile!");
+            return;
+        }
+
+        GameObject go = GameObject.Instantiate(prefab, character.transform.position, Quaternion.identity);
+        CharacterSummoner.ResetAnimationOrderLayer(go, "Units", 20000);
+        ProjectileUnit pu = go.GetComponent<ProjectileUnit>();
+        if (pu == null) pu = go.AddComponent<ProjectileUnit>();
+
+        List<CharacterEffect> effectPayload = null;
+        if (triggerEffect && character.characterEffects != null && character.characterEffects.Length > 0)
+        {
+            effectPayload = character.characterEffects
+                .Select(e => JsonUtility.FromJson<CharacterEffect>(JsonUtility.ToJson(e)))
+                .ToList();
+            for (int i = 0; i < effectPayload.Count; i++) effectPayload[i].probability = 100;
+        }
+        float atkDamage = dmg;
+        pu.BeginProjectileAttack(character, atkDamage, Mathf.Max(1, intensity), effectPayload, types, triggerEffect);
+
+        // Block this attack's native hit while keeping attack animation/state flow intact.
+        character.RemoveAllTarget();
     }
 }

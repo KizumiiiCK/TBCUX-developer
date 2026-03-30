@@ -12,34 +12,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: e109
+  Name: e700
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 10
-    frame: 2
-    DoNotTriggerEffects: 1
-    Friendly: 0
-    ATKRange: {x: -1000, y: -100}
-  - ATK: 10000
-    frame: 132
+  - ATK: 2677
+    frame: 22
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 360, y: 720}
-  areaATK: 1
-  atkDuration: 1800
-  Health: 120000
-  KB: 1
-  Speed: 88
-  Reload: 2
-  DetectionRange: 25
-  Cost: 1988
+    ATKRange: {x: -1, y: 0}
+  - ATK: 2677
+    frame: 22
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: -1, y: 0}
+  - ATK: 2677
+    frame: 22
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: -1, y: 0}
+  areaATK: 0
+  atkDuration: 78
+  Health: 180000
+  KB: 3
+  Speed: 12
+  Reload: 0
+  DetectionRange: 888
+  Cost: 3555
   Cooldown: 0
   UNITYAnimated: 1
-  SPINEAnimated: 0
+  SPINEAnimated: 1
   traits:
     Red: 0
-    Flt: 1
+    Flt: 0
     Blk: 0
     Mtl: 0
     Ang: 0
@@ -47,7 +52,7 @@ MonoBehaviour:
     Z: 0
     Re: 0
     Aku: 0
-    None: 0
+    None: 1
   traitSpecials:
     barrierValue: 0
     akuSheildValue: 0
@@ -60,8 +65,8 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 0
-    Deffender: 1
+    Warrior: 1
+    Deffender: 0
     Magician: 0
     Supporter: 0
     Practician: 0
@@ -70,7 +75,7 @@ MonoBehaviour:
     AggainstMagician: 0
     AggainstDeffender: 0
     AggainstSuppoter: 0
-    AggainstPractician: 1
+    AggainstPractician: 0
   DRE:
     massiveDamage: 0
     insaneDamage: 0
@@ -79,21 +84,13 @@ MonoBehaviour:
     strongAgainst: 0
   characterEffects:
   - name: 1
-    probability: 100
-    duration: 270
+    probability: 15
+    duration: 60
     intensity: 50
   abilities:
-  - name: 31
+  - name: 35
     probability: 100
     duration: 1
-    intensity: 1
-  atkTypeResis:
-  - type: 1
-    intensity: 100
-  - type: 2
-    intensity: 100
-  effectResistances:
-  - name: 3
-    probability: 100
-    duration: 0
-    intensity: 0
+    intensity: 110
+  atkTypeResis: []
+  effectResistances: []

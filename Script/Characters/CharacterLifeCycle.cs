@@ -1,19 +1,32 @@
+using Spine.Unity;
 using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract partial class Character
 {
+    protected enum TargetRegistrationKind
+    {
+        Character,
+        Projectile,
+        PersistentBase
+    }
+
     [Header("Animation")]
     public bool UNITYAnimated;
+    public bool SPINEAnimated;
     protected Animator animator;
     protected AnimationDisplayer animatorDisplayer;
+    protected SkeletonAnimation skeletonAnimator;
     public LevelController levelController;
     public bool BlockAnimationSwitch = false;
     protected int frame_step = 1;
 
     //private const string CAT_PATH_FMT = "Units/Cat Units/{0}/{1:000}/{2}/data";
     //private const string ENEMY_PATH_FMT = "Units/Enemy Units/{0}/data";
+
+    protected virtual bool ShouldCacheAnimatorOnStart => false;
+    protected virtual TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Character;
 
     /* ====== 初始化 ====== */
     private void Awake()
@@ -23,28 +36,12 @@ public abstract partial class Character
 
     private void Start()
     {
-        // Base单位也需要注册到管理器（但不会注销）
-        bool isBase = name.Contains("Base");
-        bool isSpecialUnit = name.Contains("wave") || name.Contains("surge") || name.Contains("cannon");
-        
-        if (!isBase && !isSpecialUnit)
+        if (ShouldCacheAnimatorOnStart)
         {
-            if (UNITYAnimated)
-            {
-                animator = transform.GetChild(1).GetComponent<Animator>();
-            }
-            else animatorDisplayer = GetComponent<AnimationDisplayer>();
+            CacheAnimationComponents();
         }
-        
-        // 注册到统一目标管理器
-        if (isSpecialUnit)
-        {
-            CharacterTargetManager.Instance.RegisterProjectile(this);
-        }
-        else
-        {
-            CharacterTargetManager.Instance.RegisterCharacter(this);
-        }
+
+        RegisterToTargetManager();
         
         realSpeed = Speed;
         realReload = Reload;
@@ -57,19 +54,7 @@ public abstract partial class Character
     
     protected virtual void OnDestroy()
     {
-        // Base单位不会被注销（全局不可删除）
-        // 其他单位正常注销
-        bool isBase = name.Contains("Base");
-        bool isSpecialUnit = name.Contains("wave") || name.Contains("surge") || name.Contains("cannon");
-        
-        if (isSpecialUnit)
-        {
-            CharacterTargetManager.Instance.UnregisterProjectile(this);
-        }
-        else if (!isBase)
-        {
-            CharacterTargetManager.Instance.UnregisterCharacter(this);
-        }
+        UnregisterFromTargetManager();
     }
     
     protected void StartPos()=>startingY = transform.position.y;
@@ -99,6 +84,7 @@ public abstract partial class Character
         Cost = data.Cost;
         Cooldown = data.Cooldown;
         UNITYAnimated = data.UNITYAnimated;
+        SPINEAnimated= data.SPINEAnimated;
 
         ATKTypes = data.ATKType;
         atkInfos = data.atkInfos;
@@ -132,8 +118,58 @@ public abstract partial class Character
     }
     public void SetAnimationSpeed(int spd)
     {
-        if (UNITYAnimated) animator.speed = spd;
+        if (UNITYAnimated)
+        {
+            animator.speed = spd;
+            if (SPINEAnimated)
+            {
+                skeletonAnimator.timeScale = spd;
+            }
+        }
         else animatorDisplayer.SetAnimationSpeed(spd);
     }
     public void SetFrameStep(int step)=>frame_step = step;
+
+    private void CacheAnimationComponents()
+    {
+        if (UNITYAnimated)
+        {
+            animator = GetComponent<Animator>();
+            if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (SPINEAnimated) skeletonAnimator = GetComponentInChildren<SkeletonAnimation>();
+        }
+        else
+        {
+            animatorDisplayer = GetComponent<AnimationDisplayer>();
+        }
+    }
+
+    private void RegisterToTargetManager()
+    {
+        switch (RegistrationKind)
+        {
+            case TargetRegistrationKind.Projectile:
+                CharacterTargetManager.Instance.RegisterProjectile(this);
+                break;
+            case TargetRegistrationKind.Character:
+            case TargetRegistrationKind.PersistentBase:
+                CharacterTargetManager.Instance.RegisterCharacter(this);
+                break;
+        }
+    }
+
+    private void UnregisterFromTargetManager()
+    {
+        switch (RegistrationKind)
+        {
+            case TargetRegistrationKind.Projectile:
+                CharacterTargetManager.Instance.UnregisterProjectile(this);
+                break;
+            case TargetRegistrationKind.Character:
+                CharacterTargetManager.Instance.UnregisterCharacter(this);
+                break;
+            case TargetRegistrationKind.PersistentBase:
+                break;
+        }
+    }
 }

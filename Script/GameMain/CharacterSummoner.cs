@@ -1,3 +1,4 @@
+using Spine.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +25,11 @@ public class CharacterSummoner : MonoBehaviour
                 $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/uaunit" :
                 $"Units/Enemy Units/{characterCode}/uaunit";
             C = Instantiate(Resources.Load<GameObject>(caracterLoadPath));
-            ResetAnimationOrderLayer(C, "UI", 3);
+            if (CD.SPINEAnimated)
+            {
+                ResetSpineOrderLayer(C, "UI", 3);
+            }
+            else ResetAnimationOrderLayer(C, "UI", 3);
             C.GetComponent<Animator>().SetInteger("state", 0);
             C.GetComponent<Animator>().speed = 1;
         }
@@ -49,6 +54,16 @@ public class CharacterSummoner : MonoBehaviour
     {
         ad.OrderLayerStart=order;
         ad.ResetModelOrderLayer();
+    }
+    public static void ResetSpineOrderLayer(GameObject go, string sortingLayer, int order)
+    {
+        if (go == null) return;
+        MeshRenderer mr = go.GetComponentInChildren<MeshRenderer>(true);
+        if (mr != null)
+        {
+            mr.sortingLayerName = sortingLayer;
+            mr.sortingOrder = order;
+        }
     }
     public static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
     {
@@ -119,7 +134,11 @@ public class CharacterSummoner : MonoBehaviour
                 : $"Units/Enemy Units/{characterCode}/uaunit";
             GameObject uaunit = Instantiate(Resources.Load<GameObject>(uaPath), runtimeCharacter.transform.position, Quaternion.identity);
             uaunit.transform.SetParent(runtimeCharacter.transform);
-            ResetAnimationOrderLayer(uaunit, sortingLayer, uaOrder);
+            if (data.SPINEAnimated)
+            {
+                ResetSpineOrderLayer(uaunit, sortingLayer, uaOrder);
+            }
+            else ResetAnimationOrderLayer(uaunit, sortingLayer, uaOrder);
             Animator animator = uaunit.GetComponent<Animator>();
             if (animator != null)
             {
