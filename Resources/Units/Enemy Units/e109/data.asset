@@ -20,19 +20,19 @@ MonoBehaviour:
     frame: 2
     DoNotTriggerEffects: 1
     Friendly: 0
-    ATKRange: {x: -1000, y: -100}
+    ATKRange: {x: 0, y: 100}
   - ATK: 10000
     frame: 132
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 360, y: 720}
+    ATKRange: {x: 330, y: 680}
   areaATK: 1
   atkDuration: 1800
   Health: 120000
   KB: 1
   Speed: 88
   Reload: 2
-  DetectionRange: 25
+  DetectionRange: 50
   Cost: 1988
   Cooldown: 0
   UNITYAnimated: 1

@@ -429,7 +429,6 @@ public class ProjectileLauncher : PassiveSkill
 {
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
-        if (!Triggered()) return;
         if (character == null) return;
 
         int step = character.GetAnimationStep();
@@ -437,15 +436,14 @@ public class ProjectileLauncher : PassiveSkill
         ATKInfo atk = character.atkInfos[step];
         bool triggerEffect = !atk.DoNotTriggerEffects;
 
-        Debug.Log($"p{duration.ToString("000")}");
-        GameObject prefab = Resources.Load<GameObject>($"Units/Projectiles/p{duration.ToString("000")}/projunit");
+        GameObject prefab = Resources.Load<GameObject>($"Units/Projectiles/p{probability.ToString("000")}/projunit");
         if (prefab == null)
         {
             Debug.Log("No such projectile!");
             return;
         }
 
-        GameObject go = GameObject.Instantiate(prefab, character.transform.position, Quaternion.identity);
+        GameObject go = GameObject.Instantiate(prefab, character.transform.position+new Vector3(0, intensity/100f,0), Quaternion.identity);
         CharacterSummoner.ResetAnimationOrderLayer(go, "Units", 20000);
         ProjectileUnit pu = go.GetComponent<ProjectileUnit>();
         if (pu == null) pu = go.AddComponent<ProjectileUnit>();
@@ -459,7 +457,7 @@ public class ProjectileLauncher : PassiveSkill
             for (int i = 0; i < effectPayload.Count; i++) effectPayload[i].probability = 100;
         }
         float atkDamage = dmg;
-        pu.BeginProjectileAttack(character, atkDamage, Mathf.Max(1, intensity), effectPayload, types, triggerEffect);
+        pu.BeginProjectileAttack(character, atkDamage, Mathf.Max(1, duration), effectPayload, types, triggerEffect);
 
         // Block this attack's native hit while keeping attack animation/state flow intact.
         character.RemoveAllTarget();

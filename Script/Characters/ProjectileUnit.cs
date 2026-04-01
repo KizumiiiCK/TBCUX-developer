@@ -32,7 +32,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         KB = 1;
         Speed = projectileSpeed;
         Reload = 0;
-        DetectionRange = 10;
+        DetectionRange = 50;
         Cost = 0;
         Cooldown = 0;
         UNITYAnimated = true;
@@ -64,16 +64,13 @@ public class ProjectileUnit : AnimatorCachedCharacter
 
         // Use one attack step from current hit.
         atkInfos = new ATKInfo[1];
-        Vector2 range = source.atkInfos != null && source.atkInfos.Length > 0
-            ? source.atkInfos[source.GetAnimationStep()].ATKRange
-            : new Vector2(0, source.DetectionRange);
         atkInfos[0] = new ATKInfo
         {
             ATK = damage,
             frame = 1,
             DoNotTriggerEffects = !triggerEffectThisAttack,
             Friendly = false,
-            ATKRange = range
+            ATKRange = new Vector2(0, 50)
         };
         realDamage = new int[1] { Mathf.Max(1, Mathf.RoundToInt(damage)) };
 

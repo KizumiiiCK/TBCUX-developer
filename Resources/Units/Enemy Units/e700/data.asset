@@ -14,23 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: e700
   isEliteUnit: 0
-  ATKType: 
+  ATKType: 00000000
   atkInfos:
   - ATK: 2677
     frame: 22
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: -1, y: 0}
+    ATKRange: {x: 0, y: 7000}
   - ATK: 2677
-    frame: 22
+    frame: 28
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: -1, y: 0}
+    ATKRange: {x: 0, y: 7000}
   - ATK: 2677
-    frame: 22
+    frame: 34
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: -1, y: 0}
+    ATKRange: {x: 0, y: 7000}
   areaATK: 0
   atkDuration: 78
   Health: 180000
@@ -89,8 +89,8 @@ MonoBehaviour:
     intensity: 50
   abilities:
   - name: 35
-    probability: 100
-    duration: 1
-    intensity: 110
+    probability: 1
+    duration: 120
+    intensity: 130
   atkTypeResis: []
   effectResistances: []
