@@ -20,6 +20,7 @@ MonoBehaviour:
   maxCatCount: 50
   BackgroundID: 11
   BaseImageID: 303
+  CombatEffect: []
   CombatAura: []
   exstage:
     exist: 0
@@ -28,7 +29,7 @@ MonoBehaviour:
   rewardlist:
   - type: 1
     id: 26
-    drawtimes: 1
+    drawtimes: 2
     droprate: 100
     onlyOnce: 0
   enemySummoners:

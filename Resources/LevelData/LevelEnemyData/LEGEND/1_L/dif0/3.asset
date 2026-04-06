@@ -20,6 +20,8 @@ MonoBehaviour:
   maxCatCount: 50
   BackgroundID: 181
   BaseImageID: 301
+  CombatEffect: []
+  CombatAura: []
   exstage:
     exist: 0
     enter_rate: 0
@@ -41,6 +43,7 @@ MonoBehaviour:
       firstAppear: 800
       repeatMin: 1200
       repeatMax: 1300
+      previewSprite: {fileID: 21300000, guid: 3dd07b8f81dc6d94582900b757d13e9d, type: 3}
     - enemyID: e056
       ratio: 100
       bossShock: 0
@@ -48,6 +51,7 @@ MonoBehaviour:
       firstAppear: 2000
       repeatMin: 0
       repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: bd9068e9f4cab1c458919f16664f145a, type: 3}
     - enemyID: e038
       ratio: 200
       bossShock: 0
@@ -55,6 +59,7 @@ MonoBehaviour:
       firstAppear: 600
       repeatMin: 1400
       repeatMax: 1500
+      previewSprite: {fileID: 21300000, guid: 0498a632fe0daa0488d049ac73be9a44, type: 3}
     - enemyID: e039
       ratio: 100
       bossShock: 0
@@ -62,6 +67,7 @@ MonoBehaviour:
       firstAppear: 1000
       repeatMin: 150
       repeatMax: 400
+      previewSprite: {fileID: 21300000, guid: 3c716184d1a169b4ea1a0a54bbd00772, type: 3}
     - enemyID: e053
       ratio: 100
       bossShock: 0
@@ -69,17 +75,20 @@ MonoBehaviour:
       firstAppear: 1800
       repeatMin: 500
       repeatMax: 800
+      previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
     - enemyID: e007
-      ratio: 800
+      ratio: 1800
       bossShock: 0
       repeat: 3
       firstAppear: 250
       repeatMin: 30
       repeatMax: 60
+      previewSprite: {fileID: 21300000, guid: 0971a63f649b62a43a85fae116aad0bc, type: 3}
     - enemyID: e007
-      ratio: 800
+      ratio: 1800
       bossShock: 0
       repeat: 3
       firstAppear: 800
       repeatMin: 300
       repeatMax: 600
+      previewSprite: {fileID: 21300000, guid: 0971a63f649b62a43a85fae116aad0bc, type: 3}

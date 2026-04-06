@@ -19,7 +19,8 @@ MonoBehaviour:
   maxEmenyCount: 10
   maxCatCount: 50
   BackgroundID: 12
-  BaseImageID: 0
+  BaseImageID: 316
+  CombatEffect: []
   CombatAura: []
   exstage:
     exist: 0
@@ -27,9 +28,9 @@ MonoBehaviour:
     mapName: 
   rewardlist:
   - type: 1
-    id: 0
-    drawtimes: 0
-    droprate: 0
+    id: 38
+    drawtimes: 1
+    droprate: 100
     onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
@@ -93,7 +94,7 @@ MonoBehaviour:
       firstAppear: 0
       repeatMin: 0
       repeatMax: 0
-      previewSprite: {fileID: 0}
+      previewSprite: {fileID: 21300000, guid: e6c09ad6b75b6f44ca3d4ae04abf139c, type: 3}
     - enemyID: e048
       ratio: 150
       bossShock: 0

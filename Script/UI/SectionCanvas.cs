@@ -2,28 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SectionCanvas : UICanvasMain
 {
     [Header("Section UI")]
     [SerializeField] private RectTransform sectionRoot;
-    [SerializeField] private Transform sectionsContent;
+    [SerializeField] private RectTransform sectionContent;
+    [SerializeField] private ScrollRect sectionScrollRect;
     [SerializeField] private GameObject sectionItemPrefab;
     [SerializeField] private TMP_Text chapterName;
     [SerializeField] private float transitionDuration = 0.5f;
-    [SerializeField] private float itemStartX = 350f;
-    [SerializeField] private float itemStartY = -125f;
-    [SerializeField] private float itemSpacingY = 150f;
-    [SerializeField] private float itemScale = 1.5f;
+    [SerializeField] private float itemCellHeight = 180f;
+    [SerializeField] private int preloadRows = 2;
 
-    private readonly List<GameObject> spawnedSectionItems = new List<GameObject>();
+    private readonly List<SectionEntry> sectionEntries = new List<SectionEntry>();
     private Vector2 canvasSize;
-    private bool initialized;
+    private VirtualizedScrollGrid<SectionEntry> sectionGrid;
 
     public override void Initialize(FrameUIDisplayer frameUI)
     {
         base.Initialize(frameUI);
         ResolveReferences();
+        InitializeVirtualizedSectionList();
         InitializeSections();
         PrepareOffscreenPosition();
     }
@@ -81,11 +82,13 @@ public class SectionCanvas : UICanvasMain
             if (leftPinned != null) sectionRoot = leftPinned as RectTransform;
             if (sectionRoot == null) sectionRoot = GetComponent<RectTransform>();
         }
-        if (sectionsContent == null && sectionRoot != null && sectionRoot.childCount > 0)
+        if (sectionContent == null && sectionRoot != null)
         {
-            Transform scrollRoot = sectionRoot.GetChild(0);
-            if (scrollRoot != null && scrollRoot.childCount > 0) sectionsContent = scrollRoot.GetChild(0);
+            if (sectionScrollRect == null) sectionScrollRect = sectionRoot.GetComponentInChildren<ScrollRect>(true);
+            if (sectionScrollRect != null) sectionContent = sectionScrollRect.content;
         }
+        if (sectionScrollRect == null && sectionContent != null)
+            sectionScrollRect = sectionContent.GetComponentInParent<ScrollRect>();
         if (chapterName == null && sectionRoot != null)
         {
             chapterName = sectionRoot.GetComponentInChildren<TMP_Text>(true);
@@ -123,20 +126,13 @@ public class SectionCanvas : UICanvasMain
 
     private void InitializeSections()
     {
-        if (initialized) return;
-        initialized = true;
-
-        if (sectionsContent == null || sectionItemPrefab == null)
+        if (sectionContent == null || sectionItemPrefab == null)
         {
-            Debug.LogWarning("[SectionCanvas] Missing sectionsContent or sectionItemPrefab.");
+            Debug.LogWarning("[SectionCanvas] Missing sectionContent or sectionItemPrefab.");
             return;
         }
 
-        for (int i = 0; i < spawnedSectionItems.Count; i++)
-        {
-            if (spawnedSectionItems[i] != null) Destroy(spawnedSectionItems[i]);
-        }
-        spawnedSectionItems.Clear();
+        sectionEntries.Clear();
 
         string worldName = PlayerPrefs.GetString(UXPref.ChapterName);
         if (chapterName != null)
@@ -147,35 +143,67 @@ public class SectionCanvas : UICanvasMain
 
         string worldPath = $"LevelData/Chapters/{worldName}";
         MapInfo[] sections = Resources.LoadAll<MapInfo>(worldPath);
-        Transform scrollbarHost = sectionsContent.parent != null ? sectionsContent.parent : sectionsContent;
-        if (scrollbarHost.parent != null) scrollbarHost = scrollbarHost.parent;
-        CustomScrollbar customScrollbar = scrollbarHost.GetComponent<CustomScrollbar>();
-
-        int sectionNum = 0;
         for (int i = 0; i < sections.Length; i++)
         {
-            GameObject item = Instantiate(sectionItemPrefab, sectionsContent);
-            spawnedSectionItems.Add(item);
-
-            SectionButton sectionButton = item.GetComponent<SectionButton>();
-            if (sectionButton != null)
-            {
-                sectionButton.mapinfo = sections[i];
-                sectionButton.section_order = i;
-            }
-
-            LocalizationHelper.GetLocalizedText(UXPref.Localized_CS, sections[i].sectionName,
-                localizedText => item.name = localizedText ?? sections[i].sectionName);
-
-            item.transform.localScale = Vector3.one * itemScale;
-            RectTransform itemRect = item.GetComponent<RectTransform>();
-            if (itemRect != null)
-            {
-                itemRect.anchoredPosition = new Vector2(itemStartX, itemStartY - sectionNum * itemSpacingY);
-            }
-
-            sectionNum++;
-            if (customScrollbar != null) customScrollbar.SetMaxY(sectionNum, (int)itemSpacingY);
+            sectionEntries.Add(new SectionEntry { mapInfo = sections[i], sectionOrder = i });
         }
+
+        sectionGrid?.SetData(sectionEntries, true);
+    }
+
+    private void InitializeVirtualizedSectionList()
+    {
+        if (sectionContent == null || sectionItemPrefab == null) return;
+        if (sectionScrollRect == null) sectionScrollRect = sectionContent.GetComponentInParent<ScrollRect>();
+        if (sectionScrollRect == null) return;
+
+        sectionGrid = new VirtualizedScrollGrid<SectionEntry>(
+            new VirtualizedScrollGrid<SectionEntry>.Settings
+            {
+                Content = sectionContent,
+                ScrollRect = sectionScrollRect,
+                ItemPrefab = sectionItemPrefab,
+                Columns = 1,
+                CellWidth = 450,
+                CellHeight = 85,
+                PreloadRows = 5,
+                DisableAutoLayout = true
+            },
+            BindSectionItem
+        );
+        sectionGrid.Initialize();
+        VerticalLayoutGroup vlg  = sectionContent.GetComponent<VerticalLayoutGroup>();
+        if (vlg != null)
+        {
+            vlg.enabled = true;
+            vlg.padding.left = -1100;
+            vlg.spacing = 15;
+        }
+    }
+
+    private void BindSectionItem(GameObject itemGO, int _, SectionEntry entry)
+    {
+        if (itemGO == null || entry.mapInfo == null) return;
+
+        var sectionButton = itemGO.GetComponent<SectionButton>();
+        if (sectionButton != null) sectionButton.Configure(entry.mapInfo, entry.sectionOrder);
+
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_CS, entry.mapInfo.sectionName,
+            localizedText => itemGO.name = localizedText ?? entry.mapInfo.sectionName);
+    }
+
+    private void OnDestroy()
+    {
+        if (sectionGrid != null)
+        {
+            sectionGrid.Dispose();
+            sectionGrid = null;
+        }
+    }
+
+    private struct SectionEntry
+    {
+        public MapInfo mapInfo;
+        public int sectionOrder;
     }
 }

@@ -18,8 +18,9 @@ MonoBehaviour:
   mapSize: 50000
   maxEmenyCount: 9
   maxCatCount: 50
-  BackgroundID: 7
-  BaseImageID: 0
+  BackgroundID: 12
+  BaseImageID: 311
+  CombatEffect: []
   CombatAura: []
   exstage:
     exist: 0
@@ -27,9 +28,9 @@ MonoBehaviour:
     mapName: 
   rewardlist:
   - type: 1
-    id: 0
-    drawtimes: 0
-    droprate: 0
+    id: 37
+    drawtimes: 1
+    droprate: 100
     onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
