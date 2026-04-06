@@ -12,56 +12,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 33
   m_EditorClassIdentifier: 
-  levelName: 33
+  levelName: id:newyork
   gainXP: 52000
   BaseHealth: 100000
   mapSize: 3600
   maxEmenyCount: 8
   maxCatCount: 50
-  BackgroundID: 0
-  BaseImageID: 0
-  CombatAura: []
+  BackgroundID: 14
+  BaseImageID: 33
+  CombatEffect:
+  - snow_mid
+  CombatAura:
+  - AuraType: 3
+    Parameters: {x: 0, y: 10, z: 10, w: 0}
+    AuraColor: {r: 0.78431374, g: 0.8186296, b: 1, a: 1}
   exstage:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
   enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 030
+    enemySummonInfos:
+    - enemyID: e104
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 999999
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
   - HealthPercentageOnBreak: 99
     bgm: 030
     enemySummonInfos:
     - enemyID: e104
-      ratio: 400
+      ratio: 800
       bossShock: 0
       repeat: 8
-      firstAppear: 980
-      repeatMin: 120
-      repeatMax: 640
+      firstAppear: 1
+      repeatMin: 60
+      repeatMax: 120
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
     - enemyID: e062
-      ratio: 100
+      ratio: 300
       bossShock: 0
       repeat: 2
-      firstAppear: 1100
+      firstAppear: 310
       repeatMin: 120
       repeatMax: 640
       previewSprite: {fileID: 21300000, guid: a525dba1a5c488c4390fac4d66903bfd, type: 3}
     - enemyID: e038
-      ratio: 100
+      ratio: 300
       bossShock: 0
       repeat: 2
-      firstAppear: 1180
+      firstAppear: 300
       repeatMin: 120
       repeatMax: 640
       previewSprite: {fileID: 21300000, guid: 0498a632fe0daa0488d049ac73be9a44, type: 3}
     - enemyID: e104
-      ratio: 800
+      ratio: 1000
       bossShock: 0
       repeat: 1
       firstAppear: 600
       repeatMin: 1
       repeatMax: 1
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
-  - HealthPercentageOnBreak: 100
-    bgm: 030
-    enemySummonInfos: []

@@ -18,6 +18,7 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private static string loadingPagePath = "UI/Pages/loading";
     private static string createAccountPagePath = "UI/Pages/user/CreateAccount";
+    private static string restoreAccountPagePath = "UI/Pages/user/RestoreAccount";
 
     private LoadingPage loadingPage;
     private UserInfoLocalData localInfo;
@@ -145,7 +146,14 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private void OnInheritAccount()
     {
-        SetMessage("继承已有账号功能将在下一步接入。");
+        GameObject prefab = Resources.Load<GameObject>(restoreAccountPagePath);
+        if (prefab == null)
+        {
+            SetMessage($"Missing page: {restoreAccountPagePath}");
+            return;
+        }
+        Instantiate(prefab);
+        Destroy(gameObject);
     }
 
     private void ShowNewUserPanel()

@@ -249,25 +249,18 @@ public class UserUploadAccountPage : MonoBehaviour
     {
         if (loadingPage != null) loadingPage.SetDetail("Reading and uploading reward_inventory as one int[] row...");
 
-        int maxRewardId = -1;
-        foreach (var kv in RewardingSystem.RewardNumMap)
+        int expectedLength = RewardingSystem.RewardNumMap.Count;
+        int[] localAmounts = GenericSaveSystem.LoadData<int[]>(RewardingSystem.filename) ?? new int[expectedLength];
+        int[] amounts;
+        if (localAmounts.Length == expectedLength)
         {
-            if (kv.Value > maxRewardId) maxRewardId = kv.Value;
+            amounts = localAmounts;
         }
-
-        if (maxRewardId < 0)
+        else
         {
-            task.Success = true;
-            if (loadingPage != null) loadingPage.SetDetail("No reward map detected. Skipped.");
-            yield break;
-        }
-
-        int[] amounts = new int[maxRewardId + 1];
-        foreach (var kv in RewardingSystem.RewardNumMap)
-        {
-            int rewardId = kv.Value;
-            if (rewardId < 0 || rewardId >= amounts.Length) continue;
-            amounts[rewardId] = RewardingSystem.GetAmount(kv.Key);
+            // Normalize legacy/corrupted lengths to current reward table size.
+            amounts = new int[expectedLength];
+            Array.Copy(localAmounts, amounts, Mathf.Min(localAmounts.Length, expectedLength));
         }
 
         string row = "{"
@@ -393,6 +386,7 @@ public class UserUploadAccountPage : MonoBehaviour
         {
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
+            request.timeout = 25;
             request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("apikey", UXPref.SupabaseKey);
             request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
@@ -460,6 +454,16 @@ public class UserUploadAccountPage : MonoBehaviour
         if (string.IsNullOrWhiteSpace(text))
         {
             error = "Transfer code cannot be empty.";
+            return false;
+        }
+        if (text.Length < 6)
+        {
+            error = "Transfer code must be at least 6 characters.";
+            return false;
+        }
+        if (text.Length > 16)
+        {
+            error = "Transfer code cannot exceed 16 characters.";
             return false;
         }
 

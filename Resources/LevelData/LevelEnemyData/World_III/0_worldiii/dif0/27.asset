@@ -12,37 +12,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 27
   m_EditorClassIdentifier: 
-  levelName: 27
+  levelName: id:germany
   gainXP: 50000
-  BaseHealth: 1000
+  BaseHealth: 100000
   mapSize: 2800
   maxEmenyCount: 50
   maxCatCount: 50
-  BackgroundID: 0
-  BaseImageID: 0
+  BackgroundID: 9
+  BaseImageID: 27
+  CombatEffect: []
   CombatAura: []
   exstage:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
-    bgm: 003
+    bgm: 031
     enemySummonInfos:
     - enemyID: e036
       ratio: 50
       bossShock: 1
       repeat: 1
-      firstAppear: 400
+      firstAppear: 440
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 98a57793d5b7b2746bf8c89d49222581, type: 3}
-    - enemyID: e039
-      ratio: 50
+    - enemyID: e105
+      ratio: 800
       bossShock: 0
-      repeat: 2
-      firstAppear: 1000
-      repeatMin: 1
-      repeatMax: 800
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: c8263f91b93fc684c95a338a946b54d6, type: 3}
+    - enemyID: e039
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 900
+      repeatMin: 900
+      repeatMax: 900
       previewSprite: {fileID: 21300000, guid: 3c716184d1a169b4ea1a0a54bbd00772, type: 3}

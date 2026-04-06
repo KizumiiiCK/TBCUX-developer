@@ -25,4 +25,8 @@ public class SceneSwitcher : MonoBehaviour
     {
         StartCoroutine(TagOutProcess(SceneManager.GetActiveScene().name));
     }
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
 }

@@ -11,6 +11,12 @@ public class MMOption : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
     [SerializeField] private Slider bgmSlider;
     [SerializeField] private Slider seSlider;
+    [Header("Account Actions")]
+    [SerializeField] private Button uploadAccountButton;
+    [SerializeField] private Button deleteAccountButton;
+
+    private const string UploadAccountPagePath = "UI/Pages/user/TransferAccount";
+    private const string DeleteAccountPagePath = "UI/Pages/user/DeleteAccount";
 
     private int lang = 0;
     // Start is called before the first frame update
@@ -18,6 +24,8 @@ public class MMOption : MonoBehaviour
     {
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
+        if (uploadAccountButton != null) uploadAccountButton.onClick.AddListener(OpenUploadAccountPage);
+        if (deleteAccountButton != null) deleteAccountButton.onClick.AddListener(OpenDeleteAccountPage);
     }
 
     private void OnEnable()
@@ -54,5 +62,27 @@ public class MMOption : MonoBehaviour
         lang = L;
         PlayerPrefs.SetInt(UXPref.LANG, lang);
         LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[L];
+    }
+
+    private void OpenUploadAccountPage()
+    {
+        GameObject prefab = Resources.Load<GameObject>(UploadAccountPagePath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[MMOption] Missing page prefab: {UploadAccountPagePath}");
+            return;
+        }
+        Instantiate(prefab);
+    }
+
+    private void OpenDeleteAccountPage()
+    {
+        GameObject prefab = Resources.Load<GameObject>(DeleteAccountPagePath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[MMOption] Missing page prefab: {DeleteAccountPagePath}");
+            return;
+        }
+        Instantiate(prefab);
     }
 }

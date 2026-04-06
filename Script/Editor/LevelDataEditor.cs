@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 //using static PlasticGui.WorkspaceWindow.Merge.MergeInProgress;
@@ -14,6 +15,7 @@ public class LevelDataEditor : Editor
     private Sprite backgroundSprite;
     private Sprite baseImageSprite;
     private Dictionary<int, Sprite> rewardSprites = new Dictionary<int, Sprite>();
+    private Dictionary<string, CharacterData> enemyDataCache = new Dictionary<string, CharacterData>();
     //private Dictionary<string, AudioClip> bgmCache = new Dictionary<string, AudioClip>();
 
     void OnEnable()
@@ -41,6 +43,7 @@ public class LevelDataEditor : Editor
 
         // Load reward icons
         rewardSprites.Clear();
+        enemyDataCache.Clear();
         if (levelData.rewardlist != null)
         {
             foreach (var reward in levelData.rewardlist)
@@ -183,6 +186,13 @@ public class LevelDataEditor : Editor
                     //info.repeatMin = EditorGUILayout.IntField("再出现最短f：", info.repeatMin); 
                     //info.repeatMax = EditorGUILayout.IntField("再出现最长f：", info.repeatMax);
                     EditorGUILayout.LabelField($"倍率: {info.ratio}%", labelSmall);
+
+                    CharacterData enemyData = GetEnemyData(info.enemyID);
+                    int scaledHealth = enemyData != null ? Mathf.RoundToInt(enemyData.Health * info.ratio / 100f) : 0;
+                    string scaledAtkText = BuildScaledAtkText(enemyData, info.ratio);
+                    EditorGUILayout.LabelField($"HP: {scaledHealth}", labelSmall);
+                    EditorGUILayout.LabelField($"ATK: {scaledAtkText}", labelSmall);
+
                     EditorGUILayout.LabelField($"Boss 震波: {info.bossShock}", labelSmall);
                     EditorGUILayout.LabelField($"重复出现: {info.repeat}", labelSmall);
                     EditorGUILayout.LabelField($"初出现帧: {info.firstAppear}", labelSmall);
@@ -224,5 +234,30 @@ public class LevelDataEditor : Editor
                 richText = true
             };
         }
+    }
+
+    private CharacterData GetEnemyData(string enemyID)
+    {
+        if (string.IsNullOrWhiteSpace(enemyID)) return null;
+        string id = enemyID.Trim();
+        if (enemyDataCache.TryGetValue(id, out CharacterData cached)) return cached;
+
+        CharacterData data = Resources.Load<CharacterData>($"Units/Enemy Units/{id}/data");
+        enemyDataCache[id] = data;
+        return data;
+    }
+
+    private string BuildScaledAtkText(CharacterData data, int ratio)
+    {
+        if (data == null || data.atkInfos == null || data.atkInfos.Length == 0) return "-";
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < data.atkInfos.Length; i++)
+        {
+            if (i > 0) sb.Append(" / ");
+            int scaledAtk = Mathf.RoundToInt(data.atkInfos[i].ATK * ratio / 100f);
+            sb.Append(scaledAtk);
+        }
+        return sb.ToString();
     }
 }

@@ -13,7 +13,7 @@ public class ChapterButton : MonoBehaviour
         btn=GetComponent<Button>();
         btn.onClick.AddListener(SetupChapter);
     }
-    private void SetupChapter()
+    public void SetupChapter()
     {
         PlayerPrefs.SetString(UXPref.ChapterName, chapterName);
         GetComponent<SceneSwitcher>().TagOutTo("BaseScene");

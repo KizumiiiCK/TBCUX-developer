@@ -12,27 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 29
   m_EditorClassIdentifier: 
-  levelName: 29
+  levelName: id:norway
   gainXP: 51000
-  BaseHealth: 1000
-  mapSize: 4200
+  BaseHealth: 82000
+  mapSize: 5500
   maxEmenyCount: 5
   maxCatCount: 50
-  BackgroundID: 0
-  BaseImageID: 0
-  CombatAura: []
+  BackgroundID: 13
+  BaseImageID: 29
+  CombatEffect:
+  - moon
+  CombatAura:
+  - AuraType: 3
+    Parameters: {x: 0, y: 10, z: 10, w: 0}
+    AuraColor: {r: 0.78431374, g: 0.8186296, b: 1, a: 1}
   exstage:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
-    bgm: 030
+    bgm: snwt
     enemySummonInfos:
     - enemyID: e041
-      ratio: 10
-      bossShock: 1
+      ratio: 40
+      bossShock: 0
       repeat: 1
       firstAppear: 0
       repeatMin: 0
@@ -41,8 +51,24 @@ MonoBehaviour:
     - enemyID: e080
       ratio: 100
       bossShock: 0
-      repeat: 10
+      repeat: -1
       firstAppear: 0
       repeatMin: 240
       repeatMax: 360
       previewSprite: {fileID: 21300000, guid: 5151a27fd2ac9a748bee4523c743920b, type: 3}
+    - enemyID: e109
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 300
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: aef3f09754318d14daad7f2e854deb26, type: 3}
+    - enemyID: e109
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 1800
+      repeatMin: 1500
+      repeatMax: 1500
+      previewSprite: {fileID: 21300000, guid: aef3f09754318d14daad7f2e854deb26, type: 3}

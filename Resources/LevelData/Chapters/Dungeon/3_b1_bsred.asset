@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 3_b1_bsred
+  m_EditorClassIdentifier: 
+  sectionName: 3_b1_bsred
+  mapName: catfruit
+  BGM: 
+  unlockRestriction: World_III+0_worldiii
+  hardness: 1
+  difficulty: 000000010101000000000000
+  coverColor: {r: 0.29803923, g: 0.3137255, b: 0.25882354, a: 1}
+  titleColor: 4
+  levelsOnMap:
+  - levelNameID: catfruit_0
+    levelPosition: {x: 0, y: -12}
+    tileType: 0
+  - levelNameID: catfruit_1
+    levelPosition: {x: -6, y: -12}
+    tileType: 0
+  - levelNameID: catfruit_2
+    levelPosition: {x: -10, y: -17}
+    tileType: 0
+  - levelNameID: comingsoon
+    levelPosition: {x: -12, y: -11}
+    tileType: 0

@@ -12,26 +12,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 30
   m_EditorClassIdentifier: 
-  levelName: 30
-  gainXP: 51000
-  BaseHealth: 10000
-  mapSize: 4200
+  levelName: id:unitedkingdom
+  gainXP: 57500
+  BaseHealth: 175000
+  mapSize: 3600
   maxEmenyCount: 50
   maxCatCount: 50
   BackgroundID: 0
-  BaseImageID: 0
+  BaseImageID: 30
+  CombatEffect: []
   CombatAura: []
   exstage:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: 033
     enemySummonInfos:
     - enemyID: e017
-      ratio: 400
+      ratio: 2500
       bossShock: 0
       repeat: -1
       firstAppear: 0
@@ -39,7 +45,7 @@ MonoBehaviour:
       repeatMax: 240
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e017
-      ratio: 400
+      ratio: 2500
       bossShock: 0
       repeat: 20
       firstAppear: 0
@@ -47,7 +53,7 @@ MonoBehaviour:
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e017
-      ratio: 400
+      ratio: 2500
       bossShock: 0
       repeat: 20
       firstAppear: 10
@@ -55,7 +61,7 @@ MonoBehaviour:
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e017
-      ratio: 400
+      ratio: 2500
       bossShock: 0
       repeat: 20
       firstAppear: 13
@@ -63,7 +69,7 @@ MonoBehaviour:
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e017
-      ratio: 400
+      ratio: 2500
       bossShock: 0
       repeat: 20
       firstAppear: 18
@@ -71,7 +77,7 @@ MonoBehaviour:
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e034
-      ratio: 20
+      ratio: 50
       bossShock: 0
       repeat: 1
       firstAppear: 300

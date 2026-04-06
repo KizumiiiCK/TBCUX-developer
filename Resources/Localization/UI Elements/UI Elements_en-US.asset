@@ -269,6 +269,110 @@ MonoBehaviour:
     m_Localized: 'Please input your transfer keycode:'
     m_Metadata:
       m_Items: []
+  - m_Id: 112440714209869824
+    m_Localized: Upload
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112475500144050176
+    m_Localized: '<size=48><color=red>Transfer Safety Warning</color></size>
+
+
+      You
+      are going to upload your account data to the UX server. Your account will be
+      firmly saved at the server, but your <color=red>local data will be deleted</color>
+      once it is completed! Please make sure you well remember your <color=red>Player
+      ID</color> (not user name) and your <color=red>transfer code</color>, or you
+      will be hard to find your data back!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112478662389219328
+    m_Localized: Exit Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112480020454522880
+    m_Localized: "<size=48><color=red>Data Upload Success!</color></size>\n\nYour
+      account was firmly saved at UX server!\nPlease use your <color=red>Player ID</color>\uFF08not
+      user name\uFF09and <color=red>Transfer Code</color> to restore your account
+      data.\nIt's Kiz's pleasure for your support to UX!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112682131305873408
+    m_Localized: 'Your user name: '
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112745939604946944
+    m_Localized: Quit Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112746027681136640
+    m_Localized: Let's Go!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112746939497660416
+    m_Localized: '<size=64>Welcome back!</size>
+
+
+      Your account has successfully
+      retrieve from the UX server!
+
+      Thank you for your support for UX.
+
+      Please
+      continue and enjoy the game!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112761105964941312
+    m_Localized: Please think twice and click your dicision again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112761073295507456
+    m_Localized: '<size=64><color=red>Delete Account</color></size>
+
+
+      Doing
+      this will permanently delete your account from <color=red>both local and server</color>,
+      meaning that you will lose your account FOREVER! Are you sure to do so?'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112763154324602880
+    m_Localized: '<size=64>Account Delete Success</size>
+
+
+      Your account has
+      been successfully deleted.
+
+      Thanks again for all your support to TBC
+      UX!
+
+      Please restart the game and begin your new journey.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112765033406349312
+    m_Localized: Transfer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112765160934162432
+    m_Localized: Delete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112771780577673216
+    m_Localized: 'Account Management:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112774205606805504
+    m_Localized: Yes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112774247067500544
+    m_Localized: No
+    m_Metadata:
+      m_Items: []
+  - m_Id: 112784872355217408
+    m_Localized: Is this your expected account? Right press <color=green>Yes</color>
+      if your user name is correct! Press <color=red>No</color> and contact the author
+      if something went wrong.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
