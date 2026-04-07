@@ -14,27 +14,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sectionName: 1_L
   mapName: worldmap
-  unlockRestriction: 
+  BGM: 
+  unlockRestriction: LEGEND+0_L
   hardness: 1
   difficulty: 000000000001000000000000
-  coverColor: {r: 0.8627451, g: 0.8745098, b: 0.81960785, a: 1}
+  coverColor: {r: 0.4745098, g: 0.4509804, b: 0.39215687, a: 1}
   titleColor: 1
   levelsOnMap:
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-0
+    levelPosition: {x: -20, y: 0.5}
     tileType: 0
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-1
+    levelPosition: {x: -13, y: 1}
     tileType: 0
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-2
+    levelPosition: {x: -18, y: -4}
     tileType: 0
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-3
+    levelPosition: {x: -17, y: -9}
     tileType: 0
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-4
+    levelPosition: {x: -12, y: -4.5}
     tileType: 0
-  - levelNameID: 
-    levelPosition: {x: 0, y: 0}
+  - levelNameID: L1-5
+    levelPosition: {x: -1, y: -9}
     tileType: 0

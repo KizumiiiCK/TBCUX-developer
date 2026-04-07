@@ -241,6 +241,7 @@ public abstract partial class Character
         SwitchAnimation(3);
         //if(animator!=null)animator.SetInteger("state", 2);//
         //if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(3);
+        Targets.Clear();
 
         Passive_OnBeforeKB();
 
@@ -257,8 +258,8 @@ public abstract partial class Character
                     Dead();
                 }// check death
                 transform.position = new Vector2(transform.position.x, startingY);
+                Targets.Clear();
                 SwitchAnimation(0);
-                // 不再需要启用碰撞箱
                 onKB = false;
                 coroutineKB = null;
                 //GetStrategy();
