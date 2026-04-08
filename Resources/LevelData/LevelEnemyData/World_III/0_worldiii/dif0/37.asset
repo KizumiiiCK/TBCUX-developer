@@ -13,13 +13,15 @@ MonoBehaviour:
   m_Name: 37
   m_EditorClassIdentifier: 
   levelName: id:brazil
-  gainXP: 15200
-  BaseHealth: 40000
-  mapSize: 4800
-  maxEmenyCount: 7
+  gainXP: 55200
+  BaseHealth: 100000
+  mapSize: 3200
+  maxEmenyCount: 30
   maxCatCount: 50
   BackgroundID: 7
   BaseImageID: 37
+  CombatEffect: []
+  CombatAura: []
   exstage:
     exist: 0
     enter_rate: 0
@@ -34,27 +36,35 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 100
     bgm: 003
     enemySummonInfos:
-    - enemyID: e004
-      ratio: 1000
+    - enemyID: e103
+      ratio: 2000
       bossShock: 0
-      repeat: -1
-      firstAppear: 120
-      repeatMin: 250
-      repeatMax: 250
-  - HealthPercentageOnBreak: 99
-    bgm: 003
-    enemySummonInfos:
-    - enemyID: e010
-      ratio: 400
-      bossShock: 1
       repeat: 1
-      firstAppear: 0
-      repeatMin: 0
-      repeatMax: 0
-    - enemyID: e008
-      ratio: 400
-      bossShock: 1
-      repeat: 3
-      firstAppear: 0
-      repeatMin: 80
-      repeatMax: 180
+      firstAppear: 120
+      repeatMin: 1
+      repeatMax: 1
+      previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
+    - enemyID: e104
+      ratio: 750
+      bossShock: 0
+      repeat: 1
+      firstAppear: 120
+      repeatMin: 1
+      repeatMax: 1
+      previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
+    - enemyID: e105
+      ratio: 600
+      bossShock: 0
+      repeat: 1
+      firstAppear: 120
+      repeatMin: 1
+      repeatMax: 1
+      previewSprite: {fileID: 21300000, guid: c8263f91b93fc684c95a338a946b54d6, type: 3}
+    - enemyID: e109
+      ratio: 100
+      bossShock: 0
+      repeat: 30
+      firstAppear: 300
+      repeatMin: 1
+      repeatMax: 1
+      previewSprite: {fileID: 21300000, guid: aef3f09754318d14daad7f2e854deb26, type: 3}

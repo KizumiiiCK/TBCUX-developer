@@ -16,21 +16,27 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 4546
+  - ATK: 9062
     frame: 37
-    DoNotTriggerEffects: 0
+    DoNotTriggerEffects: 1
+    Friendly: 0
     ATKRange: {x: 0, y: 600}
+  - ATK: 100
+    frame: 435
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: -1000, y: 1000}
   areaATK: 1
   atkDuration: 480
-  one_off: 0
-  Health: 76780
+  Health: 767800
   KB: 8
   Speed: 40
   Reload: 0
-  DetectionRange: 400
-  Cost: 33000
+  DetectionRange: 360
+  Cost: 12300
   Cooldown: 0
   UNITYAnimated: 1
+  SPINEAnimated: 0
   traits:
     Red: 1
     Flt: 1
@@ -62,7 +68,7 @@ MonoBehaviour:
   againstCareer:
     AggainstWarrior: 0
     AggainstMagician: 0
-    AggainstDeffender: 1
+    AggainstDeffender: 0
     AggainstSuppoter: 0
     AggainstPractician: 0
   DRE:
@@ -71,11 +77,39 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects: []
+  characterEffects:
+  - name: 3
+    probability: 100
+    duration: 30
+    intensity: 0
+  - name: 4
+    probability: 100
+    duration: 1
+    intensity: 0
   abilities:
   - name: 14
     probability: 100
     duration: 16
     intensity: 0
   atkTypeResis: []
-  effectResistances: []
+  effectResistances:
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 1
+    probability: 50
+    duration: 0
+    intensity: 0
+  - name: 1
+    probability: 50
+    duration: 0
+    intensity: 0
+  - name: 9
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 10
+    probability: 100
+    duration: 0
+    intensity: 0

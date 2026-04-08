@@ -50,7 +50,7 @@ public class WaveUnit : Character
         Vector3 basePos = transform.position;
         int dis = 1;
         int sign=IsCat() ? -1 : 1;
-        float delayer = Mini ? 0.1f : 0.2f;
+        int delayer = Mini ? 2 : 5;
         for(int i = 0; i < wave_level; i++)
         {
             //AnimationDisplayer adw=Instantiate(W, transform.position + new Vector3((dis + i * 2) * sign,0,0), Quaternion.identity).GetComponent<AnimationDisplayer>();
@@ -62,8 +62,7 @@ public class WaveUnit : Character
             // 单帧判定：范围(-100,100)，立刻攻击一次
             SetAttackRange(-100, 100);
             ApplyProjectileAttack(1f);
-            //adw.Initialization(adp);
-            yield return new WaitForSeconds(delayer);
+            for (int j=0; j<delayer;j++) yield return new WaitForFixedUpdate();
         }
         Destroy(gameObject);
     }

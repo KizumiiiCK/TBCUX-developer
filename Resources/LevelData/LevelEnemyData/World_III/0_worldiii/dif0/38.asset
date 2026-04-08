@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 38
+  m_EditorClassIdentifier: 
+  levelName: id:argentina
+  gainXP: 55500
+  BaseHealth: 145000
+  mapSize: 4000
+  maxEmenyCount: 15
+  maxCatCount: 50
+  BackgroundID: 0
+  BaseImageID: 38
+  CombatEffect: []
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 60
+    drawtimes: 1
+    droprate: 75
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 030
+    enemySummonInfos:
+    - enemyID: e002
+      ratio: 3000
+      bossShock: 0
+      repeat: -1
+      firstAppear: 30
+      repeatMin: 370
+      repeatMax: 490
+      previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}
+    - enemyID: e027
+      ratio: 500
+      bossShock: 0
+      repeat: -1
+      firstAppear: 120
+      repeatMin: 420
+      repeatMax: 550
+      previewSprite: {fileID: 21300000, guid: aaeaca4af87763e42b9db1e3cc77b4b9, type: 3}
+    - enemyID: e042
+      ratio: 150
+      bossShock: 0
+      repeat: -1
+      firstAppear: 180
+      repeatMin: 420
+      repeatMax: 420
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
+    - enemyID: e046
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 500
+      repeatMin: 500
+      repeatMax: 750
+      previewSprite: {fileID: 21300000, guid: e0b7f54e12e6f5a428c983a933c346bc, type: 3}
+    - enemyID: e048
+      ratio: 200
+      bossShock: 0
+      repeat: -1
+      firstAppear: 300
+      repeatMin: 300
+      repeatMax: 600
+      previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
+  - HealthPercentageOnBreak: 99
+    bgm: 031
+    enemySummonInfos:
+    - enemyID: e068
+      ratio: 2000
+      bossShock: 0
+      repeat: 2
+      firstAppear: 90
+      repeatMin: 45
+      repeatMax: 45
+      previewSprite: {fileID: 21300000, guid: 4c5be7884cfb2db4283865df2f0a6211, type: 3}
+    - enemyID: e108
+      ratio: 200
+      bossShock: 0
+      repeat: 1
+      firstAppear: 30
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: be53f2f332073814e9ec28fc713c4d02, type: 3}
+    - enemyID: e034
+      ratio: 50
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: be53f2f332073814e9ec28fc713c4d02, type: 3}

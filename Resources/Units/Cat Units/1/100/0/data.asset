@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: -64
+  - ATK: -128
     frame: 28
     DoNotTriggerEffects: 0
     Friendly: 1
@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 148
   Cooldown: 1734
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
