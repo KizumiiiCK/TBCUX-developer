@@ -22,10 +22,13 @@ public class CharacterTargetManager : MonoBehaviour
         }
     }
 
-    // 角色列表（按x轴位置排序）
-    // 注意：包括CatBase和DogeBase，它们全局不可删除
+    // 角色列表（按x轴位置排序，不包含基地塔）
     private List<Character> allCats = new List<Character>();
     private List<Character> allEnemies = new List<Character>();
+    
+    // 基地塔列表（单独注册，不参与主动检索Targets）
+    private CatBase catTower;
+    private DogeBase dogeTower;
 
     // 投射物列表（按x轴位置排序）
     // 投射物不存在Friendly攻击
@@ -64,6 +67,17 @@ public class CharacterTargetManager : MonoBehaviour
     public void RegisterCharacter(Character character)
     {
         if (character == null) return;
+
+        if (character is CatBase catBase)
+        {
+            catTower = catBase;
+            return;
+        }
+        if (character is DogeBase dogeBase)
+        {
+            dogeTower = dogeBase;
+            return;
+        }
         
         if (character.IsCat())
         {
@@ -87,9 +101,17 @@ public class CharacterTargetManager : MonoBehaviour
     public void UnregisterCharacter(Character character)
     {
         if (character == null) return;
-        
-        // Base单位不可被注销
-        if (character.gameObject.name.Contains("Base")) return;
+
+        if (character is CatBase)
+        {
+            if (catTower == character) catTower = null;
+            return;
+        }
+        if (character is DogeBase)
+        {
+            if (dogeTower == character) dogeTower = null;
+            return;
+        }
         
         if (character.IsCat())
             allCats.Remove(character);
@@ -177,6 +199,8 @@ public class CharacterTargetManager : MonoBehaviour
         allEnemies.RemoveAll(c => c == null);
         catProjectiles.RemoveAll(p => p == null);
         enemyProjectiles.RemoveAll(p => p == null);
+        if (catTower == null || !catTower.gameObject) catTower = null;
+        if (dogeTower == null || !dogeTower.gameObject) dogeTower = null;
 
         // 按x轴位置排序（优化：只在位置变化较大时重新排序）
         SortCharactersByX(allCats);
@@ -224,7 +248,7 @@ public class CharacterTargetManager : MonoBehaviour
                 ? (isCat ? allCats : allEnemies)      // Friendly模式：同阵营
                 : (isCat ? allEnemies : allCats);     // 非Friendly模式：敌对阵营
             
-            UpdateTargetsForCharacter(attacker, targetList);
+            UpdateTargetsForCharacter(attacker, targetList, !isFriendly);
         }
     }
 
@@ -236,7 +260,7 @@ public class CharacterTargetManager : MonoBehaviour
         foreach (var projectile in projectiles)
         {
             if (projectile == null || !projectile.gameObject.activeInHierarchy) continue;
-            UpdateTargetsForCharacter(projectile, targetList);
+            UpdateTargetsForCharacter(projectile, targetList, true);
         }
     }
 
@@ -248,15 +272,15 @@ public class CharacterTargetManager : MonoBehaviour
         if (projectile == null) return;
 
         List<Character> targets = projectile.IsCat() ? allEnemies : allCats;
-        UpdateTargetsForCharacter(projectile, targets);
+        UpdateTargetsForCharacter(projectile, targets, true);
     }
 
     /// <summary>
     /// 为单个角色更新目标列表（基于x轴距离）
     /// </summary>
-    private void UpdateTargetsForCharacter(Character attacker, List<Character> potentialTargets)
+    private void UpdateTargetsForCharacter(Character attacker, List<Character> potentialTargets, bool includeTowers)
     {
-        if (attacker == null || potentialTargets == null || potentialTargets.Count == 0) return;
+        if (attacker == null || potentialTargets == null) return;
 
         // KB状态下不参与判定，直接清空Targets
         if (attacker.IsOnKB())
@@ -265,11 +289,8 @@ public class CharacterTargetManager : MonoBehaviour
             return;
         }
 
-        float attackerX = attacker.transform.position.x;
-        
         // 注意：目标列表已经在UpdateTargetsForCharacters中根据Friendly模式选择好了
         // 这里不需要再次检查阵营，直接使用传入的目标列表即可
-        if (potentialTargets == null || potentialTargets.Count == 0) return;
         
         // 获取当前范围（SetCharacterAttackRange已写入方向后的相对范围）
         if (!attackRanges.ContainsKey(attacker))
@@ -297,20 +318,54 @@ public class CharacterTargetManager : MonoBehaviour
             // if (target.GetHealth() <= 0) continue;
             if (target.IsOnKB()) continue; // KB状态不参与判定
             
-            float targetX = target.transform.position.x;
-            
-            // 使用相对范围直接判定（无需区分阵营方向）
-            float relativeX = targetX - attackerX;
-            bool inRange = relativeX >= minRange && relativeX <= maxRange;
-            
-            if (inRange)
+            if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
                 tempTargets.Add(target);
             }
         }
+
+        if (includeTowers)
+        {
+            // 仅补充敌方塔，避免把己方塔加入Targets
+            if (attacker.IsCat())
+                TryAddTowerTarget(attacker, dogeTower, minRange, maxRange);
+            else
+                TryAddTowerTarget(attacker, catTower, minRange, maxRange);
+        }
         
         // 更新角色的Targets列表
         UpdateCharacterTargets(attacker, tempTargets);
+    }
+
+    private void TryAddTowerTarget(Character attacker, Character tower, float minRange, float maxRange)
+    {
+        if (tower == null || tower == attacker) return;
+        if (!tower.gameObject.activeInHierarchy) return;
+        if (tempTargets.Contains(tower)) return;
+        if (IsTargetInRange(attacker, tower, minRange, maxRange))
+        {
+            tempTargets.Add(tower);
+        }
+    }
+
+    private bool IsTargetInRange(Character attacker, Character target, float minRange, float maxRange)
+    {
+        float attackerX = attacker.transform.position.x;
+        float worldMin = attackerX + minRange;
+        float worldMax = attackerX + maxRange;
+
+        // 塔不是单点：猫塔命中区间为 [catTowerX, +∞)，狗塔命中区间为 (-∞, dogeTowerX]
+        if (target is CatBase)
+        {
+            return worldMax >= target.transform.position.x;
+        }
+        if (target is DogeBase)
+        {
+            return worldMin <= target.transform.position.x;
+        }
+
+        float relativeX = target.transform.position.x - attackerX;
+        return relativeX >= minRange && relativeX <= maxRange;
     }
 
     /// <summary>
@@ -348,38 +403,42 @@ public class CharacterTargetManager : MonoBehaviour
         
         List<Character> result = new List<Character>();
         
-        float attackerX = attacker.transform.position.x;
         float near = nearRange / 10f;
         float far = farRange / 10f;
+        float minRange = isCat ? -Mathf.Max(near, far) : Mathf.Min(near, far);
+        float maxRange = isCat ? -Mathf.Min(near, far) : Mathf.Max(near, far);
         
         foreach (var target in targets)
         {
             if (target == null || !target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
-            
-            float targetX = target.transform.position.x;
-            float distance = Mathf.Abs(targetX - attackerX);
-            
-            // 检查是否在攻击范围内
-            // 猫左向：检测左边，范围 (-far, -near)
-            // 敌人右向：检测右边，范围 (near, far)
-            bool inRange = false;
-            if (isCat)
-            {
-                inRange = targetX < attackerX && distance >= near && distance <= far;
-            }
-            else
-            {
-                inRange = targetX > attackerX && distance >= near && distance <= far;
-            }
-            
-            if (inRange)
+
+            if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
                 result.Add(target);
             }
         }
+
+        if (!isFriendly)
+        {
+            if (attacker.IsCat())
+                TryAddRangeTowerResult(attacker, dogeTower, minRange, maxRange, result);
+            else
+                TryAddRangeTowerResult(attacker, catTower, minRange, maxRange, result);
+        }
         
         return result;
+    }
+
+    private void TryAddRangeTowerResult(Character attacker, Character tower, float minRange, float maxRange, List<Character> result)
+    {
+        if (tower == null || tower == attacker) return;
+        if (!tower.gameObject.activeInHierarchy) return;
+        if (result.Contains(tower)) return;
+        if (IsTargetInRange(attacker, tower, minRange, maxRange))
+        {
+            result.Add(tower);
+        }
     }
 
     /// <summary>
@@ -397,6 +456,8 @@ public class CharacterTargetManager : MonoBehaviour
     {
         allCats.Clear();
         allEnemies.Clear();
+        catTower = null;
+        dogeTower = null;
         catProjectiles.Clear();
         enemyProjectiles.Clear();
         attackRanges.Clear();

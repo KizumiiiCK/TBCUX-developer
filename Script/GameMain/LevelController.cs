@@ -365,8 +365,8 @@ public class LevelController : MonoBehaviour
         gain_XP = (int)(LD.gainXP * xpMultiplier);
         
         // 设置部署限制（+1因为CatBase和DogeBase也会注册到管理器）
-        maxEnemyDeploy = LD.maxEmenyCount + 1;
-        maxCatDeploy = LD.maxCatCount + 1;
+        maxEnemyDeploy = LD.maxEmenyCount;
+        maxCatDeploy = LD.maxCatCount;
     }
     
     /// <summary>
@@ -892,7 +892,7 @@ public class LevelController : MonoBehaviour
     {
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
         {
-            CharacterData characterData = LoadCharacterData(characters_code[i]);
+            CharacterData characterData = LoadGuestCharacterData(characters_code[i]);
             if (characterData == null)
             {
                 GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(false);
@@ -909,7 +909,7 @@ public class LevelController : MonoBehaviour
     /// <summary>
     /// 加载角色数据
     /// </summary>
-    protected CharacterData LoadCharacterData(string characterCode)
+    protected CharacterData LoadGuestCharacterData(string characterCode)
     {
         try
         {
@@ -984,7 +984,7 @@ public class LevelController : MonoBehaviour
     /// </summary>
     public void RemoveACat()
     {
-        //MaxDeployed.SetActive(false);
+        MaxDeployed.SetActive(false);
         catDeployed--;
         Debug.Log($"Cat Remove: {catDeployed+1} - 1.");
     }

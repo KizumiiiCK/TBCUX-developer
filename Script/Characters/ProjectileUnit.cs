@@ -150,4 +150,8 @@ public class ProjectileUnit : AnimatorCachedCharacter
     {
         // Projectile units are not intended to take regular damage.
     }
+    public override void Dead()
+    {
+        Destroy(gameObject);
+    }
 }

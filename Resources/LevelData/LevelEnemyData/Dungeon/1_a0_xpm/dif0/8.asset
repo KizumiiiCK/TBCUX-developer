@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 8
+  m_EditorClassIdentifier: 
+  levelName: xpm_8
+  gainXP: 0
+  BaseHealth: 250000
+  mapSize: 4200
+  maxEmenyCount: 7
+  maxCatCount: 50
+  BackgroundID: 35
+  BaseImageID: 300
+  CombatEffect: []
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 7
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 11
+    drawtimes: 558600
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 11
+    drawtimes: 558600
+    droprate: 100
+    onlyOnce: 0
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: starry
+    enemySummonInfos:
+    - enemyID: e098
+      ratio: 1350
+      bossShock: 1
+      repeat: 1
+      firstAppear: 300
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: da7669a419d2a6f47b0838b97a6aba90, type: 3}
+    - enemyID: e024
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 0
+      repeatMin: 300
+      repeatMax: 900
+      previewSprite: {fileID: 21300000, guid: b6cc1136cc8fc414d8c9464907748fe1, type: 3}
+    - enemyID: e024
+      ratio: 400
+      bossShock: 0
+      repeat: 2
+      firstAppear: 30
+      repeatMin: 30
+      repeatMax: 30
+      previewSprite: {fileID: 21300000, guid: b6cc1136cc8fc414d8c9464907748fe1, type: 3}
+    - enemyID: e066
+      ratio: 75
+      bossShock: 0
+      repeat: 3
+      firstAppear: 800
+      repeatMin: 990
+      repeatMax: 1500
+      previewSprite: {fileID: 21300000, guid: da05205e24eeb2146aa9e7c8365cb9e1, type: 3}
+    - enemyID: e067
+      ratio: 75
+      bossShock: 0
+      repeat: 1
+      firstAppear: 600
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: e6c09ad6b75b6f44ca3d4ae04abf139c, type: 3}
+    - enemyID: e103
+      ratio: 1600
+      bossShock: 0
+      repeat: -1
+      firstAppear: 0
+      repeatMin: 900
+      repeatMax: 900
+      previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}

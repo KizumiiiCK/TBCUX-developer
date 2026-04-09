@@ -231,7 +231,6 @@ public abstract partial class Character
             case KB_Type.bossShock: duration = Speed == 0 ? 0 : 45; DX = Speed == 0 ? 0 : 700; speedY = Speed == 0 ? 0 : 9; break;
             default: break;
         }
-        float speedX = DX / duration * 0.3f;
         int d1 = duration * 2 / 3;
         int d2 = duration - d1;
         BlockAnimationSwitch = false;
@@ -246,10 +245,15 @@ public abstract partial class Character
         Passive_OnBeforeKB();
 
         int sign = gameObject.CompareTag("Cat") ? 1 : -1;
+        float targetX = transform.position.x + sign * (DX / 100f);
         for (int i = 0; i < duration; i++)
         {
-            if (i <= d1) { this.transform.Translate(new Vector2(sign * speedX, speedY - (speedY * i / (d1 / 2))) * Time.deltaTime); SwitchAnimation(3); }
-            else this.transform.Translate(new Vector2(sign * speedX, speedY - (speedY * (i - d1) / (d2 / 2))) * Time.deltaTime);
+            float deltaY = i <= d1
+                ? (speedY - (speedY * i / (d1 / 2))) * Time.deltaTime
+                : (speedY - (speedY * (i - d1) / (d2 / 2))) * Time.deltaTime;
+            float lerpX = Mathf.Lerp(transform.position.x, targetX, 0.05f);
+            transform.position = new Vector2(lerpX, transform.position.y + deltaY);
+            if (i <= d1) SwitchAnimation(3);
             if (i == duration - 1)
             {
                 if (realHealth < 0)

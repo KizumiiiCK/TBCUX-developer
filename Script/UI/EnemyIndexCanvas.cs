@@ -20,12 +20,10 @@ public class EnemyIndexCanvas : UICanvasMain
     public string current_code = "e002";
     private GameObject current_display_character;
     [SerializeField] private Button Animation_switch_btn;
-    [SerializeField] private Button Back_btn;
     [SerializeField] private Image background;
     [SerializeField] private TMP_Text name_txt;
     [SerializeField] private Sprite UnknownImage;
     [Header("Instantiators")]
-    private static Vector3 scroll_gap = new Vector3(0, -150, 0);
     [SerializeField] private RectTransform HeadIcon_ScrollingArea;
     [SerializeField] private ScrollRect headIconScrollRect;
     [SerializeField] private GameObject EnemyHeadIcon;
@@ -42,7 +40,7 @@ public class EnemyIndexCanvas : UICanvasMain
     private BaseCanvas baseCanvas;
     //
 
-    private static bool indexShowAll = true;
+    private static bool indexShowAll = false;
     private readonly List<EnemyListEntry> enemyListEntries = new List<EnemyListEntry>();
     private VirtualizedScrollGrid<EnemyListEntry> headIconGrid;
 
@@ -104,7 +102,6 @@ public class EnemyIndexCanvas : UICanvasMain
     public void InitializeButtons()
     {
         Animation_switch_btn.onClick.AddListener(SwitchAnimation);
-        Back_btn.onClick.AddListener(BackToBase);
     }
     private void SwitchAnimation()
     {
@@ -140,25 +137,6 @@ public class EnemyIndexCanvas : UICanvasMain
     {
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
-    }
-    //private static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
-    //{
-    //    if (go == null) return;
-    //    if (go.TryGetComponent(out SpriteRenderer sr))
-    //    {
-    //        sr.sortingLayerName = sortingLayer;
-    //        sr.sortingOrder = order;
-    //    }
-    //    foreach (Transform child in go.transform) ResetAnimationOrderLayer(child.gameObject, sortingLayer, order);
-    //}
-    public override IEnumerator OnEnter()
-    {
-        yield break;
-    }
-
-    public override IEnumerator OnExit()
-    {
-        yield break;
     }
 
     private void InitializeHeadIconGrid()
@@ -197,6 +175,23 @@ public class EnemyIndexCanvas : UICanvasMain
             button.interactable = data.Unlocked;
             button.onClick.RemoveAllListeners();
             if (data.Unlocked) button.onClick.AddListener(() => ShowCertainCharacter(data.Code));
+        }
+    }
+    public override IEnumerator OnEnter()
+    {
+        if (FrameUI != null)
+        {
+            FrameUI.OpenDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+        }
+    }
+
+    public override IEnumerator OnExit()
+    {
+        if (FrameUI != null)
+        {
+            FrameUI.CloseDoor();
+            yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
         }
     }
 }

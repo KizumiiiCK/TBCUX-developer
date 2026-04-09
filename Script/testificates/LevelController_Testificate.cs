@@ -61,7 +61,7 @@ public class LevelController_Testificate : LevelController
         // 设置访客部署器
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
         {
-            CharacterData characterData = LoadCharacterData(characters_code[i]);
+            CharacterData characterData = LoadGuestCharacterData(characters_code[i]);
             if (characterData == null)
             {
                 GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(false);

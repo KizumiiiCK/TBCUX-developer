@@ -37,8 +37,8 @@ public static class UXPref
     public const string Localized_Descriptions = "Descriptions";
     public const string Localized_CS = "ChapterSections";
     public const string Localized_BM = "BaseMessages";
-    public static readonly DateTime REASONABLEDATE_LATE = new DateTime(year: 2026, month: 12, day: 11);
-    public static readonly DateTime REASONABLEDATE_EARLY = new DateTime(year: 2025, month: 11, day: 15);
+    //public static readonly DateTime REASONABLEDATE_LATE = new DateTime(year: 2026, month: 12, day: 11);
+    //public static readonly DateTime REASONABLEDATE_EARLY = new DateTime(year: 2025, month: 11, day: 15);
     // Specials
     public const string RewardPenalty = "reward-p";
 
