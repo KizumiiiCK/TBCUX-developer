@@ -81,8 +81,8 @@ public static class PoolInfo
 {
     //
     public static readonly bool test_free = false;//
-    private static readonly int cycle_DEFAULT=20;
-    private static readonly int duration_DEFAULT=5;
+    private const int cycle_DEFAULT=20;
+    private const int duration_DEFAULT=4;
     private static readonly float[] droprate_DEFAULT = new float[7] { 0, 0, 0.695f, 0.25f, 0.05f, 0.005f,0 };
     //
     private static readonly int[] Regular_Rares = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
@@ -114,7 +114,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="unknown",
-            pool_start_delay = 5,
+            pool_start_delay = 0,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -136,7 +136,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="dragon",
-            pool_start_delay = 0,
+            pool_start_delay = duration_DEFAULT,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -158,7 +158,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="ancient",
-            pool_start_delay = 10,
+            pool_start_delay = duration_DEFAULT,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -181,7 +181,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="galaxygals",
-            pool_start_delay = 5,
+            pool_start_delay = duration_DEFAULT * 2,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -204,7 +204,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="almighties",
-            pool_start_delay = 10,
+            pool_start_delay = duration_DEFAULT * 2,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -227,7 +227,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="sengoku",
-            pool_start_delay = 15,
+            pool_start_delay = duration_DEFAULT * 3,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -250,7 +250,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="dynamits",
-            pool_start_delay = 15,
+            pool_start_delay = duration_DEFAULT * 3,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,

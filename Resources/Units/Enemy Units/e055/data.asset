@@ -19,10 +19,10 @@ MonoBehaviour:
   - ATK: 20000
     frame: 22
     DoNotTriggerEffects: 0
+    Friendly: 0
     ATKRange: {x: 0, y: 320}
   areaATK: 1
   atkDuration: 45
-  one_off: 0
   Health: 1770000
   KB: 6
   Speed: 10
@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 5925
   Cooldown: 0
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -74,8 +75,8 @@ MonoBehaviour:
   characterEffects: []
   abilities:
   - name: 3
-    probability: 100
-    duration: 33
+    probability: 33
+    duration: 1
     intensity: 150
   atkTypeResis: []
   effectResistances:
