@@ -450,39 +450,7 @@ public class UserUploadAccountPage : MonoBehaviour
 
     private static bool ValidateTransferCode(string code, out string error)
     {
-        string text = code == null ? string.Empty : code.Trim();
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            error = "Transfer code cannot be empty.";
-            return false;
-        }
-        if (text.Length < 6)
-        {
-            error = "Transfer code must be at least 6 characters.";
-            return false;
-        }
-        if (text.Length > 16)
-        {
-            error = "Transfer code cannot exceed 16 characters.";
-            return false;
-        }
-
-        for (int i = 0; i < text.Length; i++)
-        {
-            char c = text[i];
-            bool isAscii = c >= 33 && c <= 126;
-            bool isLetterOrDigit = char.IsLetterOrDigit(c);
-            bool isPunctuation = char.IsPunctuation(c);
-
-            if (!isAscii || (!isLetterOrDigit && !isPunctuation))
-            {
-                error = "Transfer code supports only English letters, digits, and ASCII punctuation.";
-                return false;
-            }
-        }
-
-        error = null;
-        return true;
+        return TransferCodeRules.Validate(code, out error);
     }
 
     private bool DeleteAllLocalSaveFiles()
@@ -528,7 +496,7 @@ public class UserUploadAccountPage : MonoBehaviour
 
     private void SetUserDisplay(string pid, string userName)
     {
-        if (userIdText != null) userIdText.text = pid ?? string.Empty;
+        if (userIdText != null) userIdText.text = "User ID: " + (pid ?? string.Empty);
         if (userNameText != null) userNameText.text = userName ?? string.Empty;
     }
 

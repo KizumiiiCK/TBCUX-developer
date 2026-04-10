@@ -196,7 +196,8 @@ public class UserRestoreAccountPage : MonoBehaviour
             yield break;
         }
 
-        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&select=pid,user_name,transfer_code,device_code&limit=1";
+        string encodedTransferCode = UnityWebRequest.EscapeURL(pendingTransferCode ?? string.Empty);
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&transfer_code=eq.{encodedTransferCode}&select=pid,user_name,transfer_code,device_code&limit=1";
         bool reqDone = false;
         bool reqOk = false;
         string body = "[]";
@@ -221,7 +222,7 @@ public class UserRestoreAccountPage : MonoBehaviour
         if (rows.Count == 0)
         {
             task.Success = false;
-            SetInfo("No account found for this user ID.");
+            SetInfo("No account found for this user ID and transfer code.");
             if (loadingPage != null) loadingPage.NotifyFailure("No account found.");
             yield break;
         }
@@ -546,7 +547,8 @@ public class UserRestoreAccountPage : MonoBehaviour
 
     private IEnumerator ExecuteFetchUserProfileForLocalTask(LoadingTask task)
     {
-        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&select=pid,user_name,transfer_code,device_code&limit=1";
+        string encodedTransferCode = UnityWebRequest.EscapeURL(pendingTransferCode ?? string.Empty);
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&transfer_code=eq.{encodedTransferCode}&select=pid,user_name,transfer_code,device_code&limit=1";
         bool reqDone = false;
         bool reqOk = false;
         string body = "[]";
@@ -651,7 +653,7 @@ public class UserRestoreAccountPage : MonoBehaviour
         string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}";
         string payload = "{"
                          + $"\"device_code\":\"{JsonEscape(pendingDeviceCode)}\","
-                         + "\"transfer_code\":\"\","
+                         + "\"transfer_code\":null,"
                          + $"\"last_update\":\"{utc8Now.ToString("o", CultureInfo.InvariantCulture)}\""
                          + "}";
 
@@ -961,38 +963,7 @@ public class UserRestoreAccountPage : MonoBehaviour
 
     private static bool ValidateTransferCode(string code, out string error)
     {
-        string text = code == null ? string.Empty : code.Trim();
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            error = "Transfer code cannot be empty.";
-            return false;
-        }
-        if (text.Length < 6)
-        {
-            error = "Transfer code must be at least 6 characters.";
-            return false;
-        }
-        if (text.Length > 16)
-        {
-            error = "Transfer code cannot exceed 16 characters.";
-            return false;
-        }
-
-        for (int i = 0; i < text.Length; i++)
-        {
-            char c = text[i];
-            bool isAscii = c >= 33 && c <= 126;
-            bool isLetterOrDigit = char.IsLetterOrDigit(c);
-            bool isPunctuation = char.IsPunctuation(c);
-            if (!isAscii || (!isLetterOrDigit && !isPunctuation))
-            {
-                error = "Transfer code supports only English letters, digits, and ASCII punctuation.";
-                return false;
-            }
-        }
-
-        error = null;
-        return true;
+        return TransferCodeRules.Validate(code, out error);
     }
 
     private void SetInfo(string message)

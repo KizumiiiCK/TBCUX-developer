@@ -77,8 +77,13 @@ public class SupabaseSaveUploader : MonoBehaviour
             Debug.LogError($"[SupabaseSaveUploader] pid is invalid: \"{inputPid}\".");
             return;
         }
+        if (!TransferCodeRules.Validate(inputTransferCode, out string transferError))
+        {
+            Debug.LogError($"[SupabaseSaveUploader] transfer code is invalid: {transferError}");
+            return;
+        }
         pid = inputPid;
-        transferCode = inputTransferCode ?? string.Empty;
+        transferCode = inputTransferCode == null ? string.Empty : inputTransferCode.Trim();
         userName = inputUserName ?? string.Empty;
         DestroyWelcomeUi();
         StartCoroutine(BeginAccountFlow());
@@ -515,6 +520,12 @@ public class SupabaseSaveUploader : MonoBehaviour
     private IEnumerator UpsertUser()
     {
         string deviceCode = GetDeviceCode();
+        if (!string.IsNullOrWhiteSpace(transferCode) && !TransferCodeRules.Validate(transferCode, out string transferError))
+        {
+            Debug.LogError($"[SupabaseSaveUploader] transfer code is invalid: {transferError}");
+            yield break;
+        }
+
         string json = "{"
             + $"\"pid\":\"{JsonEscape(pid)}\","
             + $"\"user_name\":\"{JsonEscape(userName)}\","
@@ -557,7 +568,7 @@ public class SupabaseSaveUploader : MonoBehaviour
 
         for (int i = 0; i < PidGenerateAttempts; i++)
         {
-            string candidate = GenerateRandomPid();
+            string candidate = TransferCodeRules.GenerateRandom();
             bool available = false;
             yield return CheckTransferCodeAvailable(candidate, success => available = success);
             if (!available) continue;
@@ -573,7 +584,8 @@ public class SupabaseSaveUploader : MonoBehaviour
 
     private IEnumerator CheckTransferCodeAvailable(string candidate, Action<bool> onComplete)
     {
-        string url = $"{SupabaseUrl}/rest/v1/{UserTable}?transfer_code=eq.{candidate}&select=pid&limit=1";
+        string encoded = UnityWebRequest.EscapeURL(candidate ?? string.Empty);
+        string url = $"{SupabaseUrl}/rest/v1/{UserTable}?transfer_code=eq.{encoded}&select=pid&limit=1";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             request.SetRequestHeader("apikey", SupabaseKey);
