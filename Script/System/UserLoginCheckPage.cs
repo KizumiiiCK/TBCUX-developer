@@ -38,58 +38,22 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private IEnumerator BootstrapCheck()
     {
+        // If a local user file exists and contains pid, user_name and device_code,
+        // accept it immediately and skip network verification for a lightweight offline-first flow.
         if (!UserInfoLocalStore.TryLoad(out localInfo))
         {
             ShowNewUserPanel();
             yield break;
         }
 
-        if (string.IsNullOrWhiteSpace(localInfo.pid))
+        // localInfo is complete (TryLoad guarantees pid/user_name/device_code are non-empty) -> accept local
+        if (mainMenu != null)
         {
-            ShowNewUserPanel();
-            yield break;
+            string nickname = string.IsNullOrWhiteSpace(localInfo.user_name) ? localInfo.user_name : localInfo.user_name;
+            mainMenu.SetWelcomeBackMessage($"Welcome back, {nickname}!");
         }
-
-        bool done = false;
-        bool success = false;
-        StartLoading(
-            new List<LoadingTask>
-            {
-                new LoadingTask("Checking account information...", ExecuteCheckPidTask)
-            },
-            ok =>
-            {
-                success = ok;
-                done = true;
-            }
-        );
-
-        while (!done) yield return null;
-        CleanupLoading();
-
-        if (!success || remoteRow == null)
-        {
-            ShowNewUserPanel();
-            yield break;
-        }
-
-        bool matched =
-            string.Equals(localInfo.pid, remoteRow.pid, StringComparison.Ordinal) &&
-            string.Equals(localInfo.user_name, remoteRow.user_name, StringComparison.Ordinal) &&
-            string.Equals(localInfo.device_code, remoteRow.device_code, StringComparison.Ordinal);
-
-        if (matched)
-        {
-            if (mainMenu != null)
-            {
-                string nickname = string.IsNullOrWhiteSpace(remoteRow.user_name) ? localInfo.user_name : remoteRow.user_name;
-                mainMenu.SetWelcomeBackMessage($"Welcome back, {nickname}!");
-            }
-            Destroy(gameObject);
-            yield break;
-        }
-
-        ShowNewUserPanel();
+        Destroy(gameObject);
+        yield break;
     }
 
     private IEnumerator ExecuteCheckPidTask(LoadingTask task)
