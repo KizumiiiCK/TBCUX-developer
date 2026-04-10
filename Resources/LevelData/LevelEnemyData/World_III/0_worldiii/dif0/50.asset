@@ -23,6 +23,7 @@ MonoBehaviour:
   CombatEffect:
   - moon
   - snow_mid
+  Restriction: []
   CombatAura:
   - AuraType: 2
     Parameters: {x: 0.25, y: 1, z: 1, w: 1}
@@ -135,7 +136,7 @@ MonoBehaviour:
     - enemyID: e700
       ratio: 100
       bossShock: 0
-      repeat: 2
+      repeat: 1
       firstAppear: 1600
       repeatMin: 45
       repeatMax: 45

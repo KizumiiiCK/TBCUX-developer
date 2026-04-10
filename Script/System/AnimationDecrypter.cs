@@ -460,6 +460,9 @@ public class MaanimNode
     public int TotalFrame { get => totalFrame; }
     Point[] pointList;
     public Point[] PointList { get => pointList; }
+    int[] lagrangeStartByPoint;
+    int[] lagrangeEndByPoint;
+    double[][] lagrangeWeightsByPoint;
     public MaanimNode(int Object, int _ModificationID, int _Loop, string _Name, int _TotalPoint)
     {
         controllPart = Object;
@@ -486,6 +489,106 @@ public class MaanimNode
         startFrame = pointList[0].Frame;
         endFrame = pointList[pointList.Length - 1].Frame;
         totalFrame = -StartFrame + EndFrame;
+        InitializeLagrangeCache();
+    }
+
+    void InitializeLagrangeCache()
+    {
+        lagrangeStartByPoint = new int[pointList.Length];
+        lagrangeEndByPoint = new int[pointList.Length];
+        lagrangeWeightsByPoint = new double[pointList.Length][];
+        for (int i = 0; i < pointList.Length; i++)
+        {
+            lagrangeStartByPoint[i] = -1;
+            lagrangeEndByPoint[i] = -1;
+        }
+
+        for (int i = 0; i < pointList.Length; i++)
+        {
+            if (pointList[i].Easing != 3)
+            {
+                continue;
+            }
+
+            int st = i;
+            while (st > 0 && pointList[st - 1].Easing == 3)
+            {
+                st--;
+            }
+
+            int end = i;
+            while (end + 1 < pointList.Length)
+            {
+                end++;
+                if (pointList[end].Easing != 3)
+                {
+                    break;
+                }
+            }
+
+            bool badFrame = false;
+            for (int j = st; j <= end && !badFrame; j++)
+            {
+                for (int g = j + 1; g <= end; g++)
+                {
+                    if (pointList[j].Frame == pointList[g].Frame)
+                    {
+                        badFrame = true;
+                        break;
+                    }
+                }
+            }
+
+            if (badFrame)
+            {
+                continue;
+            }
+
+            double[] weights = new double[end - st + 1];
+            for (int j = st; j <= end; j++)
+            {
+                double w = 1d;
+                for (int g = st; g <= end; g++)
+                {
+                    if (g == j)
+                    {
+                        continue;
+                    }
+                    w *= 1d / (pointList[j].Frame - pointList[g].Frame);
+                }
+                weights[j - st] = w;
+            }
+
+            for (int j = st; j <= end; j++)
+            {
+                if (pointList[j].Easing != 3)
+                {
+                    continue;
+                }
+                lagrangeStartByPoint[j] = st;
+                lagrangeEndByPoint[j] = end;
+                lagrangeWeightsByPoint[j] = weights;
+            }
+        }
+    }
+
+    public bool TryGetLagrangeSegment(int pointIndex, out int startIndex, out int endIndex, out double[] weights)
+    {
+        startIndex = -1;
+        endIndex = -1;
+        weights = null;
+        if (pointIndex < 0 || pointIndex >= pointList.Length)
+        {
+            return false;
+        }
+        if (lagrangeWeightsByPoint == null || lagrangeWeightsByPoint[pointIndex] == null)
+        {
+            return false;
+        }
+        startIndex = lagrangeStartByPoint[pointIndex];
+        endIndex = lagrangeEndByPoint[pointIndex];
+        weights = lagrangeWeightsByPoint[pointIndex];
+        return startIndex >= 0 && endIndex >= startIndex;
     }
 
 }
