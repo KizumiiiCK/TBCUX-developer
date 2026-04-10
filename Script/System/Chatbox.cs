@@ -22,6 +22,7 @@ public class Chatbox : MonoBehaviour
     protected Dialogue[] dialogues;
     //
     private string[] cachedDialogueContents;
+    private bool isDialoguePreloadCompleted = false;
     //
     private void Start()
     {
@@ -30,6 +31,10 @@ public class Chatbox : MonoBehaviour
     }
     public IEnumerator ShowAllDialogue()
     {
+        // 动态本地化是异步加载，先等待首批缓存就绪，避免第一条对白空引用
+        while (!isDialoguePreloadCompleted)
+            yield return null;
+
         int di = 0;
         while (di < dialogues.Length)
         {
@@ -48,6 +53,10 @@ public class Chatbox : MonoBehaviour
         SetDialogueImage(dd);
 
         string dialogueContent = cachedDialogueContents[i];
+        if (string.IsNullOrEmpty(dialogueContent))
+        {
+            dialogueContent = $"{contentID}:{i}";
+        }
         StartCoroutine(TextFlow(dialogueContent));
     }
     private IEnumerator TextFlow(string full_content)
@@ -76,6 +85,7 @@ public class Chatbox : MonoBehaviour
     {
         dialogues = gp.dialogues;
         contentID = gp.contentID;
+        isDialoguePreloadCompleted = false;
 
         cachedDialogueContents = new string[dialogues.Length];
         StartCoroutine(PreloadAllDialogueTexts());
@@ -102,6 +112,8 @@ public class Chatbox : MonoBehaviour
         // Wait until all lines are loaded
         while (loadedCount < dialogues.Length)
             yield return null;
+
+        isDialoguePreloadCompleted = true;
     }
     public bool GetFinishState() => finish_display;
     public void ForceFinish() { if (!finish_display) finish_display = true; else next_display = true; }

@@ -29,9 +29,15 @@ public class BaseMessage : MonoBehaviour
     private void LoadRandomCharacter()
     {
         Sprite[] chars_img = Resources.LoadAll<Sprite>("DialogueImage");
-        int p = Random.Range(0, chars_img.Length);
+        List<Sprite> filtered = new List<Sprite>();
+        foreach (var sprite in chars_img)
+        {
+            string path = sprite.name;
+            if (!path[0].Equals('_')) filtered.Add(sprite);
+        }
+        int p = Random.Range(0, filtered.Count);
         PlayerPrefs.SetInt("base_character", p);
-        character_img.sprite = chars_img[p];
+        character_img.sprite = filtered[p];
         //character_img.sprite = Resources.Load<Sprite>("DialogueImage/XPM_smile");
     }
     private void LoadRandomMessage()

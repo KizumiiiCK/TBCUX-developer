@@ -61,7 +61,7 @@ MonoBehaviour:
       repeatMax: 300
       previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
     - enemyID: e038
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: 6
       firstAppear: 450
@@ -80,7 +80,7 @@ MonoBehaviour:
     bgm: 031
     enemySummonInfos:
     - enemyID: e054
-      ratio: 75
+      ratio: 100
       bossShock: 1
       repeat: 1
       firstAppear: 0

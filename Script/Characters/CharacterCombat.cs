@@ -246,6 +246,7 @@ public abstract partial class Character
 
         int sign = gameObject.CompareTag("Cat") ? 1 : -1;
         float targetX = transform.position.x + sign * (DX / 100f);
+        float lerptime = 1 / duration;
         for (int i = 0; i < duration; i++)
         {
             float deltaY = i <= d1

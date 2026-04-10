@@ -227,7 +227,13 @@ public class LevelTiler : UICanvasMain
     {
         Image bc=Instantiate(Resources.Load<GameObject>("UI/ZDKS")).transform.GetChild(1).GetComponent<Image>();
         Sprite[] chars_img = Resources.LoadAll<Sprite>("DialogueImage");
-        bc.sprite = chars_img[PlayerPrefs.GetInt("base_character", 0)];
+        List<Sprite> filtered = new List<Sprite>();
+        foreach (var sprite in chars_img)
+        {
+            string path = sprite.name;
+            if (!path[0].Equals('_')) filtered.Add(sprite);
+        }
+        bc.sprite = filtered[PlayerPrefs.GetInt("base_character", 0)];
         PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
         this.enabled = false;
     }

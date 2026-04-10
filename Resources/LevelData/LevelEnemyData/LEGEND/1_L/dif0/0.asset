@@ -37,7 +37,7 @@ MonoBehaviour:
     bgm: 003
     enemySummonInfos:
     - enemyID: e002
-      ratio: 1800
+      ratio: 2400
       bossShock: 0
       repeat: -1
       firstAppear: 30
@@ -45,7 +45,7 @@ MonoBehaviour:
       repeatMax: 350
       previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}
     - enemyID: e004
-      ratio: 1800
+      ratio: 2400
       bossShock: 0
       repeat: -1
       firstAppear: 150
@@ -53,7 +53,7 @@ MonoBehaviour:
       repeatMax: 600
       previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
     - enemyID: e042
-      ratio: 200
+      ratio: 500
       bossShock: 0
       repeat: 4
       firstAppear: 300
@@ -69,7 +69,7 @@ MonoBehaviour:
       repeatMax: 1200
       previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
     - enemyID: e050
-      ratio: 100
+      ratio: 200
       bossShock: 0
       repeat: 1
       firstAppear: 550
@@ -79,18 +79,18 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 99
     bgm: 031
     enemySummonInfos:
-    - enemyID: e011
-      ratio: 800
+    - enemyID: e063
+      ratio: 300
       bossShock: 1
       repeat: 1
       firstAppear: 0
       repeatMin: 0
       repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: 67916a9f6b1342c43a365813ac28635c, type: 3}
+      previewSprite: {fileID: 21300000, guid: 6714c271a398a884884778a71a53521b, type: 3}
     - enemyID: e042
       ratio: 200
       bossShock: 0
-      repeat: 4
+      repeat: -1
       firstAppear: 150
       repeatMin: 300
       repeatMax: 600
@@ -98,16 +98,16 @@ MonoBehaviour:
     - enemyID: e048
       ratio: 200
       bossShock: 0
-      repeat: 4
+      repeat: -1
       firstAppear: 0
       repeatMin: 300
       repeatMax: 600
       previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
     - enemyID: e050
-      ratio: 100
+      ratio: 200
       bossShock: 0
       repeat: 2
       firstAppear: 0
-      repeatMin: 600
-      repeatMax: 900
+      repeatMin: 1400
+      repeatMax: 1800
       previewSprite: {fileID: 21300000, guid: a55e39ea0ab7cf24e8480695c1e49c65, type: 3}
