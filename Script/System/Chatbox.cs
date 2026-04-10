@@ -31,7 +31,6 @@ public class Chatbox : MonoBehaviour
     }
     public IEnumerator ShowAllDialogue()
     {
-        // 动态本地化是异步加载，先等待首批缓存就绪，避免第一条对白空引用
         while (!isDialoguePreloadCompleted)
             yield return null;
 

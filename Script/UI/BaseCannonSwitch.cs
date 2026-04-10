@@ -61,7 +61,6 @@ public class BaseCannonSwitch : MonoBehaviour
 
     private void OnOptionClicked(int index)
     {
-        Debug.Log($"BaseCannonSwitch: option {index} clicked");
         bool changed;
 
         var baseGo = GameObject.Find("CatBase");

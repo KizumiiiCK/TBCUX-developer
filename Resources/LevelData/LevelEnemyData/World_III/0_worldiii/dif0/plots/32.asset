@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 373cbc5a1c45ee84286cb20306813a8b, type: 3}
+  m_Name: 32
+  m_EditorClassIdentifier: 
+  contentID: w3-32
+  dialogues:
+  - DialoguerName: Fish
+    DialoguerImage: Fish_bite
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: Cat_0
+    faceToRight: 1
+    clearImage: 0
+  - DialoguerName: Fish
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: Cat_surprise
+    faceToRight: 0
+    clearImage: 1
+  - DialoguerName: Mouse
+    DialoguerImage: _Mouse_angry
+    faceToRight: 1
+    clearImage: 0
+  - DialoguerName: Mouse
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Mouse
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Axe
+    DialoguerImage: Axe_hype
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Axe
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Mouse
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Baha
+    DialoguerImage: Baha_0
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Moneko
+    DialoguerImage: Moneko_love
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Moneko
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Moneko
+    DialoguerImage: Moneko_shy
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Mouse
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Cat
+    DialoguerImage: Cat_surprise
+    faceToRight: 0
+    clearImage: 0
+  - DialoguerName: Mouse
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
