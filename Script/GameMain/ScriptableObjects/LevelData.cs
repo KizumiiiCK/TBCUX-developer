@@ -15,6 +15,7 @@ public class LevelData : ScriptableObject
     public int BackgroundID = 0;
     public int BaseImageID = 0;
     public string[] CombatEffect;
+    public string[] Restriction;
     public Aura[] CombatAura;
     public EXstage exstage;
     public Reward[] rewardlist;

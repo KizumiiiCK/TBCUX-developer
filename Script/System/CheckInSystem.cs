@@ -30,9 +30,15 @@ public class CheckInSystem : MonoBehaviour
     private int[] bonusCount = new int[typeCount];
     private const float TimeTaskRetryWindowSeconds = 30f;
     private const float TimeTaskRetryDelaySeconds = 1.0f;
+    private const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
 
     private void Start()
     {
+        if (ShouldSkipByLocalDate())
+        {
+            Close();
+            return;
+        }
         string pid = PlayerPrefs.GetString(UXPref.UserPrefKey, "KIZUMIII");
         SupabaseSaveRemote.Initialize(UXPref.SupabaseUrl, UXPref.SupabaseKey, pid);
 
@@ -111,9 +117,18 @@ public class CheckInSystem : MonoBehaviour
         }
 
         currentServerDate = serverDate.Value.Date;
+        PlayerPrefs.SetString(LastWorldDateCacheKey, currentServerDate.ToString("yyyy-MM-dd"));
+        PlayerPrefs.Save();
         task.Success = true;
         task.Result = currentServerDate;
         if (loadingPage != null) loadingPage.SetDetail($"Time OK: {currentServerDate:yyyy-MM-dd}");
+    }
+
+    private bool ShouldSkipByLocalDate()
+    {
+        string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
+        string localDate = DateTime.Now.Date.ToString("yyyy-MM-dd");
+        return !string.IsNullOrEmpty(cachedDate) && cachedDate == localDate;
     }
 
     private IEnumerator ExecuteFetchCheckInDataTask(LoadingTask task)

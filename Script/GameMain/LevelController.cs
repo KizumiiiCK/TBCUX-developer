@@ -91,6 +91,7 @@ public class LevelController : MonoBehaviour
     protected GameObject dogeBase;
     protected GameObject catBase;
     protected string[] characters_code;
+    protected LevelRestrictionHelper.RestrictionRules levelRestrictions;
     
     #endregion
 
@@ -301,6 +302,7 @@ public class LevelController : MonoBehaviour
         
         // 设置关卡信息
         SetupLevelInfo();
+        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
         
         // 设置战斗效果
         SetupCombatEffects();
@@ -878,7 +880,9 @@ public class LevelController : MonoBehaviour
         for (int i = 0; i < MAIN_DEPLOYER_COUNT; i++)
         {
             UnitDeployer deployer = Deployers.GetChild(i).GetComponent<UnitDeployer>();
-            deployer.SetupDeployer(characters_code[i], treasureCount, proficiencyLevels[i], teamProficiencyBonus);
+            string code = characters_code[i];
+            deployer.SetupDeployer(code, treasureCount, proficiencyLevels[i], teamProficiencyBonus);
+            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, false);
         }
         
         // 设置访客部署器
@@ -900,9 +904,9 @@ public class LevelController : MonoBehaviour
             }
             
             UnitDeployer deployer = GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).GetComponent<UnitDeployer>();
-            deployer.SetupDeployer(characters_code[i], treasureCount, proficiencyLevels[i], teamProficiencyBonus);
-            deployer.ResetCoolDown();
-            deployer.GuestMark();
+            string code = characters_code[i];
+            deployer.SetupDeployer(code, treasureCount, proficiencyLevels[i], teamProficiencyBonus);
+            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, true);
         }
     }
     

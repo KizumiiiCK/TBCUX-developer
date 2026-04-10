@@ -22,6 +22,8 @@ MonoBehaviour:
   BaseImageID: 343
   CombatEffect:
   - moon
+  Restriction:
+  - U-:6001
   CombatAura:
   - AuraType: 2
     Parameters: {x: 0.25, y: 1, z: 1, w: 1}

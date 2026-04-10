@@ -107,6 +107,13 @@ public class UnitDeployer : MonoBehaviour
     }
     public void ResetCoolDown() => t = 0;
     public void GuestMark() => isGuest = true;
+    public void LockByRestriction()
+    {
+        deployEnabled = false;
+        if (btn == null) btn = GetComponent<Button>();
+        if (btn != null) btn.interactable = false;
+        if (blackShade != null) blackShade.fillAmount = 1f;
+    }
     private void Deploy()
     {
         if (!LI.DeployCost(unitCost)) return;
