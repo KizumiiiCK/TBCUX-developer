@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 3
   m_EditorClassIdentifier: 
-  levelName: 
+  levelName: L1-3
   gainXP: 49500
   BaseHealth: 56000
   mapSize: 4400
@@ -21,6 +21,7 @@ MonoBehaviour:
   BackgroundID: 181
   BaseImageID: 301
   CombatEffect: []
+  Restriction: []
   CombatAura: []
   exstage:
     exist: 0
