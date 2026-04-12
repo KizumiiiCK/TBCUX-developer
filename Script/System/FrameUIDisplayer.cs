@@ -126,8 +126,8 @@ public class FrameUIDisplayer : MonoBehaviour
 
     public void OpenPage(string prefabName, System.Action<UICanvasMain> onCreated, List<int> extraIds, DoorAction doorAction)
     {
-        if (navigationRoutine != null) StopCoroutine(navigationRoutine);
-        navigationRoutine = StartCoroutine(OpenPageRoutine(prefabName, onCreated, extraIds, doorAction));
+        if (navigationRoutine != null) return;
+        StartNavigation(OpenPageRoutine(prefabName, onCreated, extraIds, doorAction));
     }
 
     public void ReturnToPrevious()
@@ -137,6 +137,7 @@ public class FrameUIDisplayer : MonoBehaviour
 
     public void ReturnToPrevious(DoorAction doorAction)
     {
+        if (navigationRoutine != null) return;
         if (pageStack.Count <= 1)
         {
             if (rootPage != null) rootPage.SetActive(true);
@@ -144,14 +145,31 @@ public class FrameUIDisplayer : MonoBehaviour
             if (switcher != null) switcher.TagOutTo("MainMenu");
             return;
         }
-        if (navigationRoutine != null) StopCoroutine(navigationRoutine);
-        navigationRoutine = StartCoroutine(ReturnToPreviousRoutine(doorAction));
+        StartNavigation(ReturnToPreviousRoutine(doorAction));
     }
 
     public void ReturnToRoot()
     {
-        if (navigationRoutine != null) StopCoroutine(navigationRoutine);
-        navigationRoutine = StartCoroutine(ReturnToRootRoutine());
+        if (navigationRoutine != null) return;
+        StartNavigation(ReturnToRootRoutine());
+    }
+
+    private void StartNavigation(IEnumerator routine)
+    {
+        SetNavigationBusy(true);
+        navigationRoutine = StartCoroutine(NavigationRoutineGuard(routine));
+    }
+
+    private IEnumerator NavigationRoutineGuard(IEnumerator routine)
+    {
+        yield return routine;
+        navigationRoutine = null;
+        SetNavigationBusy(false);
+    }
+
+    private void SetNavigationBusy(bool busy)
+    {
+        if (backButton != null) backButton.interactable = !busy;
     }
 
     private IEnumerator OpenPageRoutine(string prefabName, System.Action<UICanvasMain> onCreated, List<int> extraIds, DoorAction doorAction)

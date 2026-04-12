@@ -16,9 +16,11 @@ public class DrawCapsuleCanvas : UICanvasMain
     [Header("Elements")]
     [SerializeField] private Button DrawBtn_x1;
     [SerializeField] private Button DrawBtn_x10;
+    [SerializeField] private Button DrawBtn_x1Minus;
+    [SerializeField] private Button DrawBtn_x1Plus;
     [SerializeField] private RectTransform posterContainer;
-    [SerializeField] private VideoPlayer poolVideoPlayer;
-    [SerializeField] private RawImage poolVideoRawImage;
+    //[SerializeField] private VideoPlayer poolVideoPlayer;
+    //[SerializeField] private RawImage poolVideoRawImage;
     [SerializeField] private Image item_x1;
     [SerializeField] private Image item_x10;
     [SerializeField] private TMP_Text days_left_text;
@@ -52,10 +54,6 @@ public class DrawCapsuleCanvas : UICanvasMain
     private int current_charactercode;
     [Header("Drop Rate Box")]
     [SerializeField] private DropRateBoard DRB;
-    [Header("Pool Video")]
-    private string poolVideoFolder = "video/capsules";
-    private string poolVideoFallbackName = "sample";
-    private float poolVideoFadeDuration = 0.25f;
 
     [Header("Others")]
     public BaseCanvas baseCanvas;
@@ -66,8 +64,9 @@ public class DrawCapsuleCanvas : UICanvasMain
     private readonly List<int> runtimeExtraCurrencyIds = new List<int>();
     //private List<int> DrawCharacters=new List<int>();
     private bool draw_skip = false;
-    private Coroutine poolVideoSwitchRoutine;
-    private float poolVideoDefaultAlpha = 0.7f;
+    private int quickSingleDrawCount = 1;
+    //private Coroutine poolVideoSwitchRoutine;
+    //private float poolVideoDefaultAlpha = 0.7f;
     private enum DrawStageVideoState { Idle, Rolling, Reveal, Result }
     private bool pinnedBaseCached;
     private Vector2 leftPinnedBasePos;
@@ -86,7 +85,7 @@ public class DrawCapsuleCanvas : UICanvasMain
         ConfirmElements.SetActive(false);
         DRB.gameObject.SetActive(false);
         SetParticleRate(0);
-        InitializePoolVideoPlayer();
+        //InitializePoolVideoPlayer();
         InitializeDrawStageVideoPlayer();
         CachePinnedElementsBasePosition();
         CheckPrevioulyDrawed();
@@ -107,7 +106,7 @@ public class DrawCapsuleCanvas : UICanvasMain
         }
         if (posterRoulette != null) posterRoulette.SetPosters(posters, 0);
         LoadPool(0);
-        UpdatePoolVideoByIndex(current_pool_num, true);
+        //UpdatePoolVideoByIndex(current_pool_num, true);
     }
     public void LoadPool(int poolNum)
     {
@@ -115,13 +114,12 @@ public class DrawCapsuleCanvas : UICanvasMain
         Pool p= pools[poolNum];
         item_x1.sprite = StorageImageHelper.GetItemImage(p.cost_item[0]);
         item_x10.sprite = StorageImageHelper.GetItemImage(p.cost_item[1]);
-        count_x1.text = "x " + p.cost_amount[0].ToString();
         count_x10.text = "x " + p.cost_amount[1].ToString();
         days_left_text.text = $"{PoolSystemTime.ActivityDayLeft(p.pool_start_delay,p.pool_cycle_period,p.pool_duration)}  DAY(S)  LEFT !";
         RefreshFrameUICurrenciesForPool(p);
+        RefreshQuickSingleDrawControls(p);
         if (PoolInfo.test_free)
         {
-            count_x1.text = "x 0";
             count_x10.text = "x 0";
             count_x1.color = Color.white;
             count_x10.color = Color.white;
@@ -130,18 +128,20 @@ public class DrawCapsuleCanvas : UICanvasMain
         }
         else
         {
-            count_x1.color = RewardingSystem.CheckItemIsEnough(p.cost_item[0], p.cost_amount[0]) ? Color.white : Color.red;
-            DrawBtn_x1.interactable = RewardingSystem.CheckItemIsEnough(p.cost_item[0], p.cost_amount[0]);
+            int singleCost = p.cost_amount[0] * quickSingleDrawCount;
+            count_x1.color = RewardingSystem.CheckItemIsEnough(p.cost_item[0], singleCost) ? Color.white : Color.red;
+            DrawBtn_x1.interactable = RewardingSystem.CheckItemIsEnough(p.cost_item[0], singleCost);
             count_x10.color = RewardingSystem.CheckItemIsEnough(p.cost_item[1], p.cost_amount[1]) ? Color.white : Color.red;
             DrawBtn_x10.interactable = RewardingSystem.CheckItemIsEnough(p.cost_item[1], p.cost_amount[1]);
         }
-        draw_x1.text=p.draw_times[0].ToString();
         draw_x10.text=p.draw_times[1].ToString();
     }
     private void InitializeButtons()
     {
         DrawBtn_x1.onClick.AddListener(Draw_1_Times);
         DrawBtn_x10.onClick.AddListener(Draw_10_Times);
+        if (DrawBtn_x1Minus != null) DrawBtn_x1Minus.onClick.AddListener(() => ChangeQuickSingleDrawCount(-1));
+        if (DrawBtn_x1Plus != null) DrawBtn_x1Plus.onClick.AddListener(() => ChangeQuickSingleDrawCount(1));
         GainBtn.onClick.AddListener(GainCharacter);
         ExchangeBtn.onClick.AddListener(ExchangeNP);
         DrawSkipBtn.onClick.AddListener(Skip);
@@ -149,15 +149,17 @@ public class DrawCapsuleCanvas : UICanvasMain
     }
     public void Draw_1_Times()
     {
+        Pool p = pools[current_pool_num];
+        int singleCost = p.cost_amount[0] * quickSingleDrawCount;
+        int singleDrawTimes = p.draw_times[0] * quickSingleDrawCount;
         if(!PoolInfo.test_free)
-            if(!RewardingSystem.ConsumeItem(pools[current_pool_num].cost_item[0], pools[current_pool_num].cost_amount[0])) return;
+            if(!RewardingSystem.ConsumeItem(p.cost_item[0], singleCost)) return;
         DrawBtn_x1.interactable = false;
         DrawBtn_x10.interactable = false;
         baseCanvas.UpdateCurrencies();
         if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
-        //DrawCharacters.Add(pools[current_pool_num].Draw());
-        DrawSave.SaveDrawed(pools[current_pool_num].Draw());
-        StartCoroutine(DisplayDrawedCharacters(pools[current_pool_num].draw_times[0]));
+        for (int i = 0; i < singleDrawTimes; i++) DrawSave.SaveDrawed(p.Draw());
+        StartCoroutine(DisplayDrawedCharacters(singleDrawTimes));
     }
     public void Draw_10_Times()
     {
@@ -358,12 +360,35 @@ public class DrawCapsuleCanvas : UICanvasMain
         if (posterRoulette == null) return;
         posterRoulette.Configure(posterContainer, posterButtonPrefab);
         posterRoulette.Initialize(OnPoolPosterSelected, OnPoolPosterClicked);
-        posterRoulette.SetOnDragEnded(OnPoolPosterDragEnded);
+        //posterRoulette.SetOnDragEnded(OnPoolPosterDragEnded);
     }
 
     private void OnPoolPosterSelected(int poolIndex)
     {
+        if (poolIndex != current_pool_num) quickSingleDrawCount = 1;
         LoadPool(poolIndex);
+    }
+
+    private void ChangeQuickSingleDrawCount(int delta)
+    {
+        if (pools == null || pools.Count == 0) return;
+        int next = Mathf.Clamp(quickSingleDrawCount + delta, 1, 10);
+        if (next == quickSingleDrawCount) return;
+        quickSingleDrawCount = next;
+        LoadPool(current_pool_num);
+    }
+
+    private void RefreshQuickSingleDrawControls(Pool pool)
+    {
+        if (pool == null) return;
+        bool showQuickButtons = pool.cost_item[0] != pool.cost_item[1];
+        if (DrawBtn_x1Minus != null) DrawBtn_x1Minus.gameObject.SetActive(showQuickButtons);
+        if (DrawBtn_x1Plus != null) DrawBtn_x1Plus.gameObject.SetActive(showQuickButtons);
+
+        int singleCost = PoolInfo.test_free ? 0 : pool.cost_amount[0] * quickSingleDrawCount;
+        int singleDrawTimes = pool.draw_times[0] * quickSingleDrawCount;
+        count_x1.text = "x " + singleCost.ToString();
+        draw_x1.text = singleDrawTimes.ToString();
     }
 
     private void OnPoolPosterClicked(int poolIndex)
@@ -372,95 +397,45 @@ public class DrawCapsuleCanvas : UICanvasMain
         ShowDetails();
     }
 
-    private void OnPoolPosterDragEnded(int poolIndex)
-    {
-        UpdatePoolVideoByIndex(poolIndex, false);
-    }
+    //private void OnPoolPosterDragEnded(int poolIndex)
+    //{
+    //    UpdatePoolVideoByIndex(poolIndex, false);
+    //}
 
-    private void InitializePoolVideoPlayer()
-    {
-        if (poolVideoPlayer == null) poolVideoPlayer = GetComponentInChildren<VideoPlayer>(true);
-        if (poolVideoRawImage == null && poolVideoPlayer != null) poolVideoRawImage = poolVideoPlayer.GetComponent<RawImage>();
-        poolVideoDefaultAlpha = GetPoolVideoAlpha();
-    }
+    //private void InitializePoolVideoPlayer()
+    //{
+    //    if (poolVideoPlayer == null) poolVideoPlayer = GetComponentInChildren<VideoPlayer>(true);
+    //    if (poolVideoRawImage == null && poolVideoPlayer != null) poolVideoRawImage = poolVideoPlayer.GetComponent<RawImage>();
+    //    poolVideoDefaultAlpha = GetPoolVideoAlpha();
+    //}
 
-    private void UpdatePoolVideoByIndex(int poolIndex, bool immediate)
-    {
-        if (pools == null || poolIndex < 0 || poolIndex >= pools.Count) return;
-        string poolName = pools[poolIndex]?.pool_name;
-        if (string.IsNullOrEmpty(poolName)) return;
-        if (poolVideoPlayer == null) return;
+    //private void UpdatePoolVideoByIndex(int poolIndex, bool immediate)
+    //{
+    //    if (pools == null || poolIndex < 0 || poolIndex >= pools.Count) return;
+    //    string poolName = pools[poolIndex]?.pool_name;
+    //    if (string.IsNullOrEmpty(poolName)) return;
+    //    if (poolVideoPlayer == null) return;
 
-        VideoClip nextClip = LoadPoolVideoClip(poolName);
-        if (nextClip == null) return;
-        if (poolVideoPlayer.clip == nextClip && poolVideoPlayer.isPlaying) return;
+    //    VideoClip nextClip = LoadPoolVideoClip(poolName);
+    //    if (nextClip == null) return;
+    //    if (poolVideoPlayer.clip == nextClip && poolVideoPlayer.isPlaying) return;
+    //}
 
-        if (poolVideoSwitchRoutine != null) StopCoroutine(poolVideoSwitchRoutine);
-        poolVideoSwitchRoutine = StartCoroutine(SwitchPoolVideoRoutine(nextClip, immediate));
-    }
+    //private float GetPoolVideoAlpha()
+    //{
+    //    if (poolVideoRawImage != null) return poolVideoRawImage.color.a;
+    //    return 1f;
+    //}
 
-    private VideoClip LoadPoolVideoClip(string poolName)
-    {
-        string folder = string.IsNullOrEmpty(poolVideoFolder) ? "video/capsules" : poolVideoFolder;
-        VideoClip clip = Resources.Load<VideoClip>($"{folder}/{poolName}");
-        if (clip != null) return clip;
-        return Resources.Load<VideoClip>($"{folder}/{poolVideoFallbackName}");
-    }
-
-    private IEnumerator SwitchPoolVideoRoutine(VideoClip nextClip, bool immediate)
-    {
-        if (immediate)
-        {
-            SetPoolVideoAlpha(poolVideoDefaultAlpha);
-            poolVideoPlayer.clip = nextClip;
-            poolVideoPlayer.isLooping = true;
-            poolVideoPlayer.Play();
-            poolVideoSwitchRoutine = null;
-            yield break;
-        }
-
-        float currentAlpha = GetPoolVideoAlpha();
-        float elapsed = 0f;
-        while (elapsed < poolVideoFadeDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / poolVideoFadeDuration);
-            SetPoolVideoAlpha(Mathf.Lerp(currentAlpha, 0f, t));
-            yield return null;
-        }
-        SetPoolVideoAlpha(0f);
-
-        poolVideoPlayer.clip = nextClip;
-        poolVideoPlayer.isLooping = true;
-        poolVideoPlayer.Play();
-
-        elapsed = 0f;
-        while (elapsed < poolVideoFadeDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / poolVideoFadeDuration);
-            SetPoolVideoAlpha(Mathf.Lerp(0f, poolVideoDefaultAlpha, t));
-            yield return null;
-        }
-        SetPoolVideoAlpha(poolVideoDefaultAlpha);
-        poolVideoSwitchRoutine = null;
-    }
-
-    private float GetPoolVideoAlpha()
-    {
-        if (poolVideoRawImage != null) return poolVideoRawImage.color.a;
-        return 1f;
-    }
-
-    private void SetPoolVideoAlpha(float alpha)
-    {
-        if (poolVideoRawImage != null)
-        {
-            Color c = poolVideoRawImage.color;
-            c.a = alpha;
-            poolVideoRawImage.color = c;
-        }
-    }
+    //private void SetPoolVideoAlpha(float alpha)
+    //{
+    //    if (poolVideoRawImage != null)
+    //    {
+    //        Color c = poolVideoRawImage.color;
+    //        c.a = alpha;
+    //        poolVideoRawImage.color = c;
+    //    }
+    //}
 
     private void InitializeDrawStageVideoPlayer()
     {
@@ -582,11 +557,11 @@ public class DrawCapsuleCanvas : UICanvasMain
 
     public override IEnumerator OnExit()
     {
-        if (poolVideoSwitchRoutine != null)
-        {
-            StopCoroutine(poolVideoSwitchRoutine);
-            poolVideoSwitchRoutine = null;
-        }
+        //if (poolVideoSwitchRoutine != null)
+        //{
+        //    StopCoroutine(poolVideoSwitchRoutine);
+        //    poolVideoSwitchRoutine = null;
+        //}
         if (FrameUI != null)
         {
             FrameUI.CloseDoor();

@@ -21,6 +21,10 @@ public class CatIndexCanvas : UICanvasMain
     [SerializeField] private Button Animation_switch_btn;
     [SerializeField] private Button Show_info_btn;
     [SerializeField] private Button GoToEquip_btn;
+    [SerializeField] private Button ToggleUnowned_btn;
+    [SerializeField] private Image ToggleUnowned_image;
+    [SerializeField] private Sprite ToggleShowUnowned_sprite;
+    [SerializeField] private Sprite ToggleHideUnowned_sprite;
     //Upgrade
     [SerializeField] private KiButton Upgrade_btn;
     private RewardName cateyeConsuming = RewardName.Cateye_EX;
@@ -65,6 +69,9 @@ public class CatIndexCanvas : UICanvasMain
     private RectTransform headIconViewport;
     private readonly List<string> currentRarityCodes = new List<string>();
     private readonly Dictionary<string, Sprite> currentRarityIconCache = new Dictionary<string, Sprite>();
+    private readonly Dictionary<int, List<string>> rarityCodesCache = new Dictionary<int, List<string>>();
+    private readonly Dictionary<int, Dictionary<string, Sprite>> rarityIconsCache = new Dictionary<int, Dictionary<string, Sprite>>();
+    private readonly Dictionary<string, bool> unlockedBaseTireCache = new Dictionary<string, bool>();
     private readonly Dictionary<int, GameObject> activeHeadIcons = new Dictionary<int, GameObject>();
     private readonly Stack<GameObject> pooledHeadIcons = new Stack<GameObject>();
     private int lastVisibleStart = -1;
@@ -77,6 +84,9 @@ public class CatIndexCanvas : UICanvasMain
     private static readonly Color UpgradeButtonEnabledColor = new Color(0.55f, 0.95f, 0.9f, 1f);
     private static readonly Color UpgradeButtonDisabledColor = new Color(1f, 0.72f, 0.72f, 1f);
     private bool returnToEquipMode = false;
+    private bool showUnownedCharacters = false;
+    private bool isLoadingRarityCharacters = false;
+    private Coroutine loadRarityRoutine;
     private const string EquipCanvasPrefab = "EquipCanvas";
 
     private static Dictionary<int, RewardName> CateyeConsume_rality = new Dictionary<int, RewardName>
@@ -107,17 +117,27 @@ public class CatIndexCanvas : UICanvasMain
 
     public void LoadCharatersFromRality(int R)
     {
+        if (isLoadingRarityCharacters) return;
+        if (loadRarityRoutine != null) StopCoroutine(loadRarityRoutine);
+        loadRarityRoutine = StartCoroutine(LoadCharatersFromRalityRoutine(R));
+    }
+
+    private IEnumerator LoadCharatersFromRalityRoutine(int R)
+    {
+        SetRarityLoadingState(true);
         rality = R;
         RefreshFrameUICurrenciesForRarity();
+        yield return EnsureRarityCacheBuilt(rality);
         currentRarityCodes.Clear();
         currentRarityIconCache.Clear();
-        for(int i=0;i<1000;i++)
+        List<string> sourceCodes = GetVisibleCodesForCurrentRarity();
+        Dictionary<string, Sprite> iconMap = rarityIconsCache[rality];
+        for (int i = 0; i < sourceCodes.Count; i++)
         {
-            string ucformat = i.ToString("000");
-            Sprite ccd = Resources.Load<Sprite>($"Units/Cat Units/{rality}/{ucformat}/0/icon_deploy");
-            if (ccd == null) { continue; }
-            currentRarityCodes.Add(ucformat);
-            currentRarityIconCache[ucformat] = ccd;
+            string code = sourceCodes[i];
+            currentRarityCodes.Add(code);
+            if (iconMap.TryGetValue(code, out var icon)) currentRarityIconCache[code] = icon;
+            if ((i + 1) % 80 == 0) yield return null;
         }
 
         if (virtualListReady)
@@ -129,13 +149,18 @@ public class CatIndexCanvas : UICanvasMain
             RebuildHeadIconsLegacy();
         }
 
-        string firstCode = currentRarityCodes.Count > 0 ? currentRarityCodes[0] : "000";
-        ShowCertainCharacter(firstCode);
-        if(currentRarityCodes.Count > 0) ShowCertainCharInTire(0);
+        if (currentRarityCodes.Count > 0)
+        {
+            ShowCertainCharacter(currentRarityCodes[0]);
+            ShowCertainCharInTire(0);
+        }
+        loadRarityRoutine = null;
+        SetRarityLoadingState(false);
         //scrollbar_setting.SetMaxY(unit_count,scroll_gap.y);
     }
     public void ShowCertainCharacter(string char_code)
     {
+        if (isLoadingRarityCharacters) return;
         current_code = char_code;
         Sprite[] head_icons=new Sprite[4];
         CharacterUpgradeSave.UpgradeDetails UD = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
@@ -170,6 +195,7 @@ public class CatIndexCanvas : UICanvasMain
     }
     public void ShowCertainCharInTire(int tire, bool resetAnimation=true)
     {
+        if (isLoadingRarityCharacters) return;
         current_tire= tire;
         string loadPath = $"Units/Cat Units/{rality}/{current_code}/{tire}/";
         CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
@@ -202,6 +228,66 @@ public class CatIndexCanvas : UICanvasMain
         EvolveComfirmCanvas.SetController(this);
         Show_info_btn.onClick.AddListener(InfoBoardDisplay);
         if (GoToEquip_btn != null) GoToEquip_btn.onClick.AddListener(OpenEquipFromCatIndex);
+        if (ToggleUnowned_btn != null) ToggleUnowned_btn.onClick.AddListener(ToggleUnownedCharacters);
+        RefreshUnownedToggleVisual();
+    }
+
+    private void ToggleUnownedCharacters()
+    {
+        if (isLoadingRarityCharacters) return;
+        showUnownedCharacters = !showUnownedCharacters;
+        RefreshUnownedToggleVisual();
+        LoadCharatersFromRality(rality);
+    }
+
+    private void RefreshUnownedToggleVisual()
+    {
+        if (ToggleUnowned_image == null) return;
+        ToggleUnowned_image.sprite = showUnownedCharacters ? ToggleShowUnowned_sprite : ToggleHideUnowned_sprite;
+    }
+
+    private void SetRarityLoadingState(bool loading)
+    {
+        isLoadingRarityCharacters = loading;
+        if (ToggleUnowned_btn != null) ToggleUnowned_btn.interactable = !loading;
+        if (HeadIconScrollRect != null) HeadIconScrollRect.enabled = !loading;
+    }
+
+    private IEnumerator EnsureRarityCacheBuilt(int rarity)
+    {
+        if (rarityCodesCache.ContainsKey(rarity)) yield break;
+        List<string> codes = new List<string>();
+        Dictionary<string, Sprite> iconMap = new Dictionary<string, Sprite>();
+        for (int i = 0; i < 1000; i++)
+        {
+            string code = i.ToString("000");
+            Sprite icon = Resources.Load<Sprite>($"Units/Cat Units/{rarity}/{code}/0/icon_deploy");
+            if (icon == null) continue;
+            codes.Add(code);
+            iconMap[code] = icon;
+            if ((i + 1) % 80 == 0) yield return null;
+        }
+        rarityCodesCache[rarity] = codes;
+        rarityIconsCache[rarity] = iconMap;
+    }
+
+    private List<string> GetVisibleCodesForCurrentRarity()
+    {
+        var result = new List<string>();
+        if (!rarityCodesCache.TryGetValue(rality, out var allCodes)) return result;
+        if (showUnownedCharacters) return new List<string>(allCodes);
+        for (int i = 0; i < allCodes.Count; i++)
+        {
+            string code = allCodes[i];
+            string key = $"{rality}{code}";
+            if (!unlockedBaseTireCache.TryGetValue(key, out bool unlocked))
+            {
+                unlocked = CharacterUpgradeSave.GetDetails(key).tire_unlocked[0];
+                unlockedBaseTireCache[key] = unlocked;
+            }
+            if (unlocked) result.Add(code);
+        }
+        return result;
     }
 
     private void OpenEquipFromCatIndex()
@@ -226,6 +312,7 @@ public class CatIndexCanvas : UICanvasMain
 
     private void OnRalitySelected(int selectedRarity)
     {
+        if (isLoadingRarityCharacters) return;
         LoadCharatersFromRality(selectedRarity);
     }
     private void SwitchAnimation()
@@ -389,6 +476,7 @@ public class CatIndexCanvas : UICanvasMain
 
     private void OnDestroy()
     {
+        if (loadRarityRoutine != null) StopCoroutine(loadRarityRoutine);
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
     }

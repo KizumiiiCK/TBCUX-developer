@@ -12,6 +12,8 @@ Shader "Hidden/InnerOutline" {
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass {
+            Cull Off
+            ZWrite Off
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
