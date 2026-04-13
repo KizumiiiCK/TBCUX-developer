@@ -36,7 +36,7 @@ public class EffectInstaller : MonoBehaviour
                 slw.duration = _duration;
                 break;
             case EffectName.knockback:
-                target.GetComponent<Character>().StartKBCoroutine(KB_Type.knockBack, 165 * duration);
+                target.GetComponent<Character>().StartKBCoroutine(KB_Type.knockBack, 240 * duration);
                 break;
             case EffectName.wrap:
                 Wrap wrp;

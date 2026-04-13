@@ -7,6 +7,7 @@ public abstract partial class Character
 {
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
+    [SerializeField] public GameObject BaseTarget;
 
     /* ====== ����ս���ӿ� ====== */
     public void SetSearchTagName(string name) { compareTagName = name; }
@@ -46,7 +47,8 @@ public abstract partial class Character
                 return go.GetComponent<EnemyCharacter>() as T;
         }
         Targets.RemoveAll(go => go == null);
-        if (Targets.Count != 0 || specific != null)
+        GameObject baseTarget = GetValidBaseTarget();
+        if (Targets.Count != 0 || baseTarget != null || specific != null)
         {
             List<CharacterEffect> decisionEff = new List<CharacterEffect>();
             List<AttackType> types = new List<AttackType>();
@@ -77,11 +79,17 @@ public abstract partial class Character
                 }
                 else
                 {
-                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg * Targets.Count);//simple count for area atk
+                    int allTargetCount = Targets.Count + (baseTarget != null && !Targets.Contains(baseTarget) ? 1 : 0);
+                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg * allTargetCount);//simple count for area atk
                     for (int i = Targets.Count - 1; i >= 0; i--)
                     {
                         Character ec = GetTarget<Character>(Targets[i]);
                         ec?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                    }
+                    if (baseTarget != null && !Targets.Contains(baseTarget))
+                    {
+                        Character bt = GetTarget<Character>(baseTarget);
+                        bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
                     }
                 }
                 //if (!atkInfos[animateStep].DoNotTriggerEffects)
@@ -141,16 +149,21 @@ public abstract partial class Character
     }
     public void SetNewTarget(GameObject newTarget, bool quickTrigger) { if (quickTrigger) Attack(realDamage[animateStep],false,false,newTarget); else Targets.Add(newTarget); }
     public void RemoveTarget(GameObject newTarget) { Targets.Remove(newTarget); }
-    public void RemoveAllTarget() { Targets = new List<GameObject>(); }
+    public void RemoveAllTarget() { Targets = new List<GameObject>(); BaseTarget = null; }
     public GameObject FindNearest()
     {
-        if (Targets.Count == 0) return null;
+        GameObject baseTarget = GetValidBaseTarget();
+        if (Targets.Count == 0 && baseTarget == null) return null;
         //bool positive = compareTagName == "Enemy";
-        GameObject target = Targets[0];
+        GameObject target = Targets.Count > 0 ? Targets[0] : baseTarget;
         //int mindis = int.MaxValue;
         foreach (var go in Targets)
         {
             if (target.transform.position.x < go.transform.position.x == IsCat()) target = go;
+        }
+        if (baseTarget != null && baseTarget != target)
+        {
+            if (target.transform.position.x < baseTarget.transform.position.x == IsCat()) target = baseTarget;
         }
         return target;
     }//Find the min-distance inside the targets list
@@ -218,8 +231,8 @@ public abstract partial class Character
         if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Abs(DMG));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
-    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 350) { BlockAnimationSwitch = false; if (coroutineKB == null) coroutineKB = StartCoroutine(PerformKB(kbt, DX)); }
-    protected IEnumerator PerformKB(KB_Type kbt = KB_Type.none, float DX = 350)
+    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400) { BlockAnimationSwitch = false; if (coroutineKB == null) coroutineKB = StartCoroutine(PerformKB(kbt, DX)); }
+    protected IEnumerator PerformKB(KB_Type kbt = KB_Type.none, float DX = 400)
     {
         int duration = 24;
         float speedY = 9;
@@ -241,6 +254,7 @@ public abstract partial class Character
         //if(animator!=null)animator.SetInteger("state", 2);//
         //if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(3);
         Targets.Clear();
+        BaseTarget = null;
 
         Passive_OnBeforeKB();
 
@@ -264,6 +278,7 @@ public abstract partial class Character
                 }// check death
                 transform.position = new Vector2(transform.position.x, startingY);
                 Targets.Clear();
+                BaseTarget = null;
                 SwitchAnimation(0);
                 onKB = false;
                 coroutineKB = null;
@@ -343,6 +358,13 @@ public abstract partial class Character
     public int GetRealSpeed()=>realSpeed;
     public int GetAnimationStep()=>animateStep;
     public bool IsOnKB() => onKB;
+
+    private GameObject GetValidBaseTarget()
+    {
+        if (BaseTarget == null) return null;
+        if (!BaseTarget.activeInHierarchy) { BaseTarget = null; return null; }
+        return BaseTarget;
+    }
     #endregion
 
 

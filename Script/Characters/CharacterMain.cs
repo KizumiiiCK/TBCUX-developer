@@ -63,6 +63,8 @@ public abstract partial class Character : MonoBehaviour
     protected bool onATK = false;
     protected bool onCurse = false;
     protected bool onDodge = false;
+    private bool cancelAttackStartRequested = false;
+    private bool undetectableByTargeting = false;
     public bool[] effectMarkedSlots = new bool[5];
     protected float startingY = 1;
     protected Coroutine coroutineKB = null;
@@ -74,6 +76,16 @@ public abstract partial class Character : MonoBehaviour
     public abstract void InitializeCharacter();
     public abstract void UpdateAnimation();
     public abstract float GetFactor();
+
+    public void RequestCancelAttackStart() => cancelAttackStartRequested = true;
+    public bool ConsumeAttackStartCancelRequest()
+    {
+        if (!cancelAttackStartRequested) return false;
+        cancelAttackStartRequested = false;
+        return true;
+    }
+    public void SetUndetectableByTargeting(bool value) => undetectableByTargeting = value;
+    public bool IsUndetectableByTargeting() => undetectableByTargeting;
 }
 public static class AnimatorFrameTool
 {

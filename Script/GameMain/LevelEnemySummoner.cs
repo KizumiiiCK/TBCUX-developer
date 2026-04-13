@@ -121,12 +121,22 @@ public class LevelEnemySummoner : MonoBehaviour
 
         if (!CD[index].UNITYAnimated)
         {
-            characterDecryptedFiles[index] = CharacterSummoner.DecryptCharacterFiles(false, ESI[index].enemyID, CD[index]);
+            bool needZombieDiveAnim = HasZombieDiveAbility(CD[index]);
+            characterDecryptedFiles[index] = CharacterSummoner.DecryptCharacterFiles(false, ESI[index].enemyID, CD[index], needZombieDiveAnim);
             if (characterDecryptedFiles[index] == null) return false;
         }
 
         runtimeInitialized[index] = true;
         return true;
+    }
+    private bool HasZombieDiveAbility(CharacterData data)
+    {
+        if (data == null || data.abilities == null) return false;
+        for (int i = 0; i < data.abilities.Length; i++)
+        {
+            if (data.abilities[i] != null && data.abilities[i].name == AbilityName.ZombieDive) return true;
+        }
+        return false;
     }
     public void SetBase(GameObject db) { dogeBase=db.GetComponent<DogeBase>(); }
     private IEnumerator BossShock()

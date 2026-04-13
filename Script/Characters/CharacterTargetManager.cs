@@ -40,6 +40,9 @@ public class CharacterTargetManager : MonoBehaviour
     
     // Friendly攻击模式存储：角色 -> 是否在Friendly模式（攻击同阵营）
     private Dictionary<Character, bool> friendlyModes = new Dictionary<Character, bool>();
+
+    // 不可被检测角色（例如遁地潜行中的僵尸）
+    private HashSet<Character> undetectableCharacters = new HashSet<Character>();
     
     // 缓存：避免每帧重新分配
     private List<Character> tempTargets = new List<Character>();
@@ -121,6 +124,7 @@ public class CharacterTargetManager : MonoBehaviour
         // 清理攻击范围数据和Friendly模式
         attackRanges.Remove(character);
         friendlyModes.Remove(character);
+        undetectableCharacters.Remove(character);
     }
 
     /// <summary>
@@ -156,6 +160,7 @@ public class CharacterTargetManager : MonoBehaviour
 
         // 清理攻击范围数据（投射物不使用Friendly）
         attackRanges.Remove(projectile);
+        undetectableCharacters.Remove(projectile);
     }
     
     /// <summary>
@@ -183,6 +188,20 @@ public class CharacterTargetManager : MonoBehaviour
     {
         if (character == null) return;
         friendlyModes[character] = friendly;
+    }
+
+    public void SetCharacterUndetectable(Character character, bool undetectable)
+    {
+        if (character == null) return;
+        character.SetUndetectableByTargeting(undetectable);
+        if (undetectable) undetectableCharacters.Add(character);
+        else undetectableCharacters.Remove(character);
+    }
+
+    public bool IsCharacterUndetectable(Character character)
+    {
+        if (character == null) return false;
+        return character.IsUndetectableByTargeting() || undetectableCharacters.Contains(character);
     }
 
     /// <summary>
@@ -285,7 +304,7 @@ public class CharacterTargetManager : MonoBehaviour
         // KB状态下不参与判定，直接清空Targets
         if (attacker.IsOnKB())
         {
-            UpdateCharacterTargets(attacker, tempTargets);
+            UpdateCharacterTargets(attacker, tempTargets, null);
             return;
         }
 
@@ -317,6 +336,7 @@ public class CharacterTargetManager : MonoBehaviour
             if (!target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
             if (target.IsOnKB()) continue; // KB状态不参与判定
+            if (IsCharacterUndetectable(target)) continue;
             
             if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
@@ -324,23 +344,26 @@ public class CharacterTargetManager : MonoBehaviour
             }
         }
 
-        if (includeTowers)
-        {
-            // 仅补充敌方塔，避免把己方塔加入Targets
-            if (attacker.IsCat())
-                TryAddTowerTarget(attacker, dogeTower, minRange, maxRange);
-            else
-                TryAddTowerTarget(attacker, catTower, minRange, maxRange);
-        }
+        Character baseTarget = includeTowers ? GetEnemyBaseTarget(attacker, minRange, maxRange) : null;
         
         // 更新角色的Targets列表
-        UpdateCharacterTargets(attacker, tempTargets);
+        UpdateCharacterTargets(attacker, tempTargets, baseTarget);
+    }
+
+    private Character GetEnemyBaseTarget(Character attacker, float minRange, float maxRange)
+    {
+        Character tower = attacker.IsCat() ? dogeTower : catTower;
+        if (tower == null) return null;
+        if (!tower.gameObject.activeInHierarchy) return null;
+        if (IsCharacterUndetectable(tower)) return null;
+        return IsTargetInRange(attacker, tower, minRange, maxRange) ? tower : null;
     }
 
     private void TryAddTowerTarget(Character attacker, Character tower, float minRange, float maxRange)
     {
         if (tower == null || tower == attacker) return;
         if (!tower.gameObject.activeInHierarchy) return;
+        if (IsCharacterUndetectable(tower)) return;
         if (tempTargets.Contains(tower)) return;
         if (IsTargetInRange(attacker, tower, minRange, maxRange))
         {
@@ -371,7 +394,7 @@ public class CharacterTargetManager : MonoBehaviour
     /// <summary>
     /// 更新角色的Targets列表（保持与原有接口兼容）
     /// </summary>
-    private void UpdateCharacterTargets(Character character, List<Character> newTargets)
+    private void UpdateCharacterTargets(Character character, List<Character> newTargets, Character baseTarget)
     {
         if (character == null) return;
         
@@ -381,9 +404,12 @@ public class CharacterTargetManager : MonoBehaviour
         // 更新Targets列表
         character.Targets.Clear();
         character.Targets.AddRange(newGameObjectTargets);
+        character.BaseTarget = baseTarget != null ? baseTarget.gameObject : null;
         
         // 清理null引用
         character.Targets.RemoveAll(go => go == null);
+        if (character.BaseTarget != null && !character.BaseTarget.activeInHierarchy)
+            character.BaseTarget = null;
     }
 
     /// <summary>
@@ -412,6 +438,7 @@ public class CharacterTargetManager : MonoBehaviour
         {
             if (target == null || !target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
+            if (IsCharacterUndetectable(target)) continue;
 
             if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
@@ -434,6 +461,7 @@ public class CharacterTargetManager : MonoBehaviour
     {
         if (tower == null || tower == attacker) return;
         if (!tower.gameObject.activeInHierarchy) return;
+        if (IsCharacterUndetectable(tower)) return;
         if (result.Contains(tower)) return;
         if (IsTargetInRange(attacker, tower, minRange, maxRange))
         {
@@ -462,5 +490,6 @@ public class CharacterTargetManager : MonoBehaviour
         enemyProjectiles.Clear();
         attackRanges.Clear();
         friendlyModes.Clear();
+        undetectableCharacters.Clear();
     }
 }

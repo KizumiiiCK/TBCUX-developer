@@ -84,7 +84,7 @@ public class CharacterSummoner : MonoBehaviour
         return data != null ? data.Clone() : null;
     }
 
-    public static AnimDecryptPack DecryptCharacterFiles(bool cat, string characterCode, CharacterData data)
+    public static AnimDecryptPack DecryptCharacterFiles(bool cat, string characterCode, CharacterData data, bool includeZombieDiveMaanim = false)
     {
         if (data == null || data.UNITYAnimated) return null;
 
@@ -103,7 +103,7 @@ public class CharacterSummoner : MonoBehaviour
             TextAsset maanim_p = Resources.Load<TextAsset>(loadPath + "maanim_p");
             if (maanim_p != null) maanims.Add(maanim_p);
         }
-        if (!cat && data.traits != null && data.traits.Z)
+        if (!cat && ((data.traits != null && data.traits.Z) || includeZombieDiveMaanim))
         {
             TextAsset maanim_dive = Resources.Load<TextAsset>(loadPath + "maanim_dive");
             TextAsset maanim_out = Resources.Load<TextAsset>(loadPath + "maanim_out");

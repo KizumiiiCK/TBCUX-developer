@@ -11,18 +11,14 @@ public class EffectManager : MonoBehaviour
     [SerializeField] protected DecryptFileFormat wave_D;
     [SerializeField] protected DecryptFileFormat wave_e_D;
     protected AnimDecryptPack[] assets_decrypted;
-    protected AnimDecryptPack[] buffs_decrypted;
-    //protected AnimDecryptPack wave_decrypt;
-    //protected AnimDecryptPack wave_e_decrypt;
-    //protected AnimDecryptPack surge_decrypt;
-    //protected AnimDecryptPack surge_e_decrypt;
     public AnimationDisplayer InstantiateBattleObject(SEnums sename,float posX, float posY, bool playSound=true)
     {
         int matchedNum = SEpairs[sename];
         AnimationDisplayer ad= Instantiate(EffectObjectNull, new Vector3(posX, posY+Ydeviation[sename], 0), Quaternion.identity).GetComponent<AnimationDisplayer>();
         if (ad != null)
         {
-            ad.Initialization(assets_decrypted[SEpairs[sename]]);
+            AnimDecryptPack pack = GetOrCreateEffectPack(matchedNum);
+            if (pack != null) ad.Initialization(pack);
             int resetlayer = (int)(20000 * (1 - posY));
             if (Mathf.Abs(resetlayer) > 21000) resetlayer = 21000;
             CharacterSummoner.ResetAnimationOrderLayer(ad, resetlayer);
@@ -40,10 +36,6 @@ public class EffectManager : MonoBehaviour
         }
         return ad;
     }
-    //public AnimDecryptPack InstantiateBattleEffect(EffectName en)
-    //{
-    //    return buffs_decrypted[Array.IndexOf(Enum.GetValues(typeof(EffectName)), en)-1];
-    //}
     private static Dictionary<SEnums, int> SEpairs = new Dictionary<SEnums, int>() {
         { SEnums.soul,         0 },
         { SEnums.bite,         1 },
@@ -89,23 +81,18 @@ public class EffectManager : MonoBehaviour
         { SEnums.surge,        -1 },
         { SEnums.surge_e,      -1 }
     };
-    private void Start()
+    private AnimDecryptPack GetOrCreateEffectPack(int index)
     {
-        EncryptAllFiles();
-    }
-    private void EncryptAllFiles()
-    {
-        assets_decrypted = new AnimDecryptPack[DFF.Length];
-        AnimEncryptPack animEncryptPack;
-        for (int i=0;i< DFF.Length; i++)
-        {
-            animEncryptPack = new AnimEncryptPack(DFF[i].unitTexture, DFF[i].imgcut, DFF[i].mamodel, DFF[i].maanim);
-            assets_decrypted[i] = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
-        }
-        //animEncryptPack = new AnimEncryptPack(wave_D.unitTexture, wave_D.imgcut, wave_D.mamodel, wave_D.maanim);
-        //wave_decrypt = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
-        //animEncryptPack = new AnimEncryptPack(wave_e_D.unitTexture, wave_e_D.imgcut, wave_e_D.mamodel, wave_e_D.maanim);
-        //wave_e_decrypt = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+        if (DFF == null || index < 0 || index >= DFF.Length) return null;
+        if (assets_decrypted == null || assets_decrypted.Length != DFF.Length)
+            assets_decrypted = new AnimDecryptPack[DFF.Length];
+        if (assets_decrypted[index] != null) return assets_decrypted[index];
+
+        var src = DFF[index];
+        if (src == null) return null;
+        AnimEncryptPack animEncryptPack = new AnimEncryptPack(src.unitTexture, src.imgcut, src.mamodel, src.maanim);
+        assets_decrypted[index] = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+        return assets_decrypted[index];
     }
     //public AnimDecryptPack GetCatWave() { return wave_decrypt; }
     //public AnimDecryptPack GetEnemyWave() { return wave_e_decrypt; }

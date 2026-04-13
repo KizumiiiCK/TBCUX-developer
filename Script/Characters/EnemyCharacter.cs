@@ -34,6 +34,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
             if (realReload >= Reload) {
                 SwitchAnimation(2);
                 Passive_OnStartAttack();
+                if (ConsumeAttackStartCancelRequest()) return;
                 onATK = true; 
                 animateStep = 0;
                 animatedframes = 0;
