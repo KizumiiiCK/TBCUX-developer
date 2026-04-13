@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: data
   m_EditorClassIdentifier: 
   Name: 11021
-  isEliteUnit: 0
+  isEliteUnit: 1
   ATKType: 00000000
   atkInfos:
   - ATK: 5000
@@ -73,11 +73,7 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects: []
-  abilities:
-  - name: 2
-    probability: 1
-    duration: 1
-    intensity: 1
+  abilities: []
   atkTypeResis: []
   effectResistances:
   - name: 1

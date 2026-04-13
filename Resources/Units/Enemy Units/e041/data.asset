@@ -19,10 +19,10 @@ MonoBehaviour:
   - ATK: 20000
     frame: 1
     DoNotTriggerEffects: 0
+    Friendly: 0
     ATKRange: {x: 0, y: 100}
   areaATK: 0
   atkDuration: 5
-  one_off: 0
   Health: 444444
   KB: 1
   Speed: 5
@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 4388
   Cooldown: 0
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 1
@@ -54,7 +55,7 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 0
+    Warrior: 1
     Deffender: 0
     Magician: 0
     Supporter: 0

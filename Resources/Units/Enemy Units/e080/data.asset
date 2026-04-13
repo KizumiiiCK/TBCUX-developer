@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 592
   Cooldown: 0
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -57,7 +58,7 @@ MonoBehaviour:
     Warrior: 0
     Deffender: 0
     Magician: 0
-    Supporter: 0
+    Supporter: 1
     Practician: 0
   againstCareer:
     AggainstWarrior: 0

@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 23700
   Cooldown: 0
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 1
     Flt: 0
@@ -54,9 +55,9 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 1
+    Warrior: 0
     Deffender: 0
-    Magician: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:

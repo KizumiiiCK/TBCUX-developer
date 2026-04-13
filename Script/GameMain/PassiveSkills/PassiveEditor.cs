@@ -28,6 +28,7 @@ public static class AbilityInstaller
         { AbilityName.XP_PUNCH,   typeof(XP_PUNCH)},
         { AbilityName.sacrifice,  typeof(Sacrifice)},
         { AbilityName.projectile, typeof(ProjectileLauncher)},
+        { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -461,5 +462,91 @@ public class ProjectileLauncher : PassiveSkill
 
         // Block this attack's native hit while keeping attack animation/state flow intact.
         character.RemoveAllTarget();
+    }
+}
+
+public class ZombieDiveAddon : PassiveSkill
+{
+    private int remainingDiveTimes;
+    private bool initialized;
+    private bool diving;
+
+    public override void OnAddingAbility(Character character)
+    {
+        if (initialized) return;
+        initialized = true;
+        remainingDiveTimes = probability;
+    }
+
+    public override void OnStartAttack(Character character)
+    {
+        if (character == null || diving) return;
+        if (remainingDiveTimes == 0) return;
+        if (CanAttackBaseNow(character)) return;
+
+        if (remainingDiveTimes > 0) remainingDiveTimes--;
+        character.RequestCancelAttackStart();
+        character.StartCoroutine(DiveRoutine(character));
+    }
+
+    public override void OnAfterKB(Character character)
+    {
+        if (remainingDiveTimes == 0)
+        {
+            CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+            character.RemovePassiveEffect(this);
+        }
+    }
+
+    private IEnumerator DiveRoutine(Character character)
+    {
+        if (character == null) yield break;
+        diving = true;
+        int originalSpeed = character.GetRealSpeed();
+
+        character.BlockAnimationSwitch = true;
+        character.SwitchAnimation(4);
+        character.ChangeSpeed(0);
+
+        for (int i = 0; i < Mathf.Max(0, duration); i++)
+        {
+            if (character == null) yield break;
+            if (CanAttackBaseNow(character)) break;
+            yield return new WaitForFixedUpdate();
+        }
+
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
+        character.ChangeSpeed(originalSpeed);
+        int moveDir = character.IsCat() ? -1 : 1;
+        int moveFrames = Mathf.Max(0, intensity);
+        for (int i = 0; i < moveFrames; i++)
+        {
+            if (character == null) yield break;
+            if (CanAttackBaseNow(character)) break;
+            character.transform.Translate(new Vector2(character.TBCspeedTranslator(character.GetRealSpeed()) * moveDir * Time.deltaTime, 0));
+            yield return new WaitForFixedUpdate();
+        }
+
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.ChangeSpeed(0);
+        character.SwitchAnimation(5);
+        for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+
+        character.SwitchAnimation(0);
+        character.ChangeSpeed(originalSpeed);
+        character.BlockAnimationSwitch = false;
+        diving = false;
+
+        if (remainingDiveTimes == 0)
+        {
+            character.RemovePassiveEffect(this);
+        }
+    }
+
+    private bool CanAttackBaseNow(Character character)
+    {
+        if (character == null) return false;
+        GameObject baseTarget = character.BaseTarget;
+        return baseTarget != null && baseTarget.activeInHierarchy;
     }
 }
