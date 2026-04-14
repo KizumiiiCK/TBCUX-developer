@@ -344,9 +344,10 @@ public class LevelController : MonoBehaviour
         // 设置相机限制
         GameObject.Find("Main Camera").GetComponent<CameraController>().SetLimitation(mapSize);
         
-        // 设置基地生命值
-        dogeBase.GetComponent<DogeBase>().Health = LD.BaseHealth;
-        catBase.GetComponent<CatBase>().Health = CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT;
+        // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
+        dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
+        catBase.GetComponent<CatBase>().ApplyLevelBaseHealth(
+            CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
         
         // 设置狗基地外观
         Sprite baseSprite = Resources.Load<Sprite>($"Units/DogeBases/{LD.BaseImageID}");

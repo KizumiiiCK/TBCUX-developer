@@ -1,6 +1,7 @@
 using Spine.Unity;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CharacterSummoner : MonoBehaviour
@@ -84,7 +85,7 @@ public class CharacterSummoner : MonoBehaviour
         return data != null ? data.Clone() : null;
     }
 
-    public static AnimDecryptPack DecryptCharacterFiles(bool cat, string characterCode, CharacterData data, bool includeZombieDiveMaanim = false)
+    public static AnimDecryptPack DecryptCharacterFiles(bool cat, string characterCode, CharacterData data)
     {
         if (data == null || data.UNITYAnimated) return null;
 
@@ -103,10 +104,12 @@ public class CharacterSummoner : MonoBehaviour
             TextAsset maanim_p = Resources.Load<TextAsset>(loadPath + "maanim_p");
             if (maanim_p != null) maanims.Add(maanim_p);
         }
-        if (!cat && ((data.traits != null && data.traits.Z) || includeZombieDiveMaanim))
+        if (!cat && data.abilities.Any(a => a.name == AbilityName.ZombieDive))
         {
+            TextAsset maanim_in = Resources.Load<TextAsset>(loadPath + "maanim_in");
             TextAsset maanim_dive = Resources.Load<TextAsset>(loadPath + "maanim_dive");
             TextAsset maanim_out = Resources.Load<TextAsset>(loadPath + "maanim_out");
+            if (maanim_in != null) maanims.Add(maanim_in);
             if (maanim_dive != null) maanims.Add(maanim_dive);
             if (maanim_out != null) maanims.Add(maanim_out);
         }

@@ -129,6 +129,7 @@ public abstract partial class Character
         else animatorDisplayer.SetAnimationSpeed(spd);
     }
     public void SetFrameStep(int step)=>frame_step = step;
+    public int GetFrameStep()=>frame_step;
 
     private void CacheAnimationComponents()
     {

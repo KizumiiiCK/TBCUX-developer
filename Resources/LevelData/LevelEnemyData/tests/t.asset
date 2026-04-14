@@ -15,12 +15,13 @@ MonoBehaviour:
   levelName: id:moonexpruins
   gainXP: 0
   BaseHealth: 999999
-  mapSize: 4000
+  mapSize: 3500
   maxEmenyCount: 50
   maxCatCount: 50
-  BackgroundID: 17
+  BackgroundID: 2
   BaseImageID: 334
   CombatEffect: []
+  Restriction: []
   CombatAura: []
   exstage:
     exist: 0
@@ -29,29 +30,13 @@ MonoBehaviour:
   rewardlist: []
   enemySummoners:
   - HealthPercentageOnBreak: 100
-    bgm: dct
+    bgm: 003
     enemySummonInfos:
-    - enemyID: e700
+    - enemyID: e021
       ratio: 100
       bossShock: 1
       repeat: 1
-      firstAppear: 300
+      firstAppear: 120
       repeatMin: 0
       repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: 200e26398f9e3f44cbb00aafba9c092c, type: 3}
-    - enemyID: e003
-      ratio: 1000
-      bossShock: 0
-      repeat: -1
-      firstAppear: 50
-      repeatMin: 50
-      repeatMax: 50
-      previewSprite: {fileID: 21300000, guid: 60b338ddf69762045993db867d6dbd71, type: 3}
-    - enemyID: e109
-      ratio: 100
-      bossShock: 0
-      repeat: 1
-      firstAppear: 600
-      repeatMin: 0
-      repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: aef3f09754318d14daad7f2e854deb26, type: 3}
+      previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}

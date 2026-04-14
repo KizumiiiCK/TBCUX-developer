@@ -32,7 +32,7 @@ public class CatCharacter : AnimatorCachedCharacter
             return;
         }
         if (onKB) return;
-        if (Targets.Count > 0)
+        if (Targets.Count > 0 || BaseTarget != null)
         {
             if (realReload >= Reload) {
                 SwitchAnimation(2);

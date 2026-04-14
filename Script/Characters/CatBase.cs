@@ -86,6 +86,13 @@ public class CatBase : CatCharacter
         else if (shakecoroutine == null) shakecoroutine = StartCoroutine(ShakeTower(atkType));
         UpdateHealthInfo();
     }
+    public void ApplyLevelBaseHealth(int health)
+    {
+        Health = health;
+        maxHealth = health;
+        realHealth = health;
+        if (healthInfo != null) UpdateHealthInfo();
+    }
     private void UpdateHealthInfo() {healthInfo.text = $"{realHealth} / {maxHealth}";}
     private IEnumerator ShakeTower(List<AttackType> types, bool permanent=false)
     {

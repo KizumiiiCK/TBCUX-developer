@@ -129,40 +129,6 @@ public class AffectByStrategy : PassiveSkill
 }
 public class Supporter : PassiveSkill
 {
-    //public override void OnStartAttack(Character character)
-    //{
-    //    if (character.atkInfos[0].DoNotTriggerEffects) return;
-    //    character.SetAttackRange(character.atkInfos[0].ATKRange.x, character.atkInfos[0].ATKRange.y);
-    //    character.Supporter_Target_Switch();
-    //}
-    //public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
-    //{
-    //    bool notTrigger;
-    //    int animStep;
-    //    try
-    //    {
-    //        animStep = character.GetAnimationStep() + 1;
-    //        notTrigger = character.atkInfos[animStep].DoNotTriggerEffects;
-    //    }
-    //    catch { return; }
-    //    character.SetAttackRange(character.atkInfos[animStep].ATKRange.x, character.atkInfos[animStep].ATKRange.y);
-    //    if (notTrigger)
-    //    {
-    //        character.Supporter_Target_Switch(true);
-    //        return;
-    //    }
-    //    character.Supporter_Target_Switch();
-    //}
-    //public override void OnFinishAttack(Character character)
-    //{
-    //    Debug.Log("Switch back");
-    //    character.Supporter_Target_Switch(true);
-    //}
-    //public override void OnAfterKB(Character character)
-    //{
-    //    Debug.Log("Switch back");
-    //    character.Supporter_Target_Switch(true);
-    //}
 }
 public class Practician : PassiveSkill
 {
@@ -502,39 +468,55 @@ public class ZombieDiveAddon : PassiveSkill
     {
         if (character == null) yield break;
         diving = true;
-        int originalSpeed = character.GetRealSpeed();
-
-        character.BlockAnimationSwitch = true;
+        // In
+        int speedBeforeIn = ResolveTransitExitSpeed(character);
         character.SwitchAnimation(4);
+        character.BlockAnimationSwitch = true;
         character.ChangeSpeed(0);
 
-        for (int i = 0; i < Mathf.Max(0, duration); i++)
+        int transitionFrames = 30;
+
+        int t = 0;
+        while (t < transitionFrames && !CanAttackBaseNow(character))
         {
+            t += character.GetFrameStep();
             if (character == null) yield break;
-            if (CanAttackBaseNow(character)) break;
             yield return new WaitForFixedUpdate();
         }
-
+        // Diving
+        character.ChangeSpeed(speedBeforeIn);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
-        character.ChangeSpeed(originalSpeed);
         int moveDir = character.IsCat() ? -1 : 1;
-        int moveFrames = Mathf.Max(0, intensity);
+        int moveFrames = Mathf.Max(0, duration);
+        character.BlockAnimationSwitch = false;
+        character.SwitchAnimation(5);
+        character.BlockAnimationSwitch = true;
         for (int i = 0; i < moveFrames; i++)
         {
             if (character == null) yield break;
             if (CanAttackBaseNow(character)) break;
-            character.transform.Translate(new Vector2(character.TBCspeedTranslator(character.GetRealSpeed()) * moveDir * Time.deltaTime, 0));
+            int currentSpeed = Mathf.Max(0, character.GetRealSpeed());
+            character.transform.Translate(new Vector2(character.TBCspeedTranslator(currentSpeed) * moveDir * Time.deltaTime, 0));
+            yield return new WaitForFixedUpdate();
+        }
+        // Out
+        int speedBeforeOut = ResolveTransitExitSpeed(character);
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.ChangeSpeed(0);
+        character.BlockAnimationSwitch = false;
+        character.SwitchAnimation(6);
+        character.BlockAnimationSwitch = true;
+        t = 0;
+        while (t < transitionFrames)
+        {
+            t += character.GetFrameStep();
+            if (character == null) yield break;
             yield return new WaitForFixedUpdate();
         }
 
-        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-        character.ChangeSpeed(0);
-        character.SwitchAnimation(5);
-        for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
-
-        character.SwitchAnimation(0);
-        character.ChangeSpeed(originalSpeed);
         character.BlockAnimationSwitch = false;
+        character.SwitchAnimation(0);
+        character.ChangeSpeed(ResolveTransitExitSpeed(character, speedBeforeOut));
         diving = false;
 
         if (remainingDiveTimes == 0)
@@ -548,5 +530,17 @@ public class ZombieDiveAddon : PassiveSkill
         if (character == null) return false;
         GameObject baseTarget = character.BaseTarget;
         return baseTarget != null && baseTarget.activeInHierarchy;
+    }
+
+    private int ResolveTransitExitSpeed(Character character, int fallback = -1)
+    {
+        if (character == null) return 0;
+        if (character.GetComponent<Stop>() != null) return 0;
+        if (character.GetComponent<Slow>() != null) return 1;
+
+        int current = character.GetRealSpeed();
+        if (current > 0) return current;
+        if (fallback >= 0) return fallback;
+        return Mathf.Max(0, character.Speed);
     }
 }

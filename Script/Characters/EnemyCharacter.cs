@@ -29,12 +29,12 @@ public class EnemyCharacter : AnimatorCachedCharacter
             return;
         }
         if (onKB) return;
-        if (Targets.Count > 0)
+        if (Targets.Count > 0 || BaseTarget != null)
         {
             if (realReload >= Reload) {
-                SwitchAnimation(2);
                 Passive_OnStartAttack();
                 if (ConsumeAttackStartCancelRequest()) return;
+                SwitchAnimation(2);
                 onATK = true; 
                 animateStep = 0;
                 animatedframes = 0;

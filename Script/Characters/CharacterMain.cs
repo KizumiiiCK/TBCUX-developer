@@ -89,14 +89,10 @@ public abstract partial class Character : MonoBehaviour
 }
 public static class AnimatorFrameTool
 {
-    /// <summary>
-    /// ��ȡ��ǰ�������ŵ���֡��0-based��
-    /// </summary>
     public static int GetCurrentFrame(Animator animator, int layerIndex = 0)
     {
         if (!animator) return 0;
 
-        // 1. ��ǰ״̬��Ϣ
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
         AnimatorClipInfo[] clipInfo = animator.GetCurrentAnimatorClipInfo(layerIndex);
 
