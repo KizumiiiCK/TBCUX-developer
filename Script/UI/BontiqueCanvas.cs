@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class BontiqueCanvas : UICanvasMain
@@ -31,8 +30,6 @@ public class BontiqueCanvas : UICanvasMain
     private LoadingPage loadingPage;
 
     private const string LoadingPagePath = "UI/Pages/loading";
-    private const float TimeTaskRetryWindowSeconds = 30f;
-    private const float TimeTaskRetryDelaySeconds = 1.0f;
 
     private void Start()
     {
@@ -378,7 +375,12 @@ public class BontiqueCanvas : UICanvasMain
         if (loadingPage != null) loadingPage.SetDetail("Fetching world time (UTC+8)...");
 
         DateTime? serverDate = null;
-        yield return GetNetworkDateTime(value => serverDate = value);
+        yield return WorldTimeService.FetchUtc8DateTime(
+            value => serverDate = value,
+            detail =>
+            {
+                if (loadingPage != null) loadingPage.SetDetail(detail);
+            });
 
         if (serverDate == null)
         {
@@ -395,49 +397,4 @@ public class BontiqueCanvas : UICanvasMain
         if (loadingPage != null) loadingPage.SetDetail($"World time OK: {valueDate:yyyy-MM-dd}");
     }
 
-    private IEnumerator GetNetworkDateTime(Action<DateTime?> onComplete)
-    {
-        string[] timeApis =
-        {
-            "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai",
-            "https://worldtimeapi.org/api/timezone/Asia/Shanghai",
-        };
-
-        float start = Time.realtimeSinceStartup;
-        while (Time.realtimeSinceStartup - start < TimeTaskRetryWindowSeconds)
-        {
-            for (int apiIndex = 0; apiIndex < timeApis.Length; apiIndex++)
-            {
-                using (UnityWebRequest request = UnityWebRequest.Get(timeApis[apiIndex]))
-                {
-                    yield return request.SendWebRequest();
-                    if (request.result != UnityWebRequest.Result.Success) continue;
-
-                    string json = request.downloadHandler.text ?? string.Empty;
-                    string value = ExtractJsonString(json, "datetime");
-                    if (string.IsNullOrEmpty(value)) value = ExtractJsonString(json, "dateTime");
-
-                    if (DateTime.TryParse(value, out DateTime parsed))
-                    {
-                        onComplete?.Invoke(parsed);
-                        yield break;
-                    }
-                }
-            }
-            yield return new WaitForSecondsRealtime(TimeTaskRetryDelaySeconds);
-        }
-        onComplete?.Invoke(null);
-    }
-
-    private static string ExtractJsonString(string json, string keyName)
-    {
-        if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(keyName)) return string.Empty;
-        string key = $"\"{keyName}\":\"";
-        int idx = json.IndexOf(key, StringComparison.Ordinal);
-        if (idx < 0) return string.Empty;
-        int start = idx + key.Length;
-        int end = json.IndexOf("\"", start, StringComparison.Ordinal);
-        if (end <= start) return string.Empty;
-        return json.Substring(start, end - start);
-    }
 }

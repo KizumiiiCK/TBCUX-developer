@@ -261,7 +261,12 @@ public class UserRestoreAccountPage : MonoBehaviour
     private IEnumerator ExecuteFetchUtc8Task(LoadingTask task)
     {
         DateTime? value = null;
-        yield return GetNetworkDateTimeUtc8(result => value = result);
+        yield return WorldTimeService.FetchUtc8DateTime(
+            result => value = result,
+            detail =>
+            {
+                if (loadingPage != null) loadingPage.SetDetail(detail);
+            });
         if (!value.HasValue)
         {
             task.Success = false;
@@ -707,40 +712,6 @@ public class UserRestoreAccountPage : MonoBehaviour
         task.Success = true;
     }
 
-    private IEnumerator GetNetworkDateTimeUtc8(Action<DateTime?> onComplete)
-    {
-        string[] apiUrls =
-        {
-            "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai",
-            "https://worldtimeapi.org/api/timezone/Asia/Shanghai",
-        };
-
-        for (int i = 0; i < apiUrls.Length; i++)
-        {
-            string url = apiUrls[i];
-            bool done = false;
-            bool ok = false;
-            string body = string.Empty;
-            yield return GetRequest(url, r =>
-            {
-                ok = r.success;
-                body = r.body;
-                done = true;
-            });
-            while (!done) yield return null;
-            if (!ok) continue;
-
-            string key = i == 0 ? "dateTime" : "datetime";
-            string value = TryExtractJsonStringValue(body, key);
-            if (!string.IsNullOrEmpty(value) && DateTime.TryParse(value, out DateTime parsed))
-            {
-                onComplete?.Invoke(parsed);
-                yield break;
-            }
-        }
-        onComplete?.Invoke(null);
-    }
-
     private IEnumerator GetRequest(string url, Action<RequestResult> onDone)
     {
         using (UnityWebRequest request = UnityWebRequest.Get(url))
@@ -920,21 +891,6 @@ public class UserRestoreAccountPage : MonoBehaviour
                 data[r, c] = cols != null && c < cols.Count ? cols[c]?.ToString() ?? string.Empty : string.Empty;
         }
         return data;
-    }
-
-    private static string TryExtractJsonStringValue(string json, string key)
-    {
-        if (string.IsNullOrWhiteSpace(json) || string.IsNullOrWhiteSpace(key)) return null;
-        string token = "\"" + key + "\"";
-        int keyPos = json.IndexOf(token, StringComparison.Ordinal);
-        if (keyPos < 0) return null;
-        int colon = json.IndexOf(':', keyPos + token.Length);
-        if (colon < 0) return null;
-        int firstQuote = json.IndexOf('"', colon + 1);
-        if (firstQuote < 0) return null;
-        int endQuote = json.IndexOf('"', firstQuote + 1);
-        if (endQuote <= firstQuote) return null;
-        return json.Substring(firstQuote + 1, endQuote - firstQuote - 1);
     }
 
     private static bool ValidatePid(string pid, out string error)

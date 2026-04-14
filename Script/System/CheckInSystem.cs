@@ -28,8 +28,6 @@ public class CheckInSystem : MonoBehaviour
         50000,150,1
     };
     private int[] bonusCount = new int[typeCount];
-    private const float TimeTaskRetryWindowSeconds = 30f;
-    private const float TimeTaskRetryDelaySeconds = 1.0f;
     private const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
 
     private void Start()
@@ -106,7 +104,12 @@ public class CheckInSystem : MonoBehaviour
         if (loadingPage != null) loadingPage.SetDetail("Fetching time utc+8...");
 
         DateTime? serverDate = null;
-        yield return GetNetworkDateTime(value => serverDate = value);
+        yield return WorldTimeService.FetchUtc8DateTime(
+            value => serverDate = value,
+            detail =>
+            {
+                if (loadingPage != null) loadingPage.SetDetail(detail);
+            });
 
         if (serverDate == null)
         {
@@ -213,60 +216,6 @@ public class CheckInSystem : MonoBehaviour
         Debug.Log($"Check in successful for {consecutiveDays} day(s)! You have gained {bonusRate} reward bonus.");
     }
 
-    private IEnumerator GetNetworkDateTime(Action<DateTime?> onComplete)
-    {
-        string[] timeApis =
-        {
-            // Fallback source for Beijing/Shanghai time
-            "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai",
-            // Preferred: fixed Beijing time zone source
-            "https://worldtimeapi.org/api/timezone/Asia/Shanghai",
-        };
-
-        float start = Time.realtimeSinceStartup;
-        while (Time.realtimeSinceStartup - start < TimeTaskRetryWindowSeconds)
-        {
-            for (int apiIndex = 0; apiIndex < timeApis.Length; apiIndex++)
-            {
-                string timeApi = timeApis[apiIndex];
-                using (UnityEngine.Networking.UnityWebRequest request = UnityEngine.Networking.UnityWebRequest.Get(timeApi))
-                {
-                    yield return request.SendWebRequest();
-                    if (request.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                    {
-                        if (loadingPage != null) loadingPage.SetDetail($"Retrying time API... ({request.error})");
-                        continue;
-                    }
-
-                    string json = request.downloadHandler.text ?? string.Empty;
-                    // worldtimeapi: "datetime", timeapi.io: "dateTime"
-                    string value = ExtractJsonString(json, "datetime");
-                    if (string.IsNullOrEmpty(value)) value = ExtractJsonString(json, "dateTime");
-
-                    if (DateTime.TryParse(value, out DateTime parsed))
-                    {
-                        onComplete?.Invoke(parsed);
-                        yield break;
-                    }
-                }
-            }
-            yield return new WaitForSecondsRealtime(TimeTaskRetryDelaySeconds);
-        }
-
-        onComplete?.Invoke(null);
-    }
-
-    private static string ExtractJsonString(string json, string keyName)
-    {
-        if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(keyName)) return string.Empty;
-        string key = $"\"{keyName}\":\"";
-        int idx = json.IndexOf(key, StringComparison.Ordinal);
-        if (idx < 0) return string.Empty;
-        int start = idx + key.Length;
-        int end = json.IndexOf("\"", start, StringComparison.Ordinal);
-        if (end <= start) return string.Empty;
-        return json.Substring(start, end - start);
-    }
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
 
     private bool EnsureNetworkAndRemoteReady(LoadingTask task)

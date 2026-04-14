@@ -153,7 +153,12 @@ public class UserUploadAccountPage : MonoBehaviour
         if (loadingPage != null) loadingPage.SetDetail("Requesting world time from network APIs...");
 
         DateTime? result = null;
-        yield return GetNetworkDateTimeUtc8(value => result = value);
+        yield return WorldTimeService.FetchUtc8DateTime(
+            value => result = value,
+            detail =>
+            {
+                if (loadingPage != null) loadingPage.SetDetail(detail);
+            });
         if (!result.HasValue)
         {
             task.Success = false;
@@ -400,52 +405,6 @@ public class UserUploadAccountPage : MonoBehaviour
             }
             onDone?.Invoke(success);
         }
-    }
-
-    private IEnumerator GetNetworkDateTimeUtc8(Action<DateTime?> onComplete)
-    {
-        string[] apiUrls =
-        {
-            "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai",
-            "https://worldtimeapi.org/api/timezone/Asia/Shanghai",
-        };
-
-        for (int i = 0; i < apiUrls.Length; i++)
-        {
-            string url = apiUrls[i];
-            using (UnityWebRequest req = UnityWebRequest.Get(url))
-            {
-                yield return req.SendWebRequest();
-                if (req.result != UnityWebRequest.Result.Success) continue;
-
-                string json = req.downloadHandler.text;
-                string key = i == 0 ? "dateTime" : "datetime";
-                string value = TryExtractJsonStringValue(json, key);
-                if (!string.IsNullOrEmpty(value) && DateTime.TryParse(value, out DateTime parsed))
-                {
-                    onComplete?.Invoke(parsed);
-                    yield break;
-                }
-            }
-        }
-
-        onComplete?.Invoke(null);
-    }
-
-    private static string TryExtractJsonStringValue(string json, string key)
-    {
-        if (string.IsNullOrWhiteSpace(json) || string.IsNullOrWhiteSpace(key)) return null;
-        string token = "\"" + key + "\"";
-        int keyPos = json.IndexOf(token, StringComparison.Ordinal);
-        if (keyPos < 0) return null;
-        int colon = json.IndexOf(':', keyPos + token.Length);
-        if (colon < 0) return null;
-
-        int firstQuote = json.IndexOf('"', colon + 1);
-        if (firstQuote < 0) return null;
-        int endQuote = json.IndexOf('"', firstQuote + 1);
-        if (endQuote <= firstQuote) return null;
-        return json.Substring(firstQuote + 1, endQuote - firstQuote - 1);
     }
 
     private static bool ValidateTransferCode(string code, out string error)

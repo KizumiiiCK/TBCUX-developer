@@ -29,6 +29,7 @@ public static class AbilityInstaller
         { AbilityName.sacrifice,  typeof(Sacrifice)},
         { AbilityName.projectile, typeof(ProjectileLauncher)},
         { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
+        { AbilityName.BaseHunter, typeof(BaseHunter)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -542,5 +543,14 @@ public class ZombieDiveAddon : PassiveSkill
         if (current > 0) return current;
         if (fallback >= 0) return fallback;
         return Mathf.Max(0, character.Speed);
+    }
+}
+
+public class BaseHunter : PassiveSkill
+{
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (character == null) return;
+        character.Targets.Clear();
     }
 }
