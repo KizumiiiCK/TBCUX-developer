@@ -21,6 +21,7 @@ MonoBehaviour:
   BackgroundID: 7
   BaseImageID: 37
   CombatEffect: []
+  Restriction: []
   CombatAura: []
   exstage:
     exist: 0
@@ -64,7 +65,7 @@ MonoBehaviour:
       ratio: 100
       bossShock: 0
       repeat: 30
-      firstAppear: 300
+      firstAppear: 90
       repeatMin: 1
       repeatMax: 1
       previewSprite: {fileID: 21300000, guid: aef3f09754318d14daad7f2e854deb26, type: 3}

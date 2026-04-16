@@ -59,8 +59,14 @@ public abstract partial class Character
     
     protected void StartPos()=>startingY = transform.position.y;
 
-    private void FixedUpdate() => realReload++;
-    private void Update() {if(Time.timeScale>0.1f) UpdateAnimation();}
+    private void FixedUpdate()
+    {
+        if (Time.timeScale <= 0.1f) return;
+        // Drive combat logic on a fixed-step clock to avoid frame-skip target/attack jumps.
+        realReload++;
+        UpdateAnimation();
+    }
+    private void Update() { }
 
     /* ====== 数据加载，统一管理器 ====== */
     public void LoadCharacterData(LevelController lc, CharacterData data, int forceLevel=1, float treasureCount=0)
