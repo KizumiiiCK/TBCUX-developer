@@ -64,10 +64,10 @@ public class SurgeUnit : Character
             ads.SetMaanimPointer(1);
             for (int j = 1; j < 21; j++)
             {
-                if (j % 5 == 0)
+                if (j % 10 == 0)
                 {
-                    // 每5帧判定一次，伤害为1/4
-                    ApplyProjectileAttack(0.25f);
+                    // 每10帧判定一次，伤害为1/2
+                    ApplyProjectileAttack(0.5f);
                 }
                 yield return new WaitForFixedUpdate();
             }
