@@ -23,7 +23,6 @@ public class CharacterData : ScriptableObject
     public bool SPINEAnimated;
     // Traits
     public Traits traits;
-    public TraitSpecials traitSpecials;
     // Subtraits
     public SubTraits subtraits;
     // Career

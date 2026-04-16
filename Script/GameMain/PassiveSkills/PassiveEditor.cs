@@ -683,7 +683,7 @@ public class ZombieReviveAddon : PassiveSkill
         if (character == null || character.EM == null) return null;
         return character.EM.InstantiateAttachedBattleObject(
             CorpseEffectName,
-            character.transform.position-new Vector3(0, 1.5f, 0),
+            character.transform.position-new Vector3(0, 0.5f, 0),
             character.transform,
             worldPositionStays: true,
             playSound: false);

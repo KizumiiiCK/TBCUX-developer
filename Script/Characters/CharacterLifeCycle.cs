@@ -61,15 +61,9 @@ public abstract partial class Character
 
     private void FixedUpdate()
     {
-        // Drive combat logic with fixed ticks. When timescale speeds up, run extra ticks
-        // so logic pace matches animation even if engine fixed-step catch-up is capped.
-        int logicTicks = Mathf.Clamp(Mathf.RoundToInt(Time.timeScale), 0, 2);
-        if (logicTicks == 0) return;
-        realReload += logicTicks;
-        for (int i = 0; i < logicTicks; i++)
-        {
-            UpdateAnimation();
-        }
+        if (Time.timeScale <= 0.1f) return;
+        realReload++;
+        UpdateAnimation();
     }
     private void Update() { }
 
@@ -106,7 +100,6 @@ public abstract partial class Character
         //one_off = data.one_off;
 
         traits = data.traits;
-        traitSpecials = data.traitSpecials;
         subtraits = data.subtraits;
         career = data.career;
         againstCareer = data.againstCareer;

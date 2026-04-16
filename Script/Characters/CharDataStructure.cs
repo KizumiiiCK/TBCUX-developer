@@ -17,15 +17,6 @@ public class Traits
     public bool None;
 }
 [System.Serializable]
-public class TraitSpecials
-{
-    public int barrierValue = 0;
-    public int akuSheildValue = 0;
-    public int zombieReviveTimes = 0;
-    public int zombieDiveTime = 0;
-    public int revivePercentage = 0;
-}
-[System.Serializable]
 public class SubTraits
 {
     public bool Starred;

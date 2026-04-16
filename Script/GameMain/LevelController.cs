@@ -33,7 +33,6 @@ public class LevelController : MonoBehaviour
     
     // 游戏状态常量
     private const int DEFAULT_TARGET_FPS = 30;
-    private const int SPEED_UP_TARGET_FPS = 60;
     private const float NORMAL_TIME_SCALE = 1f;
     private const float SPEED_UP_TIME_SCALE = 2f;
     private const float PAUSED_TIME_SCALE = 0f;
@@ -583,7 +582,8 @@ public class LevelController : MonoBehaviour
         {
             ShowPauseTable(false);
             Time.timeScale = SPEED_UP_TIME_SCALE;
-            Application.targetFrameRate = SPEED_UP_TARGET_FPS;
+            // Keep render FPS cap stable; speed is controlled only by Time.timeScale.
+            Application.targetFrameRate = DEFAULT_TARGET_FPS;
             Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 1);
             Pause_btn.GetComponent<Image>().color = Color.white;
             game_paused = false;

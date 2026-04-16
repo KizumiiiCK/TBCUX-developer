@@ -29,7 +29,6 @@ public abstract partial class Character : MonoBehaviour
 
     /* ====== �������� ====== */
     public Traits traits;
-    public TraitSpecials traitSpecials;
     public SubTraits subtraits;
     public Careers career;
     public AgainstCareer againstCareer;

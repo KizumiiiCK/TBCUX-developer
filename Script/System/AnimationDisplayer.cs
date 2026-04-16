@@ -717,7 +717,8 @@ public class AnimationDisplayer : MonoBehaviour
             ResetScaleTree(0);
             scaleTreeDirty = false;
         }
-        CurrentFrame += AnimationSpeedRate * Time.timeScale;
+        // Normalize to 30fps baseline so playback speed depends on game time, not render fps.
+        CurrentFrame += AnimationSpeedRate * Time.deltaTime * 30f;
     }
     int FindPointIndexForFrame(MaanimNode node, float frame)
     {
