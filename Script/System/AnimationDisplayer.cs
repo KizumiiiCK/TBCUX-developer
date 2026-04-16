@@ -717,7 +717,7 @@ public class AnimationDisplayer : MonoBehaviour
             ResetScaleTree(0);
             scaleTreeDirty = false;
         }
-        CurrentFrame += 1 * AnimationSpeedRate;
+        CurrentFrame += AnimationSpeedRate * Time.timeScale;
     }
     int FindPointIndexForFrame(MaanimNode node, float frame)
     {
