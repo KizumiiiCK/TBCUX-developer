@@ -743,6 +743,7 @@ public static class CharacterUpgradeSave
             dict[id] = ud;
             Debug.LogWarning($"[CharacterUpgradeSave] Character {id} not found in save, created new entry for clear upgrade");
         }
+        if (ud.upgraded_level > 0) return;
         ud.upgraded_level++;
         Save(dict);
         UnlockCharacterTire(id, 0);
@@ -852,6 +853,13 @@ public static class CharacterUpgradeSave
         UpgradeDetails ud=GetDetails(id);
         int tire = id[0] - '0';
         int ugmax = RewardingSystem.GetAmount(61 + tire)+10;
+        if (ud.upgraded_level > ugmax)
+        {
+            ud.upgraded_level = ugmax;
+            var dict = Load();
+            dict[id] = ud;
+            Save(dict);
+        }
         return ud.upgraded_level < ugmax;
     }
     public static bool DrawUpgradeAvailable(string id)
@@ -859,6 +867,13 @@ public static class CharacterUpgradeSave
         UpgradeDetails ud = GetDetails(id);
         int tire = id[0] - '0';
         int ugmax = RewardingSystem.GetAmount(68 + tire)+10;
+        if (ud.plus_level > ugmax)
+        {
+            ud.plus_level = ugmax;
+            var dict = Load();
+            dict[id] = ud;
+            Save(dict);
+        }
         return ud.plus_level < ugmax;
     }
     #endregion

@@ -274,7 +274,7 @@ public abstract partial class Character
                 if (realHealth < 0)
                 {
                     Passive_OnDead();
-                    Dead();
+                    if (realHealth < 0) Dead();
                 }// check death
                 transform.position = new Vector2(transform.position.x, startingY);
                 Targets.Clear();
@@ -305,7 +305,7 @@ public abstract partial class Character
                     case AttackType.invalid: EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y); break;
                     case AttackType.critical: EM.InstantiateBattleObject(SEnums.critical, transform.position.x, transform.position.y); break;
                     case AttackType.savage: EM.InstantiateBattleObject(SEnums.savage, transform.position.x, transform.position.y); break;
-                    case AttackType.zombieKiller: if (traits.Z && realHealth < 0) EM.InstantiateBattleObject(SEnums.soulStrike, transform.position.x, transform.position.y); break;
+                    case AttackType.zombieKiller: break;
                     default: break;
                 }
             }
@@ -355,6 +355,17 @@ public abstract partial class Character
     public float GetMaxHealth()=>maxHealth;
     public void SetHealth(int rh)=>realHealth = rh;
     public void ResetKBtimes()=>realKBtimes--;
+    public void SyncKBStateToHealth()
+    {
+        if (hardness <= 0)
+        {
+            realKBtimes = 0;
+            return;
+        }
+        int kbCount = (int)((maxHealth - realHealth) / hardness);
+        int maxKbCount = Mathf.Max(0, KB - 1);
+        realKBtimes = Mathf.Clamp(kbCount, 0, maxKbCount);
+    }
     public int GetRealSpeed()=>realSpeed;
     public int GetAnimationStep()=>animateStep;
     public bool IsOnKB() => onKB;

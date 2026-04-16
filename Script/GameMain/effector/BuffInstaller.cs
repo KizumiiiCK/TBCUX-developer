@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class EffectInstaller : MonoBehaviour
 {
+    private const int BlockedEffectLifetime = 30;
+    private const int InvalidEffectLifetime = 30;
+    private const int HealEffectLifetime = 60;
+    private const int StrengthenEffectLifetime = 30;
+    private const int SurviveEffectLifetime = 30;
+
     public static void Inflict(GameObject target, object effectName, float duration, float intensity)
     {
         int _duration = Mathf.FloorToInt(duration);
         int _intensity = Mathf.FloorToInt(intensity);
+        Character character = target != null ? target.GetComponent<Character>() : null;
         if (_duration == 0)
         {
-            GameObject blk = Resources.Load<GameObject>($"Effects/effect_blocked");
-            Instantiate(blk, target.transform.position, Quaternion.identity).transform.SetParent(target.transform);
+            SpawnAttachedEffect(character, "effect_blocked", BlockedEffectLifetime);
             return;
         }
         switch (effectName)
@@ -67,25 +73,33 @@ public class EffectInstaller : MonoBehaviour
                 break;
             //
             case AttackType.invalid:
-                GameObject ivd = Resources.Load<GameObject>($"Effects/invalid");
-                Instantiate(ivd, target.transform.position, Quaternion.identity).transform.SetParent(target.transform);
+                SpawnAttachedEffect(character, "invalid", InvalidEffectLifetime);
                 break;
             case AttackType.heal:
-                string rcv_str = target.GetComponent<Character>().IsCat() ? string.Empty : "_e";
-                GameObject rcv = Resources.Load<GameObject>($"Effects/heal{rcv_str}");
-                Instantiate(rcv, target.transform.position, Quaternion.identity).transform.SetParent(target.transform);
+                string healEffect = character != null && character.IsCat() ? "heal" : "heal_e";
+                SpawnAttachedEffect(character, healEffect, HealEffectLifetime);
                 break;
             case AbilityName.strengthen:
-                string ste_str = target.GetComponent<Character>().IsCat() ? string.Empty : "_e";
-                GameObject ste = Resources.Load<GameObject>($"Effects/strengthen{ste_str}");
-                Instantiate(ste, target.transform.position, Quaternion.identity).transform.SetParent(target.transform);
+                string strengthenEffect = character != null && character.IsCat() ? "strengthen" : "strengthen_e";
+                SpawnAttachedEffect(character, strengthenEffect, StrengthenEffectLifetime);
                 break;
             case AbilityName.survive:
-                GameObject sur = Resources.Load<GameObject>("Effects/survive");
-                Instantiate(sur, target.transform.position, Quaternion.identity).transform.SetParent(target.transform);
+                SpawnAttachedEffect(character, "survive", SurviveEffectLifetime);
                 break;
             default: break;
         }
+    }
+
+    private static void SpawnAttachedEffect(Character character, string effectName, int lifetimeFrames)
+    {
+        if (character == null || character.EM == null) return;
+        character.EM.InstantiateAttachedBattleObject(
+            effectName,
+            character.transform.position,
+            character.transform,
+            worldPositionStays: true,
+            playSound: true,
+            lifetimeFrames: lifetimeFrames);
     }
     //public void DisplayEffect(GameObject target, string effname)
     //{

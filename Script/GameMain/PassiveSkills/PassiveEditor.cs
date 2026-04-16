@@ -16,6 +16,8 @@ public static class AbilityInstaller
         { AbilityName.survive,    typeof(Survive)},
         { AbilityName.strengthen, typeof(Strengthen)},
         { AbilityName.critical,   typeof(Critical)},
+        { AbilityName.zombieKiller, typeof(ZombieKiller)},
+        { AbilityName.soulStrike, typeof(SoulStrike)},
         { AbilityName.savage,     typeof(Savage)},
         { AbilityName.wave,       typeof(Wave)},
         { AbilityName.miniWave,   typeof(MiniWave)},
@@ -29,6 +31,7 @@ public static class AbilityInstaller
         { AbilityName.sacrifice,  typeof(Sacrifice)},
         { AbilityName.projectile, typeof(ProjectileLauncher)},
         { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
+        { AbilityName.ZombieRevive, typeof(ZombieReviveAddon)},
         { AbilityName.BaseHunter, typeof(BaseHunter)},
     };
     public static void Install(Character C, CharacterAbility ca)
@@ -254,7 +257,11 @@ public class ZombieKiller : PassiveSkill
 }
 public class SoulStrike : PassiveSkill
 {
-    //ATK Type+
+    public override void OnAddingAbility(Character character)
+    {
+        if (character == null) return;
+        character.SetCanTargetUndetectable(true);
+    }
 }
 public class BarrierBreaker : PassiveSkill
 {
@@ -458,6 +465,14 @@ public class ZombieDiveAddon : PassiveSkill
 
     public override void OnAfterKB(Character character)
     {
+        if (diving && character != null)
+        {
+            // If KB happens during diving, immediately restore detectability and end dive lock.
+            CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+            character.BlockAnimationSwitch = false;
+            character.ChangeSpeed(ResolveTransitExitSpeed(character));
+            diving = false;
+        }
         if (remainingDiveTimes == 0)
         {
             CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
@@ -482,6 +497,14 @@ public class ZombieDiveAddon : PassiveSkill
         {
             t += character.GetFrameStep();
             if (character == null) yield break;
+            if (character.IsOnKB())
+            {
+                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+                character.BlockAnimationSwitch = false;
+                character.ChangeSpeed(ResolveTransitExitSpeed(character));
+                diving = false;
+                yield break;
+            }
             yield return new WaitForFixedUpdate();
         }
         // Diving
@@ -495,6 +518,14 @@ public class ZombieDiveAddon : PassiveSkill
         for (int i = 0; i < moveFrames; i++)
         {
             if (character == null) yield break;
+            if (character.IsOnKB())
+            {
+                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+                character.BlockAnimationSwitch = false;
+                character.ChangeSpeed(ResolveTransitExitSpeed(character));
+                diving = false;
+                yield break;
+            }
             if (CanAttackBaseNow(character)) break;
             int currentSpeed = Mathf.Max(0, character.GetRealSpeed());
             character.transform.Translate(new Vector2(character.TBCspeedTranslator(currentSpeed) * moveDir * Time.deltaTime, 0));
@@ -512,6 +543,14 @@ public class ZombieDiveAddon : PassiveSkill
         {
             t += character.GetFrameStep();
             if (character == null) yield break;
+            if (character.IsOnKB())
+            {
+                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+                character.BlockAnimationSwitch = false;
+                character.ChangeSpeed(ResolveTransitExitSpeed(character));
+                diving = false;
+                yield break;
+            }
             yield return new WaitForFixedUpdate();
         }
 
@@ -544,6 +583,112 @@ public class ZombieDiveAddon : PassiveSkill
         if (fallback >= 0) return fallback;
         return Mathf.Max(0, character.Speed);
     }
+}
+
+public class ZombieReviveAddon : PassiveSkill
+{
+    private const int TransitionFrames = 15;
+    private const string CorpseEffectName = "corpse";
+
+    private bool initialized;
+    private bool reviving;
+    private int remainingRevives;
+    private bool purified = false;
+
+    public override void OnAddingAbility(Character character)
+    {
+        if (initialized) return;
+        initialized = true;
+        remainingRevives = probability;
+    }
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null) return;
+        bool hasZombieKiller = atkTypes != null && atkTypes.Contains(AttackType.zombieKiller);
+        purified = hasZombieKiller && (character.GetHealth() - DMG < 0);
+        if (purified) character.EM?.InstantiateBattleObject(SEnums.zombieKiller, character.transform.position.x, character.transform.position.y);
+    }
+
+    public override void OnDead(Character character)
+    {
+        if (character == null || reviving) return;
+        if (purified)
+        {
+            purified = false;
+            return;
+        }
+        if (remainingRevives == 0) return;
+
+        if (remainingRevives > 0) remainingRevives--;
+
+        int hpPercent = Mathf.Clamp(intensity, 1, 100);
+        int revivedHp = Mathf.Max(1, Mathf.RoundToInt(character.GetMaxHealth() * hpPercent / 100f));
+        character.SetHealth(revivedHp);
+        character.SyncKBStateToHealth();
+        character.StartCoroutine(ReviveRoutine(character));
+    }
+
+    private IEnumerator ReviveRoutine(Character character)
+    {
+        if (character == null) yield break;
+        reviving = true;
+
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
+        SetCharacterRenderersVisible(character, false);
+        character.BlockAnimationSwitch = true;
+        character.RemoveAllTarget();
+
+        AnimationDisplayer corpse = CreateCorpseOnCharacter(character);
+        if (corpse != null)
+        {
+            corpse.SetMaanimPointer(0);
+            yield return WaitFixedFrames(Mathf.Max(0, duration)+ TransitionFrames, character);
+            corpse.SetMaanimPointer(1);
+            yield return WaitFixedFrames(TransitionFrames, character);
+            if (character != null && character.EM != null) character.EM.RecycleBattleObject(corpse, CorpseEffectName);
+            else GameObject.Destroy(corpse.gameObject);
+        }
+        else
+        {
+            yield return WaitFixedFrames(Mathf.Max(0, duration + TransitionFrames * 2), character);
+        }
+
+        if (character == null) yield break;
+
+        SetCharacterRenderersVisible(character, true);
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.BlockAnimationSwitch = false;
+        character.SwitchAnimation(0);
+        reviving = false;
+    }
+
+    private IEnumerator WaitFixedFrames(int frameCount, Character character)
+    {
+        for (int i = 0; i < frameCount; i++)
+        {
+            if (character == null) yield break;
+            yield return new WaitForFixedUpdate();
+        }
+    }
+
+    private void SetCharacterRenderersVisible(Character character, bool visible)
+    {
+        if (character == null) return;
+        character.transform.GetChild(0).gameObject.SetActive(visible);
+    }
+
+    private AnimationDisplayer CreateCorpseOnCharacter(Character character)
+    {
+        if (character == null || character.EM == null) return null;
+        return character.EM.InstantiateAttachedBattleObject(
+            CorpseEffectName,
+            character.transform.position-new Vector3(0, 1.5f, 0),
+            character.transform,
+            worldPositionStays: true,
+            playSound: false);
+    }
+
 }
 
 public class BaseHunter : PassiveSkill

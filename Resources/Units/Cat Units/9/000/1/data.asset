@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 8
+  - ATK: 30
     frame: 10
     DoNotTriggerEffects: 0
     Friendly: 0
@@ -77,6 +77,10 @@ MonoBehaviour:
     probability: 100
     duration: 300
     intensity: 0
-  abilities: []
+  abilities:
+  - name: 6
+    probability: 0
+    duration: 0
+    intensity: 0
   atkTypeResis: []
   effectResistances: []

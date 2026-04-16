@@ -23,7 +23,7 @@ MonoBehaviour:
     ATKRange: {x: 0, y: 90}
   areaATK: 1
   atkDuration: 30
-  Health: 3000
+  Health: 1200
   KB: 3
   Speed: 12
   Reload: 40
@@ -78,5 +78,9 @@ MonoBehaviour:
     probability: 2
     duration: 90
     intensity: 0
+  - name: 37
+    probability: 2
+    duration: 90
+    intensity: 50
   atkTypeResis: []
   effectResistances: []

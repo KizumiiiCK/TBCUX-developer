@@ -117,7 +117,7 @@ public class DogeBase : EnemyCharacter
         while (true) {
             float dx = -Random.Range(0, width);
             float dy = Random.Range(0, height);
-            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, dy, false);
+            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, transform.position.y + dy, false);
             yield return new WaitForFixedUpdate();
         }
     }

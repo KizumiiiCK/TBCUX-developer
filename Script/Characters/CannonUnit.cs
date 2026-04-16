@@ -88,16 +88,42 @@ public class CannonUnit : Character
         CharacterTargetManager.Instance.RefreshTargetsForProjectile(this);
 
         float dmg = realDamage[0] * damage_multiplier;
+        HashSet<Character> processedTargets = new HashSet<Character>();
 
         for (int i = Targets.Count - 1; i >= 0; i--)
         {
             if (Targets[i] == null) continue;
             Character target = Targets[i].GetComponent<Character>();
             if (target == null) continue;
-            target.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            float finalDamage = dmg;
+            if (cannon_type == 5 && target.traits != null && target.traits.Z)
+            {
+                finalDamage = target.GetMaxHealth() * 0.1f;
+            }
+            target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            processedTargets.Add(target);
             if (cannon_type == 0) target.StartKBCoroutine(KB_Type.pushBack);
         }
-        if (Targets.Count < 1) return;
+
+        if (cannon_type == 5)
+        {
+            List<Character> undetectables = CharacterTargetManager.Instance.GetUndetectableUnits();
+            for (int i = 0; i < undetectables.Count; i++)
+            {
+                Character target = undetectables[i];
+                if (target == null) continue;
+                if (processedTargets.Contains(target)) continue;
+                if (target.IsCat() == IsCat()) continue;
+                if (target.traits == null || !target.traits.Z) continue;
+                if (!CharacterTargetManager.Instance.IsTargetInCurrentRange(this, target)) continue;
+
+                float damageToUndetectableZombie = target.GetMaxHealth() * 0.25f;
+                target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+                processedTargets.Add(target);
+            }
+        }
+
+        if (processedTargets.Count < 1) return;
         max_times--;
         if (max_times == 0)
         {

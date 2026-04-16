@@ -51,7 +51,8 @@ public class SurgeUnit : Character
         int sign=IsCat() ? -1 : 1;
         Vector3 basePos = transform.position;
         float surgeX = basePos.x + distance * sign;
-        AnimationDisplayer ads = EM.InstantiateBattleObject(IsCat() ? SEnums.surge : SEnums.surge_e, surgeX, basePos.y);
+        SEnums surgeEffect = IsCat() ? SEnums.surge : SEnums.surge_e;
+        AnimationDisplayer ads = EM.InstantiateBattleObject(surgeEffect, surgeX, basePos.y);
 
         // 固定判定范围(-150,150)
         SetAttackRange(-150, 150);
@@ -73,7 +74,7 @@ public class SurgeUnit : Character
         }
         ads.SetMaanimPointer(2);
         for (int j = 0; j < 30; j++) yield return new WaitForFixedUpdate();
-        Destroy(ads.gameObject);
+        if (ads != null) EM.RecycleBattleObject(ads, surgeEffect.ToString());
         Destroy(gameObject);
     }
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)

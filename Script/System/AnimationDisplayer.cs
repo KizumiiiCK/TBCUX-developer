@@ -1059,7 +1059,23 @@ public class AnimationDisplayer : MonoBehaviour
     //MODIFIED
     public void PlayAnimation(int animaNum)
     {
-        maanimPointer = animaNum % MaanimTextAsset.Length;
+        int animationCount = 0;
+        if (isInitialzed && animPack != null && MaanimData != null)
+        {
+            animationCount = MaanimData.GetLength(0);
+        }
+        else if (MaanimTextAsset != null)
+        {
+            animationCount = MaanimTextAsset.Length;
+        }
+
+        if (animationCount <= 0)
+        {
+            Debug.LogWarning($"PlayAnimation skipped: no animation clips on {name}.");
+            return;
+        }
+
+        maanimPointer = ((animaNum % animationCount) + animationCount) % animationCount;
         AnimationReset();
     }
 

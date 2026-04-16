@@ -65,6 +65,7 @@ public abstract partial class Character : MonoBehaviour
     protected bool onDodge = false;
     private bool cancelAttackStartRequested = false;
     private bool undetectableByTargeting = false;
+    private bool canTargetUndetectable = false;
     public bool[] effectMarkedSlots = new bool[5];
     protected float startingY = 1;
     protected Coroutine coroutineKB = null;
@@ -86,6 +87,8 @@ public abstract partial class Character : MonoBehaviour
     }
     public void SetUndetectableByTargeting(bool value) => undetectableByTargeting = value;
     public bool IsUndetectableByTargeting() => undetectableByTargeting;
+    public void SetCanTargetUndetectable(bool value) => canTargetUndetectable = value;
+    public bool CanTargetUndetectable() => canTargetUndetectable;
 }
 public static class AnimatorFrameTool
 {

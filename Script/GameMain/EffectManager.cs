@@ -2,61 +2,160 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class EffectManager : MonoBehaviour
 {
-    [SerializeField] private List<GameObject> hitEffects;
     [SerializeField] public GameObject EffectObjectNull;
-    [SerializeField] protected DecryptFileFormat[] DFF;
-    [SerializeField] protected DecryptFileFormat wave_D;
-    [SerializeField] protected DecryptFileFormat wave_e_D;
-    protected AnimDecryptPack[] assets_decrypted;
+    private readonly Dictionary<string, AnimDecryptPack> packCache = new Dictionary<string, AnimDecryptPack>();
+    private readonly Dictionary<string, Queue<AnimationDisplayer>> displayPool = new Dictionary<string, Queue<AnimationDisplayer>>();
+    private readonly Dictionary<string, AudioClip[]> effectSoundCache = new Dictionary<string, AudioClip[]>();
+    private readonly Dictionary<string, AudioSource> effectSoundPlayers = new Dictionary<string, AudioSource>();
+    private const string EffectSourceRoot = "Effects/source file/";
+    private const string AudioMixerResourcePath = "Music/AudioMixer";
+    private AudioMixerGroup seMixerGroup;
+    private bool seMixerResolved;
     public AnimationDisplayer InstantiateBattleObject(SEnums sename,float posX, float posY, bool playSound=true)
     {
-        int matchedNum = SEpairs[sename];
-        AnimationDisplayer ad= Instantiate(EffectObjectNull, new Vector3(posX, posY+Ydeviation[sename], 0), Quaternion.identity).GetComponent<AnimationDisplayer>();
-        if (ad != null)
-        {
-            AnimDecryptPack pack = GetOrCreateEffectPack(matchedNum);
-            if (pack != null) ad.Initialization(pack);
-            int resetlayer = (int)(20000 * (1 - posY));
-            if (Mathf.Abs(resetlayer) > 21000) resetlayer = 21000;
-            CharacterSummoner.ResetAnimationOrderLayer(ad, resetlayer);
-            //ad.OrderLayerStart = 20000;
-            //ad.ResetModelOrderLayer();
-        }
-        if (SEExistT[sename] > 0)
-        {
-            ad.gameObject.AddComponent<InstanceObject>().exist_duration= SEExistT[sename];
-        }
-        if (playSound)
-        {
-            SoundEffects ses = transform.GetChild(SEpairs[sename]).GetComponent<SoundEffects>();
-            ses.PlayEffectSound();
-        }
+        string effectName = sename.ToString();
+        float finalY = posY + Ydeviation[sename];
+        AnimationDisplayer ad = InstantiateNamedBattleObjectInternal(
+            effectName,
+            new Vector3(posX, finalY, 0),
+            null,
+            true,
+            posY,
+            playSound,
+            SEExistT[sename]);
         return ad;
     }
-    private static Dictionary<SEnums, int> SEpairs = new Dictionary<SEnums, int>() {
-        { SEnums.soul,         0 },
-        { SEnums.bite,         1 },
-        { SEnums.critical,     2 },
-        { SEnums.savage,       3 },
-        { SEnums.soulStrike,   4 },
-        { SEnums.wave_invalid, 5 },
-        { SEnums.invalid,      6 },
-        { SEnums.wave,         7 },
-        { SEnums.wave_e,       8 },
-        { SEnums.heal,         9 },
-        { SEnums.heal_e,       10 },
-        { SEnums.surge,        11 },
-        { SEnums.surge_e,      12 }
-    };
+
+    public AnimationDisplayer InstantiateBattleObject(string effectName, float posX, float posY, bool playSound = true, int lifetimeFrames = 0)
+    {
+        return InstantiateNamedBattleObjectInternal(
+            effectName,
+            new Vector3(posX, posY, 0),
+            null,
+            true,
+            posY,
+            playSound,
+            lifetimeFrames);
+    }
+
+    public AnimationDisplayer InstantiateAttachedBattleObject(
+        string effectName,
+        Vector3 worldPosition,
+        Transform parent,
+        bool worldPositionStays = true,
+        bool playSound = true,
+        int lifetimeFrames = 0)
+    {
+        return InstantiateNamedBattleObjectInternal(
+            effectName,
+            worldPosition,
+            parent,
+            worldPositionStays,
+            worldPosition.y,
+            playSound,
+            lifetimeFrames);
+    }
+
+    private AnimationDisplayer InstantiateNamedBattleObjectInternal(
+        string effectName,
+        Vector3 worldPosition,
+        Transform parent,
+        bool worldPositionStays,
+        float sortY,
+        bool playSound,
+        int lifetimeFrames)
+    {
+        if (string.IsNullOrEmpty(effectName)) return null;
+        string packKey = GetEffectPackKey(effectName);
+        AnimDecryptPack pack = GetOrCreateEffectPack(effectName);
+        if (pack == null) return null;
+        AnimationDisplayer ad = SpawnDisplayFromPool(
+            packKey,
+            pack,
+            worldPosition,
+            parent,
+            worldPositionStays,
+            sortY);
+        if (ad == null) return null;
+        if (string.Equals(effectName, "corpse", StringComparison.OrdinalIgnoreCase))
+        {
+            CharacterSummoner.ResetAnimationOrderLayer(ad, 0);
+        }
+        if (lifetimeFrames > 0)
+        {
+            PooledEffectLifetime lifetime = ad.GetComponent<PooledEffectLifetime>();
+            if (lifetime == null) lifetime = ad.gameObject.AddComponent<PooledEffectLifetime>();
+            lifetime.Activate(this, packKey, lifetimeFrames, true);
+        }
+        if (playSound) PlayEffectSound(effectName);
+        return ad;
+    }
+
+    private void PlayEffectSound(string effectName)
+    {
+        string soundKey = GetEffectSoundKey(effectName);
+        if (!effectSoundCache.TryGetValue(soundKey, out AudioClip[] clips))
+        {
+            clips = Resources.LoadAll<AudioClip>(GetEffectResourceFolder(effectName));
+            if (clips == null) clips = Array.Empty<AudioClip>();
+            effectSoundCache[soundKey] = clips;
+        }
+        if (clips.Length == 0) return;
+
+        AudioSource source = GetOrCreateEffectSoundPlayer(soundKey, effectName);
+        if (source == null) return;
+        AudioClip clip = clips[UnityEngine.Random.Range(0, clips.Length)];
+        source.Stop();
+        source.clip = clip;
+        source.time = 0f;
+        source.Play();
+    }
+
+    private AudioSource GetOrCreateEffectSoundPlayer(string soundKey, string effectName)
+    {
+        if (effectSoundPlayers.TryGetValue(soundKey, out AudioSource existing) && existing != null) return existing;
+
+        GameObject go = new GameObject($"SE_{effectName}");
+        go.transform.SetParent(transform, false);
+        AudioSource src = go.AddComponent<AudioSource>();
+        src.playOnAwake = false;
+        src.loop = false;
+        src.spatialBlend = 0f;
+        src.outputAudioMixerGroup = ResolveSEMixerGroup();
+        effectSoundPlayers[soundKey] = src;
+        return src;
+    }
+
+    private AudioMixerGroup ResolveSEMixerGroup()
+    {
+        if (seMixerResolved) return seMixerGroup;
+        seMixerResolved = true;
+
+        AudioMixer mixer = Resources.Load<AudioMixer>(AudioMixerResourcePath);
+        if (mixer == null)
+        {
+            Debug.LogWarning($"[EffectManager] AudioMixer not found at Resources/{AudioMixerResourcePath}");
+            return null;
+        }
+        AudioMixerGroup[] groups = mixer.FindMatchingGroups("SE");
+        if (groups == null || groups.Length == 0)
+        {
+            Debug.LogWarning("[EffectManager] SE mixer group not found.");
+            return null;
+        }
+        seMixerGroup = groups[0];
+        return seMixerGroup;
+    }
     private static Dictionary<SEnums, int> SEExistT = new Dictionary<SEnums, int>() {
         { SEnums.soul,         90 },
         { SEnums.bite,         30 },
         { SEnums.critical,     30 },
         { SEnums.savage,       30 },
-        { SEnums.soulStrike,   30 },
+        { SEnums.zombieKiller,   30 },
         { SEnums.wave_invalid, 30 },
         { SEnums.invalid,      30 },
         { SEnums.wave,         30 },
@@ -71,7 +170,7 @@ public class EffectManager : MonoBehaviour
         { SEnums.bite,         1 },
         { SEnums.critical,     1 },
         { SEnums.savage,       1 },
-        { SEnums.soulStrike,   1 },
+        { SEnums.zombieKiller,   1 },
         { SEnums.wave_invalid, 1 },
         { SEnums.invalid,      1 },
         { SEnums.wave,         -1 },
@@ -81,33 +180,227 @@ public class EffectManager : MonoBehaviour
         { SEnums.surge,        -1 },
         { SEnums.surge_e,      -1 }
     };
-    private AnimDecryptPack GetOrCreateEffectPack(int index)
+    private AnimDecryptPack GetOrCreateEffectPack(string effectName)
     {
-        if (DFF == null || index < 0 || index >= DFF.Length) return null;
-        if (assets_decrypted == null || assets_decrypted.Length != DFF.Length)
-            assets_decrypted = new AnimDecryptPack[DFF.Length];
-        if (assets_decrypted[index] != null) return assets_decrypted[index];
+        string key = GetEffectPackKey(effectName);
+        if (packCache.TryGetValue(key, out AnimDecryptPack cached) && cached != null) return cached;
 
-        var src = DFF[index];
-        if (src == null) return null;
-        AnimEncryptPack animEncryptPack = new AnimEncryptPack(src.unitTexture, src.imgcut, src.mamodel, src.maanim);
-        assets_decrypted[index] = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
-        return assets_decrypted[index];
+        string folder = GetEffectResourceFolder(effectName);
+        AnimDecryptPack pack = BuildPackFromFolder(folder, effectName);
+        if (pack == null) return null;
+        packCache[key] = pack;
+        return pack;
     }
+
+    public AnimationDisplayer InstantiateRuntimeBattleObject(
+        string resourceRoot,
+        string[] maanimNames,
+        Vector3 worldPosition,
+        Transform parent = null,
+        bool worldPositionStays = true)
+    {
+        if (EffectObjectNull == null || string.IsNullOrEmpty(resourceRoot) || maanimNames == null || maanimNames.Length == 0) return null;
+
+        string packKey = GetRuntimePackKey(resourceRoot, maanimNames);
+        AnimDecryptPack pack = GetOrCreateRuntimePack(resourceRoot, maanimNames);
+        if (pack == null) return null;
+
+        return SpawnDisplayFromPool(packKey, pack, worldPosition, parent, worldPositionStays, worldPosition.y);
+    }
+
+    private AnimDecryptPack GetOrCreateRuntimePack(string resourceRoot, string[] maanimNames)
+    {
+        string key = GetRuntimePackKey(resourceRoot, maanimNames);
+        if (packCache.TryGetValue(key, out AnimDecryptPack cached) && cached != null)
+        {
+            return cached;
+        }
+
+        Texture2D sprite = Resources.Load<Texture2D>(resourceRoot + "sprite");
+        TextAsset imgcut = Resources.Load<TextAsset>(resourceRoot + "imgcut");
+        TextAsset mamodel = Resources.Load<TextAsset>(resourceRoot + "mamodel");
+        if (sprite == null || imgcut == null || mamodel == null) return null;
+
+        TextAsset[] maanims = new TextAsset[maanimNames.Length];
+        for (int i = 0; i < maanimNames.Length; i++)
+        {
+            maanims[i] = Resources.Load<TextAsset>(resourceRoot + maanimNames[i]);
+            if (maanims[i] == null) return null;
+        }
+
+        AnimEncryptPack animEncryptPack = new AnimEncryptPack(sprite, imgcut, mamodel, maanims);
+        AnimDecryptPack pack = AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+        packCache[key] = pack;
+        return pack;
+    }
+
+    private AnimDecryptPack BuildPackFromFolder(string resourceFolder, string effectName)
+    {
+        // Strict naming rule:
+        // folder: Effects/source file/{effect}
+        // files : sprite, imgcut, mamodel, maanim(_0.._3) (continuous from 0)
+        Texture2D sprite = Resources.Load<Texture2D>($"{resourceFolder}/sprite");
+        TextAsset imgcut = Resources.Load<TextAsset>($"{resourceFolder}/imgcut");
+        TextAsset mamodel = Resources.Load<TextAsset>($"{resourceFolder}/mamodel");
+        TextAsset[] maanims = LoadMaanimSequence(resourceFolder, effectName);
+
+        if (sprite == null || imgcut == null || mamodel == null || maanims == null || maanims.Length == 0)
+        {
+            Debug.LogError($"[EffectManager] Effect resource naming mismatch for '{effectName}' under '{resourceFolder}'.");
+            return null;
+        }
+
+        AnimEncryptPack animEncryptPack = new AnimEncryptPack(sprite, imgcut, mamodel, maanims);
+        return AnimFileDecrypter.DecryptEncryptPack(animEncryptPack);
+    }
+
+    private TextAsset[] LoadMaanimSequence(string resourceFolder, string effectName)
+    {
+        List<TextAsset> list = new List<TextAsset>();
+        TextAsset maanim_single = Resources.Load<TextAsset>($"{resourceFolder}/maanim");
+        if (maanim_single != null) list.Add(maanim_single);
+        else for (int i = 0; i <= 3; i++)
+        {
+            TextAsset maanim = Resources.Load<TextAsset>($"{resourceFolder}/maanim_{i}");
+            if (maanim == null)
+            {
+                if (i == 0)
+                {
+                    Debug.LogError($"[EffectManager] Missing required file: {resourceFolder}/maanim(_n) for effect '{effectName}'.");
+                    return null;
+                }
+                break;
+            }
+            list.Add(maanim);
+        }
+        return list.ToArray();
+    }
+
+    private AnimationDisplayer SpawnDisplayFromPool(
+        string poolKey,
+        AnimDecryptPack pack,
+        Vector3 worldPosition,
+        Transform parent,
+        bool worldPositionStays,
+        float sortY)
+    {
+        AnimationDisplayer ad = TryTakeFromPool(poolKey);
+        if (ad == null)
+        {
+            GameObject go = Instantiate(EffectObjectNull, worldPosition, Quaternion.identity);
+            ad = go.GetComponent<AnimationDisplayer>();
+            if (ad == null) ad = go.AddComponent<AnimationDisplayer>();
+            ad.Initialization(pack);
+            PooledEffectLifetime lifetime = ad.GetComponent<PooledEffectLifetime>();
+            if (lifetime == null) lifetime = ad.gameObject.AddComponent<PooledEffectLifetime>();
+        }
+        else
+        {
+            ad.gameObject.SetActive(true);
+            ad.SetAnimationSpeed(1f);
+            ad.PlayAnimation(0);
+        }
+
+        if (parent != null) ad.transform.SetParent(parent, worldPositionStays);
+        else ad.transform.SetParent(null, true);
+        ad.transform.position = worldPosition;
+
+        int resetlayer = ResolveEffectOrderLayer(parent, sortY);
+        CharacterSummoner.ResetAnimationOrderLayer(ad, resetlayer);
+        return ad;
+    }
+
+    private int ResolveEffectOrderLayer(Transform parent, float sortY)
+    {
+        int resetlayer = 0;
+        if (parent != null) resetlayer= (int)(20000 * (1.1f - parent.position.y));
+        else
+        {
+            resetlayer = (int)(20000 * (1 - sortY));
+            if (Mathf.Abs(resetlayer) > 21000) resetlayer = 21000;
+        }
+        return resetlayer;
+    }
+
+    private AnimationDisplayer TryTakeFromPool(string poolKey)
+    {
+        if (!displayPool.TryGetValue(poolKey, out Queue<AnimationDisplayer> queue) || queue == null) return null;
+        while (queue.Count > 0)
+        {
+            AnimationDisplayer ad = queue.Dequeue();
+            if (ad != null) return ad;
+        }
+        return null;
+    }
+
+    public void RecycleDisplay(AnimationDisplayer ad, string poolKey)
+    {
+        if (ad == null || string.IsNullOrEmpty(poolKey)) return;
+        if (!displayPool.TryGetValue(poolKey, out Queue<AnimationDisplayer> queue) || queue == null)
+        {
+            queue = new Queue<AnimationDisplayer>();
+            displayPool[poolKey] = queue;
+        }
+        ad.transform.SetParent(transform, true);
+        ad.gameObject.SetActive(false);
+        queue.Enqueue(ad);
+    }
+
+    public void RecycleRuntimeBattleObject(AnimationDisplayer ad, string resourceRoot, string[] maanimNames)
+    {
+        if (ad == null || string.IsNullOrEmpty(resourceRoot) || maanimNames == null || maanimNames.Length == 0) return;
+        RecycleDisplay(ad, GetRuntimePackKey(resourceRoot, maanimNames));
+    }
+
+    public void RecycleBattleObject(AnimationDisplayer ad, string effectName)
+    {
+        if (ad == null || string.IsNullOrEmpty(effectName)) return;
+        RecycleDisplay(ad, GetEffectPackKey(effectName));
+    }
+
+    private string GetEffectResourceFolder(string effectName) => $"{EffectSourceRoot}{effectName}";
+    private static string GetEffectPackKey(string effectName) => $"e:{effectName}";
+    private static string GetEffectSoundKey(string effectName) => $"s:{effectName}";
+    private static string GetRuntimePackKey(string root, string[] maanimNames) => $"runtime:{root}|{string.Join(",", maanimNames)}";
     //public AnimDecryptPack GetCatWave() { return wave_decrypt; }
     //public AnimDecryptPack GetEnemyWave() { return wave_e_decrypt; }
 }
 public enum SEnums
 {
-    soul, bite, critical, savage, soulStrike, wave_invalid, invalid, wave, wave_e, heal, heal_e, surge, surge_e
+    soul, bite, critical, savage, zombieKiller, wave_invalid, invalid, wave, wave_e, heal, heal_e, surge, surge_e
 }
-[System.Serializable]
-public class DecryptFileFormat
+
+public class PooledEffectLifetime : MonoBehaviour
 {
-    public string name;
-    public Texture2D unitTexture;
-    public TextAsset imgcut;
-    public TextAsset mamodel;
-    public TextAsset[] maanim;
+    private EffectManager manager;
+    private AnimationDisplayer ad;
+    private string poolKey;
+    private int remainingFrames;
+    private bool recycleOnExpire;
+    private bool active;
+
+    public void Activate(EffectManager effectManager, string key, int durationFrames, bool recycle)
+    {
+        manager = effectManager;
+        poolKey = key;
+        remainingFrames = durationFrames;
+        recycleOnExpire = recycle;
+        active = durationFrames > 0;
+        if (ad == null) ad = GetComponent<AnimationDisplayer>();
+    }
+
+    private void FixedUpdate()
+    {
+        if (!active) return;
+        remainingFrames--;
+        if (remainingFrames > 0) return;
+        active = false;
+        if (recycleOnExpire && manager != null)
+        {
+            manager.RecycleDisplay(ad, poolKey);
+            return;
+        }
+        Destroy(gameObject);
+    }
 }
 

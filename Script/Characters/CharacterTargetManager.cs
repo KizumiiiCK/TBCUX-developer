@@ -204,6 +204,18 @@ public class CharacterTargetManager : MonoBehaviour
         return character.IsUndetectableByTargeting() || undetectableCharacters.Contains(character);
     }
 
+    public List<Character> GetUndetectableUnits()
+    {
+        List<Character> result = new List<Character>();
+        foreach (var character in undetectableCharacters)
+        {
+            if (character == null) continue;
+            if (!character.gameObject.activeInHierarchy) continue;
+            result.Add(character);
+        }
+        return result;
+    }
+
     /// <summary>
     /// 每帧更新所有角色的目标列表
     /// </summary>
@@ -336,7 +348,8 @@ public class CharacterTargetManager : MonoBehaviour
             if (!target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
             if (target.IsOnKB()) continue; // KB状态不参与判定
-            if (IsCharacterUndetectable(target)) continue;
+            bool targetUndetectable = IsCharacterUndetectable(target);
+            if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
             
             if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
@@ -438,7 +451,8 @@ public class CharacterTargetManager : MonoBehaviour
         {
             if (target == null || !target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
-            if (IsCharacterUndetectable(target)) continue;
+            bool targetUndetectable = IsCharacterUndetectable(target);
+            if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
 
             if (IsTargetInRange(attacker, target, minRange, maxRange))
             {
@@ -475,6 +489,19 @@ public class CharacterTargetManager : MonoBehaviour
     public void SetUpdateInterval(int frames)
     {
         updateFrameInterval = Mathf.Max(1, frames);
+    }
+
+    public bool IsTargetInCurrentRange(Character attacker, Character target)
+    {
+        if (attacker == null || target == null) return false;
+        if (!attackRanges.ContainsKey(attacker))
+        {
+            SetCharacterAttackRange(attacker, 0, attacker.DetectionRange);
+        }
+        Vector2 currentRange = attackRanges[attacker];
+        float minRange = Mathf.Min(currentRange.x, currentRange.y);
+        float maxRange = Mathf.Max(currentRange.x, currentRange.y);
+        return IsTargetInRange(attacker, target, minRange, maxRange);
     }
 
     /// <summary>

@@ -126,7 +126,7 @@ public class CatBase : CatCharacter
         {
             float dx = Random.Range(0, width);
             float dy = Random.Range(0, height);
-            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, dy, false);
+            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, transform.position.y + dy, false);
             yield return new WaitForFixedUpdate();
         }
     }
@@ -225,7 +225,7 @@ public class CatBase : CatCharacter
             if (headTransform != null) headTransform.localPosition = new Vector2(px, 0);
             float dx = Random.Range(0f, width);
             float dy = Random.Range(0f, height)+3;
-            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, dy, false);
+            EM.InstantiateBattleObject(SEnums.bite, dx + transform.position.x, transform.position.y + dy, false);
             yield return new WaitForFixedUpdate();
         }
         if (headTransform != null) headTransform.localPosition = Vector2.zero;
