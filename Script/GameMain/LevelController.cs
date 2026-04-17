@@ -335,6 +335,7 @@ public class LevelController : MonoBehaviour
         catBase = GameObject.Find("CatBase");
         
         // 设置基地位置
+        mapSize=Mathf.Clamp(mapSize, 1500, 6000);
         float dogeBaseX = (-mapSize + BASE_OFFSET) / BASE_POSITION_DIVISOR;
         float catBaseX = (mapSize - BASE_OFFSET) / BASE_POSITION_DIVISOR;
         dogeBase.transform.position = new Vector3(dogeBaseX, BASE_Y_POSITION, 0);
