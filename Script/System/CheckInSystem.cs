@@ -120,8 +120,6 @@ public class CheckInSystem : MonoBehaviour
         }
 
         currentServerDate = serverDate.Value.Date;
-        PlayerPrefs.SetString(LastWorldDateCacheKey, currentServerDate.ToString("yyyy-MM-dd"));
-        PlayerPrefs.Save();
         task.Success = true;
         task.Result = currentServerDate;
         if (loadingPage != null) loadingPage.SetDetail($"Time OK: {currentServerDate:yyyy-MM-dd}");
@@ -130,8 +128,12 @@ public class CheckInSystem : MonoBehaviour
     private bool ShouldSkipByLocalDate()
     {
         string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
-        string localDate = DateTime.Now.Date.ToString("yyyy-MM-dd");
-        return !string.IsNullOrEmpty(cachedDate) && cachedDate == localDate;
+        string today = GetLocalDateToken();
+        if (string.IsNullOrEmpty(cachedDate))
+        {
+            return false;
+        }
+        return cachedDate == today;
     }
 
     private IEnumerator ExecuteFetchCheckInDataTask(LoadingTask task)
@@ -173,6 +175,7 @@ public class CheckInSystem : MonoBehaviour
         if (lastCheckInDate == today)
         {
             Debug.Log("Already signed in!");
+            SaveCachedWorldDate();
             task.Success = true;
             task.Result = false;
             if (loadingPage != null) loadingPage.SetDetail("Already signed in today.");
@@ -210,6 +213,7 @@ public class CheckInSystem : MonoBehaviour
         }
 
         hasRewardToShow = true;
+        SaveCachedWorldDate();
         task.Success = true;
         task.Result = true;
         if (loadingPage != null) loadingPage.SetDetail("Check-in upload success.");
@@ -217,6 +221,14 @@ public class CheckInSystem : MonoBehaviour
     }
 
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
+
+    private string GetLocalDateToken() => DateTime.Today.ToString("yyyy-MM-dd");
+
+    private void SaveCachedWorldDate()
+    {
+        PlayerPrefs.SetString(LastWorldDateCacheKey, GetLocalDateToken());
+        PlayerPrefs.Save();
+    }
 
     private bool EnsureNetworkAndRemoteReady(LoadingTask task)
     {

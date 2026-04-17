@@ -58,11 +58,8 @@ public class BontiqueItems : MonoBehaviour
                 });
         }
 
-        if (remainingText != null)
-            remainingText.text = remaining < 0 ? "∞" : Mathf.Max(0, remaining).ToString();
-
+        if (remainingText != null) remainingText.text = remaining < 0 ? "∞" : Mathf.Max(0, remaining).ToString();
         if (currencyDisplay != null) currencyDisplay.SetData(item.CurrencyId, RewardingSystem.GetAmount(item.CurrencyId));
-
         if (redeemButton != null)
         {
             redeemButton.onClick.RemoveAllListeners();
