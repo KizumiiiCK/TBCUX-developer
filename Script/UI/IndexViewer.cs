@@ -27,6 +27,7 @@ public class IndexViewer : MonoBehaviour
     [SerializeField] private GameObject ImageHelper;
     private IconImageHelper IIH;
     private int tresureCount = 0;
+    private GameObject iconUnitPrefab;
 
     public void ShowCharacterDetails(CharacterData cd, bool consider_treasure, int level)
     {
@@ -262,15 +263,18 @@ public class IndexViewer : MonoBehaviour
         if (IconList == null) return;
         if (requiredCount < 0) requiredCount = 0;
 
-        while (IconList.childCount > requiredCount)
+        for (int i = 0; i < IconList.childCount; i++)
         {
-            DestroyImmediate(IconList.GetChild(IconList.childCount - 1).gameObject);
+            IconList.GetChild(i).gameObject.SetActive(i < requiredCount);
         }
 
         if (requiredCount == 0) return;
 
-        var prefab = Resources.Load<GameObject>(IconUnitPrefabPath);
-        if (prefab == null)
+        if (iconUnitPrefab == null)
+        {
+            iconUnitPrefab = Resources.Load<GameObject>(IconUnitPrefabPath);
+        }
+        if (iconUnitPrefab == null)
         {
             Debug.LogError($"[IndexViewer] Missing icon unit prefab at Resources/{IconUnitPrefabPath}");
             return;
@@ -278,7 +282,7 @@ public class IndexViewer : MonoBehaviour
 
         while (IconList.childCount < requiredCount)
         {
-            var go = Instantiate(prefab, IconList, false);
+            var go = Instantiate(iconUnitPrefab, IconList, false);
             go.SetActive(true);
         }
     }

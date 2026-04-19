@@ -89,6 +89,7 @@ public class LevelController : MonoBehaviour
     
     protected GameObject dogeBase;
     protected GameObject catBase;
+    private CatBase catBaseComponent;
     protected string[] characters_code;
     protected LevelRestrictionHelper.RestrictionRules levelRestrictions;
     
@@ -160,6 +161,12 @@ public class LevelController : MonoBehaviour
     public bool isPloting = false;
     protected int level_score = INITIAL_LEVEL_SCORE;
     protected int gain_XP = 0;
+    private int cachedDisplayedMoney = -1;
+    private int cachedDisplayedMoneyMax = -1;
+    private int cachedUpgradeCost = -1;
+    private int cachedUpgradeLevel = -1;
+    private bool cachedUpgradeButtonState = true;
+    private bool upgradeUiDirty = true;
     
     #endregion
 
@@ -239,10 +246,7 @@ public class LevelController : MonoBehaviour
         }
         
         // 更新大炮充能（由CatBase处理）
-        if (catBase != null)
-        {
-            catBase.GetComponent<CatBase>()?.ChargeCannon();
-        }
+        catBaseComponent?.ChargeCannon();
     }
     
     #endregion
@@ -333,6 +337,7 @@ public class LevelController : MonoBehaviour
         // 获取基地引用
         dogeBase = GameObject.Find("DogeBase");
         catBase = GameObject.Find("CatBase");
+        catBaseComponent = catBase != null ? catBase.GetComponent<CatBase>() : null;
         
         // 设置基地位置
         mapSize=Mathf.Clamp(mapSize, 1500, 6000);
@@ -346,7 +351,7 @@ public class LevelController : MonoBehaviour
         
         // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
         dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
-        catBase.GetComponent<CatBase>().ApplyLevelBaseHealth(
+        catBaseComponent?.ApplyLevelBaseHealth(
             CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
         
         // 设置狗基地外观
@@ -477,8 +482,8 @@ public class LevelController : MonoBehaviour
         {
             currentMoney = currentMaxMoney;
         }
-        
-        money_txt.text = $"{(int)currentMoney} / {(int)currentMaxMoney}$";
+
+        RefreshMoneyText((int)currentMoney, (int)currentMaxMoney);
     }
     
     /// <summary>
@@ -497,8 +502,18 @@ public class LevelController : MonoBehaviour
     protected void SetUpgradeActive(bool active)
     {
         int upgradeCost = (int)(current_money_level * money_upgrade_cost * multiplier);
-        money_upgrade_txt.text = $"Level. {current_money_level}\n\n\nLvl UP: {upgradeCost}";
-        Upgrade_btn.interactable = active;
+        if (cachedUpgradeCost != upgradeCost || cachedUpgradeLevel != current_money_level || upgradeUiDirty)
+        {
+            money_upgrade_txt.text = $"Level. {current_money_level}\n\n\nLvl UP: {upgradeCost}";
+            cachedUpgradeCost = upgradeCost;
+            cachedUpgradeLevel = current_money_level;
+        }
+        if (cachedUpgradeButtonState != active || upgradeUiDirty)
+        {
+            Upgrade_btn.interactable = active;
+            cachedUpgradeButtonState = active;
+        }
+        upgradeUiDirty = false;
     }
     
     /// <summary>
@@ -508,8 +523,7 @@ public class LevelController : MonoBehaviour
     {
         if (current_money_level == MAX_MONEY_LEVEL)
         {
-            money_upgrade_txt.text = $"Level. {MAX_MONEY_LEVEL}\n\n\nLvl UP: MAX";
-            Upgrade_btn.interactable = false;
+            SetUpgradeMaxUI();
             return;
         }
         
@@ -522,8 +536,12 @@ public class LevelController : MonoBehaviour
         
         if (current_money_level == MAX_MONEY_LEVEL)
         {
-            money_upgrade_txt.text = $"Level. {MAX_MONEY_LEVEL}\n\n\nLvl UP: MAX";
-            Upgrade_btn.interactable = false;
+            SetUpgradeMaxUI();
+        }
+        else
+        {
+            upgradeUiDirty = true;
+            SetUpgradeActive(currentMoney > (money_upgrade_cost * current_money_level * multiplier));
         }
     }
     
@@ -535,13 +553,36 @@ public class LevelController : MonoBehaviour
     /// </summary>
     private void BindCannonToBase()
     {
-        if (catBase == null) return;
-        CatBase baseUnit = catBase.GetComponent<CatBase>();
-        if (baseUnit == null) return;
+        if (catBaseComponent == null) return;
 
-        baseUnit.SetupCannonUI(Cannon_btn, Cannon_btn_image, Cannon_btn_animation);
+        catBaseComponent.SetupCannonUI(Cannon_btn, Cannon_btn_image, Cannon_btn_animation);
         Cannon_btn.onClick.RemoveAllListeners();
-        Cannon_btn.onClick.AddListener(baseUnit.CannonFire);
+        Cannon_btn.onClick.AddListener(catBaseComponent.CannonFire);
+    }
+    private void RefreshMoneyText(int money, int maxMoneyDisplay)
+    {
+        if (cachedDisplayedMoney == money && cachedDisplayedMoneyMax == maxMoneyDisplay)
+        {
+            return;
+        }
+        cachedDisplayedMoney = money;
+        cachedDisplayedMoneyMax = maxMoneyDisplay;
+        money_txt.text = $"{money} / {maxMoneyDisplay}$";
+    }
+    private void SetUpgradeMaxUI()
+    {
+        if (cachedUpgradeLevel != MAX_MONEY_LEVEL || cachedUpgradeCost != int.MinValue || upgradeUiDirty)
+        {
+            money_upgrade_txt.text = $"Level. {MAX_MONEY_LEVEL}\n\n\nLvl UP: MAX";
+            cachedUpgradeLevel = MAX_MONEY_LEVEL;
+            cachedUpgradeCost = int.MinValue;
+        }
+        if (cachedUpgradeButtonState || upgradeUiDirty)
+        {
+            Upgrade_btn.interactable = false;
+            cachedUpgradeButtonState = false;
+        }
+        upgradeUiDirty = false;
     }
     #endregion
 

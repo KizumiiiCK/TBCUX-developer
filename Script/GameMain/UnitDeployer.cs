@@ -30,6 +30,11 @@ public class UnitDeployer : MonoBehaviour
     private CharacterData CD;
     private AnimDecryptPack characterDecryptedFiles;
     private bool isRuntimeInitialized;
+    private float cachedShadeFill = -1f;
+    private bool cachedEnoughMoney;
+    private bool cachedDeployAvailable;
+    private int moneyCheckFrameCounter = 0;
+    private const int MoneyCheckIntervalFrames = 2;
 
     // Start is called before the first frame update
     void Start()
@@ -40,10 +45,31 @@ public class UnitDeployer : MonoBehaviour
     {
         if (!deployEnabled) return;
         t++;
-        blackShade.fillAmount = 1 - Mathf.Clamp01((float)t / cd);
-        bool enoughMoney = LI.currentMoney >= unitCost;
-        MoneyColor(enoughMoney);
-        DeployAvailable(t >= cd && enoughMoney);
+        float fill = 1 - Mathf.Clamp01((float)t / cd);
+        if (Mathf.Abs(fill - cachedShadeFill) > 0.0001f)
+        {
+            blackShade.fillAmount = fill;
+            cachedShadeFill = fill;
+        }
+        moneyCheckFrameCounter++;
+        bool shouldCheckMoney = moneyCheckFrameCounter >= MoneyCheckIntervalFrames || t >= cd;
+        bool enoughMoney = cachedEnoughMoney;
+        if (shouldCheckMoney)
+        {
+            moneyCheckFrameCounter = 0;
+            enoughMoney = LI.currentMoney >= unitCost;
+            if (enoughMoney != cachedEnoughMoney)
+            {
+                cachedEnoughMoney = enoughMoney;
+                MoneyColor(enoughMoney);
+            }
+        }
+        bool canDeploy = t >= cd && enoughMoney;
+        if (canDeploy != cachedDeployAvailable)
+        {
+            cachedDeployAvailable = canDeploy;
+            DeployAvailable(canDeploy);
+        }
     }
     public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel=1)
     {
@@ -85,6 +111,11 @@ public class UnitDeployer : MonoBehaviour
         unitCost = CD.Cost;
         cd = (int)(CD.Cooldown * (2.5f - 1.5f*treasure_count / 150f));
         t = cd;
+        cachedShadeFill = -1f;
+        cachedEnoughMoney = LI.currentMoney >= unitCost;
+        cachedDeployAvailable = false;
+        moneyCheckFrameCounter = 0;
+        MoneyColor(cachedEnoughMoney);
         //Proficiency
         SetProficiencyMark(proficency);
         if (proficency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
@@ -105,7 +136,13 @@ public class UnitDeployer : MonoBehaviour
             Proficiency_Mark.sprite = StorageImageHelper.GetItemImageByOrder(lvl + 99);
         }
     }
-    public void ResetCoolDown() => t = 0;
+    public void ResetCoolDown()
+    {
+        t = 0;
+        cachedShadeFill = -1f;
+        cachedDeployAvailable = false;
+        moneyCheckFrameCounter = 0;
+    }
     public void GuestMark() => isGuest = true;
     public void LockByRestriction()
     {
@@ -158,12 +195,14 @@ public class UnitDeployer : MonoBehaviour
     }
     private void DeployAvailable(bool a)
     {
+        if (btn.interactable == a) return;
         btn.interactable = a;
     }
     private void MoneyColor(bool enough)
     {
-        if(enough)cost_txt.color = Color.white;
-        else cost_txt.color = Color.red;
+        Color targetColor = enough ? Color.white : Color.red;
+        if (cost_txt.color == targetColor) return;
+        cost_txt.color = targetColor;
     }
 
     private void ApplyRarityFrameColor()

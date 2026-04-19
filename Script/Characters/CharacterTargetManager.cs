@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -46,6 +45,7 @@ public class CharacterTargetManager : MonoBehaviour
     
     // 缓存：避免每帧重新分配
     private List<Character> tempTargets = new List<Character>();
+    private readonly List<GameObject> tempTargetGameObjects = new List<GameObject>(16);
     
     // 更新频率控制（可选优化）
     private int updateFrameInterval = 1; // 每N帧更新一次
@@ -272,7 +272,7 @@ public class CharacterTargetManager : MonoBehaviour
             if (attacker == null || !attacker.gameObject.activeInHierarchy) continue;
             
             // 根据Friendly模式选择正确的目标列表
-            bool isFriendly = friendlyModes.ContainsKey(attacker) && friendlyModes[attacker];
+            bool isFriendly = friendlyModes.TryGetValue(attacker, out bool friendly) && friendly;
             bool isCat = attacker.IsCat();
             
             List<Character> targetList = isFriendly
@@ -324,12 +324,12 @@ public class CharacterTargetManager : MonoBehaviour
         // 这里不需要再次检查阵营，直接使用传入的目标列表即可
         
         // 获取当前范围（SetCharacterAttackRange已写入方向后的相对范围）
-        if (!attackRanges.ContainsKey(attacker))
+        if (!attackRanges.TryGetValue(attacker, out Vector2 currentRange))
         {
             // 确保有默认检测范围
             SetCharacterAttackRange(attacker, 0, attacker.DetectionRange);
+            currentRange = attackRanges[attacker];
         }
-        Vector2 currentRange = attackRanges[attacker];
         float nearRange = currentRange.x;
         float farRange = currentRange.y;
 
@@ -342,19 +342,25 @@ public class CharacterTargetManager : MonoBehaviour
         // 使用二分查找优化：找到可能范围内的目标
         // 由于列表已按x排序，可以快速定位范围
         // 注意：目标列表已经在UpdateTargetsForCharacters中根据Friendly模式选择好了，这里不需要再次检查阵营
-        foreach (var target in potentialTargets)
+        float attackerX = attacker.transform.position.x;
+        float worldMin = attackerX + minRange;
+        float worldMax = attackerX + maxRange;
+        int startIndex = FindFirstIndexByX(potentialTargets, worldMin);
+        for (int i = startIndex; i < potentialTargets.Count; i++)
         {
+            Character target = potentialTargets[i];
             if (target == null || target == attacker) continue; // 跳过自己和null
             if (!target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
+            float targetX = target.transform.position.x;
+            if (targetX > worldMax)
+            {
+                break;
+            }
             if (target.IsOnKB()) continue; // KB状态不参与判定
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
-            
-            if (IsTargetInRange(attacker, target, minRange, maxRange))
-            {
-                tempTargets.Add(target);
-            }
+            tempTargets.Add(target);
         }
 
         Character baseTarget = includeTowers ? GetEnemyBaseTarget(attacker, minRange, maxRange) : null;
@@ -410,17 +416,21 @@ public class CharacterTargetManager : MonoBehaviour
     private void UpdateCharacterTargets(Character character, List<Character> newTargets, Character baseTarget)
     {
         if (character == null) return;
-        
-        // 转换为GameObject列表（保持兼容性）
-        var newGameObjectTargets = newTargets.Select(c => c.gameObject).ToList();
-        
+        tempTargetGameObjects.Clear();
+        for (int i = 0; i < newTargets.Count; i++)
+        {
+            Character target = newTargets[i];
+            if (target == null) continue;
+            GameObject go = target.gameObject;
+            if (go == null || !go.activeInHierarchy) continue;
+            tempTargetGameObjects.Add(go);
+        }
+
         // 更新Targets列表
         character.Targets.Clear();
-        character.Targets.AddRange(newGameObjectTargets);
+        character.Targets.AddRange(tempTargetGameObjects);
         character.BaseTarget = baseTarget != null ? baseTarget.gameObject : null;
-        
-        // 清理null引用
-        character.Targets.RemoveAll(go => go == null);
+
         if (character.BaseTarget != null && !character.BaseTarget.activeInHierarchy)
             character.BaseTarget = null;
     }
@@ -433,7 +443,7 @@ public class CharacterTargetManager : MonoBehaviour
         if (attacker == null) return new List<Character>();
         
         bool isCat = attacker.IsCat();
-        bool isFriendly = friendlyModes.ContainsKey(attacker) && friendlyModes[attacker];
+        bool isFriendly = friendlyModes.TryGetValue(attacker, out bool friendly) && friendly;
         
         // 根据Friendly模式选择目标列表
         List<Character> targets = isFriendly 
@@ -447,17 +457,19 @@ public class CharacterTargetManager : MonoBehaviour
         float minRange = isCat ? -Mathf.Max(near, far) : Mathf.Min(near, far);
         float maxRange = isCat ? -Mathf.Min(near, far) : Mathf.Max(near, far);
         
-        foreach (var target in targets)
+        float attackerX = attacker.transform.position.x;
+        float worldMin = attackerX + minRange;
+        float worldMax = attackerX + maxRange;
+        int startIndex = FindFirstIndexByX(targets, worldMin);
+        for (int i = startIndex; i < targets.Count; i++)
         {
+            Character target = targets[i];
             if (target == null || !target.gameObject.activeInHierarchy) continue;
+            if (target.transform.position.x > worldMax) break;
             // if (target.GetHealth() <= 0) continue;
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
-
-            if (IsTargetInRange(attacker, target, minRange, maxRange))
-            {
-                result.Add(target);
-            }
+            result.Add(target);
         }
 
         if (!isFriendly)
@@ -494,14 +506,28 @@ public class CharacterTargetManager : MonoBehaviour
     public bool IsTargetInCurrentRange(Character attacker, Character target)
     {
         if (attacker == null || target == null) return false;
-        if (!attackRanges.ContainsKey(attacker))
+        if (!attackRanges.TryGetValue(attacker, out Vector2 currentRange))
         {
             SetCharacterAttackRange(attacker, 0, attacker.DetectionRange);
+            currentRange = attackRanges[attacker];
         }
-        Vector2 currentRange = attackRanges[attacker];
         float minRange = Mathf.Min(currentRange.x, currentRange.y);
         float maxRange = Mathf.Max(currentRange.x, currentRange.y);
         return IsTargetInRange(attacker, target, minRange, maxRange);
+    }
+    private static int FindFirstIndexByX(List<Character> characters, float worldMin)
+    {
+        int low = 0;
+        int high = characters.Count - 1;
+        while (low <= high)
+        {
+            int mid = (low + high) >> 1;
+            Character c = characters[mid];
+            float x = c != null ? c.transform.position.x : float.NegativeInfinity;
+            if (x < worldMin) low = mid + 1;
+            else high = mid - 1;
+        }
+        return Mathf.Clamp(low, 0, characters.Count);
     }
 
     /// <summary>

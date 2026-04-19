@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static UnityEngine.RuleTile.TilingRuleOutput;
@@ -402,6 +401,9 @@ public class Sacrifice : PassiveSkill
 
 public class ProjectileLauncher : PassiveSkill
 {
+    private static readonly Dictionary<int, GameObject> ProjectilePrefabCache = new Dictionary<int, GameObject>();
+    private static readonly List<CharacterEffect> ReusableEffectPayload = new List<CharacterEffect>(8);
+
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
         if (character == null) return;
@@ -410,8 +412,11 @@ public class ProjectileLauncher : PassiveSkill
         if (character.atkInfos == null || step < 0 || step >= character.atkInfos.Length) return;
         ATKInfo atk = character.atkInfos[step];
         bool triggerEffect = !atk.DoNotTriggerEffects;
-
-        GameObject prefab = Resources.Load<GameObject>($"Units/Projectiles/p{probability.ToString("000")}/projunit");
+        if (!ProjectilePrefabCache.TryGetValue(probability, out GameObject prefab) || prefab == null)
+        {
+            prefab = Resources.Load<GameObject>($"Units/Projectiles/p{probability:000}/projunit");
+            ProjectilePrefabCache[probability] = prefab;
+        }
         if (prefab == null)
         {
             Debug.Log("No such projectile!");
@@ -426,16 +431,30 @@ public class ProjectileLauncher : PassiveSkill
         List<CharacterEffect> effectPayload = null;
         if (triggerEffect && character.characterEffects != null && character.characterEffects.Length > 0)
         {
-            effectPayload = character.characterEffects
-                .Select(e => JsonUtility.FromJson<CharacterEffect>(JsonUtility.ToJson(e)))
-                .ToList();
-            for (int i = 0; i < effectPayload.Count; i++) effectPayload[i].probability = 100;
+            ReusableEffectPayload.Clear();
+            for (int i = 0; i < character.characterEffects.Length; i++)
+            {
+                CharacterEffect source = character.characterEffects[i];
+                if (source == null) continue;
+                ReusableEffectPayload.Add(CloneEffectWithGuaranteedProbability(source));
+            }
+            effectPayload = new List<CharacterEffect>(ReusableEffectPayload);
         }
         float atkDamage = dmg;
         pu.BeginProjectileAttack(character, atkDamage, Mathf.Max(1, duration), effectPayload, types, triggerEffect);
 
         // Block this attack's native hit while keeping attack animation/state flow intact.
         character.RemoveAllTarget();
+    }
+    private static CharacterEffect CloneEffectWithGuaranteedProbability(CharacterEffect source)
+    {
+        return new CharacterEffect
+        {
+            name = source.name,
+            probability = 100,
+            duration = source.duration,
+            intensity = source.intensity
+        };
     }
 }
 

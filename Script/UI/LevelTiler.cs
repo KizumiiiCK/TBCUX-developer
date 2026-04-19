@@ -19,7 +19,8 @@ public class LevelTiler : UICanvasMain
     [SerializeField] private Button CombatBtn;
 
     [Header("Panels")]
-    [SerializeField] private GameObject characterBoard;    [SerializeField] private ShowEnemyBoard SEB;
+    [SerializeField] private GameObject characterBoard;    
+    [SerializeField] private ShowEnemyBoard SEB;
     [SerializeField] private LevelRewardBoard LRB;
 
     [Header("Drag")]
@@ -43,8 +44,10 @@ public class LevelTiler : UICanvasMain
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
     private readonly List<GameObject> spawnedLevelTiles = new List<GameObject>();
+    private readonly Dictionary<string, LevelData> levelDataCache = new Dictionary<string, LevelData>();
     /// <summary>关卡大地图根物体（由本组件创建与销毁，不再由 BaseCanvas 管理）。</summary>
     private GameObject worldMapRoot;
+    private Coroutine buildLevelTilesRoutine;
 
     public GameProgressSave.SectionClearList secClearList;
 
@@ -119,67 +122,67 @@ public class LevelTiler : UICanvasMain
             if (i > 0) lp.SetPathLine(MI.levelsOnMap[i - 1].levelPosition);
             if (secClearList.clear_times[diff, i] > 0) lp.UnlockPoint();
         }
-        for (int i=0;i< exact_maplength; i++)
+        if (buildLevelTilesRoutine != null) StopCoroutine(buildLevelTilesRoutine);
+        buildLevelTilesRoutine = StartCoroutine(BuildLevelTilesRoutine(exact_maplength, diff, mark_label, levelLoadPath));
+    }
+    private IEnumerator BuildLevelTilesRoutine(int mapLength, int diff, int markLabel, string levelLoadPath)
+    {
+        const int buildBatchSize = 8;
+        int directMark = PlayerPrefs.GetInt(UXPref.DirectMark, 0);
+        int directLevel = PlayerPrefs.GetInt(UXPref.LevelNum);
+        for (int i = 0; i < mapLength; i++)
         {
-            RectTransform lvl=Instantiate(LevelPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
-            lvl.SetParent(target);//
+            RectTransform lvl = Instantiate(LevelPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
+            lvl.SetParent(target);
             spawnedLevelTiles.Add(lvl.gameObject);
             lvl.anchoredPosition = new Vector2(i * level_tile_gap, 350);
-            Level L = lvl.GetComponent<Level>();
-            L.SetLevelInfo(MI.levelsOnMap[i]);
-            L.SetLT(this);
-            L.SetClearedInfo(secClearList.clear_times[diff, i], secClearList.level_score[diff,i]);
-            if (mark_label > 0)
+            Level levelComponent = lvl.GetComponent<Level>();
+            levelComponent.SetLevelInfo(MI.levelsOnMap[i]);
+            levelComponent.SetLT(this);
+            levelComponent.SetClearedInfo(secClearList.clear_times[diff, i], secClearList.level_score[diff, i]);
+            if (markLabel > 0 && secClearList.reward_gained[i])
             {
-                if (secClearList.reward_gained[i]) L.SetMark(mark_label);
-            }
-            try { 
-                SetEnemyAppears(i, Resources.Load<LevelData>(levelLoadPath + i.ToString())); 
-            }
-            catch 
-            { 
-                Debug.LogError($"Error Loading level {i}."); 
-                exact_maplength = i-1;
-                SetLevelMapSize(exact_maplength);
-                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
-                {
-                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
-                }
-                else
-                {
-                    MoveToLevel(exact_maplength);
-                }
-                break; 
+                levelComponent.SetMark(markLabel);
             }
 
-            if (secClearList.clear_times[diff, i] <= 0) 
-            { 
-                SetLevelMapSize(i);
-                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
-                {
-                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
-                }
-                else
-                {
-                    MoveToLevel(i);
-                }
-                break; 
-            }
-            if (i == MI.levelsOnMap.Length - 1)
+            LevelData levelData = GetCachedLevelData(levelLoadPath + i);
+            if (levelData == null)
             {
-                SetLevelMapSize(MI.levelsOnMap.Length - 1);
-                if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1)
-                {
-                    MoveToLevel(PlayerPrefs.GetInt(UXPref.LevelNum));
-                }
-                else
-                {
-                    MoveToLevel(MI.levelsOnMap.Length - 1);
-                }
+                Debug.LogError($"Error Loading level {i}.");
+                int validLastIndex = Mathf.Max(0, i - 1);
+                SetLevelMapSize(validLastIndex);
+                MoveToLevel(directMark == 1 ? directLevel : validLastIndex);
+                break;
+            }
+            SetEnemyAppears(i, levelData);
+            if (secClearList.clear_times[diff, i] <= 0)
+            {
+                SetLevelMapSize(i);
+                MoveToLevel(directMark == 1 ? directLevel : i);
+                break;
+            }
+            if (i == mapLength - 1)
+            {
+                SetLevelMapSize(mapLength - 1);
+                MoveToLevel(directMark == 1 ? directLevel : mapLength - 1);
+            }
+            if ((i + 1) % buildBatchSize == 0)
+            {
+                yield return null;
             }
         }
         PlayerPrefs.DeleteKey(UXPref.DirectMark);
-        
+        buildLevelTilesRoutine = null;
+    }
+    private LevelData GetCachedLevelData(string path)
+    {
+        if (levelDataCache.TryGetValue(path, out LevelData cached) && cached != null)
+        {
+            return cached;
+        }
+        LevelData loaded = Resources.Load<LevelData>(path);
+        levelDataCache[path] = loaded;
+        return loaded;
     }
     private void MoveToLevel(int levelnum)
     {
@@ -197,6 +200,11 @@ public class LevelTiler : UICanvasMain
     }
     private void OnDestroy()
     {
+        if (buildLevelTilesRoutine != null)
+        {
+            StopCoroutine(buildLevelTilesRoutine);
+            buildLevelTilesRoutine = null;
+        }
         if (selectionsPanelInstance != null) Destroy(selectionsPanelInstance);
         ReleaseMapObjects();
         if (cam!=null)cam.transform.position =new Vector3(0,0,-10);
@@ -216,6 +224,7 @@ public class LevelTiler : UICanvasMain
             if (spawnedLevelTiles[i] != null) Destroy(spawnedLevelTiles[i]);
         }
         spawnedLevelTiles.Clear();
+        levelDataCache.Clear();
     }
 
     /// <summary>与关卡 UI 分离时隐藏/显示大地图（例如从关卡页进入装备页）。</summary>
@@ -251,8 +260,8 @@ public class LevelTiler : UICanvasMain
             RectTransform panelRect = selectionsPanelInstance.GetComponent<RectTransform>();
             if (panelRect != null)
             {
-                panelRect.anchoredPosition = new Vector2(250, -250);
-                panelRect.localScale = Vector3.one*0.8f;
+                panelRect.anchoredPosition = new Vector2(360, -300);
+                panelRect.localScale = Vector3.one*0.75f;
             }
             selectionsPanelInstance.SetActive(true);
             selectionsPanelInstance.transform.SetAsLastSibling();

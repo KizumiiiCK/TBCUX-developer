@@ -40,6 +40,8 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
 
     private bool operating = false;
+    private readonly List<GameObject> pooledSubChapterButtons = new List<GameObject>();
+    private readonly Dictionary<string, Sprite> chapterCoverCache = new Dictionary<string, Sprite>();
     // Start is called before the first frame update
     void Start()
     {
@@ -144,19 +146,40 @@ public class MainMenu : MonoBehaviour
         StartCoroutine(FullCptShow(false));
         yield return new WaitForSeconds(0.25f);
         StartCoroutine(SubCptShow(true));
-        for(int i = SubChapterContent.childCount - 1; i >= 1; i--)
+        for(int i = 1; i < SubChapterContent.childCount; i++)
         {
-            DestroyImmediate(SubChapterContent.GetChild(i).gameObject);
+            Transform child = SubChapterContent.GetChild(i);
+            child.gameObject.SetActive(false);
+            pooledSubChapterButtons.Add(child.gameObject);
         }
         for(int i = 0;i< chapterNames[fc_num].Length; i++)
         {
-            Transform tsc = Instantiate(subChapter).transform;
+            GameObject buttonObj = GetOrCreateSubChapterButton();
+            Transform tsc = buttonObj.transform;
             tsc.SetParent(SubChapterContent);
+            buttonObj.SetActive(true);
             tsc.localScale = Vector3.one * 0.9f;
-            tsc.GetComponent<ChapterButton>().chapterName=chapterNames[fc_num][i];
-            tsc.GetComponent<KiButton>().SetCover(Resources.Load<Sprite>($"LevelData/Chapters/CPImages/{chapterNames[fc_num][i]}"));
+            string chapterName = chapterNames[fc_num][i];
+            tsc.GetComponent<ChapterButton>().chapterName = chapterName;
+            if (!chapterCoverCache.TryGetValue(chapterName, out Sprite cover))
+            {
+                cover = Resources.Load<Sprite>($"LevelData/Chapters/CPImages/{chapterName}");
+                chapterCoverCache[chapterName] = cover;
+            }
+            tsc.GetComponent<KiButton>().SetCover(cover);
         }
         operating = false;
+    }
+    private GameObject GetOrCreateSubChapterButton()
+    {
+        while (pooledSubChapterButtons.Count > 0)
+        {
+            int last = pooledSubChapterButtons.Count - 1;
+            GameObject go = pooledSubChapterButtons[last];
+            pooledSubChapterButtons.RemoveAt(last);
+            if (go != null) return go;
+        }
+        return Instantiate(subChapter);
     }
     private IEnumerator SubToFull()
     {
