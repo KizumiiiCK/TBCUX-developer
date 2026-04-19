@@ -8,7 +8,6 @@ public class LevelRewardBoard : MonoBehaviour
 {
     private Reward[] rewardlist;
     [SerializeField] private Transform Board;
-    [SerializeField] private RectTransform blackshade;
     [SerializeField] private GameObject rewardUnit;
 
     private const int gap = 120;
@@ -17,13 +16,9 @@ public class LevelRewardBoard : MonoBehaviour
     public void ShowLevelRewards(bool cleared)
     {
         for(int i = Board.childCount - 1; i >= 0; i--) DestroyImmediate(Board.GetChild(i).gameObject);
-        blackshade.sizeDelta = new Vector2(600, gap * (1+rewardlist.Length));
         for(int i = 0; i < rewardlist.Length; i++)
         {
-            RectTransform rrt= Instantiate(rewardUnit).GetComponent<RectTransform>();
-            rrt.SetParent(Board);
-            rrt.anchoredPosition = Board.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, -gap * i);
-            rrt.localScale = Vector3.one;
+            RectTransform rrt= Instantiate(rewardUnit,Board).GetComponent<RectTransform>();
             DisplayOneUnit(rrt.gameObject, rewardlist[i], cleared);
         }
     }
@@ -40,7 +35,7 @@ public class LevelRewardBoard : MonoBehaviour
                 break;
             case RewardType.character:
                 string cid= R.id.ToString("0000");
-                rewardImg.GetComponent<RectTransform>().sizeDelta=new Vector2(130, 100);
+                rewardImg.GetComponent<RectTransform>().sizeDelta=new Vector2(100, 75);
                 rewardImg.sprite = Resources.Load<Sprite>($"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy");
                 break;
             default: break;

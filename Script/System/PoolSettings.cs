@@ -81,8 +81,8 @@ public static class PoolInfo
 {
     //
     public static readonly bool test_free = false;//
-    private const int cycle_DEFAULT=20;
     private const int duration_DEFAULT=4;
+    private const int cycle_DEFAULT = duration_DEFAULT * 4;
     private static readonly float[] droprate_DEFAULT = new float[7] { 0, 0, 0.695f, 0.25f, 0.05f, 0.005f,0 };
     //
     private static readonly int[] Regular_Rares = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };

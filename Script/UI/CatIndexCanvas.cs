@@ -156,7 +156,6 @@ public class CatIndexCanvas : UICanvasMain
         }
         loadRarityRoutine = null;
         SetRarityLoadingState(false);
-        //scrollbar_setting.SetMaxY(unit_count,scroll_gap.y);
     }
     public void ShowCertainCharacter(string char_code)
     {

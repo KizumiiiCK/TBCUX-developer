@@ -27,22 +27,26 @@ public class AnimFileDecrypter
     }
     AnimDecryptPack DecryptPack(AnimEncryptPack encryptPack)
     {
-        string[,] ImgcutData = DecryptImgcutData(encryptPack.ImgcutTextAsset);
+        string[] imgcutLines = SplitLinesFast(encryptPack.ImgcutTextAsset.text);
+        string[] modelLines = SplitLinesFast(encryptPack.ModelTextAsset.text);
+        string[,] ImgcutData = DecryptImgcutData(imgcutLines);
         Sprite[] SpritesList = DecryptSpriteFromImgcutData(encryptPack.picture, ImgcutData);
-        int[,] ModelData = DecryptMamodelData(encryptPack.ModelTextAsset);
-        string[] ModelNameData = DecryptMamodelNameData(encryptPack.ModelTextAsset);
-        RegulateRateData regulateRateData = DecryptModelRateData(encryptPack.ModelTextAsset);
-        int[,] ModelPositionFixedData = DecryptModelPositionFixedData(encryptPack.ModelTextAsset);
+        int[,] ModelData = DecryptMamodelData(modelLines);
+        string[] ModelNameData = DecryptMamodelNameData(modelLines);
+        RegulateRateData regulateRateData = DecryptModelRateData(modelLines);
+        int[,] ModelPositionFixedData = DecryptModelPositionFixedData(modelLines);
         MaanimNode[][] MaanimData = DecryptMaanim(encryptPack.MaanimTextAsset);
 
         AnimDecryptPack decryptPack = new AnimDecryptPack(ImgcutData, SpritesList, ModelData, ModelNameData, regulateRateData, ModelPositionFixedData, MaanimData);
         return decryptPack;
     }
-    string[,] DecryptImgcutData(TextAsset ImgcutTextAsset)
+    static string[] SplitLinesFast(string text)
     {
-        int TotalLine_Imgcut;
-        string[] _LineImgData = ImgcutTextAsset.text.Split('\n');
-        TotalLine_Imgcut = int.Parse(_LineImgData[3]);
+        return text.Replace("\r", string.Empty).Split('\n');
+    }
+    string[,] DecryptImgcutData(string[] _LineImgData)
+    {
+        int TotalLine_Imgcut = int.Parse(_LineImgData[3]);
         string[,] ImgcutData = new string[TotalLine_Imgcut, 5];
         for (int i = 0; i < TotalLine_Imgcut; i++)
         {
@@ -85,9 +89,8 @@ public class AnimFileDecrypter
         }
         return SpritesList;
     }
-    int[,] DecryptMamodelData(TextAsset ModelTextAsset)
+    int[,] DecryptMamodelData(string[] _LineModelData)
     {
-        string[] _LineModelData = ModelTextAsset.text.Split('\n');
         int TotalLine_Mamodel = int.Parse(_LineModelData[2]);
         int[,] ModelData = new int[TotalLine_Mamodel, 14];
 
@@ -104,9 +107,8 @@ public class AnimFileDecrypter
         }
         return ModelData;
     }
-    string[] DecryptMamodelNameData(TextAsset ModelTextAsset)
+    string[] DecryptMamodelNameData(string[] _LineModelData)
     {
-        string[] _LineModelData = ModelTextAsset.text.Split('\n');
         int TotalLine_Mamodel = int.Parse(_LineModelData[2]);
         string[] ModelNameData = new string[TotalLine_Mamodel];
 
@@ -126,9 +128,8 @@ public class AnimFileDecrypter
         }
         return ModelNameData;
     }
-    RegulateRateData DecryptModelRateData(TextAsset ModelTextAsset)
+    RegulateRateData DecryptModelRateData(string[] _LineModelData)
     {
-        string[] _LineModelData = ModelTextAsset.text.Split('\n');
         int TotalLine_Mamodel = int.Parse(_LineModelData[2]);
         string[] ModelRateData = _LineModelData[3 + TotalLine_Mamodel].Split(",");
         return SetRegulateRate(ModelRateData);
@@ -140,9 +141,8 @@ public class AnimFileDecrypter
         float OpacityRate = (float)1 / int.Parse(ModelRateData[2]);
         return new RegulateRateData(ScaleRate, RotationRate, OpacityRate);
     }
-    int[,] DecryptModelPositionFixedData(TextAsset ModelTextAsset)
+    int[,] DecryptModelPositionFixedData(string[] _LineModelData)
     {
-        string[] _LineModelData = ModelTextAsset.text.Split('\n');
         int TotalLine_Mamodel = int.Parse(_LineModelData[2]);
         int TotalLine_MamodelPositionFix = int.Parse(_LineModelData[4 + TotalLine_Mamodel]);
         int[,] ModelPositionFixedData = new int[TotalLine_MamodelPositionFix, 7];
@@ -175,7 +175,7 @@ public class AnimFileDecrypter
     MaanimNode[] DecryptMaanim(int target, TextAsset[] MaanimTextAsset)//for singe decrpty
     {
         TextAsset text = MaanimTextAsset[target];
-        string[] _LineData = text.text.Split('\n');
+        string[] _LineData = SplitLinesFast(text.text);
         int TotalLine = int.Parse(_LineData[2]);
         MaanimNode[] MaanimData = new MaanimNode[TotalLine];
 
