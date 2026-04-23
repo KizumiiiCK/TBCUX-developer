@@ -7,7 +7,7 @@ public class EffectInstaller : MonoBehaviour
     private const int BlockedEffectLifetime = 30;
     private const int InvalidEffectLifetime = 30;
     private const int HealEffectLifetime = 60;
-    private const int StrengthenEffectLifetime = 30;
+    private const int StrengthenEffectLifetime = int.MaxValue;
     private const int SurviveEffectLifetime = 30;
 
     public static void Inflict(GameObject target, object effectName, float duration, float intensity)

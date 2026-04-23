@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +21,10 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     [SerializeField] private Button changeTeamNextButton;
     [SerializeField] private TMP_InputField teamNameInput;
 
+    [Header("Restriction")]
+    [SerializeField] private GameObject warningMarkPrefab;
+    private const string WarningMarkResourcePath = "UI/FunctionalPanels/WarningMark";
+
     [Header("Feedback")]
     [SerializeField] private float normalScale = 0.9f;
     [SerializeField] private float maxScaleMultiplier = 1.5f;
@@ -33,7 +38,16 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private Action<int, string> onTeamStateChanged;
     private readonly Coroutine[] feedbackCoroutines = new Coroutine[13];
     private readonly string[] cachedCharCodes = new string[13];
+    private readonly GameObject[] activeRestrictionWarnings = new GameObject[13];
+    private readonly Stack<GameObject> warningMarkPool = new Stack<GameObject>();
+    private Transform warningMarkPoolRoot;
+    private LevelRestrictionHelper.RestrictionRules activeRestrictionRules;
     private bool suppressTeamNameNotify;
+
+    private void Awake()
+    {
+        activeRestrictionRules = LevelRestrictionHelper.Parse(null);
+    }
     private int currentModifyingSlot = -1;
     private int currentTeamIndex = 0;
     private string currentTeamName = string.Empty;
@@ -88,6 +102,100 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         for (int i = 0; i < max; i++)
         {
             ApplySlotVisual(i, cachedCharCodes[i]);
+        }
+        RefreshRestrictionMarks();
+    }
+
+    /// <summary>编队界面与关卡限制同步；规则为 null 时使用空规则（全部允许）。</summary>
+    public void ApplyLevelRestrictions(LevelRestrictionHelper.RestrictionRules rules)
+    {
+        activeRestrictionRules = rules ?? LevelRestrictionHelper.Parse(null);
+        RefreshRestrictionMarks();
+    }
+
+    private void EnsureWarningMarkPool()
+    {
+        if (warningMarkPoolRoot != null) return;
+        GameObject root = new GameObject("WarningMarkPool");
+        root.transform.SetParent(transform, false);
+        root.SetActive(false);
+        warningMarkPoolRoot = root.transform;
+        if (warningMarkPrefab == null)
+            warningMarkPrefab = Resources.Load<GameObject>(WarningMarkResourcePath);
+    }
+
+    private GameObject RentWarningMark()
+    {
+        EnsureWarningMarkPool();
+        if (warningMarkPrefab == null) return null;
+        if (warningMarkPool.Count > 0) return warningMarkPool.Pop();
+        return Instantiate(warningMarkPrefab, warningMarkPoolRoot);
+    }
+
+    private void ReleaseRestrictionWarning(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= activeRestrictionWarnings.Length) return;
+        GameObject mark = activeRestrictionWarnings[slotIndex];
+        if (mark == null) return;
+        EnsureWarningMarkPool();
+        mark.SetActive(false);
+        mark.transform.SetParent(warningMarkPoolRoot, false);
+        warningMarkPool.Push(mark);
+        activeRestrictionWarnings[slotIndex] = null;
+    }
+
+    private void EnsureRestrictionWarning(int slotIndex, KiButton btn)
+    {
+        GameObject mark = activeRestrictionWarnings[slotIndex];
+        if (mark == null)
+        {
+            mark = RentWarningMark();
+            if (mark == null) return;
+            activeRestrictionWarnings[slotIndex] = mark;
+        }
+
+        RectTransform rt = mark.transform as RectTransform;
+        if (rt != null)
+        {
+            rt.SetParent(btn.transform, false);
+            rt.anchoredPosition = new Vector2(0, -25f);
+            rt.localScale = Vector3.one*2.5f;
+        }
+        else
+        {
+            mark.transform.SetParent(btn.transform, false);
+            mark.transform.localPosition = Vector3.zero;
+        }
+
+        mark.SetActive(true);
+        mark.transform.SetAsLastSibling();
+    }
+
+    private void RefreshRestrictionMarks()
+    {
+        if (activeRestrictionRules == null)
+            activeRestrictionRules = LevelRestrictionHelper.Parse(null);
+
+        int slotCount = Mathf.Min(currentSelectedButtons.Length, cachedCharCodes.Length);
+        for (int i = 0; i < slotCount; i++)
+        {
+            KiButton btn = currentSelectedButtons[i];
+            if (btn == null)
+            {
+                ReleaseRestrictionWarning(i);
+                continue;
+            }
+
+            string code = cachedCharCodes[i];
+            if (string.IsNullOrEmpty(code) || code.Length < 5)
+            {
+                ReleaseRestrictionWarning(i);
+                continue;
+            }
+            if (LevelRestrictionHelper.IsUnitAllowed(activeRestrictionRules, code))
+                ReleaseRestrictionWarning(i);
+            else
+                EnsureRestrictionWarning(i, btn);
         }
     }
 

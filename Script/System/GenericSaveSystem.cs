@@ -35,6 +35,7 @@ public static class UXPref
     public const string Localized_Dialogue = "Dialogues";
     public const string Localized_DialogueNames = "DialogueNames";
     public const string Localized_Descriptions = "Descriptions";
+    public const string Localized_UnitNames = "UnitNames";
     public const string Localized_CS = "ChapterSections";
     public const string Localized_BM = "BaseMessages";
     //public static readonly DateTime REASONABLEDATE_LATE = new DateTime(year: 2026, month: 12, day: 11);

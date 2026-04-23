@@ -644,6 +644,56 @@ MonoBehaviour:
       attack! (\uFF03\xB0\u0414\xB0)"
     m_Metadata:
       m_Items: []
+  - m_Id: 68536505353977856
+    m_Localized: Character<color=#00FFFF> [{0}] </color>must be in your team.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68536505416892416
+    m_Localized: Character<color=#FF6060> [{0}] </color>should NOT be in your team.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68536505416892417
+    m_Localized: <color=#00FFFF> [{0}] </color>characters are allowed in this level.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68536505416892418
+    m_Localized: <color=#FF6060> [{0}] </color>characters are NOT allowed in this
+      level.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69635580753166336
+    m_Localized: Max deployable cats:<color=#00FFFF> {0} </color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69635590915964928
+    m_Localized: Your cat max level in this stage:<color=#FF6060> {0} </color>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636880337289216
+    m_Localized: Enemies are all invisible until your first meet.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636520776384512
+    m_Localized: All enemies multiply their attack power by<color=#FF6060> {0} </color>%
+      when thier health drop below <color=#FF6060> 50% </color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636504267603968
+    m_Localized: Damage higher than<color=#FF6060> {0} </color>is nonsence.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636464237166592
+    m_Localized: Damage lower than<color=#FF6060> {0} </color>is nonsence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636443517304832
+    m_Localized: Only deploy cats of the price lower than<color=#FF6060> {0} </color>$.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 69636358326796288
+    m_Localized: Only deploy cats of the price greater than<color=#FF6060> {0} </color>$.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

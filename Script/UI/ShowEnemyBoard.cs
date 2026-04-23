@@ -5,13 +5,17 @@ using UnityEngine.UI;
 
 public class ShowEnemyBoard : MonoBehaviour
 {
+    private const string EnemyHatenaSpritePath = "Units/Enemy Units/icon_hatena";
+
     [SerializeField] private GameObject EnemyIcon_prefab;
     [SerializeField] private Transform EnemyList;
     [SerializeField] private KiPanel panel;
     private readonly List<GameObject> enemyIconPool = new List<GameObject>();
     private readonly Dictionary<string, Sprite> enemyIconCache = new Dictionary<string, Sprite>();
+    private Sprite hatenaSpriteCache;
 
-    public void ShowEnemies(string[] en)
+    /// <param name="blindAllEnemyIcons">IV 且未通关时：所有槽位使用问号图标，不暴露真实敌人头像。</param>
+    public void ShowEnemies(string[] en, bool blindAllEnemyIcons = false)
     {
         int count = en != null ? en.Length : 0;
         if (EnemyList == null || EnemyIcon_prefab == null) return;
@@ -22,6 +26,12 @@ public class ShowEnemyBoard : MonoBehaviour
         }
 
         if (en == null || count == 0) return;
+
+        if (blindAllEnemyIcons)
+        {
+            if (hatenaSpriteCache == null)
+                hatenaSpriteCache = Resources.Load<Sprite>(EnemyHatenaSpritePath);
+        }
 
         for (int i = 0; i < count; i++)
         {
@@ -41,6 +51,12 @@ public class ShowEnemyBoard : MonoBehaviour
             var image = iconObj.GetComponent<Image>();
             if (image != null)
             {
+                if (blindAllEnemyIcons && hatenaSpriteCache != null)
+                {
+                    image.sprite = hatenaSpriteCache;
+                    continue;
+                }
+
                 if (!enemyIconCache.TryGetValue(en[i], out Sprite icon))
                 {
                     icon = Resources.Load<Sprite>($"Units/Enemy Units/{en[i]}/enemy_icon");

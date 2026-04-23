@@ -47,9 +47,9 @@ public class SurgeUnit : Character
     }
     private IEnumerator SummonSurge()
     {
-        //int dis = 1;
         int sign=IsCat() ? -1 : 1;
         Vector3 basePos = transform.position;
+        if (basePos.y < -900) basePos = basePos + new Vector3(0, 1000, 0);
         float surgeX = basePos.x + distance * sign;
         SEnums surgeEffect = IsCat() ? SEnums.surge : SEnums.surge_e;
         AnimationDisplayer ads = EM.InstantiateBattleObject(surgeEffect, surgeX, basePos.y);

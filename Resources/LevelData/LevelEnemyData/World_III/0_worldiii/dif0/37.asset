@@ -17,11 +17,11 @@ MonoBehaviour:
   BaseHealth: 100000
   mapSize: 3200
   maxEmenyCount: 30
-  maxCatCount: 3
   BackgroundID: 7
   BaseImageID: 37
   CombatEffect: []
-  Restriction: []
+  Restriction:
+  - CC:3
   CombatAura: []
   exstage:
     exist: 0

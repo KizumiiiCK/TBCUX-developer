@@ -95,7 +95,7 @@ public class EnemyIndexCanvas : UICanvasMain
             CharacterSummoner.SwitchAnimation(current_display_character,UnityAnimated,current_animation_num);
             if (UnityAnimated) current_display_character.transform.localScale *= 1.25f;
             IV.ShowCharacterDetails(CD,false,1);
-            LocalizationHelper.GetLocalizedText("UnitNames", current_code, localizedText => name_txt.text = localizedText ?? current_code);
+            LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, current_code, localizedText => name_txt.text = localizedText ?? current_code);
         }
         //
     }

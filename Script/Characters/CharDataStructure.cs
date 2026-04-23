@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 [System.Serializable]
@@ -110,12 +111,19 @@ public enum EffectName
 }
 public enum AttackType
 {
-    none, wave, surge, explosion, critical, savage, zombieKiller, barrierBreaker, sheildPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon
+    none, wave, surge, explosion,
+    [EditorBrowsable(EditorBrowsableState.Never)] 
+    critical, savage, zombieKiller, barrierBreaker, sheildPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon
 }
 public enum AbilityName
 {
-    none, support, strategic, strengthen, survive, critical, zombieKiller, soulStrike, barrierBreaker, shieldPiercing, savage, extraMoney, metal, miniWave, wave, wave_stop, miniSurge, surge, counter_surge, explosion, summoner, shieldProvider, maxShield,
-    buff_defence, buff_attack, buff_speed, buff_kb, buff_costdown, buff_recover, buff_atkFreq, practician, oneoff, ATK_Buffer, XP_PUNCH, sacrifice, projectile, ZombieDive, ZombieRevive, BaseHunter
+    none=0,
+    support=1,
+    strategic=2,strengthen=3, survive=4, critical=5, zombieKiller=6, soulStrike=7, barrierBreaker=8, shieldPiercing=9, savage=10, extraMoney=11, metal=12, miniWave=13, wave=14, wave_stop=15, miniSurge=16, surge=17, counter_surge=18, explosion=19, summoner=20, shieldProvider=21, maxShield=22,
+    practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37,
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    buff_defence = 23, buff_attack = 24, buff_speed = 25, buff_kb = 26, buff_costdown = 27, buff_recover = 28, buff_atkFreq = 29,
+    invisible =999,
 }
 public enum KB_Type
 {

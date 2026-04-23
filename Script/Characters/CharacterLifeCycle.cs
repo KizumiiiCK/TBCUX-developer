@@ -79,7 +79,7 @@ public abstract partial class Character
         float treasureBonus = 1 + treasureCount / 100f;
 
         NameCode = data.Name;
-        if (forceLevel > 1) level = forceLevel;
+        if (forceLevel >= 1) level = forceLevel;
         IsEliteUnit = data.isEliteUnit;
         Health = (int)(data.Health * treasureBonus);
         KB = data.KB;

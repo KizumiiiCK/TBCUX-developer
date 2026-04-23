@@ -24,6 +24,7 @@ public class EquipCanvas : UICanvasMain
     [SerializeField] private EquipTeamSelectionPanel teamSelectionPanel;
     [SerializeField] private Image background;
     [SerializeField] private ShowEnemyBoard SEB;
+    [SerializeField] private LevelRestrictionBoard levelRestrictionBoard;
     [Header("Instantiators")]
     [SerializeField] private RectTransform HeadIcon_ScrollingArea;
     [SerializeField] private ScrollRect headIconScrollRect;
@@ -37,6 +38,7 @@ public class EquipCanvas : UICanvasMain
     private int current_modifying_slot = 0;
     private string currentTeamName;
     private GameObject current_display_character;
+    private string[] currentRestrictions;
     private readonly List<EquipListEntry> equipListEntries = new List<EquipListEntry>();
     private readonly Dictionary<string, int> displayTireByCharacter = new Dictionary<string, int>();
     private VirtualizedScrollGrid<EquipListEntry> headIconGrid;
@@ -58,6 +60,7 @@ public class EquipCanvas : UICanvasMain
         teamSelectionPanel?.SetTeamDisplay(team_num, currentTeamName);
         ShowSelectionList();
         MarkCharacters();
+        ApplyRestrictionContext(currentRestrictions);
         if (char_codes[0] != null || char_codes[0] == string.Empty)
             ShowCertainCharacter(char_codes[0][0]-'0', char_codes[0].Substring(1, 3), char_codes[0][4]-'0');
     }
@@ -304,9 +307,23 @@ public class EquipCanvas : UICanvasMain
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
     }
-    public void ChanageSEBShowInfo(string[] enemyAppears)
+    public void ChanageSEBShowInfo(string[] enemyAppears, string[] restrictions = null, bool blindEnemyIcons = false)
     {
-        SEB.ShowEnemies(enemyAppears);
+        currentRestrictions = restrictions;
+        if (SEB != null) SEB.ShowEnemies(enemyAppears, blindEnemyIcons);
+        ApplyRestrictionContext(restrictions);
+    }
+
+    private void ApplyRestrictionContext(string[] restrictions)
+    {
+        LevelRestrictionHelper.RestrictionRules rules = LevelRestrictionHelper.Parse(restrictions);
+        teamSelectionPanel?.ApplyLevelRestrictions(rules);
+
+        if (levelRestrictionBoard == null) return;
+
+        bool hasLines = restrictions != null && restrictions.Length > 0;
+        levelRestrictionBoard.gameObject.SetActive(hasLines);
+        if (hasLines) levelRestrictionBoard.ShowRestrictions(restrictions);
     }
 
     public override IEnumerator OnEnter()

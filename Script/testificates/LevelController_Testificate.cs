@@ -3,20 +3,21 @@ using UnityEngine;
 public class LevelController_Testificate : LevelController
 {
     [Header("Tester starts edit here")]
-    [Header("将关卡数据拖入此空格中")]
+    [Header("Assign test level data here")]
     public LevelData levelData;
-    [Header("宝物数量（过一关为1，世界一二三关卡数为 48/ 50/ 52，全满宝为150）")]
+    [Header("Treasure count override")]
     public int treasureCount_test = 0;
-    [Header("是否开满级钱包")]
-    public bool MaxMoney=false;
-    [Header("修改放置角色，5位数代码（最后3位为嘉宾角色，可不填）")]
+    [Header("Start with max wallet")]
+    public bool MaxMoney = false;
+    [Header("Configured test team")]
     public string[] cats = new string[13]
     {
         "00000","00000","00000","00000","00000","00000","00000","00000","00000","00000",
         string.Empty,string.Empty,string.Empty
     };
-    [Header("修改放置角色的等级，范围 1 - 50")]
-    public int[] catLevels = new int[13]{
+    [Header("Configured test levels")]
+    public int[] catLevels = new int[13]
+    {
         1,1,1,1,1,1,1,1,1,1,1,1,1
     };
 
@@ -27,7 +28,7 @@ public class LevelController_Testificate : LevelController
 
         if (levelData == null)
         {
-            Debug.LogError("没有配置测试关卡！");
+            Debug.LogError("No test level configured.");
             return;
         }
 
@@ -43,6 +44,8 @@ public class LevelController_Testificate : LevelController
         CalculateMoneyMultiplier();
         SetupMapAndBases(mapSize);
         SetupLevelInfo();
+        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
+        ApplyLevelRestrictionSettings();
         SetupCombatEffects();
         SetupCombatAura();
     }
@@ -50,15 +53,26 @@ public class LevelController_Testificate : LevelController
     public override void SetupCatDeployers()
     {
         characters_code = cats;
+        RefreshTeamRestrictionState();
 
-        // 设置主要部署器
         for (int i = 0; i < MAIN_DEPLOYER_COUNT; i++)
         {
-            Deployers.GetChild(i).GetComponent<UnitDeployer>().SetupDeployer(
-                characters_code[i], treasureCount, 0, 0, catLevels[i]);
+            UnitDeployer deployer = Deployers.GetChild(i).GetComponent<UnitDeployer>();
+            deployer.SetupDeployer(
+                characters_code[i],
+                treasureCount,
+                0,
+                0,
+                GetDeploymentLevel(characters_code[i], catLevels[i]),
+                GetDeploymentCostMultiplier(characters_code[i]));
+            LevelRestrictionHelper.ApplyToDeployer(
+                deployer,
+                characters_code[i],
+                levelRestrictions,
+                false,
+                ShouldLockAllCatsByRestriction());
         }
 
-        // 设置访客部署器
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
         {
             CharacterData characterData = LoadGuestCharacterData(characters_code[i]);
@@ -69,9 +83,19 @@ public class LevelController_Testificate : LevelController
             }
 
             UnitDeployer deployer = GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).GetComponent<UnitDeployer>();
-            deployer.SetupDeployer(characters_code[i], treasureCount, 0, 0, catLevels[i]);
-            deployer.ResetCoolDown();
-            deployer.GuestMark();
+            deployer.SetupDeployer(
+                characters_code[i],
+                treasureCount,
+                0,
+                0,
+                GetDeploymentLevel(characters_code[i], catLevels[i]),
+                GetDeploymentCostMultiplier(characters_code[i]));
+            LevelRestrictionHelper.ApplyToDeployer(
+                deployer,
+                characters_code[i],
+                levelRestrictions,
+                true,
+                ShouldLockAllCatsByRestriction());
         }
     }
 }

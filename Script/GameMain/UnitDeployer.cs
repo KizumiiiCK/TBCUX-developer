@@ -39,11 +39,13 @@ public class UnitDeployer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        LI=GameObject.Find("Level Initializer").GetComponent<LevelController>();
+        EnsureLevelControllerReference();
     }
     private void FixedUpdate()
     {
         if (!deployEnabled) return;
+        if (!EnsureLevelControllerReference()) return;
+        if (LI.isPloting) return;
         t++;
         float fill = 1 - Mathf.Clamp01((float)t / cd);
         if (Mathf.Abs(fill - cachedShadeFill) > 0.0001f)
@@ -71,12 +73,11 @@ public class UnitDeployer : MonoBehaviour
             DeployAvailable(canDeploy);
         }
     }
-    public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel=1)
+    public void SetupDeployer(string code, int treasureCount, int proficency, int teambonus, int forceLevel = -1, float costMultiplier = 1f)
     {
+        EnsureLevelControllerReference();
         btn = GetComponent<Button>();
         if (deployPanel == null) deployPanel = GetComponent<KiPanel>();
-        //blackShade = transform.GetChild(0).GetComponent<Image>();
-        //cost_txt = transform.GetChild(1).GetComponent<TMP_Text>();
         catBasePosition = GameObject.Find("CatBase").transform.position;
         unitCode = code;
         isRuntimeInitialized = false;
@@ -97,13 +98,18 @@ public class UnitDeployer : MonoBehaviour
             SetProficiencyMark(0);
             return; 
         }
-        else { deployEnabled = true; btn.onClick.AddListener(Deploy); }
+        else
+        {
+            deployEnabled = true;
+            btn.onClick.RemoveListener(Deploy);
+            btn.onClick.AddListener(Deploy);
+        }
         catUnit = Resources.Load<GameObject>("Units/Cat Units/catunit");
         Image icon=GetComponent<Image>();
         icon.sprite = Resources.Load<Sprite>(loadPath+"icon_deploy");
         //CharacterData C = Resources.Load<CharacterData>(loadPath + "data");
         //
-        if (forceLevel > 1) lvl = forceLevel;
+        if (forceLevel >= 1) lvl = forceLevel;
         else try { lvl = CharacterUpgradeSave.GetDetails(code.Substring(0,4)).TotalLevel(); if (lvl < 1) lvl = 1; }
         catch { lvl = 1; }
         //treasure_bonus = 1 + 1.5f * (RewardingSystem.GetAmount(RewardName.WorldTreasures) / 150f);
@@ -112,15 +118,17 @@ public class UnitDeployer : MonoBehaviour
         cd = (int)(CD.Cooldown * (2.5f - 1.5f*treasure_count / 150f));
         t = cd;
         cachedShadeFill = -1f;
-        cachedEnoughMoney = LI.currentMoney >= unitCost;
-        cachedDeployAvailable = false;
-        moneyCheckFrameCounter = 0;
-        MoneyColor(cachedEnoughMoney);
         //Proficiency
         SetProficiencyMark(proficency);
         if (proficency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
         if (proficency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
         if (proficency > 2) { CD.Cost = CD.Cost * 9 / 10; unitCost = CD.Cost; }
+        LevelRestrictionHelper.ApplyCharacterDataRestrictions(LI != null ? LI.LevelRestrictions : null, CD, treasure_count, lvl, 1f);
+        CD.Cost = unitCost;
+        cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
+        cachedDeployAvailable = false;
+        moneyCheckFrameCounter = 0;
+        MoneyColor(cachedEnoughMoney);
         cost_txt.text = unitCost + " $";
         ApplyRarityFrameColor();
     }
@@ -153,9 +161,16 @@ public class UnitDeployer : MonoBehaviour
     }
     private void Deploy()
     {
-        if (!LI.DeployCost(unitCost)) return;
-        if (!LI.DeployACat()) return;
+        if (!EnsureLevelControllerReference()) return;
+        if (LI.isPloting) return;
+        if (!LI.CanDeployACat()) return;
         if (!EnsureRuntimeInitialized()) return;
+        if (!LI.DeployCost(unitCost)) return;
+        if (!LI.DeployACat())
+        {
+            LI.AddMoney(unitCost);
+            return;
+        }
         ResetCoolDown();
         int sortingOrder = Random.Range(0, 11);
         int sr_samelayer = Random.Range(0, 6);
@@ -193,6 +208,14 @@ public class UnitDeployer : MonoBehaviour
         isRuntimeInitialized = true;
         return true;
     }
+    private bool EnsureLevelControllerReference()
+    {
+        if (LI != null) return true;
+        GameObject levelInitializer = GameObject.Find("Level Initializer");
+        if (levelInitializer == null) return false;
+        LI = levelInitializer.GetComponent<LevelController>();
+        return LI != null;
+    }
     private void DeployAvailable(bool a)
     {
         if (btn.interactable == a) return;
@@ -217,4 +240,5 @@ public class UnitDeployer : MonoBehaviour
         deployPanel.SetOutfit(KiOutfit.Border, rarity + 1);
         deployPanel.ApplyFrameColor(UXPref.GetRarityFrameColor(rarity));
     }
+    public CharacterData GetCharacterData() => CD;
 }

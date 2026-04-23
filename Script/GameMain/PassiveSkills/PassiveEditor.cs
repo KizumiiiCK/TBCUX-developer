@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public static class AbilityInstaller
 {
@@ -31,13 +30,19 @@ public static class AbilityInstaller
         { AbilityName.projectile, typeof(ProjectileLauncher)},
         { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
         { AbilityName.ZombieRevive, typeof(ZombieReviveAddon)},
-        { AbilityName.BaseHunter, typeof(BaseHunter)},
+        { AbilityName.invisible, typeof(Aux_InvisibleShow)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
         if (!skillMap.TryGetValue(ca.name, out var skillType)) return;
         var passive = (PassiveSkill)Activator.CreateInstance(skillType);
         passive.SetPassiveValues(ca.name, ca.probability, ca.duration, ca.intensity);
+        C.AddPassiveEffect(passive);
+        passive.OnAddingAbility(C);
+    }
+    public static void Install(Character C, PassiveSkill passive)
+    {
+        if (passive == null) return;
         C.AddPassiveEffect(passive);
         passive.OnAddingAbility(C);
     }
@@ -530,7 +535,7 @@ public class ZombieDiveAddon : PassiveSkill
         character.ChangeSpeed(speedBeforeIn);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
         int moveDir = character.IsCat() ? -1 : 1;
-        int moveFrames = Mathf.Max(0, duration);
+        int moveFrames = Mathf.Max(0, duration) * 2;
         character.BlockAnimationSwitch = false;
         character.SwitchAnimation(5);
         character.BlockAnimationSwitch = true;
@@ -710,11 +715,21 @@ public class ZombieReviveAddon : PassiveSkill
 
 }
 
-public class BaseHunter : PassiveSkill
+public class Aux_InvisibleShow : PassiveSkill
 {
-    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    private Transform ct;
+    private float originalPosY;
+    private static int invisible_posY = -1000;
+    private bool tracked = false;
+    public override void OnDeployUnit(Character character)
     {
-        if (character == null) return;
-        character.Targets.Clear();
+        ct = character.transform;
+        originalPosY = ct.position.y;
+        ct.position = new Vector2(ct.position.x, invisible_posY);
+    }
+    public override void OnAfterTakeDamage(Character character)
+    {
+        if(!tracked) ct.position = new Vector2(ct.position.x, originalPosY);
+        tracked = true;
     }
 }

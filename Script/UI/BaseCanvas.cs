@@ -107,7 +107,10 @@ public class BaseCanvas : UICanvasMain
     public void ToEnemyCanvas() { StartCoroutine(ShowEnemyCanvas()); }
     public void ToCapsuleDrawCanvas() { StartCoroutine(ShowCapsuleCanvas()); }
     public void ToStorageCanvas() { StartCoroutine(ShowStorageCanvas()); }
-    public void MapToEquip(string[] enemies=null) { StartCoroutine(ShowEquipFromMap(enemies)); }
+    public void MapToEquip(string[] enemies = null, string[] restrictions = null, bool blindEnemyIcons = false)
+    {
+        StartCoroutine(ShowEquipFromMap(enemies, restrictions, blindEnemyIcons));
+    }
     public void EquipBackToMap() { StartCoroutine(ShowMapFromEquip()); }
     private IEnumerator ShowUpgradeCanvas()
     {
@@ -132,7 +135,7 @@ public class BaseCanvas : UICanvasMain
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         operating = false;
     }
-    private IEnumerator ShowEquipFromMap(string[] enemies=null)
+    private IEnumerator ShowEquipFromMap(string[] enemies = null, string[] restrictions = null, bool blindEnemyIcons = false)
     {
         CloseDoor();
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
@@ -141,10 +144,10 @@ public class BaseCanvas : UICanvasMain
             frameUI.OpenPage(EquipCanvasPrefab, page =>
             {
                 currentSubCanvas = page;
-                if (enemies != null && page != null)
+                if (page != null)
                 {
                     var equip = page.GetComponent<EquipCanvas>();
-                    if (equip != null) equip.ChanageSEBShowInfo(enemies);
+                    if (equip != null) equip.ChanageSEBShowInfo(enemies, restrictions, blindEnemyIcons);
                 }
             });
         }

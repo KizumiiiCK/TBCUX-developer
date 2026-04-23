@@ -11,7 +11,6 @@ public class LevelData : ScriptableObject
     public int BaseHealth = 1000;
     public int mapSize = 6000;
     public int maxEmenyCount = 50;
-    public int maxCatCount = 50;
     public int BackgroundID = 0;
     public int BaseImageID = 0;
     public string[] CombatEffect;

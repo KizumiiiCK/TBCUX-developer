@@ -55,7 +55,6 @@ public class FrameUIAnimations : MonoBehaviour
 
     private IEnumerator DoorRoutine(bool open)
     {
-        Debug.Log("StartDoorRoutine: " + open);
         Vector2 lStart = leftDoor.anchoredPosition;
         Vector2 rStart = rightDoor.anchoredPosition;
         Vector2 lEnd = open ? leftOpenPos : leftClosedPos;

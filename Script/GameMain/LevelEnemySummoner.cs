@@ -19,15 +19,23 @@ public class LevelEnemySummoner : MonoBehaviour
     private int[] currentDeployed;
     private AnimDecryptPack[] characterDecryptedFiles;
     private bool[] runtimeInitialized;
+    private LevelRestrictionHelper.RestrictionRules levelRestrictions;
+    private bool isConfigured;
 
     private bool activated = false;
     //
     void Start()
     {
-        SetupEnemy();
+        if (!SetupEnemy())
+        {
+            enabled = false;
+        }
     }
     private void FixedUpdate()
     {
+        if (!isConfigured) return;
+        if (LC == null || dogeBase == null || ESI == null) return;
+        if (LC.isPloting) return;
         for(int i = 0; i < ESI.Length; i++)
         {
             if (dogeBase.GetHealthPercentage() > deployPercentage) continue;
@@ -50,7 +58,7 @@ public class LevelEnemySummoner : MonoBehaviour
     }
     public void SetupEnemyDeployer(int percentage,EnemySummonInfo[] esi)
     {
-        ESI = esi;
+        ESI = esi ?? new EnemySummonInfo[0];
         nextTime = new int[ESI.Length];
         timepassed = new int[ESI.Length];
         currentDeployed = new int[ESI.Length];
@@ -69,18 +77,35 @@ public class LevelEnemySummoner : MonoBehaviour
         characterDecryptedFiles = new AnimDecryptPack[ESI.Length];
         runtimeInitialized = new bool[ESI.Length];
     }
+    public void ApplyLevelRestrictions(LevelRestrictionHelper.RestrictionRules rules) => levelRestrictions = rules;
     public void SetChangeBGM(string bgm) => bgmCode = bgm;
-    public void SetupEnemy()
+    public bool SetupEnemy()
     {
         enemyUnit = Resources.Load<GameObject>("Units/Enemy Units/enemyunit");
         LC = GetComponent<LevelController>();
+        if (enemyUnit == null || LC == null || dogeBase == null || ESI == null || CD == null || runtimeInitialized == null || characterDecryptedFiles == null)
+        {
+            Debug.LogError("[LevelEnemySummoner] Summoner is not fully configured.");
+            isConfigured = false;
+            return false;
+        }
         for(int i = 0; i < ESI.Length; i++)
         {
             string loadPath = $"Units/Enemy Units/{ESI[i].enemyID}/";
-            CD[i]= Resources.Load<CharacterData>(loadPath + "data").Clone();
+            CharacterData loadedData = Resources.Load<CharacterData>(loadPath + "data");
+            if (loadedData == null)
+            {
+                Debug.LogError($"[LevelEnemySummoner] Enemy data not found at {loadPath}data");
+                isConfigured = false;
+                return false;
+            }
+            CD[i] = loadedData.Clone();
+            LevelRestrictionHelper.ApplyEnemyCharacterDataRestrictions(levelRestrictions, CD[i]);
             runtimeInitialized[i] = false;
             characterDecryptedFiles[i] = null;
         }
+        isConfigured = true;
+        return true;
     }
     private bool Deploy(int i)
     {
@@ -128,7 +153,15 @@ public class LevelEnemySummoner : MonoBehaviour
         runtimeInitialized[index] = true;
         return true;
     }
-    public void SetBase(GameObject db) { dogeBase=db.GetComponent<DogeBase>(); }
+    public void SetBase(GameObject db)
+    {
+        if (db == null)
+        {
+            dogeBase = GameObject.Find("DogeBase")?.GetComponent<DogeBase>();
+            return;
+        }
+        dogeBase = db.GetComponent<DogeBase>();
+    }
     private IEnumerator BossShock()
     {
         yield return new WaitForFixedUpdate();

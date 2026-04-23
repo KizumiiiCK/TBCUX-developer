@@ -48,6 +48,7 @@ public class WaveUnit : Character
     private IEnumerator SummonWave()
     {
         Vector3 basePos = transform.position;
+        if (basePos.y < -900) basePos = basePos + new Vector3(0, 1000, 0);
         int dis = 1;
         int sign=IsCat() ? -1 : 1;
         int delayer = Mini ? 2 : 5;

@@ -22,6 +22,7 @@ public class LevelTiler : UICanvasMain
     [SerializeField] private GameObject characterBoard;    
     [SerializeField] private ShowEnemyBoard SEB;
     [SerializeField] private LevelRewardBoard LRB;
+    [SerializeField] private LevelRestrictionBoard levelRestrictionBoard;
 
     [Header("Drag")]
     [SerializeField] private LevelDragSelector dragSelector;
@@ -41,6 +42,8 @@ public class LevelTiler : UICanvasMain
     private EquipTeamSelectionPanel selectionsPanel;
     private string[,] enemyAppears;
     private List<Reward[]> rewardlist=new List<Reward[]>();
+    private readonly List<string[]> restrictionList = new List<string[]>();
+    private int mapSectionDifficulty;
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
     private readonly List<GameObject> spawnedLevelTiles = new List<GameObject>();
@@ -106,6 +109,7 @@ public class LevelTiler : UICanvasMain
         string sectionName= PlayerPrefs.GetString(UXPref.SectionName);
         int sectionNum= PlayerPrefs.GetInt(UXPref.SectionNum, 0);
         int diff= PlayerPrefs.GetInt(UXPref.Difficulty, 0);
+        mapSectionDifficulty = diff;
         //
         int mark_label = 0;
         if(sectionName=="0_worldi"|| sectionName == "0_worldii" || sectionName == "0_worldiii") mark_label = 60;
@@ -308,6 +312,7 @@ public class LevelTiler : UICanvasMain
             }
         }
         rewardlist.Add(led.rewardlist);
+        restrictionList.Add(led.Restriction != null ? led.Restriction : new string[0]);
     }
     private void ChangeCurrentLevelNum(int cln)
     {
@@ -319,18 +324,46 @@ public class LevelTiler : UICanvasMain
     {
         SEB.gameObject.SetActive(!SEB.gameObject.activeSelf);
         LRB.gameObject.SetActive(SEB.gameObject.activeSelf);
+        if (levelRestrictionBoard != null)
+            levelRestrictionBoard.gameObject.SetActive(SEB.gameObject.activeSelf && CurrentLevelHasRestrictions());
         ChanageSEBShowInfo(current_level_num);
     }
     public void ChanageSEBShowInfo(int level_num)
     {
         if (!SEB.gameObject.activeSelf) return;
-        SEB.ShowEnemies(GetCurrentEnemies(level_num));
+        SEB.ShowEnemies(GetCurrentEnemies(level_num), ShouldBlindEnemyIconsForLevel(level_num));
         ChangeLRBInfo();
+    }
+
+    private bool ShouldBlindEnemyIconsForLevel(int level_num)
+    {
+        if (level_num < 0 || level_num >= restrictionList.Count) return false;
+        if (!LevelRestrictionHelper.HasIvRestriction(restrictionList[level_num])) return false;
+        if (secClearList == null || secClearList.clear_times == null) return false;
+        int d0 = mapSectionDifficulty;
+        if (d0 < 0 || d0 >= secClearList.clear_times.GetLength(0)) return false;
+        if (level_num >= secClearList.clear_times.GetLength(1)) return false;
+        return secClearList.clear_times[d0, level_num] <= 0;
     }
     public void ChangeLRBInfo()
     {
         LRB.SetRewards(rewardlist[current_level_num]);
         LRB.ShowLevelRewards(secClearList.reward_gained[current_level_num]);
+        if (levelRestrictionBoard == null) return;
+        if (!CurrentLevelHasRestrictions())
+        {
+            levelRestrictionBoard.gameObject.SetActive(false);
+            return;
+        }
+        levelRestrictionBoard.gameObject.SetActive(true);
+        levelRestrictionBoard.ShowRestrictions(restrictionList[current_level_num]);
+    }
+
+    private bool CurrentLevelHasRestrictions()
+    {
+        if (current_level_num < 0 || current_level_num >= restrictionList.Count) return false;
+        string[] r = restrictionList[current_level_num];
+        return r != null && r.Length > 0;
     }
     private string[] GetCurrentEnemies(int level_num)
     {
@@ -340,10 +373,19 @@ public class LevelTiler : UICanvasMain
         for (int i = 0; i < realLength; i++) ens[i] = enemyAppears[level_num, i];
         return ens;
     }
+
+    private string[] GetCurrentRestrictions()
+    {
+        if (current_level_num < 0 || current_level_num >= restrictionList.Count) return null;
+        return restrictionList[current_level_num];
+    }
     private void SwitchTeamBtn()
     {
         TeamBtn.interactable = false; 
-        GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().MapToEquip(GetCurrentEnemies(current_level_num));
+        GameObject.Find("BaseCanvas").GetComponent<BaseCanvas>().MapToEquip(
+            GetCurrentEnemies(current_level_num),
+            GetCurrentRestrictions(),
+            ShouldBlindEnemyIconsForLevel(current_level_num));
     }
 
     public override IEnumerator OnEnter()

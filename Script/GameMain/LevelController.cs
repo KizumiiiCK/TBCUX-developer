@@ -8,14 +8,13 @@ using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
 /// <summary>
-/// 关卡控制器 - 管理关卡的核心逻辑，包括金钱系统、大炮系统、部署系统等
-/// 为未来扩展更多关卡机制提供接口支持
-/// </summary>
+/// �ؿ������� - �����ؿ��ĺ����߼���������Ǯϵͳ������ϵͳ������ϵͳ��
+/// Ϊδ����չ����ؿ������ṩ�ӿ�֧��/// </summary>
 public class LevelController : MonoBehaviour
 {
     #region Constants - 常量定义
-    
-    // 金钱系统常量
+
+    // Money Related Constants
     private const float MONEY_CHARGING_SPEED = 187f;
     private const float MONEY_CHARGING_BONUS = 9f;
     private const int MAX_MONEY = 6000;
@@ -24,56 +23,54 @@ public class LevelController : MonoBehaviour
     protected const int MAX_MONEY_LEVEL = 8;
     private const float MIN_MULTIPLIER = 0.06f;
     private const float MAX_MULTIPLIER = 1.0f;
-    
-    // 大炮系统常量（已迁移到CatBase）
-    
-    // 宝藏系统常量
+
+    // Tresure Related Constants
     private const int MAX_TREASURE_COUNT = 150;
     private const int MIN_TREASURE_COUNT = 0;
-    
-    // 游戏状态常量
+
+    // Level score settings
     private const int DEFAULT_TARGET_FPS = 30;
     private const float NORMAL_TIME_SCALE = 1f;
     private const float SPEED_UP_TIME_SCALE = 2f;
     private const float PAUSED_TIME_SCALE = 0f;
     private const int INITIAL_LEVEL_SCORE = 10000;
-    
-    // 部署系统常量
+
+    // Deployers count
     protected const int MAIN_DEPLOYER_COUNT = 10;
     protected const int GUEST_DEPLOYER_COUNT = 3;
     protected const int TOTAL_DEPLOYER_COUNT = 13;
-    
-    // 基地位置计算常量
+
+    // Base positioner
     private const float BASE_OFFSET = 1600f;
     private const float BASE_POSITION_DIVISOR = 200f;
     private const float BASE_Y_POSITION = 1f;
-    
-    // 音频常量
+
+    // Sound Voluume Settings
     private const float MIN_VOLUME_DB = -80f;
     private const float VOLUME_LOG_MULTIPLIER = 20f;
-    
-    // 经验值计算常量
+
+    // Accounter
     private const float XP_TREASURE_MULTIPLIER = 1.5f;
     private const float XP_RANDOM_RANGE = 0.05f;
     private const float STUDY_POWER_MULTIPLIER = 2.5f;
     private const float STUDY_POWER_DIVISOR = 30f;
-    
-    // 奖励惩罚常量
-    private const int REWARD_PENALTY_MULTIPLIER = 3;
+
+    // Reward and Penalty
+    private const float REWARD_PENALTY_MULTIPLIER = 2.5f;
     private const int PERCENTAGE_BASE = 100;
     private const int GUARANTEED_DROP_THRESHOLD = 99;
-    
-    // 猫基地生命值计算常量
+
+    // Cat Base Max Health
     private const int CAT_BASE_BASE_HEALTH = 1000;
     private const int CAT_BASE_TREASURE_MULTIPLIER = 235000;
-    
-    // 跳过游戏伤害值
+
+    // Skip Game Damage
     private const int SKIP_GAME_DAMAGE = 99999999;
-    
+
     #endregion
 
-    #region Level Information - 关卡信息
-    
+    #region Level Information
+
     protected string chapterName = string.Empty;
     protected string sectionName = string.Empty;
     protected int sectionNum = 0;
@@ -82,25 +79,28 @@ public class LevelController : MonoBehaviour
     protected string levelName = "0";
     public LevelData LD;
     protected bool testificateMode = false;
-    
+
     #endregion
 
-    #region Game Objects - 游戏对象引用
-    
+    #region Game Static Objects
+
     protected GameObject dogeBase;
     protected GameObject catBase;
     private CatBase catBaseComponent;
     protected string[] characters_code;
     protected LevelRestrictionHelper.RestrictionRules levelRestrictions;
-    
+    /// <summary>本关解析后的限制规则（无关卡数据时可能为 null）。</summary>
+    public LevelRestrictionHelper.RestrictionRules LevelRestrictions => levelRestrictions;
+    protected bool requiredUnitsSatisfied = true;
+
     #endregion
 
-    #region Money System - 金钱系统
-    
+    #region Money System
+
     public static float moneyCharching_speed = MONEY_CHARGING_SPEED;
     public static float moneyCharching_bonus = MONEY_CHARGING_BONUS;
     // 大炮充能时间由CatBase维护
-    
+
     public float currentMoney = 0;
     protected int current_money_level = 1;
     protected static int maxMoney = MAX_MONEY;
@@ -108,26 +108,22 @@ public class LevelController : MonoBehaviour
     protected static int maxMoney_bonus = MAX_MONEY_BONUS;
     protected float multiplier = MIN_MULTIPLIER;
     protected int treasureCount = 0;
-    
+
     #endregion
 
-    #region Cannon System - 大炮系统
-    // 逻辑已迁移到CatBase
-    #endregion
+    #region UI Components
 
-    #region UI Components - UI组件
-    
     [Header("Money UI")]
     [SerializeField] protected TMP_Text money_txt;
     [SerializeField] protected TMP_Text money_upgrade_txt;
     [SerializeField] protected GameObject Upgrade_image;
     [SerializeField] protected Button Upgrade_btn;
-    
+
     [Header("Cannon UI")]
     [SerializeField] protected Button Cannon_btn;
     [SerializeField] protected Image Cannon_btn_image;
     [SerializeField] protected Animator Cannon_btn_animation;
-    
+
     [Header("Game Control UI")]
     [SerializeField] protected Button Pause_btn;
     [SerializeField] protected Button GiveUp_btn;
@@ -135,26 +131,25 @@ public class LevelController : MonoBehaviour
     [SerializeField] protected Button Skip_btn;
     [SerializeField] protected GameObject pause_black_shade;
     [SerializeField] protected GameObject pause_table;
-    
+
     [Header("Level Info UI")]
     [SerializeField] protected TMP_Text levelName_txt;
-    
+
     [Header("Deployment UI")]
     [SerializeField] protected Transform Deployers;
     [SerializeField] protected Transform GuestDeployers;
     [SerializeField] protected GameObject MaxDeployed;
-    
+
     [Header("Audio Mixer")]
     [SerializeField] protected AudioMixer mixer;
-    
+
     [Header("UI Sliders")]
     [SerializeField] protected Slider bgmSlider;
     [SerializeField] protected Slider seSlider;
-    
+
     #endregion
 
-    #region Game State - 游戏状态
-    
+    #region Game States
     protected bool game_paused = false;
     protected bool speed_up = false;
     protected bool disable_controll = false;
@@ -167,99 +162,91 @@ public class LevelController : MonoBehaviour
     private int cachedUpgradeLevel = -1;
     private bool cachedUpgradeButtonState = true;
     private bool upgradeUiDirty = true;
-    
+
     #endregion
 
-    #region Deployment System - 部署系统
-    
+    #region Deployment System
+
     public int maxEnemyDeploy = 50;
     public int maxCatDeploy = 50;
     protected int enemyDeployed = 0;
     protected int catDeployed = 0;
-    
-    // 注意：部署上限会在SetupLevelInfo中自动+1，因为CatBase和DogeBase也会注册到管理器
-    // Base单位全局不可删除，不计入部署数量限制
-    
+
     #endregion
 
-    #region Reward System - 奖励系统
-    
+    #region Reward System
+
     protected Sprite[] reward_sprites;
     protected int[] reward_count;
-    
+
     #endregion
 
-    #region Proficency System - 熟练度系统
-    
+    #region Proficency System
     protected Level_ProficencyUpdator LPU = new Level_ProficencyUpdator();
-    
+
     #endregion
 
-    #region Unity Lifecycle - Unity生命周期
-    
+    #region Unity Lifecycle
+
     private void Awake()
     {
         Input.multiTouchEnabled = true;
     }
-    
+
     private void Start()
     {
         Application.targetFrameRate = DEFAULT_TARGET_FPS;
-        
+
         // 加载入场UI
-        try 
-        { 
-            Instantiate(Resources.Load<GameObject>("UI/Tag In")); 
+        try
+        {
+            Instantiate(Resources.Load<GameObject>("UI/Tag In"));
         }
         catch { }
-        
+
         InitializeButtons();
         SetUpgradeActive(false);
         InitializeLevelData();
         BindCannonToBase();
         LoadPlot();
         MaxDeployed.SetActive(false);
-        
+
         if (!isPloting)
         {
             SetupCatDeployers();
             SetupEnemySummoner();
         }
     }
-    
+
     protected void FixedUpdate()
     {
         if (isPloting || disable_controll) return;
-        
+
         // 更新金钱
         float moneyGain = (moneyCharching_speed + (current_money_level - 1) * moneyCharching_bonus) * multiplier * Time.deltaTime;
         AddMoney(moneyGain);
-        
+
         // 更新分数
         level_score--;
-        
-        // 检查升级条件
+
+        // 检查升级条�?
         if (current_money_level < MAX_MONEY_LEVEL)
         {
             float current_upgrade_cost = money_upgrade_cost * current_money_level * multiplier;
             SetUpgradeActive(currentMoney > current_upgrade_cost);
         }
-        
-        // 更新大炮充能（由CatBase处理）
+
+        // 更新大炮充能（由CatBase处理�?
         catBaseComponent?.ChargeCannon();
     }
-    
+
     #endregion
 
-    #region Initialization - 初始化方法
-    
-    /// <summary>
-    /// 初始化所有按钮事件
-    /// </summary>
+    #region Initialization
     private void InitializeButtons()
     {
         Pause_btn.onClick.AddListener(() => Pause(!game_paused));
-        
+
         GiveUp_btn.onClick.AddListener(() =>
         {
             Pause(false);
@@ -267,28 +254,69 @@ public class LevelController : MonoBehaviour
             Speed_btn.interactable = false;
             GetComponent<SceneSwitcher>().TagOutToDirectly("BaseScene");
         });
-        
+
         Speed_btn.onClick.AddListener(() => SpeedUp(!speed_up));
         Upgrade_btn.onClick.AddListener(UpgradeMoney);
-        // 大炮按钮绑定由CatBase在关卡初始化后处理
+        // Dev only
         Skip_btn.onClick.AddListener(() => { Pause(false); SkipGame(); });
-        
+
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
-        
+
         pause_table.SetActive(false);
     }
-    
+
+    protected virtual void RefreshTeamRestrictionState()
+    {
+        requiredUnitsSatisfied = LevelRestrictionHelper.AreRequiredUnitsSelected(levelRestrictions, characters_code);
+    }
+
+    protected virtual bool ShouldLockAllCatsByRestriction()
+    {
+        return !requiredUnitsSatisfied;
+    }
+
+    protected virtual int GetDeploymentLevel(string code, int configuredLevel = -1)
+    {
+        int resolvedLevel = configuredLevel;
+        if (resolvedLevel < 1)
+        {
+            resolvedLevel = 1;
+            try
+            {
+                resolvedLevel = CharacterUpgradeSave.GetDetails(code.Substring(0, 4)).TotalLevel();
+                if (resolvedLevel < 1) resolvedLevel = 1;
+            }
+            catch
+            {
+                resolvedLevel = 1;
+            }
+        }
+
+        return LevelRestrictionHelper.ApplyUnitLevelCap(levelRestrictions, resolvedLevel);
+    }
+
+    protected virtual float GetDeploymentCostMultiplier(string code)
+    {
+        return LevelRestrictionHelper.GetUnitCostMultiplier(levelRestrictions, code);
+    }
+
     /// <summary>
-    /// 初始化关卡数据（可由子类重写）
-    /// </summary>
+    /// 鍏冲崱杩愯鏃堕檺鍒舵敤浜庝笅鍙戝埌閮ㄧ讲鍣ㄧ瓑绯荤�?    /// </summary>
+    protected virtual void ApplyLevelRestrictionSettings()
+    {
+        maxCatDeploy = LevelRestrictionHelper.GetMaxCatDeploy(levelRestrictions, maxCatDeploy);
+    }
+
+    /// <summary>
+    /// 初始化关卡数据（可由子类重写�?    /// </summary>
     protected virtual void InitializeLevelData()
     {
         treasureCount = RewardingSystem.GetAmount(RewardName.WorldTreasures);
         LoadLevelInfoFromPref();
         string levelLoadPath = $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/{levelNum}";
         LD = Resources.Load<LevelData>(levelLoadPath);
-        
+
         if (LD == null)
         {
             Debug.LogError($"Level not found in \"{levelLoadPath}\"!");
@@ -296,24 +324,25 @@ public class LevelController : MonoBehaviour
             return;
         }
         int mapSize = LD.mapSize;
-        
+
         // 计算金钱倍率
         CalculateMoneyMultiplier();
-        
-        // 设置地图和基地
+
+        // 设置地图和基�?
         SetupMapAndBases(mapSize);
-        
+
         // 设置关卡信息
         SetupLevelInfo();
         levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
-        
+        ApplyLevelRestrictionSettings();
+
         // 设置战斗效果
         SetupCombatEffects();
-        
+
         // 设置光环效果
         SetupCombatAura();
     }
-    
+
     /// <summary>
     /// 计算金钱倍率
     /// </summary>
@@ -322,43 +351,42 @@ public class LevelController : MonoBehaviour
         treasureCount = Mathf.Clamp(treasureCount, MIN_TREASURE_COUNT, MAX_TREASURE_COUNT);
         float treasureRatio = treasureCount / (float)MAX_TREASURE_COUNT;
         multiplier = MIN_MULTIPLIER + (MAX_MULTIPLIER - MIN_MULTIPLIER) * treasureRatio;
-        
+
         Debug.Log($"Treasures: {treasureCount} / {MAX_TREASURE_COUNT}.");
     }
-    
+
     /// <summary>
-    /// 设置地图和基地
-    /// </summary>
+    /// 设置地图和基�?    /// </summary>
     protected void SetupMapAndBases(int mapSize)
     {
         // 设置背景
         GameObject.Find("Background").GetComponent<BackgroundInitializer>().UpdateMaterialProperties(LD.BackgroundID);
-        
+
         // 获取基地引用
         dogeBase = GameObject.Find("DogeBase");
         catBase = GameObject.Find("CatBase");
         catBaseComponent = catBase != null ? catBase.GetComponent<CatBase>() : null;
-        
+
         // 设置基地位置
         mapSize=Mathf.Clamp(mapSize, 1500, 6000);
         float dogeBaseX = (-mapSize + BASE_OFFSET) / BASE_POSITION_DIVISOR;
         float catBaseX = (mapSize - BASE_OFFSET) / BASE_POSITION_DIVISOR;
         dogeBase.transform.position = new Vector3(dogeBaseX, BASE_Y_POSITION, 0);
         catBase.transform.position = new Vector3(catBaseX, BASE_Y_POSITION, 0);
-        
+
         // 设置相机限制
         GameObject.Find("Main Camera").GetComponent<CameraController>().SetLimitation(mapSize);
-        
+
         // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
         dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
         catBaseComponent?.ApplyLevelBaseHealth(
             CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
-        
-        // 设置狗基地外观
+
+        // 设置狗基地外�?
         Sprite baseSprite = Resources.Load<Sprite>($"Units/DogeBases/{LD.BaseImageID}");
         dogeBase.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().sprite = baseSprite;
     }
-    
+
     /// <summary>
     /// 设置关卡信息
     /// </summary>
@@ -367,23 +395,21 @@ public class LevelController : MonoBehaviour
         levelName = LD.levelName;
         LocalizationHelper.GetLocalizedText(UXPref.Localized_LevelNames, levelName,
             localizedText => levelName_txt.text = localizedText ?? levelName);
-        
-        // 计算经验值
+
+        // 计算经验�?
         float xpMultiplier = 1 + treasureCount / (float)MAX_TREASURE_COUNT * XP_TREASURE_MULTIPLIER + Random.Range(0f, XP_RANDOM_RANGE);
         gain_XP = (int)(LD.gainXP * xpMultiplier);
-        
-        // 设置部署限制（+1因为CatBase和DogeBase也会注册到管理器）
+
         maxEnemyDeploy = LD.maxEmenyCount;
-        maxCatDeploy = LD.maxCatCount;
     }
-    
+
     /// <summary>
     /// 设置战斗效果
     /// </summary>
     protected void SetupCombatEffects()
     {
         if (LD.CombatEffect == null) return;
-        
+
         for (int i = 0; i < LD.CombatEffect.Length; i++)
         {
             GameObject combatEffect = Resources.Load<GameObject>($"Background/CombatEffects/{LD.CombatEffect[i]}");
@@ -393,14 +419,14 @@ public class LevelController : MonoBehaviour
             }
         }
     }
-    
+
     /// <summary>
     /// 设置战斗光环
     /// </summary>
     protected void SetupCombatAura()
     {
         if (LD.CombatAura == null) return;
-        
+
         PostProcessVolume ppv = AuraController.FindAnAura();
         if (ppv != null)
         {
@@ -410,7 +436,7 @@ public class LevelController : MonoBehaviour
             }
         }
     }
-    
+
     /// <summary>
     /// 从PlayerPrefs加载关卡信息
     /// </summary>
@@ -421,24 +447,24 @@ public class LevelController : MonoBehaviour
         sectionNum = PlayerPrefs.GetInt(UXPref.SectionNum);
         diff = PlayerPrefs.GetInt(UXPref.Difficulty);
         levelNum = PlayerPrefs.GetInt(UXPref.LevelNum);
-        
+
         if (chapterName == string.Empty)
         {
             Debug.LogError("Chapter name not found!");
             Application.Quit();
         }
-        
+
         if (sectionName == string.Empty)
         {
             Debug.LogError("Section name not found!");
             Application.Quit();
         }
     }
-    
+
     #endregion
 
     #region Plot System - 剧情系统
-    
+
     /// <summary>
     /// 加载剧情
     /// </summary>
@@ -446,30 +472,31 @@ public class LevelController : MonoBehaviour
     {
         string plotLoadPath = $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/plots/{levelNum}";
         GamePlot gamePlot = Resources.Load<GamePlot>(plotLoadPath);
-        
+
         if (gamePlot != null)
         {
             Chatbox chatbox = Instantiate(Resources.Load<GameObject>("UI/ChatBox")).GetComponent<Chatbox>();
             chatbox.SetFullDialogue(gamePlot);
             StartCoroutine(chatbox.ShowAllDialogue());
             isPloting = true;
+            disable_controll = true;
         }
     }
-    
+
     /// <summary>
-    /// 退出剧情
-    /// </summary>
-    public void ExitPlot()
+    /// 退出剧�?    /// </summary>
+        public void ExitPlot()
     {
         isPloting = false;
+        disable_controll = false;
         SetupCatDeployers();
         SetupEnemySummoner();
     }
-    
+
     #endregion
 
     #region Money System Methods - 金钱系统方法
-    
+
     /// <summary>
     /// 增加金钱
     /// </summary>
@@ -477,7 +504,7 @@ public class LevelController : MonoBehaviour
     {
         float currentMaxMoney = (maxMoney + (current_money_level - 1) * maxMoney_bonus) * multiplier;
         currentMoney += money;
-        
+
         if (currentMoney > currentMaxMoney)
         {
             currentMoney = currentMaxMoney;
@@ -485,7 +512,7 @@ public class LevelController : MonoBehaviour
 
         RefreshMoneyText((int)currentMoney, (int)currentMaxMoney);
     }
-    
+
     /// <summary>
     /// 扣除部署费用
     /// </summary>
@@ -495,10 +522,9 @@ public class LevelController : MonoBehaviour
         currentMoney -= cost;
         return true;
     }
-    
+
     /// <summary>
-    /// 设置升级按钮状态
-    /// </summary>
+    /// 设置升级按钮状�?    /// </summary>
     protected void SetUpgradeActive(bool active)
     {
         int upgradeCost = (int)(current_money_level * money_upgrade_cost * multiplier);
@@ -515,7 +541,7 @@ public class LevelController : MonoBehaviour
         }
         upgradeUiDirty = false;
     }
-    
+
     /// <summary>
     /// 升级金钱系统
     /// </summary>
@@ -526,14 +552,14 @@ public class LevelController : MonoBehaviour
             SetUpgradeMaxUI();
             return;
         }
-        
+
         float upgradeCost = money_upgrade_cost * current_money_level * multiplier;
         if (currentMoney < upgradeCost) return;
-        
+
         currentMoney -= upgradeCost;
         current_money_level++;
         Upgrade_btn.GetComponent<AudioSource>().Play();
-        
+
         if (current_money_level == MAX_MONEY_LEVEL)
         {
             SetUpgradeMaxUI();
@@ -544,7 +570,7 @@ public class LevelController : MonoBehaviour
             SetUpgradeActive(currentMoney > (money_upgrade_cost * current_money_level * multiplier));
         }
     }
-    
+
     #endregion
 
     #region Cannon System Methods - 大炮系统方法
@@ -587,7 +613,7 @@ public class LevelController : MonoBehaviour
     #endregion
 
     #region Game Control Methods - 游戏控制方法
-    
+
     /// <summary>
     /// 暂停/继续游戏
     /// </summary>
@@ -611,13 +637,12 @@ public class LevelController : MonoBehaviour
             Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
             speed_up = false;
         }
-        
+
         game_paused = pause;
     }
-    
+
     /// <summary>
-    /// 加速游戏
-    /// </summary>
+    /// 加速游�?    /// </summary>
     protected void SpeedUp(bool speedUp)
     {
         if (speedUp)
@@ -639,10 +664,10 @@ public class LevelController : MonoBehaviour
             Pause_btn.GetComponent<Image>().color = Color.white;
             game_paused = false;
         }
-        
+
         speed_up = speedUp;
     }
-    
+
     /// <summary>
     /// 跳过游戏（用于测试）
     /// </summary>
@@ -650,11 +675,11 @@ public class LevelController : MonoBehaviour
     {
         dogeBase.GetComponent<DogeBase>().ReceiveAttack(SKIP_GAME_DAMAGE, null, null, null, null, null, null);
     }
-    
+
     #endregion
 
     #region Audio Methods - 音频方法
-    
+
     /// <summary>
     /// 设置BGM音量
     /// </summary>
@@ -665,7 +690,7 @@ public class LevelController : MonoBehaviour
         mixer.SetFloat(UXPref.BGM_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.BGM_PARAM, linear);
     }
-    
+
     /// <summary>
     /// 设置SE音量
     /// </summary>
@@ -676,7 +701,7 @@ public class LevelController : MonoBehaviour
         mixer.SetFloat(UXPref.SE_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.SE_PARAM, linear);
     }
-    
+
     /// <summary>
     /// 刷新暂停菜单
     /// </summary>
@@ -687,7 +712,7 @@ public class LevelController : MonoBehaviour
         SetBGMVolume(bgmSlider.value);
         SetSEVolume(seSlider.value);
     }
-    
+
     /// <summary>
     /// 显示/隐藏暂停菜单
     /// </summary>
@@ -707,7 +732,7 @@ public class LevelController : MonoBehaviour
             Speed_btn.gameObject.SetActive(true);
         }
     }
-    
+
     /// <summary>
     /// 改变BGM
     /// </summary>
@@ -718,11 +743,10 @@ public class LevelController : MonoBehaviour
             GameObject.Find("BGM").GetComponent<AudioSource>().clip = null;
         }
     }
-    
+
     #endregion
 
-    #region Victory and Failure - 胜利与失败
-    
+    #region Victory and Failure - 胜利与失�?
     /// <summary>
     /// 关卡胜利
     /// </summary>
@@ -732,32 +756,32 @@ public class LevelController : MonoBehaviour
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
         Speed_btn.gameObject.SetActive(false);
-        
+
         if (testificateMode) return;
-        
+
         // 创建胜利UI
         GameObject clearCanvas = Instantiate(Resources.Load<GameObject>("UI/Clear_Canvas"));
         clearCanvas.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = level_score.ToString();
         ClearCanvas clearCanvasComponent = clearCanvas.GetComponent<ClearCanvas>();
-        
+
         ChangeBGM(null);
         QuitUI();
 
         // 处理奖励
         bool gainreward = ProcessRewards(clearCanvasComponent);
 
-        // 处理经验值
+        // 处理经验�?        
         ProcessExperience(clearCanvas);
-        
+
         // 保存进度
         //int catHeadCount = catBase.GetComponent<CatBase>().;
-        GameProgressSave.SaveProgress(chapterName, sectionName, diff, levelNum, level_score, 
+        GameProgressSave.SaveProgress(chapterName, sectionName, diff, levelNum, level_score,
             gainreward, characters_code, 0);
-        
+
         UnlockEnemiesMet();
         LPU.EndAccounting();
     }
-    
+
     /// <summary>
     /// 关卡失败
     /// </summary>
@@ -767,17 +791,17 @@ public class LevelController : MonoBehaviour
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
         Speed_btn.gameObject.SetActive(false);
-        
+
         if (testificateMode) return;
-        
+
         UnlockEnemiesMet();
         LPU.EndAccounting();
-        
+
         GameObject failedCanvas = Instantiate(Resources.Load<GameObject>("UI/Failed_Canvas"));
         ChangeBGM(null);
         QuitUI();
     }
-    
+
     /// <summary>
     /// 处理奖励
     /// </summary>
@@ -788,24 +812,24 @@ public class LevelController : MonoBehaviour
         bool hasNewReward = false;
         var rewardList = LD.rewardlist;
         int rewardPenalty = PlayerPrefs.GetInt(UXPref.RewardPenalty, 0);
-        
+
         for (int i = 0; i < rewardList.Length; i++)
         {
             if (rewardList[i].onlyOnce && gainedReward) continue;
-            
+
             int gainTimes = CalculateRewardGainTimes(rewardList[i], rewardPenalty);
             if (gainTimes == 0) continue;
-            
+
             // 应用奖励惩罚
             if (rewardPenalty > 0 && !rewardList[i].onlyOnce)
             {
-                gainTimes = gainTimes * (PERCENTAGE_BASE - REWARD_PENALTY_MULTIPLIER * rewardPenalty) / PERCENTAGE_BASE;
+                gainTimes = Mathf.CeilToInt(gainTimes * (PERCENTAGE_BASE - Mathf.Pow((1-REWARD_PENALTY_MULTIPLIER), rewardPenalty)) / PERCENTAGE_BASE);
             }
-            
+
             // 发放奖励
             ApplyReward(rewardList[i], gainTimes);
             clearCanvas.AppendReward(rewardList[i].type, rewardList[i].id, gainTimes);
-            
+
             if (rewardList[i].onlyOnce)
             {
                 hasNewReward = true;
@@ -814,14 +838,14 @@ public class LevelController : MonoBehaviour
         PlayerPrefs.DeleteKey(UXPref.RewardPenalty);
         return hasNewReward;
     }
-    
+
     /// <summary>
     /// 计算奖励获得次数
     /// </summary>
     private int CalculateRewardGainTimes(Reward rewardInfo, int rewardPenalty)
     {
         int gainTimes = 0;
-        
+
         if (rewardInfo.droprate > GUARANTEED_DROP_THRESHOLD)
         {
             gainTimes = rewardInfo.drawtimes;
@@ -841,10 +865,10 @@ public class LevelController : MonoBehaviour
                 }
             }
         }
-        
+
         return gainTimes;
     }
-    
+
     /// <summary>
     /// 应用奖励
     /// </summary>
@@ -862,15 +886,14 @@ public class LevelController : MonoBehaviour
                 break;
         }
     }
-    
+
     /// <summary>
-    /// 检查是否有新奖励
-    /// </summary>
+    /// 检查是否有新奖�?    /// </summary>
     private bool HasNewReward()
     {
         GameProgressSave.SectionClearList sectionClearList = GameProgressSave.LoadSectionProgress(chapterName, sectionName);
         bool gainedReward = sectionClearList.reward_gained[levelNum];
-        
+
         foreach (var reward in LD.rewardlist)
         {
             if (reward.onlyOnce && !gainedReward)
@@ -878,30 +901,29 @@ public class LevelController : MonoBehaviour
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /// <summary>
-    /// 处理经验值
-    /// </summary>
+    /// 处理经验�?    /// </summary>
     private void ProcessExperience(GameObject clearCanvas)
     {
         GameProgressSave.SectionClearList sectionClearList = GameProgressSave.LoadSectionProgress(chapterName, sectionName);
         int studyPower = GenericSaveSystem.LoadData<int[]>(RewardingSystem.filename)[RewardingSystem.RewardNumMap[RewardName.Base_Study]];
-        
+
         float xpMultiplier = 1 + studyPower * STUDY_POWER_MULTIPLIER / STUDY_POWER_DIVISOR;
         int clearTimes = sectionClearList.clear_times[diff, levelNum];
         gain_XP = (int)(gain_XP * xpMultiplier) / (clearTimes + 1);
-        
+
         clearCanvas.transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>().text = gain_XP.ToString();
         RewardingSystem.GainReward(RewardName.XP, gain_XP);
     }
-    
+
     #endregion
 
     #region Deployment System - 部署系统
-    
+
     /// <summary>
     /// 设置猫单位部署器
     /// </summary>
@@ -909,7 +931,7 @@ public class LevelController : MonoBehaviour
     {
         SetupCatDeployersNormal();
     }
-    
+
     /// <summary>
     /// 设置猫单位部署器
     /// </summary>
@@ -918,23 +940,29 @@ public class LevelController : MonoBehaviour
         characters_code = SelectionsSave.GetRow(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0));
         int[] proficiencyLevels = LPU.SetUp(characters_code);
         int teamProficiencyBonus = CalculateTeamProficiencyBonus(proficiencyLevels);
-        
-        // 设置主要部署器
+        RefreshTeamRestrictionState();
+
+        // 设置主要部署�?
         for (int i = 0; i < MAIN_DEPLOYER_COUNT; i++)
         {
             UnitDeployer deployer = Deployers.GetChild(i).GetComponent<UnitDeployer>();
             string code = characters_code[i];
-            deployer.SetupDeployer(code, treasureCount, proficiencyLevels[i], teamProficiencyBonus);
-            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, false);
+            deployer.SetupDeployer(
+                code,
+                treasureCount,
+                proficiencyLevels[i],
+                teamProficiencyBonus,
+                GetDeploymentLevel(code),
+                GetDeploymentCostMultiplier(code));
+            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, false, ShouldLockAllCatsByRestriction());
         }
-        
-        // 设置访客部署器
+
+        // 设置访客部署      
         SetupGuestDeployersNormal(proficiencyLevels, teamProficiencyBonus);
     }
-    
+
     /// <summary>
-    /// 设置嘉宾部署器
-    /// </summary>
+    /// 设置嘉宾部署�?    /// </summary>
     protected void SetupGuestDeployersNormal(int[] proficiencyLevels, int teamProficiencyBonus)
     {
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
@@ -945,14 +973,20 @@ public class LevelController : MonoBehaviour
                 GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(false);
                 continue;
             }
-            
+
             UnitDeployer deployer = GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).GetComponent<UnitDeployer>();
             string code = characters_code[i];
-            deployer.SetupDeployer(code, treasureCount, proficiencyLevels[i], teamProficiencyBonus);
-            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, true);
+            deployer.SetupDeployer(
+                code,
+                treasureCount,
+                proficiencyLevels[i],
+                teamProficiencyBonus,
+                GetDeploymentLevel(code),
+                GetDeploymentCostMultiplier(code));
+            LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, true, ShouldLockAllCatsByRestriction());
         }
     }
-    
+
     /// <summary>
     /// 加载角色数据
     /// </summary>
@@ -969,10 +1003,9 @@ public class LevelController : MonoBehaviour
             return null;
         }
     }
-    
+
     /// <summary>
-    /// 计算团队熟练度加成
-    /// </summary>
+    /// 计算团队熟练度加�?    /// </summary>
     protected int CalculateTeamProficiencyBonus(int[] proficiencyLevels)
     {
         int bonus = 0;
@@ -985,66 +1018,81 @@ public class LevelController : MonoBehaviour
         }
         return bonus;
     }
-    
-    /// <summary>
-    /// 设置敌人召唤器
-    /// </summary>
+
     private void SetupEnemySummoner()
     {
+        if (LD == null || LD.enemySummoners == null) return;
         for (int i = 0; i < LD.enemySummoners.Length; i++)
         {
             int healthPercentage = LD.enemySummoners[i].HealthPercentageOnBreak;
             LevelEnemySummoner enemySummoner = gameObject.AddComponent<LevelEnemySummoner>();
-            enemySummoner.SetBase(dogeBase);
-            enemySummoner.SetupEnemyDeployer(healthPercentage, LD.enemySummoners[i].enemySummonInfos);
+            ConfigureEnemySummoner(enemySummoner, healthPercentage, LD.enemySummoners[i].enemySummonInfos);
             enemySummoner.SetChangeBGM(LD.enemySummoners[i].bgm);
         }
     }
-    
+
+        protected virtual void ConfigureEnemySummoner(LevelEnemySummoner enemySummoner, int healthPercentage, EnemySummonInfo[] enemySummonInfos)
+    {
+        if (enemySummoner == null) return;
+        if (dogeBase == null) dogeBase = GameObject.Find("DogeBase");
+        if (dogeBase == null)
+        {
+            Debug.LogError("[LevelController] DogeBase not found. Enemy summoner setup skipped.");
+            enemySummoner.enabled = false;
+            return;
+        }
+        enemySummoner.SetBase(dogeBase);
+        enemySummoner.ApplyLevelRestrictions(levelRestrictions);
+        enemySummoner.SetupEnemyDeployer(healthPercentage, enemySummonInfos);
+    }
+
+    public bool CanDeployACat()
+    {
+        return catDeployed < maxCatDeploy;
+    }
+
     /// <summary>
     /// 部署一只猫
     /// </summary>
     public bool DeployACat()
     {
-        if (catDeployed >= maxCatDeploy) return false;
-        
+        if (!CanDeployACat()) return false;
+
         catDeployed++;
         Debug.Log($"Current Cats: {catDeployed} / {maxCatDeploy}");
         MaxDeployed.SetActive(catDeployed >= maxCatDeploy);
         return true;
     }
-    
+
     /// <summary>
-    /// 部署一个敌人
-    /// </summary>
+    /// 部署一个敌�?    /// </summary>
     public bool DeployAnEnemy()
     {
         if (enemyDeployed >= maxEnemyDeploy) return false;
-        
+
         enemyDeployed++;
         Debug.Log($"Current Enemies: {enemyDeployed} / {maxEnemyDeploy}");
         return true;
     }
-    
+
     /// <summary>
     /// 移除一只猫
     /// </summary>
     public void RemoveACat()
     {
-        MaxDeployed.SetActive(false);
-        catDeployed--;
-        Debug.Log($"Cat Remove: {catDeployed+1} - 1.");
+        catDeployed = Mathf.Max(0, catDeployed - 1);
+        MaxDeployed.SetActive(catDeployed >= maxCatDeploy);
+        Debug.Log($"Current Cats: {catDeployed} / {maxCatDeploy}");
     }
-    
+
     /// <summary>
-    /// 移除一个敌人
-    /// </summary>
+    /// 移除一个敌�?    /// </summary>
     public void RemoveAnEnemy()
     {
-        enemyDeployed--;
-        Debug.Log($"Enemy Remove: {enemyDeployed + 1} - 1.");
+        enemyDeployed = Mathf.Max(0, enemyDeployed - 1);
+        Debug.Log($"Current Enemies: {enemyDeployed} / {maxEnemyDeploy}");
     }
-    
+
     /// <summary>
     /// 设置Boss锁定
     /// </summary>
@@ -1052,11 +1100,11 @@ public class LevelController : MonoBehaviour
     {
         dogeBase.GetComponent<DogeBase>().bossLock = true;
     }
-    
+
     #endregion
 
     #region Utility Methods
-    
+
     /// <summary>
     /// 退出UI动画
     /// </summary>
@@ -1064,14 +1112,13 @@ public class LevelController : MonoBehaviour
     {
         GameObject.Find("UI Canvas").GetComponent<Animator>().enabled = true;
     }
-    
+
     /// <summary>
-    /// 解锁遇到的敌人
-    /// </summary>
+    /// 解锁遇到的敌�?    /// </summary>
     public void UnlockEnemiesMet()
     {
         if (LD == null) return;
-        
+
         for (int i = 0; i < LD.enemySummoners.Length; i++)
         {
             for (int j = 0; j < LD.enemySummoners[i].enemySummonInfos.Length; j++)
@@ -1082,13 +1129,13 @@ public class LevelController : MonoBehaviour
             }
         }
     }
-    
+
     #endregion
 
     #region Proficency System Methods
-    
+
     /// <summary>
-    /// 记录角色部署
+    /// On character deployed, record proficiency progress 0 for that character. 
     /// </summary>
     public void RecordProficency_Deploy(string code)
     {
@@ -1097,10 +1144,10 @@ public class LevelController : MonoBehaviour
             LPU.Record_CharacterDeploy(code);
         }
     }
-    
+
     /// <summary>
-    /// 记录角色造成的伤害
-    /// </summary>
+    /// On character attack, record proficiency progress 1 for that character.     
+    /// /// </summary>
     public void RecordProficency_DamageDealt(string code, int dmg)
     {
         if (!disable_controll)
@@ -1108,10 +1155,10 @@ public class LevelController : MonoBehaviour
             LPU.Record_CharacterDamageDealt(code, dmg);
         }
     }
-    
+
     /// <summary>
-    /// 记录角色受到的伤害
-    /// </summary>
+    /// On character under attacked, record proficiency progress 2 for that character. 
+    /// /// </summary>
     public void RecordProficency_DamageTaken(string code, int dmg)
     {
         if (!disable_controll)
@@ -1119,10 +1166,10 @@ public class LevelController : MonoBehaviour
             LPU.Record_CharacterDamageTaken(code, dmg);
         }
     }
-    
+
     /// <summary>
-    /// 记录角色受到的减益效果
-    /// </summary>
+    /// On character suffers debuff, record proficiency progress 3 for that character.     
+    /// /// </summary>
     public void RecordProficency_DebuffSuffered(string code, int t)
     {
         if (!disable_controll)
@@ -1130,6 +1177,8 @@ public class LevelController : MonoBehaviour
             LPU.Record_CharacterDebuffSuffered(code, t);
         }
     }
-    
+
     #endregion
 }
+
+
