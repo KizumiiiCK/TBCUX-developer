@@ -61,7 +61,6 @@ public abstract partial class Character : MonoBehaviour
     protected bool onKB = false;
     protected bool onATK = false;
     protected bool onCurse = false;
-    protected bool onDodge = false;
     private bool cancelAttackStartRequested = false;
     private bool undetectableByTargeting = false;
     private bool canTargetUndetectable = false;

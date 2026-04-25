@@ -17,7 +17,6 @@ MonoBehaviour:
   BaseHealth: 186000
   mapSize: 5400
   maxEmenyCount: 10
-  maxCatCount: 50
   BackgroundID: 58
   BaseImageID: 23
   CombatEffect: []
@@ -43,7 +42,7 @@ MonoBehaviour:
     onlyOnce: 1
   - type: 1
     id: 12
-    drawtimes: 5
+    drawtimes: 500
     droprate: 100
     onlyOnce: 1
   - type: 1

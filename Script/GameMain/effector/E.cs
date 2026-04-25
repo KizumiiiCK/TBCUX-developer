@@ -45,6 +45,7 @@ public abstract class E : MonoBehaviour
             case EffectName.slow: en = "slow"; break;
             case EffectName.stop: en = "stop"; break;
             case EffectName.curse: en = "curse"; break;
+            case EffectName.toxic: en = "toxic"; break;
             case EffectName.lacerate: en = "lacerate"; break; 
             default: break;
         }
@@ -70,17 +71,17 @@ public abstract class E : MonoBehaviour
             }
         }
 
-        GameObject eff = Resources.Load<GameObject>($"Effects/{effectVisualName}");
-        try
-        {
-            EFF = Instantiate(eff, pos, Quaternion.identity).transform;
-            EFF.SetParent(etarget.transform);
-            pooledEffectVisual = false;
-        }
-        catch
-        {
-            Debug.LogError($"Error loading eff {effectName}");
-        }
+        //GameObject eff = Resources.Load<GameObject>($"Effects/{effectVisualName}");
+        //try
+        //{
+        //    EFF = Instantiate(eff, pos, Quaternion.identity).transform;
+        //    EFF.SetParent(etarget.transform);
+        //    pooledEffectVisual = false;
+        //}
+        //catch
+        //{
+        //    Debug.LogError($"Error loading eff {effectName}");
+        //}
     }
     protected void OnDestroy()
     {

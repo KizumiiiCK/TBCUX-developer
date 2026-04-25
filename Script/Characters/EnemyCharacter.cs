@@ -86,7 +86,6 @@ public class EnemyCharacter : AnimatorCachedCharacter
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         if(onKB) return;
-        if (onDodge) return;
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         if (atkTypes != null) foreach (var ar in atkTypeResis)
         {

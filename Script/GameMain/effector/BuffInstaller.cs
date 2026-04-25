@@ -41,6 +41,12 @@ public class EffectInstaller : MonoBehaviour
                 else slw = target.AddComponent<Slow>();
                 slw.duration = _duration;
                 break;
+            case EffectName.toxic:
+                Toxic txc;
+                if (target.GetComponent<Toxic>() != null) txc = target.GetComponent<Toxic>();
+                else txc = target.AddComponent<Toxic>();
+                txc.duration = _duration;
+                break;
             case EffectName.knockback:
                 target.GetComponent<Character>().StartKBCoroutine(KB_Type.knockBack, 240 * duration);
                 break;
@@ -58,12 +64,6 @@ public class EffectInstaller : MonoBehaviour
                 if (target.GetComponent<Curse>() != null) crs = target.GetComponent<Curse>();
                 else crs = target.AddComponent<Curse>();
                 crs.duration = _duration;
-                break;
-            case EffectName.dodge:
-                Dodge dod;
-                if (target.GetComponent<Dodge>() != null) dod = target.GetComponent<Dodge>();
-                else dod = target.AddComponent<Dodge>();
-                dod.duration = _duration;
                 break;
             case EffectName.lacerate:
                 Lacerate lac;

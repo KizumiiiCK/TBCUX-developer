@@ -31,6 +31,9 @@ public static class AbilityInstaller
         { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
         { AbilityName.ZombieRevive, typeof(ZombieReviveAddon)},
         { AbilityName.invisible, typeof(Aux_InvisibleShow)},
+        { AbilityName.dodge, typeof(DodgePassive)},
+        { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
+        { AbilityName.Aux_MinDMGBlock, typeof(Aux_MinDMGBlock)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -327,7 +330,7 @@ public class Surge : PassiveSkill
     {
         if (Triggered())
         {
-            int surge_distance = UnityEngine.Random.Range(0, intensity);
+            int surge_distance = UnityEngine.Random.Range(intensity/2, intensity);
             character.Surge_Attack(duration, false, surge_distance, dmg, ces, types);
         }
     }
@@ -358,7 +361,7 @@ public class WaveStop : PassiveSkill
 }
 public class MaxShield : PassiveSkill
 {
-    private float damageLimit=int.MaxValue;
+    private float damageLimit = int.MaxValue;
     public override void OnDeployUnit(Character character)
     {
         damageLimit = character.GetMaxHealth() * probability / 100f;
@@ -366,6 +369,24 @@ public class MaxShield : PassiveSkill
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         if (DMG > damageLimit) DMG = damageLimit;
+    }
+}
+
+public class Aux_MaxDMGBlock : PassiveSkill
+{
+    /// <summary>若单次伤害高于 intensity（D-阈值），该次伤害无效。</summary>
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (DMG > intensity) DMG = 0;
+    }
+}
+
+public class Aux_MinDMGBlock : PassiveSkill
+{
+    /// <summary>若单次伤害低于 intensity（D+阈值），该次伤害无效。</summary>
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (DMG < intensity) DMG = 0;
     }
 }
 public class ATK_Buffer : PassiveSkill
@@ -713,6 +734,43 @@ public class ZombieReviveAddon : PassiveSkill
             playSound: false);
     }
 
+}
+
+public class DodgePassive : PassiveSkill
+{
+    private bool invulnerable;
+    private Coroutine invulnRoutine;
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null) return;
+        if (invulnerable)
+        {
+            DMG = 0f;
+            return;
+        }
+        if (!Triggered()) return;
+        DMG = 0f;
+        if (invulnRoutine != null)
+        {
+            character.StopCoroutine(invulnRoutine);
+            invulnRoutine = null;
+        }
+        invulnRoutine = character.StartCoroutine(InvulnerableWindowRoutine(character));
+    }
+
+    private IEnumerator InvulnerableWindowRoutine(Character character)
+    {
+        invulnerable = true;
+        int frames = Mathf.Max(1, duration);
+        for (int i = 0; i < frames; i++)
+        {
+            if (character == null) break;
+            yield return new WaitForFixedUpdate();
+        }
+        invulnerable = false;
+        invulnRoutine = null;
+    }
 }
 
 public class Aux_InvisibleShow : PassiveSkill

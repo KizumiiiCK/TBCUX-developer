@@ -123,7 +123,6 @@ public class UnitDeployer : MonoBehaviour
         if (proficency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
         if (proficency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
         if (proficency > 2) { CD.Cost = CD.Cost * 9 / 10; unitCost = CD.Cost; }
-        LevelRestrictionHelper.ApplyCharacterDataRestrictions(LI != null ? LI.LevelRestrictions : null, CD, treasure_count, lvl, 1f);
         CD.Cost = unitCost;
         cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
         cachedDeployAvailable = false;

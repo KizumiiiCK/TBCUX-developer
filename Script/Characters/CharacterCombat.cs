@@ -27,7 +27,6 @@ public abstract partial class Character
         float sf = GetFactor();
         foreach (var ce in characterEffects)
         {
-            if(ce.name==EffectName.dodge) continue;
             if (Random.Range(0, 100) < ce.probability * sf)
                 list.Add(ce);
         }
@@ -247,7 +246,6 @@ public abstract partial class Character
         int d1 = duration * 2 / 3;
         int d2 = duration - d1;
         BlockAnimationSwitch = false;
-        // 不再需要禁用碰撞箱
         onKB = true; onATK = false;
         SetAttackRange(0, DetectionRange);
         SwitchAnimation(3);
@@ -266,7 +264,7 @@ public abstract partial class Character
             float deltaY = i <= d1
                 ? (speedY - (speedY * i / (d1 / 2))) * Time.deltaTime
                 : (speedY - (speedY * (i - d1) / (d2 / 2))) * Time.deltaTime;
-            float lerpX = Mathf.Lerp(transform.position.x, targetX, 0.05f);
+            float lerpX = Mathf.Lerp(transform.position.x, targetX, lerptime);
             transform.position = new Vector2(lerpX, transform.position.y + deltaY);
             if (i <= d1) SwitchAnimation(3);
             if (i == duration - 1)
@@ -292,23 +290,23 @@ public abstract partial class Character
     {
         //Under attacked
         //EM.InstantiateEffect(SEnums.bite, transform.position.x);
-        if (types==null||types.Count == 0) EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y);
+        if (types == null || types.Count == 0) EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y);
         else foreach (var t in types)
+        {
+            switch (t)
             {
-                switch (t)
-                {
-                    case AttackType.baseCannon: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
-                    case AttackType.none: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
-                    case AttackType.wave: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
-                    case AttackType.surge: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
-                    case AttackType.wave_invalid: EM.InstantiateBattleObject(SEnums.wave_invalid, transform.position.x, transform.position.y); break;
-                    case AttackType.invalid: EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y); break;
-                    case AttackType.critical: EM.InstantiateBattleObject(SEnums.critical, transform.position.x, transform.position.y); break;
-                    case AttackType.savage: EM.InstantiateBattleObject(SEnums.savage, transform.position.x, transform.position.y); break;
-                    case AttackType.zombieKiller: break;
-                    default: break;
-                }
+                case AttackType.baseCannon: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
+                case AttackType.none: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
+                case AttackType.wave: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
+                case AttackType.surge: EM.InstantiateBattleObject(SEnums.bite, transform.position.x, transform.position.y); break;
+                case AttackType.wave_invalid: EM.InstantiateBattleObject(SEnums.wave_invalid, transform.position.x, transform.position.y); break;
+                case AttackType.invalid: EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y); break;
+                case AttackType.critical: EM.InstantiateBattleObject(SEnums.critical, transform.position.x, transform.position.y); break;
+                case AttackType.savage: EM.InstantiateBattleObject(SEnums.savage, transform.position.x, transform.position.y); break;
+                case AttackType.zombieKiller: break;
+                default: break;
             }
+        }
     }
     public virtual void SetAttackRange(float near, float far) { }
     public virtual void DMG_DREeffects(ref float DMG, DamageRelatedEffect dre) { }
@@ -350,7 +348,6 @@ public abstract partial class Character
     public float TBCspeedTranslator(int spd) => spd / 10f;
     public void ChangeSpeed(int spd) => realSpeed = spd;
     public void SetCurseStatus(bool curse) => onCurse = curse;
-    public void SetDodgeStatus(bool dodge)=>onDodge = dodge;
     public float GetHealth() => realHealth;
     public float GetMaxHealth()=>maxHealth;
     public void SetHealth(int rh)=>realHealth = rh;

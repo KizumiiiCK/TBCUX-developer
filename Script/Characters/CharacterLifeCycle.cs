@@ -115,6 +115,7 @@ public abstract partial class Character
         if(!IsCat()&&traits.Mtl) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.metal});
         foreach (var ca in characterAbilities) AbilityInstaller.Install(this, ca);
     }
+
     public void SwitchAnimation(int index) {
         if (BlockAnimationSwitch) return;
         if (UNITYAnimated){ animator.SetInteger("state", index);}

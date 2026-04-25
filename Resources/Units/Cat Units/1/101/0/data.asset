@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 1
   ATKType: 00000000
   atkInfos:
-  - ATK: 500
+  - ATK: 625
     frame: 20
     DoNotTriggerEffects: 0
     Friendly: 0
@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 3000
   Cooldown: 1936
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -42,12 +43,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0

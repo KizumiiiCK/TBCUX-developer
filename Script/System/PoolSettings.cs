@@ -82,7 +82,7 @@ public static class PoolInfo
     //
     public static readonly bool test_free = false;//
     private const int duration_DEFAULT=4;
-    private const int cycle_DEFAULT = duration_DEFAULT * 4;
+    private const int cycle_DEFAULT = duration_DEFAULT * 6;
     private static readonly float[] droprate_DEFAULT = new float[7] { 0, 0, 0.695f, 0.25f, 0.05f, 0.005f,0 };
     //
     private static readonly int[] Regular_Rares = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
@@ -272,6 +272,98 @@ public static class PoolInfo
 
         new Pool()
         {
+            pool_name="iron",
+            pool_start_delay = duration_DEFAULT * 4,
+            pool_cycle_period=cycle_DEFAULT,
+            pool_duration=duration_DEFAULT,
+            gold_capsule=true,
+            cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+            cost_amount=new int[2]{ 1, 1500 },
+            draw_times=new int[2]{ 1, 11},
+            dropRates=droprate_DEFAULT,
+            dropUnits=new List<int[]>()
+            {
+                /* N     */null,
+                /* EX    */null,
+                /* R     */Regular_Rares,
+                /* SR    */Regular_Superrares,
+                /* UR    */new int[] {120,121,122,123,124,125,126,127,128,129 },
+                /* LR    */new int[] {0 },
+                /* G     */null
+            }
+        }, // Iron Leagon
+
+        new Pool()
+        {
+            pool_name="monstergals",
+            pool_start_delay = duration_DEFAULT * 4,
+            pool_cycle_period=cycle_DEFAULT,
+            pool_duration=duration_DEFAULT,
+            gold_capsule=true,
+            cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+            cost_amount=new int[2]{ 1, 1500 },
+            draw_times=new int[2]{ 1, 11},
+            dropRates=droprate_DEFAULT,
+            dropUnits=new List<int[]>()
+            {
+                /* N     */null,
+                /* EX    */null,
+                /* R     */Regular_Rares,
+                /* SR    */Regular_Superrares,
+                /* UR    */new int[] {135,136,137,138,139,140,141,142 },
+                /* LR    */new int[] {0 },
+                /* G     */null
+            }
+        }, // MonsterGals
+
+        new Pool()
+        {
+            pool_name="sprites",
+            pool_start_delay = duration_DEFAULT * 5,
+            pool_cycle_period=cycle_DEFAULT,
+            pool_duration=duration_DEFAULT,
+            gold_capsule=true,
+            cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+            cost_amount=new int[2]{ 1, 1500 },
+            draw_times=new int[2]{ 1, 11},
+            dropRates=droprate_DEFAULT,
+            dropUnits=new List<int[]>()
+            {
+                /* N     */null,
+                /* EX    */null,
+                /* R     */Regular_Rares,
+                /* SR    */Regular_Superrares,
+                /* UR    */new int[] {145,146,147,148,149,150,151,152 },
+                /* LR    */new int[] {0 },
+                /* G     */null
+            }
+        }, // Sprites
+
+        //new Pool()
+        //{
+        //    pool_name="madoka",
+        //    pool_start_delay = duration_DEFAULT * 5,
+        //    pool_cycle_period=cycle_DEFAULT,
+        //    pool_duration=duration_DEFAULT,
+        //    gold_capsule=true,
+        //    cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+        //    cost_amount=new int[2]{ 1, 1500 },
+        //    draw_times=new int[2]{ 1, 11},
+        //    dropRates=droprate_DEFAULT,
+        //    dropUnits=new List<int[]>()
+        //    {
+        //        /* N     */null,
+        //        /* EX    */null,
+        //        /* R     */Regular_Rares,
+        //        /* SR    */Regular_Superrares,
+        //        /* UR    */new int[] {105,106,107,108,109,110,111,112,113,114 },
+        //        /* LR    */new int[] {0 },
+        //        /* G     */null
+        //    }
+        //}, // Madoka
+
+        new Pool()
+        {
             pool_name="platinum",
             pool_start_delay = 0,
             pool_cycle_period=-1,
@@ -288,14 +380,17 @@ public static class PoolInfo
                 /* R     */null,
                 /* SR    */null,
                 /* UR    */new int[] {
-                               0, 1, 2, 3,/*4,*/5, 6,/*7,*/8, 9/*,10*/,
-                               15,16,17,18,19,20,21,22,23/*,24*/,25,
-                               30,31,32,33,34,35,36,37,38,39/*,40*/,
-                               45,46,47,48,49,50,51,52,53,54/*,55*/,
-                               60,61,62,63,64,65,66,67,/*68,*/69/*,70*/,
-                               75,76,77,78,79,80,81,82,83,84,
-                               90,91,92,93,/*94,*/95,96,97,98,99,/*100,*/
-                               105,106,107,108,109,110,111,112,113,114},
+                           0, 1, 2, 3,/*4,*/5, 6,/*7,*/8, 9/*,10*/,
+                           15,16,17,18,19,20,21,22,23/*,24*/,25,
+                           30,31,32,33,34,35,36,37,38,39/*,40*/,
+                           45,46,47,48,49,50,51,52,53,54/*,55*/,
+                           60,61,62,63,64,65,66,67,/*68,*/69/*,70*/,
+                           75,76,77,78,79,80,81,82,83,84,
+                           90,91,92,93,/*94,*/95,96,97,98,99,/*100,*/
+                           105,106,107,108,109,110,111,112,113,114,
+                           120,121,122,123,124,125,126,127,128,129,
+                           135,136,137,138,139,140,141,142,
+                           145,146,147,148,149,150,151,152},
                 /* LR    */new int[] {0,1,2,3,4,5,6,7 },
                 /* G     */null
             }

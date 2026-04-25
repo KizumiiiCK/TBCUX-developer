@@ -43,12 +43,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 1
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -72,11 +66,11 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects:
-  - name: 8
+  characterEffects: []
+  abilities:
+  - name: 38
     probability: 20
     duration: 30
     intensity: 0
-  abilities: []
   atkTypeResis: []
   effectResistances: []

@@ -1,0 +1,913 @@
+fileFormatVersion: 2
+guid: 3a31999bd25f5884f9d57531ee046024
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: statue_shita
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 432
+        width: 243
+        height: 177
+      alignment: 9
+      pivot: {x: 0.13152494, y: 0.6217457}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: afba255d74ff5ee4fb9ce70a14c7dfc9
+      internalID: 1799896503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_body
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 443
+        width: 96
+        height: 166
+      alignment: 9
+      pivot: {x: 0.5424385, y: 0.3113854}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bad23cd6f1d928d439ba8615161eaa67
+      internalID: 41578342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_arm_R_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 335
+        width: 45
+        height: 95
+      alignment: 9
+      pivot: {x: 0.5071264, y: 0.8375646}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0fdc496d71b2dca479e56260a1c714e1
+      internalID: 682294758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_arm_R_1
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 332
+        width: 40
+        height: 100
+      alignment: 9
+      pivot: {x: 0.5561203, y: 0.9136853}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 05209f3f00eb08c439c95b96f9319635
+      internalID: 739500152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_arm_L_0
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 372
+        width: 75
+        height: 58
+      alignment: 9
+      pivot: {x: 0.22207204, y: 0.74880826}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: baedce55c7d0fa64cbb7b46ee5eb5bd3
+      internalID: 402980945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_arm_L_1
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 309
+        width: 29
+        height: 63
+      alignment: 9
+      pivot: {x: 0.278837, y: 0.124195576}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a66e6180d355b5841a618ce0cbaa4867
+      internalID: -452057610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hand_0
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 321
+        width: 17
+        height: 49
+      alignment: 9
+      pivot: {x: 0.40712962, y: 0.12050769}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3dae30460dc5d2646ab3c694781bcdb2
+      internalID: 948068094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hand_release
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 318
+        width: 29
+        height: 54
+      alignment: 9
+      pivot: {x: 0.31247634, y: 0.113412924}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9077b76a241105246a2b5a168e246b96
+      internalID: 1620058593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_neck
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 293
+        width: 24
+        height: 36
+      alignment: 9
+      pivot: {x: 0.53369266, y: 0.29784477}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8eff97320a3c37541a708f6cc393ecd4
+      internalID: -520949911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_head
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 209
+        width: 82
+        height: 78
+      alignment: 9
+      pivot: {x: 0.76625323, y: 0.27451912}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88597690ba431db44b0836274f368f01
+      internalID: -723334845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_ear
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 281
+        width: 38
+        height: 37
+      alignment: 9
+      pivot: {x: 0.7776188, y: 0.66268754}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6eb96ca77f003074782ed038dfc3a522
+      internalID: 2071166055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hair_0
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 276
+        width: 70
+        height: 155
+      alignment: 9
+      pivot: {x: 0.4999998, y: 0.91776496}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39eb91e227ce68f4ea3ac8b5f010b02b
+      internalID: -1767911508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hair_1
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 279
+        width: 88
+        height: 163
+      alignment: 9
+      pivot: {x: 0.58441126, y: 0.9383069}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5acb2bf2d3ef2f443b31eaf09c6cf8ba
+      internalID: 648577370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_stair
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 188
+        width: 108
+        height: 87
+      alignment: 9
+      pivot: {x: 0.52805907, y: 0.11187358}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f1b7997fae3605c46af3fbe21ccc1f9d
+      internalID: 1839314150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_0
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 169
+        width: 196
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37f51e3dd8b43b14c82a4852503a1e17
+      internalID: 1208644611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hair_front
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 221
+        width: 39
+        height: 85
+      alignment: 9
+      pivot: {x: 0.1601363, y: 0.93706447}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8926fdf1ca5b90e4392c16d6195623e7
+      internalID: 1361647290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_hair_back
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 246
+        width: 16
+        height: 60
+      alignment: 9
+      pivot: {x: 0.581676, y: 0.84888846}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 76e54e1c2a4552f43bcadea8b9af1264
+      internalID: 54887269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: statue_cloth_wipe_back
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 289
+        width: 53
+        height: 41
+      alignment: 9
+      pivot: {x: 0.1628966, y: 0.69041926}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 11ac072bdf7c5ee448315ec61363cebc
+      internalID: 828261477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_clock
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 188
+        width: 470
+        height: 422
+      alignment: 9
+      pivot: {x: 0.5210332, y: 0.0793775}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e113138a5db33a74b9ec44b4ad0acd36
+      internalID: 687139558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_sign
+      rect:
+        serializedVersion: 2
+        x: 771
+        y: 11
+        width: 125
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0f6dd5f01e07b7b438792f41aa1bb5c5
+      internalID: 1605663660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_pillar
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 3
+        width: 383
+        height: 174
+      alignment: 4
+      pivot: {x: 0, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d14900819cbf06b4da2d9be1615f0723
+      internalID: -1604235089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_clock_pointer_hour
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 104
+        width: 104
+        height: 35
+      alignment: 9
+      pivot: {x: 0.19665211, y: 0.5191777}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50d48ce72aa4e34489c7ca4d36fcff11
+      internalID: -380504976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_clock_pointer_min
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 70
+        width: 129
+        height: 28
+      alignment: 9
+      pivot: {x: 0.10714379, y: 0.48801285}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b5cc6d4c4d0080e499df0b7b878839ac
+      internalID: 131516198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_R_0
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 435
+        width: 75
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a22b0e8cc88d5543b0c021e7a1a8dbf
+      internalID: -2112565700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_R_1
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 301
+        width: 54
+        height: 134
+      alignment: 9
+      pivot: {x: 0.4661272, y: 0.15874538}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50e9eb9e4765a714ea8fdc1aeac82af1
+      internalID: 433962941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_R_2
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 409
+        width: 43
+        height: 198
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 203ebe57c51e84247a9dba7c585d983e
+      internalID: -1342796784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_R_3
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 352
+        width: 70
+        height: 257
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f0f856dfaba52404a8926546163a21a2
+      internalID: 382672130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_L_3
+      rect:
+        serializedVersion: 2
+        x: 447
+        y: 216
+        width: 65
+        height: 131
+      alignment: 9
+      pivot: {x: 0.45869234, y: 0.069588}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6dd4471639e12d64fae4afa6294d38d1
+      internalID: 1744816796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_L_0
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 33
+        width: 52
+        height: 106
+      alignment: 9
+      pivot: {x: 0.3257361, y: 0.8894449}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ca09446ebda0e547b9595abccf2e89e
+      internalID: 1596800957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_clock_spike
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 20
+        width: 118
+        height: 46
+      alignment: 9
+      pivot: {x: 0.057864722, y: 0.49270457}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8326c0ddbdf4a3c4b83d984f2d03fc1e
+      internalID: -73660178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_L_1
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 24
+        width: 98
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d2f1532981532a46995c9ea3a5a44c7
+      internalID: -620958956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_L_2
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 37
+        width: 82
+        height: 130
+      alignment: 9
+      pivot: {x: 0.6678095, y: 0.53614354}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c4bef65ff68b374eb6c1ec740969e15
+      internalID: -1938214112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: base_crys_L_4
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 143
+        width: 189
+        height: 40
+      alignment: 4
+      pivot: {x: 0, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b8d76a21d2171149940bb7c7db3755a
+      internalID: -227616388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: slash_wave
+      rect:
+        serializedVersion: 2
+        x: 898
+        y: 2
+        width: 102
+        height: 183
+      alignment: 8
+      pivot: {x: 1, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: debca0e2fd4a26a4d83fca93bfc9ed08
+      internalID: -887879732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: slash_ground
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 183
+        width: 90
+        height: 29
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a792df23fdce8e045a8685ee492c0b85
+      internalID: 1542184872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      base_0: 1208644611
+      base_clock: 687139558
+      base_clock_pointer_hour: -380504976
+      base_clock_pointer_min: 131516198
+      base_clock_spike: -73660178
+      base_crys_L_0: 2016652253
+      base_crys_L_1: -620958956
+      base_crys_L_2: -1938214112
+      base_crys_L_3: 1744816796
+      base_crys_L_4: -227616388
+      base_crys_R_0: -2112565700
+      base_crys_R_1: 433962941
+      base_crys_R_2: -1342796784
+      base_crys_R_3: 382672130
+      base_pillar: -1604235089
+      base_sign: 1605663660
+      base_stair: 1839314150
+      slash_ground: 1542184872
+      slash_wave: -887879732
+      sprite_2: 295694257
+      sprite_3: 534455094
+      sprite_4: -1217387560
+      statue_arm_L_0: 402980945
+      statue_arm_L_1: -452057610
+      statue_arm_R_0: 682294758
+      statue_arm_R_1: 739500152
+      statue_body: 41578342
+      statue_cloth_wipe_back: 828261477
+      statue_ear: 2071166055
+      statue_hair_0: -1767911508
+      statue_hair_1: 648577370
+      statue_hair_back: 54887269
+      statue_hair_front: 1361647290
+      statue_hand_0: 948068094
+      statue_hand_release: 1620058593
+      statue_head: -723334845
+      statue_neck: -520949911
+      statue_shita: 1799896503
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
