@@ -75,7 +75,7 @@ public static class BGMTool
         { "World_II", "002" },
         { "World_III", "002" },
         { "LEGEND", "000" },
-        { "Dream_Pre", "KillingMeorKissingMe" },
+        { "Dream_Pre", "lilytales-title" },
         { "Dungeon", "HazeReverb-43-antinova" },
     };
 }

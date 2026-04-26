@@ -237,10 +237,10 @@ public abstract partial class Character
         float speedY = 9;
         switch (kbt)
         {
-            case KB_Type.none: duration = 24; DX = 350; speedY = 9; break;
+            case KB_Type.none: duration = 24; DX = 400; speedY = 9; break;
             case KB_Type.knockBack: duration = 15; speedY = 0; break;
             case KB_Type.pushBack: duration = 12; DX = 60; speedY = 4; break;
-            case KB_Type.bossShock: duration = Speed == 0 ? 0 : 45; DX = Speed == 0 ? 0 : 700; speedY = Speed == 0 ? 0 : 9; break;
+            case KB_Type.bossShock: duration = realSpeed == 0 ? 0 : 45; DX = realSpeed == 0 ? 0 : 700; speedY = realSpeed == 0 ? 0 : 9; break;
             default: break;
         }
         int d1 = duration * 2 / 3;
@@ -258,7 +258,7 @@ public abstract partial class Character
 
         int sign = gameObject.CompareTag("Cat") ? 1 : -1;
         float targetX = transform.position.x + sign * (DX / 100f);
-        float lerptime = 1 / duration;
+        float lerptime = 1 / (float)duration;
         for (int i = 0; i < duration; i++)
         {
             float deltaY = i <= d1
