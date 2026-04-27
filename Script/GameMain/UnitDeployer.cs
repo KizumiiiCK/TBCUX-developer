@@ -122,7 +122,7 @@ public class UnitDeployer : MonoBehaviour
         SetProficiencyMark(proficency);
         if (proficency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
         if (proficency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
-        if (proficency > 2) { CD.Cost = CD.Cost * 9 / 10; unitCost = CD.Cost; }
+        if (proficency > 2) { CD.Cost = CD.Cost * 93 / 100; unitCost = CD.Cost; }
         CD.Cost = unitCost;
         cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
         cachedDeployAvailable = false;

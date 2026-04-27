@@ -24,8 +24,8 @@ public class ProjectileUnit : AnimatorCachedCharacter
         projectileSpeed = Mathf.Max(1, speed);
         triggerEffectThisAttack = notTriggerEffect;
 
-        // Make sure projectile follows source camp.
-        // gameObject.tag = source.IsCat() ? "Cat" : "Enemy";
+        // IsCat() is CompareTag("Cat"); prefab tag must match source or RegisterProjectile picks wrong pool/base.
+        gameObject.tag = source.IsCat() ? "Cat" : "Enemy";
 
         // Copy key battle properties from source.
         Health = 1;

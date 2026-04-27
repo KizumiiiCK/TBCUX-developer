@@ -28,16 +28,18 @@ public class BaseMessage : MonoBehaviour
     }
     private void LoadRandomCharacter()
     {
-        Sprite[] chars_img = Resources.LoadAll<Sprite>("DialogueImage");
-        List<Sprite> filtered = new List<Sprite>();
-        foreach (var sprite in chars_img)
+        IReadOnlyList<Sprite> portraits = DialoguePortraitCatalog.GetVisiblePortraits();
+        if (portraits.Count == 0)
         {
-            string path = sprite.name;
-            if (!path[0].Equals('_')) filtered.Add(sprite);
+            Debug.LogWarning("BaseMessage: no visible portraits found in Resources/DialogueImage.");
+            character_img.sprite = null;
+            PlayerPrefs.SetInt("base_character", 0);
+            return;
         }
-        int p = Random.Range(0, filtered.Count);
+
+        int p = Random.Range(0, portraits.Count);
         PlayerPrefs.SetInt("base_character", p);
-        character_img.sprite = filtered[p];
+        character_img.sprite = portraits[p];
         //character_img.sprite = Resources.Load<Sprite>("DialogueImage/XPM_smile");
     }
     private void LoadRandomMessage()

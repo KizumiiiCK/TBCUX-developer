@@ -239,14 +239,12 @@ public class LevelTiler : UICanvasMain
     private void LaunchAttack()
     {
         Image bc=Instantiate(Resources.Load<GameObject>("UI/ZDKS")).transform.GetChild(1).GetComponent<Image>();
-        Sprite[] chars_img = Resources.LoadAll<Sprite>("DialogueImage");
-        List<Sprite> filtered = new List<Sprite>();
-        foreach (var sprite in chars_img)
+        IReadOnlyList<Sprite> portraits = DialoguePortraitCatalog.GetVisiblePortraits();
+        if (portraits.Count > 0)
         {
-            string path = sprite.name;
-            if (!path[0].Equals('_')) filtered.Add(sprite);
+            int index = Mathf.Clamp(PlayerPrefs.GetInt("base_character", 0), 0, portraits.Count - 1);
+            bc.sprite = portraits[index];
         }
-        bc.sprite = filtered[PlayerPrefs.GetInt("base_character", 0)];
         PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
         this.enabled = false;
     }
