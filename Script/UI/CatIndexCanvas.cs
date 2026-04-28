@@ -149,13 +149,14 @@ public class CatIndexCanvas : UICanvasMain
             RebuildHeadIconsLegacy();
         }
 
+        loadRarityRoutine = null;
+        // 必须先结束加载态：ShowCertainCharacter / ShowCertainCharInTire 在 isLoadingRarityCharacters 为 true 时会直接 return
+        SetRarityLoadingState(false);
         if (currentRarityCodes.Count > 0)
         {
             ShowCertainCharacter(currentRarityCodes[0]);
             ShowCertainCharInTire(0);
         }
-        loadRarityRoutine = null;
-        SetRarityLoadingState(false);
     }
     public void ShowCertainCharacter(string char_code)
     {

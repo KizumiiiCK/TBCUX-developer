@@ -4,8 +4,7 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 关卡限制条件展示：每条限制实例化一行预制体，使用第 0 个子物体的 TMP_Text 显示全文。
-/// 运行时复用对象池中的行物体，避免频繁 Instantiate/Destroy。
+/// Displays localized level restriction rows and reuses row instances through a small pool.
 /// </summary>
 public class LevelRestrictionBoard : MonoBehaviour
 {
@@ -16,30 +15,34 @@ public class LevelRestrictionBoard : MonoBehaviour
     private readonly List<GameObject> activeLines = new List<GameObject>();
     private int contentVersion;
 
-    #region Strategy Pattern - 显示策略
+    #region Display Strategies
 
     /// <summary>
-    /// 显示策略委托。isStillValid 用于在异步回调中检查当前行是否仍有效（未被对象池回收）。
+    /// Renders one restriction row after its localized format string is loaded.
     /// </summary>
     private delegate void DisplayStrategy(string value, string format, TMP_Text targetText, Func<bool> isStillValid);
 
     /// <summary>
-    /// Key -> 显示策略映射（不区分大小写）。
-    /// 仅注册需要特殊处理的 Key；其余 Key 自动使用默认策略 HandleDirectValueDisplay。
+    /// Only keys with custom formatting are registered here.
+    /// Every other key falls back to direct value display.
     /// </summary>
     private static readonly Dictionary<string, DisplayStrategy> StrategyMap =
-        new Dictionary<string, DisplayStrategy>(StringComparer.OrdinalIgnoreCase)
+        new Dictionary<string, DisplayStrategy>(StringComparer.Ordinal)
         {
             { "R+", HandleRarityDisplay },
             { "R-", HandleRarityDisplay },
             { "U+", HandleUnitDisplay },
             { "U-", HandleUnitDisplay },
             { "IV", HandleNoneValueDisplay },
+            { "S+", HandleSurgeDisplay },
+            { "S-", HandleSurgeDisplay },
+            { "s+", HandleSurgeDisplay },
+            { "s-", HandleSurgeDisplay },
         };
 
     #endregion
 
-    #region Object Pool - 对象池
+    #region Object Pool
 
     private void ReleaseAllLinesToPool()
     {
@@ -64,7 +67,7 @@ public class LevelRestrictionBoard : MonoBehaviour
 
     #endregion
 
-    #region Main Flow - 主流程
+    #region Main Flow
 
     public void ShowRestrictions(string[] restrictions)
     {
@@ -89,47 +92,61 @@ public class LevelRestrictionBoard : MonoBehaviour
             if (lineText == null)
             {
                 Debug.LogWarning("[LevelRestrictionBoard] Line prefab child 0 has no TMP_Text.");
-                row.SetActive(false);
-                pooledLines.Push(row);
-                activeLines.RemoveAt(activeLines.Count - 1);
+                RecycleLatestRow(row);
                 continue;
             }
 
-            string trimmed = raw.Trim();
-            string[] colonParts = trimmed.Split(new[] { ':' }, 2);
-            if (colonParts.Length != 2)
+            if (!TrySplitRestriction(raw, out string key, out string value))
             {
-                lineText.text = trimmed;
+                lineText.text = raw.Trim();
                 continue;
             }
 
-            string keyRaw = colonParts[0].Trim();
-            string value = colonParts[1].Trim();
-            string keyUpper = keyRaw.ToUpperInvariant();
+            if (LevelRestrictionHelper.IsSurgeRestrictionKey(key) &&
+                !LevelRestrictionHelper.TryParseSurgeRestrictionValue(value, out _, out _))
+            {
+                RecycleLatestRow(row);
+                continue;
+            }
 
             TMP_Text capturedText = lineText;
-            LocalizationHelper.GetLocalizedText(UXPref.Localized_Descriptions, keyRaw, formatLoc =>
+            LocalizationHelper.GetLocalizedText(UXPref.Localized_Descriptions, key, formatLoc =>
             {
                 if (version != contentVersion || capturedText == null) return;
                 string format = string.IsNullOrEmpty(formatLoc) ? "{0}" : formatLoc;
-
                 Func<bool> isStillValid = () => version == contentVersion;
 
-                if (!StrategyMap.TryGetValue(keyUpper, out var strategy))
+                if (!StrategyMap.TryGetValue(key, out DisplayStrategy strategy))
                 {
                     strategy = HandleDirectValueDisplay;
                 }
+
                 strategy(value, format, capturedText, isStillValid);
             });
         }
     }
 
+    private void RecycleLatestRow(GameObject row)
+    {
+        if (row == null) return;
+        row.SetActive(false);
+        pooledLines.Push(row);
+        if (activeLines.Count > 0 && activeLines[activeLines.Count - 1] == row)
+        {
+            activeLines.RemoveAt(activeLines.Count - 1);
+        }
+        else
+        {
+            activeLines.Remove(row);
+        }
+    }
+
     #endregion
 
-    #region Display Strategies - 各策略具体实现
+    #region Display Strategy Implementations
 
     /// <summary>
-    /// R+ / R-：稀有度限制。查询本地化表将数字转换为稀有度名称后嵌入。
+    /// Resolves rarity names through the UI localization table.
     /// </summary>
     private static void HandleRarityDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
@@ -149,7 +166,7 @@ public class LevelRestrictionBoard : MonoBehaviour
     }
 
     /// <summary>
-    /// U+ / U-：单位限制。查询本地化表将单位代码转换为角色名后嵌入。
+    /// Resolves unit codes into localized unit names.
     /// </summary>
     private static void HandleUnitDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
@@ -169,17 +186,31 @@ public class LevelRestrictionBoard : MonoBehaviour
     }
 
     /// <summary>
-    /// IV：隐身能力限制。不需要 value 支撑，直接显示格式文本本身。
+    /// IV ignores the numeric payload and shows the localized sentence directly.
     /// </summary>
     private static void HandleNoneValueDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
         if (!isStillValid() || text == null) return;
-        // 若格式文本意外包含 {0}，安全移除避免显示异常
-        text.text = format.Contains("{0}") ? format.Replace("{0}", "").Trim() : format;
+        text.text = format.Contains("{0}") ? format.Replace("{0}", string.Empty).Trim() : format;
     }
 
     /// <summary>
-    /// 默认策略：P+/P-/D+/D-/CC/LC/ES 等数值型限制。直接显示 value，无需二次本地化查询。
+    /// Surge restrictions expand probability and duration into a two-parameter localized sentence.
+    /// </summary>
+    private static void HandleSurgeDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
+    {
+        if (!isStillValid() || text == null) return;
+        if (!LevelRestrictionHelper.TryParseSurgeRestrictionValue(value, out int probability, out int duration))
+        {
+            ApplyFormatSafe(text, format, value);
+            return;
+        }
+
+        ApplyFormatSafe(text, format, probability, duration);
+    }
+
+    /// <summary>
+    /// Default handler for numeric restrictions that only need a single placeholder.
     /// </summary>
     private static void HandleDirectValueDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
@@ -189,7 +220,29 @@ public class LevelRestrictionBoard : MonoBehaviour
 
     #endregion
 
-    #region Utility Methods - 工具方法
+    #region Utilities
+
+    private static bool TrySplitRestriction(string raw, out string key, out string value)
+    {
+        key = string.Empty;
+        value = string.Empty;
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+
+        string[] parts = raw.Trim().Split(new[] { ':' }, 2);
+        if (parts.Length != 2) return false;
+
+        key = NormalizeRestrictionKey(parts[0]);
+        value = parts[1].Trim();
+        return !string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value);
+    }
+
+    private static string NormalizeRestrictionKey(string rawKey)
+    {
+        if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
+        string trimmed = rawKey.Trim();
+        if (trimmed == "s+" || trimmed == "s-") return trimmed;
+        return trimmed.ToUpperInvariant();
+    }
 
     private static bool IsAllDigits(string str)
     {
@@ -207,9 +260,22 @@ public class LevelRestrictionBoard : MonoBehaviour
         {
             lineText.text = string.Format(format, arg0);
         }
-        catch (System.FormatException)
+        catch (FormatException)
         {
             lineText.text = format + " " + arg0;
+        }
+    }
+
+    private static void ApplyFormatSafe(TMP_Text lineText, string format, object arg0, object arg1)
+    {
+        if (lineText == null) return;
+        try
+        {
+            lineText.text = string.Format(format, arg0, arg1);
+        }
+        catch (FormatException)
+        {
+            lineText.text = format + " " + arg0 + " " + arg1;
         }
     }
 

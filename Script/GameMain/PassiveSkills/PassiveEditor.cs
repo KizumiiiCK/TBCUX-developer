@@ -341,7 +341,7 @@ public class MiniSurge : PassiveSkill
     {
         if (Triggered())
         {
-            int surge_distance = UnityEngine.Random.Range(0, intensity);
+            int surge_distance = UnityEngine.Random.Range(intensity/2, intensity);
             character.Surge_Attack(duration, true, surge_distance, dmg, ces, types);
         }
     }

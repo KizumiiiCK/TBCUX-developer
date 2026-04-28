@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 0
+  m_EditorClassIdentifier: 
+  levelName: d0-0
+  gainXP: 74650
+  BaseHealth: 85000
+  mapSize: 4000
+  maxEmenyCount: 50
+  BackgroundID: 600
+  BaseImageID: 352
+  CombatEffect:
+  - rain
+  Restriction: []
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 7
+    drawtimes: 2
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 12
+    drawtimes: 300
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 11
+    drawtimes: 80000
+    droprate: 100
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: lilytales-desert
+    enemySummonInfos:
+    - enemyID: e002
+      ratio: 1800
+      bossShock: 0
+      repeat: -1
+      firstAppear: 30
+      repeatMin: 480
+      repeatMax: 480
+      previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}
+    - enemyID: e027
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 300
+      repeatMin: 600
+      repeatMax: 600
+      previewSprite: {fileID: 21300000, guid: aaeaca4af87763e42b9db1e3cc77b4b9, type: 3}
+    - enemyID: e120
+      ratio: 200
+      bossShock: 0
+      repeat: -1
+      firstAppear: 600
+      repeatMin: 900
+      repeatMax: 900
+      previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}
+    - enemyID: e114
+      ratio: 200
+      bossShock: 0
+      repeat: -1
+      firstAppear: 150
+      repeatMin: 1080
+      repeatMax: 1080
+      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
+  - HealthPercentageOnBreak: 99
+    bgm: lilytales-desert
+    enemySummonInfos:
+    - enemyID: e120
+      ratio: 200
+      bossShock: 0
+      repeat: 8
+      firstAppear: 250
+      repeatMin: 30
+      repeatMax: 90
+      previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}
+    - enemyID: e114
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
+    - enemyID: e114
+      ratio: 200
+      bossShock: 0
+      repeat: 4
+      firstAppear: 60
+      repeatMin: 120
+      repeatMax: 120
+      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
+    - enemyID: e114
+      ratio: 200
+      bossShock: 0
+      repeat: 4
+      firstAppear: 75
+      repeatMin: 120
+      repeatMax: 120
+      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}

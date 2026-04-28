@@ -795,7 +795,7 @@ public class LevelController : MonoBehaviour
         if (testificateMode) return;
 
         UnlockEnemiesMet();
-        LPU.EndAccounting();
+        //LPU.EndAccounting();
 
         GameObject failedCanvas = Instantiate(Resources.Load<GameObject>("UI/Failed_Canvas"));
         ChangeBGM(null);

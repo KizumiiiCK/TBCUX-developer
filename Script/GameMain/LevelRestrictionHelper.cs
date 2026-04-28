@@ -8,7 +8,7 @@ public static class LevelRestrictionHelper
 
     private const int NoLimit = -1;
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
-        new Dictionary<string, RestrictionParser>(StringComparer.OrdinalIgnoreCase)
+        new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
         {
             { "R+", ParseAllowRarity },
             { "R-", ParseDenyRarity },
@@ -21,7 +21,11 @@ public static class LevelRestrictionHelper
             { "D+", ParseRestrictionValue },
             { "D-", ParseRestrictionValue },
             { "ES", ParseRestrictionValue },
-            { "IV", ParseRestrictionValue }
+            { "IV", ParseRestrictionValue },
+            { "S+", ParseSurgeRestrictionValue },
+            { "S-", ParseSurgeRestrictionValue },
+            { "s+", ParseSurgeRestrictionValue },
+            { "s-", ParseSurgeRestrictionValue }
         };
 
     public class RestrictionRules
@@ -31,7 +35,7 @@ public static class LevelRestrictionHelper
         public readonly HashSet<string> requiredUnits = new HashSet<string>();
         public readonly HashSet<string> denyUnits = new HashSet<string>();
         public readonly Dictionary<string, List<string>> rawValuesByKey =
-            new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
         public bool hasAllowRarity;
         public int maxCatCount = NoLimit;
@@ -52,7 +56,7 @@ public static class LevelRestrictionHelper
     public static void RegisterParser(string key, RestrictionParser parser)
     {
         if (string.IsNullOrWhiteSpace(key) || parser == null) return;
-        ParserMap[key.Trim().ToUpperInvariant()] = parser;
+        ParserMap[NormalizeRestrictionKey(key)] = parser;
     }
 
     public static RestrictionRules Parse(string[] restrictions)
@@ -74,7 +78,7 @@ public static class LevelRestrictionHelper
         return rules;
     }
 
-    /// <summary>??????????????? IV??????????????????</summary>
+    /// <summary>Returns true when the stage contains an IV restriction.</summary>
     public static bool HasIvRestriction(string[] restrictions)
     {
         if (restrictions == null) return false;
@@ -82,7 +86,8 @@ public static class LevelRestrictionHelper
     }
 
     /// <summary>
-    /// ???????????????????????? CharacterData ????????????????P+/P-????????????????
+    /// Checks whether a unit can appear in the deploy list.
+    /// Cost-based restrictions can optionally be evaluated with the provided CharacterData.
     /// </summary>
     public static bool IsUnitAllowed(RestrictionRules rules, string code, CharacterData data = null)
     {
@@ -94,7 +99,7 @@ public static class LevelRestrictionHelper
         if (rules.denyRarities.Contains(rarity)) return false;
         if (rules.denyUnits.Contains(code4)) return false;
 
-        // ??????????P+ / P-??????? CharacterData ???? Cost ????????
+        // Cost restrictions can be evaluated when deploy data is already loaded.
         if (data != null && !IsUnitCostAllowed(rules, data.Cost)) return false;
 
         return true;
@@ -148,11 +153,12 @@ public static class LevelRestrictionHelper
     }
 
     /// <summary>
-    /// ???????????????????????????????/??????????
+    /// Applies stage restrictions to a deployer and locks it when needed.
     /// </summary>
     public static void ApplyToDeployer(UnitDeployer deployer, string code, RestrictionRules rules, bool isGuest, bool lockAllUnits)
     {
         if (deployer == null) return;
+        ApplyCatCharacterDataRestrictions(rules, deployer.GetCharacterData());
         if (lockAllUnits || !IsUnitAllowed(rules, code))
         {
             deployer.LockByRestriction();
@@ -166,128 +172,155 @@ public static class LevelRestrictionHelper
         }
     }
 
-    #region Enemy Restriction Application
+    #region Character Data Restriction Application
+
+    public static void ApplyCatCharacterDataRestrictions(RestrictionRules rules, CharacterData data)
+    {
+        ApplyCharacterDataRestrictions(rules, data, true);
+    }
 
     /// <summary>
-    /// ???????????????????????????????? CharacterData ?????????
-    /// ?? LevelEnemySummoner ?????????????????
+    /// Applies stage-driven combat modifiers to enemy CharacterData before runtime setup.
     /// </summary>
     public static void ApplyEnemyCharacterDataRestrictions(RestrictionRules rules, CharacterData data)
     {
-        if (rules == null || data == null) return;
-        ApplyEnemyDamageShieldRestrictions(rules, data);
-        ApplyInvisibleShowRestriction(rules, data);
-        ApplyEnemyStrengthenRestriction(rules, data);
-        // TODO: ???????????????????? CharacterData ??????????
+        ApplyCharacterDataRestrictions(rules, data, false);
     }
 
-    /// <summary>
-    /// ?? D- / D+ ???????????????Aux_MaxDMGBlock / Aux_MinDMGBlock????
-    /// </summary>
-    private static void ApplyEnemyDamageShieldRestrictions(RestrictionRules rules, CharacterData data)
+    private static void ApplyCharacterDataRestrictions(RestrictionRules rules, CharacterData data, bool isCatTeam)
     {
-        int? damageCap = GetEffectiveDamageCap(rules);
-        int? damageMin = GetEffectiveDamageMin(rules);
-        if (damageCap.HasValue)
+        if (rules == null || data == null || rules.rawValuesByKey.Count == 0) return;
+
+        foreach (KeyValuePair<string, List<string>> entry in rules.rawValuesByKey)
         {
-            if (TryGetAbility(data, AbilityName.Aux_MaxDMGBlock, out CharacterAbility capAbility))
+            switch (entry.Key)
             {
-                capAbility.probability = 100;
-                capAbility.duration = 0;
-                capAbility.intensity = damageCap.Value;
-            }
-            else
-            {
-                AddAbilityToData(data, new CharacterAbility
-                {
-                    name = AbilityName.Aux_MaxDMGBlock,
-                    probability = 100,
-                    duration = 0,
-                    intensity = damageCap.Value
-                });
-            }
-        }
-        if (damageMin.HasValue)
-        {
-            if (TryGetAbility(data, AbilityName.Aux_MinDMGBlock, out CharacterAbility minAbility))
-            {
-                minAbility.probability = 100;
-                minAbility.duration = 0;
-                minAbility.intensity = damageMin.Value;
-            }
-            else
-            {
-                AddAbilityToData(data, new CharacterAbility
-                {
-                    name = AbilityName.Aux_MinDMGBlock,
-                    probability = 100,
-                    duration = 0,
-                    intensity = damageMin.Value
-                });
+                case "S+":
+                    if (isCatTeam) ApplySurgeRestriction(data, entry.Value, AbilityName.surge);
+                    break;
+                case "s+":
+                    if (isCatTeam) ApplySurgeRestriction(data, entry.Value, AbilityName.miniSurge);
+                    break;
+                case "D-":
+                    if (!isCatTeam) ApplyDamageBlockRestriction(data, entry.Value, true);
+                    break;
+                case "D+":
+                    if (!isCatTeam) ApplyDamageBlockRestriction(data, entry.Value, false);
+                    break;
+                case "IV":
+                    if (!isCatTeam) ApplyInvisibleShowRestriction(data);
+                    break;
+                case "ES":
+                    if (!isCatTeam) ApplyEnemyStrengthenRestriction(data, entry.Value);
+                    break;
+                case "S-":
+                    if (!isCatTeam) ApplySurgeRestriction(data, entry.Value, AbilityName.surge);
+                    break;
+                case "s-":
+                    if (!isCatTeam) ApplySurgeRestriction(data, entry.Value, AbilityName.miniSurge);
+                    break;
             }
         }
     }
-    /// <summary>
-    /// IV ??????????????? Aux_InvisibleShow ??????
-    /// </summary>
-    private static void ApplyInvisibleShowRestriction(RestrictionRules rules, CharacterData data)
-    {
-        if (!rules.rawValuesByKey.ContainsKey("IV")) return;
 
-        // ?????????????????????????????
+    /// <summary>
+    /// Applies D- or D+ as a guaranteed damage clamp ability.
+    /// </summary>
+    private static void ApplyDamageBlockRestriction(CharacterData data, List<string> values, bool useMinimumValue)
+    {
+        int? targetValue = useMinimumValue
+            ? GetExtremeParsedValue(values, true)
+            : GetExtremeParsedValue(values, false);
+        if (!targetValue.HasValue) return;
+
+        AbilityName abilityName = useMinimumValue ? AbilityName.Aux_MaxDMGBlock : AbilityName.Aux_MinDMGBlock;
+        if (TryGetAbility(data, abilityName, out CharacterAbility ability))
+        {
+            ability.probability = 100;
+            ability.duration = 0;
+            ability.intensity = targetValue.Value;
+            return;
+        }
+
+        AddAbilityToData(data, new CharacterAbility
+        {
+            name = abilityName,
+            probability = 100,
+            duration = 0,
+            intensity = targetValue.Value
+        });
+    }
+
+    /// <summary>
+    /// Adds a reveal ability when the unit does not already have one.
+    /// </summary>
+    private static void ApplyInvisibleShowRestriction(CharacterData data)
+    {
         if (HasAbility(data, AbilityName.invisible)) return;
 
-        // ??????????????????? CharacterData
-        CharacterAbility ability = new CharacterAbility
+        AddAbilityToData(data, new CharacterAbility
         {
             name = AbilityName.invisible,
             probability = 0,
             duration = 0,
             intensity = 0
-        };
-        AddAbilityToData(data, ability);
+        });
     }
 
     /// <summary>
-    /// ES ??????????????? Strengthen ??????probability=50??intensity=?????
-    /// ??? ES ???????? intensity ??????????????
+    /// Applies ES by keeping the highest valid strengthen intensity.
     /// </summary>
-    private static void ApplyEnemyStrengthenRestriction(RestrictionRules rules, CharacterData data)
+    private static void ApplyEnemyStrengthenRestriction(CharacterData data, List<string> values)
     {
-        if (!rules.rawValuesByKey.TryGetValue("ES", out List<string> values)) return;
-
-        // ???????? ES ??????? intensity
         int maxIntensity = 0;
-        foreach (var val in values)
+        for (int i = 0; i < values.Count; i++)
         {
-            if (int.TryParse(val, out int parsed) && parsed > maxIntensity)
+            if (int.TryParse(values[i], out int parsed) && parsed > maxIntensity)
+            {
                 maxIntensity = parsed;
+            }
         }
 
         if (maxIntensity <= 0) return;
 
-        // ??????????????????????????? intensity
         if (TryGetAbility(data, AbilityName.strengthen, out CharacterAbility existing))
         {
             existing.intensity = maxIntensity;
             existing.probability = 50;
+            existing.duration = 0;
             return;
         }
 
-        // ???????????????
-        CharacterAbility ability = new CharacterAbility
+        AddAbilityToData(data, new CharacterAbility
         {
             name = AbilityName.strengthen,
             probability = 50,
             duration = 0,
             intensity = maxIntensity
-        };
-        AddAbilityToData(data, ability);
+        });
     }
 
     /// <summary>
-    /// ??? CharacterData ?????????????????
+    /// Adds one independent surge ability for each valid surge rule.
+    /// Existing surge abilities are left untouched so effects can stack.
     /// </summary>
+    private static void ApplySurgeRestriction(CharacterData data, List<string> values, AbilityName abilityName)
+    {
+        if (data == null || values == null || values.Count == 0) return;
+        for (int i = 0; i < values.Count; i++)
+        {
+            if (!TryParseSurgeRestrictionValue(values[i], out int probability, out int duration)) continue;
+            AddAbilityToData(data, new CharacterAbility
+            {
+                name = abilityName,
+                probability = probability,
+                duration = duration,
+                intensity = Mathf.Max(1, data.DetectionRange)
+            });
+        }
+    }
+
+    /// <summary>Returns true when CharacterData already contains the given ability.</summary>
     private static bool HasAbility(CharacterData data, AbilityName abilityName)
     {
         if (data.abilities == null) return false;
@@ -298,9 +331,7 @@ public static class LevelRestrictionHelper
         return false;
     }
 
-    /// <summary>
-    /// ?????? CharacterData ?????????????????
-    /// </summary>
+    /// <summary>Finds the first matching ability entry on CharacterData.</summary>
     private static bool TryGetAbility(CharacterData data, AbilityName abilityName, out CharacterAbility ability)
     {
         ability = null;
@@ -316,9 +347,7 @@ public static class LevelRestrictionHelper
         return false;
     }
 
-    /// <summary>
-    /// ?? CharacterData ???????????????????????
-    /// </summary>
+    /// <summary>Appends a new ability entry to CharacterData.</summary>
     private static void AddAbilityToData(CharacterData data, CharacterAbility ability)
     {
         if (data.abilities == null)
@@ -349,9 +378,28 @@ public static class LevelRestrictionHelper
         string[] parts = rule.Split(':');
         if (parts.Length != 2) return false;
 
-        key = parts[0].Trim().ToUpperInvariant();
-        value = parts[1].Trim().ToUpperInvariant();
+        key = NormalizeRestrictionKey(parts[0]);
+        value = parts[1].Trim();
         return !string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value);
+    }
+
+    public static bool IsSurgeRestrictionKey(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return false;
+        return key == "S+" || key == "S-" || key == "s+" || key == "s-";
+    }
+
+    public static bool TryParseSurgeRestrictionValue(string value, out int probability, out int duration)
+    {
+        probability = 0;
+        duration = 0;
+        if (!int.TryParse(value, out int parsed)) return false;
+        if (parsed < 11 || parsed >= 1000) return false;
+        duration = parsed % 10;
+        probability = parsed / 10;
+        if (duration == 0) return false;
+        if (probability < 1 || probability > 99) return false;
+        return true;
     }
 
     private static void ParseAllowRarity(RestrictionRules rules, string value)
@@ -403,17 +451,22 @@ public static class LevelRestrictionHelper
         if (!TryParseNonNegativeInt(value, out _)) return;
     }
 
-    #region Cost Restriction Helpers - ???????????
+    public static void ParseSurgeRestrictionValue(RestrictionRules rules, string value)
+    {
+        if (!TryParseSurgeRestrictionValue(value, out _, out _)) return;
+    }
+
+    #region Cost Restriction Helpers
 
     /// <summary>
-    /// ???????????????????? P+ / P- ?????
-    /// ??? P+ ????????????????? P- ???????????????
+    /// Checks whether a unit cost passes all configured P+ and P- gates.
+    /// P+ acts as a minimum cost requirement and P- acts as a maximum cost requirement.
     /// </summary>
     private static bool IsUnitCostAllowed(RestrictionRules rules, int cost)
     {
         if (rules == null) return true;
 
-        // P+: ??????? minCost
+        // P+ requires the unit cost to be at least the configured value.
         if (rules.rawValuesByKey.TryGetValue("P+", out List<string> pPlusValues))
         {
             foreach (var val in pPlusValues)
@@ -423,7 +476,7 @@ public static class LevelRestrictionHelper
             }
         }
 
-        // P-: ??????? maxCost
+        // P- requires the unit cost to stay below the configured value.
         if (rules.rawValuesByKey.TryGetValue("P-", out List<string> pMinusValues))
         {
             foreach (var val in pMinusValues)
@@ -438,44 +491,36 @@ public static class LevelRestrictionHelper
 
     #endregion
 
-    #region Damage Restriction Helpers - ??????????
+    #region Restriction Value Utilities
 
     /// <summary>
-    /// ?????????????????D-??????? D- ???????????????
+    /// Returns the smallest or largest valid integer found in the provided list.
     /// </summary>
-    private static int? GetEffectiveDamageCap(RestrictionRules rules)
+    private static int? GetExtremeParsedValue(List<string> values, bool useMinimumValue)
     {
-        if (!rules.rawValuesByKey.TryGetValue("D-", out List<string> values)) return null;
+        if (values == null || values.Count == 0) return null;
 
-        int? cap = null;
-        foreach (var val in values)
+        int? result = null;
+        for (int i = 0; i < values.Count; i++)
         {
-            if (int.TryParse(val, out int parsed))
+            if (!int.TryParse(values[i], out int parsed)) continue;
+            if (!result.HasValue)
             {
-                if (!cap.HasValue || parsed < cap.Value)
-                    cap = parsed;
+                result = parsed;
+                continue;
+            }
+
+            if (useMinimumValue)
+            {
+                if (parsed < result.Value) result = parsed;
+            }
+            else if (parsed > result.Value)
+            {
+                result = parsed;
             }
         }
-        return cap;
-    }
 
-    /// <summary>
-    /// ?????????????????D+??????? D+ ??????????????
-    /// </summary>
-    private static int? GetEffectiveDamageMin(RestrictionRules rules)
-    {
-        if (!rules.rawValuesByKey.TryGetValue("D+", out List<string> values)) return null;
-
-        int? min = null;
-        foreach (var val in values)
-        {
-            if (int.TryParse(val, out int parsed))
-            {
-                if (!min.HasValue || parsed > min.Value)
-                    min = parsed;
-            }
-        }
-        return min;
+        return result;
     }
 
     #endregion
@@ -528,5 +573,13 @@ public static class LevelRestrictionHelper
         {
             currentLimit = candidate;
         }
+    }
+
+    private static string NormalizeRestrictionKey(string rawKey)
+    {
+        if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
+        string trimmed = rawKey.Trim();
+        if (trimmed == "s+" || trimmed == "s-") return trimmed;
+        return trimmed.ToUpperInvariant();
     }
 }

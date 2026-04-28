@@ -13,8 +13,8 @@ public class SectionCanvas : UICanvasMain
     [SerializeField] private GameObject sectionItemPrefab;
     [SerializeField] private TMP_Text chapterName;
     [SerializeField] private float transitionDuration = 0.5f;
-    [SerializeField] private float itemCellHeight = 180f;
-    [SerializeField] private int preloadRows = 2;
+    //[SerializeField] private float itemCellHeight = 180f;
+    //[SerializeField] private int preloadRows = 2;
 
     private readonly List<SectionEntry> sectionEntries = new List<SectionEntry>();
     private Vector2 canvasSize;
