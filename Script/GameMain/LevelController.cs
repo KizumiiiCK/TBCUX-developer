@@ -1178,6 +1178,27 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    //public void RecordProficency_EffectDuration(string code, EffectName effectName, int durationFrames)
+    //{
+    //    if (disable_controll || durationFrames <= 0 || string.IsNullOrEmpty(code)) return;
+
+    //    switch (effectName)
+    //    {
+    //        case EffectName.weaken:
+    //        case EffectName.stop:
+    //        case EffectName.slow:
+    //        case EffectName.wrap:
+    //        case EffectName.curse:
+    //        case EffectName.toxic:
+    //        case EffectName.lacerate:
+    //        case EffectName.deathmark:
+    //            LPU.Record_CharacterDebuffSuffered(code, durationFrames);
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
+
     #endregion
 }
 

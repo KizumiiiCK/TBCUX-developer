@@ -13,9 +13,16 @@ public abstract class E : MonoBehaviour
     protected Transform EFF;
     private bool pooledEffectVisual = false;
     private string pooledEffectName = string.Empty;
+    private int activeDurationFrames = 0;
+    private LevelController cachedLevelController;
+    private string cachedNameCode = string.Empty;
+    private bool cachedIsCat;
     private void Start()
     {
         etarget=GetComponent<Character>();
+        cachedLevelController = etarget != null ? etarget.levelController : null;
+        cachedNameCode = etarget != null ? etarget.NameCode : string.Empty;
+        cachedIsCat = etarget != null && etarget.IsCat();
         for(int i = 0; i < etarget.effectMarkedSlots.Length; i++)
         {
             if (!etarget.effectMarkedSlots[i])
@@ -30,7 +37,12 @@ public abstract class E : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (duration <= 0) Destroy(this);
+        if (duration <= 0)
+        {
+            Destroy(this);
+            return;
+        }
+        activeDurationFrames++;
         duration--;
     }
     public virtual void EffectInitializer() { }
@@ -85,6 +97,7 @@ public abstract class E : MonoBehaviour
     }
     protected void OnDestroy()
     {
+        ReportEffectDuration();
         RemoveEffect();
         if (EFF != null)
         {
@@ -99,7 +112,17 @@ public abstract class E : MonoBehaviour
                 Destroy(EFF.gameObject);
             }
         }
-        etarget.effectMarkedSlots[slotNum] = false;
+        if (etarget != null && etarget.effectMarkedSlots != null && slotNum >= 0 && slotNum < etarget.effectMarkedSlots.Length)
+        {
+            etarget.effectMarkedSlots[slotNum] = false;
+        }
     }
     public void SetIntensity(int itst) { intensity = itst; EffectOperation(); }
+
+    protected virtual void ReportEffectDuration()
+    {
+        if (!cachedIsCat || cachedLevelController == null || activeDurationFrames <= 0) return;
+        cachedLevelController.RecordProficency_DebuffSuffered(cachedNameCode, activeDurationFrames);
+        //cachedLevelController.RecordProficency_EffectDuration(cachedNameCode, effectName, activeDurationFrames);
+    }
 }

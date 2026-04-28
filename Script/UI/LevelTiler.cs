@@ -41,10 +41,12 @@ public class LevelTiler : UICanvasMain
     private GameObject selectionsPanelInstance;
     private EquipTeamSelectionPanel selectionsPanel;
     private string[,] enemyAppears;
+    private int[,] enemyMultipliers;
     private List<Reward[]> rewardlist=new List<Reward[]>();
     private readonly List<string[]> restrictionList = new List<string[]>();
     private int mapSectionDifficulty;
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
+    private const string RestrictionWarningPrefabPath = "UI/FunctionalPanels/WarningMark";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
     private readonly List<GameObject> spawnedLevelTiles = new List<GameObject>();
     private readonly Dictionary<string, LevelData> levelDataCache = new Dictionary<string, LevelData>();
@@ -116,7 +118,8 @@ public class LevelTiler : UICanvasMain
         //
         string levelLoadPath = $"LevelData/LevelEnemyData/{chapter}/{sectionName}/dif{diff}/";
         secClearList = GameProgressSave.LoadSectionProgress(chapter, sectionName);
-        enemyAppears = new string[MI.levelsOnMap.Length,16];
+        enemyAppears = new string[MI.levelsOnMap.Length,20];
+        enemyMultipliers = new int[MI.levelsOnMap.Length, 20];
         int exact_maplength = MI.levelsOnMap.Length;
         for (int i = 0; i < exact_maplength; i++)
         {
@@ -159,6 +162,7 @@ public class LevelTiler : UICanvasMain
                 break;
             }
             SetEnemyAppears(i, levelData);
+            AttachRestrictionWarningMarkIfNeeded(lvl, levelData);
             if (secClearList.clear_times[diff, i] <= 0)
             {
                 SetLevelMapSize(i);
@@ -299,11 +303,14 @@ public class LevelTiler : UICanvasMain
             for (int j = 0; j < led.enemySummoners[i].enemySummonInfos.Length; j++)
             {
                 string e = led.enemySummoners[i].enemySummonInfos[j].enemyID;
+                int ratio = led.enemySummoners[i].enemySummonInfos[j].ratio;
                 for (int k = 0; k < 16; k++)
                 {
                     if (enemyAppears[levelNum,k] == null || enemyAppears[levelNum,k] == string.Empty)
                     {
-                        enemyAppears[levelNum, k] = e; break;
+                        enemyAppears[levelNum, k] = e;
+                        enemyMultipliers[levelNum, k] = ratio;
+                        break;
                     }
                     if (enemyAppears[levelNum, k] == e) break;
                 }
@@ -329,7 +336,7 @@ public class LevelTiler : UICanvasMain
     public void ChanageSEBShowInfo(int level_num)
     {
         if (!SEB.gameObject.activeSelf) return;
-        SEB.ShowEnemies(GetCurrentEnemies(level_num), ShouldBlindEnemyIconsForLevel(level_num));
+        SEB.ShowEnemies(GetCurrentEnemies(level_num), GetCurrentEnemyMultipliers(level_num), ShouldBlindEnemyIconsForLevel(level_num));
         ChangeLRBInfo();
     }
 
@@ -363,6 +370,32 @@ public class LevelTiler : UICanvasMain
         string[] r = restrictionList[current_level_num];
         return r != null && r.Length > 0;
     }
+
+    /// <summary>关卡有待生效的限制条件时在关卡卡角显示警告图标。</summary>
+    private static void AttachRestrictionWarningMarkIfNeeded(RectTransform levelTile, LevelData led)
+    {
+        if (levelTile == null || led == null) return;
+        string[] r = led.Restriction;
+        if (r == null || r.Length == 0) return;
+
+        GameObject prefab = Resources.Load<GameObject>(RestrictionWarningPrefabPath);
+        if (prefab == null) return;
+
+        GameObject instance = Instantiate(prefab, levelTile);
+        RectTransform rt = instance.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.anchorMin = new Vector2(1f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = new Vector2(10f, -30f);
+            rt.localScale = Vector3.one;
+        }
+        else
+        {
+            instance.transform.localPosition = new Vector3(120f, 120f, 0f);
+        }
+    }
     private string[] GetCurrentEnemies(int level_num)
     {
         int realLength = 0;
@@ -370,6 +403,15 @@ public class LevelTiler : UICanvasMain
         string[] ens = new string[realLength];
         for (int i = 0; i < realLength; i++) ens[i] = enemyAppears[level_num, i];
         return ens;
+    }
+
+    private int[] GetCurrentEnemyMultipliers(int level_num)
+    {
+        int realLength = 0;
+        for (int i = 0; i < enemyAppears.GetLength(1); i++) if (enemyAppears[level_num, i] == null || enemyAppears[level_num, i] == string.Empty) break; else realLength++;
+        int[] multipliers = new int[realLength];
+        for (int i = 0; i < realLength; i++) multipliers[i] = enemyMultipliers[level_num, i];
+        return multipliers;
     }
 
     private string[] GetCurrentRestrictions()

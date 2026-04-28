@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 0_d01
+  m_EditorClassIdentifier: 
+  sectionName: 0_d01
+  mapName: dreamin
+  BGM: 
+  unlockRestriction: ???
+  hardness: 1
+  difficulty: 000000000001010000000000
+  coverColor: {r: 0.4666667, g: 0.3254902, b: 0.227451, a: 1}
+  titleColor: 3
+  levelsOnMap:
+  - levelNameID: d0-0
+    levelPosition: {x: -1, y: -13}
+    tileType: 0
+  - levelNameID: d0-1
+    levelPosition: {x: -9, y: -7}
+    tileType: 0
+  - levelNameID: d0-2
+    levelPosition: {x: -15, y: -8}
+    tileType: 0
+  - levelNameID: d0-3
+    levelPosition: {x: -20, y: -3}
+    tileType: 0
+  - levelNameID: d0-4
+    levelPosition: {x: -25, y: -9}
+    tileType: 0
+  - levelNameID: d0-5
+    levelPosition: {x: -32, y: -8}
+    tileType: 0
+  - levelNameID: d0-6
+    levelPosition: {x: -31, y: -1}
+    tileType: 0
+  - levelNameID: d0-7
+    levelPosition: {x: -27, y: 0}
+    tileType: 0
+  - levelNameID: d0-8
+    levelPosition: {x: -30.5, y: 3}
+    tileType: 0
+  - levelNameID: d0-9
+    levelPosition: {x: -34, y: 5}
+    tileType: 0

@@ -72,7 +72,15 @@ MonoBehaviour:
     probability: 100
     duration: 99
     intensity: 0
-  atkTypeResis: []
+  atkTypeResis:
+  - type: 0
+    intensity: 100
+  - type: 1
+    intensity: 100
+  - type: 2
+    intensity: 100
+  - type: 13
+    intensity: 100
   effectResistances:
   - name: 1
     probability: 100

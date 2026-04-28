@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract partial class Character
@@ -200,7 +201,6 @@ public abstract partial class Character
             }
             float real_duration = ee.duration * sagemultiplier * CounterT(resisted);
             EffectInstaller.Inflict(gameObject, ee.name, real_duration, ee.intensity);
-            if (IsCat()) levelController.RecordProficency_DebuffSuffered(NameCode, (int)real_duration);
         }
     }
     public abstract void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes);
@@ -230,7 +230,13 @@ public abstract partial class Character
         if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Abs(DMG));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
-    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400) { BlockAnimationSwitch = false; if (coroutineKB == null) coroutineKB = StartCoroutine(PerformKB(kbt, DX)); }
+    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400) 
+    {
+        if (Speed == 0 && GetHealth() > 1) return;
+        BlockAnimationSwitch = false; 
+        if (coroutineKB == null) 
+        coroutineKB = StartCoroutine(PerformKB(kbt, DX)); 
+    }
     protected IEnumerator PerformKB(KB_Type kbt = KB_Type.none, float DX = 400)
     {
         int duration = 24;
@@ -240,7 +246,7 @@ public abstract partial class Character
             case KB_Type.none: duration = 24; DX = 400; speedY = 9; break;
             case KB_Type.knockBack: duration = 15; speedY = 0; break;
             case KB_Type.pushBack: duration = 12; DX = 60; speedY = 4; break;
-            case KB_Type.bossShock: duration = realSpeed == 0 ? 0 : 45; DX = realSpeed == 0 ? 0 : 700; speedY = realSpeed == 0 ? 0 : 9; break;
+            case KB_Type.bossShock: duration = 45; DX = 700; speedY = 9; break;
             default: break;
         }
         int d1 = duration * 2 / 3;

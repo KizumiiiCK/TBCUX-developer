@@ -99,8 +99,9 @@ public static class LevelRestrictionHelper
         if (rules.denyRarities.Contains(rarity)) return false;
         if (rules.denyUnits.Contains(code4)) return false;
 
-        // Cost restrictions can be evaluated when deploy data is already loaded.
-        if (data != null && !IsUnitCostAllowed(rules, data.Cost)) return false;
+        // Evaluate P+/P- even when caller does not pass CharacterData.
+        CharacterData resolvedData = data ?? TryLoadCharacterDataByCode(code);
+        if (resolvedData != null && !IsUnitCostAllowed(rules, resolvedData.Cost)) return false;
 
         return true;
     }
@@ -394,11 +395,11 @@ public static class LevelRestrictionHelper
         probability = 0;
         duration = 0;
         if (!int.TryParse(value, out int parsed)) return false;
-        if (parsed < 11 || parsed >= 1000) return false;
+        if (parsed < 11 || parsed > 1009) return false;
         duration = parsed % 10;
         probability = parsed / 10;
         if (duration == 0) return false;
-        if (probability < 1 || probability > 99) return false;
+        if (probability < 1) return false;
         return true;
     }
 
@@ -537,6 +538,14 @@ public static class LevelRestrictionHelper
 
         code4 = value;
         return true;
+    }
+
+    private static CharacterData TryLoadCharacterDataByCode(string code)
+    {
+        if (string.IsNullOrEmpty(code) || code.Length < 5) return null;
+        if (!char.IsDigit(code[0]) || !char.IsDigit(code[4])) return null;
+        if (!char.IsDigit(code[1]) || !char.IsDigit(code[2]) || !char.IsDigit(code[3])) return null;
+        return Resources.Load<CharacterData>($"Units/Cat Units/{code[0]}/{code.Substring(1, 3)}/{code[4]}/data");
     }
 
     private static bool TryParsePositiveInt(string value, out int result)

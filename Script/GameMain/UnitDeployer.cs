@@ -125,9 +125,10 @@ public class UnitDeployer : MonoBehaviour
         if (proficency > 2) { CD.Cost = CD.Cost * 93 / 100; unitCost = CD.Cost; }
         CD.Cost = unitCost;
         cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
-        cachedDeployAvailable = false;
+        cachedDeployAvailable = t >= cd && cachedEnoughMoney;
         moneyCheckFrameCounter = 0;
         MoneyColor(cachedEnoughMoney);
+        DeployAvailable(cachedDeployAvailable);
         cost_txt.text = unitCost + " $";
         ApplyRarityFrameColor();
     }

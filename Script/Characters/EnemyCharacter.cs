@@ -103,7 +103,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
         TakeDMG(DMG);
-        if (matchedTraits) TakeEffects(enemyEffect, subtraits.Sage);
+        if (matchedTraits && DMG>0) TakeEffects(enemyEffect, subtraits.Sage);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }

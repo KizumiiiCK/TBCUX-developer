@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,7 @@ public class ShowEnemyBoard : MonoBehaviour
     private Sprite hatenaSpriteCache;
 
     /// <param name="blindAllEnemyIcons">IV 且未通关时：所有槽位使用问号图标，不暴露真实敌人头像。</param>
-    public void ShowEnemies(string[] en, bool blindAllEnemyIcons = false)
+    public void ShowEnemies(string[] en, int[] enemyMultipliers = null, bool blindAllEnemyIcons = false)
     {
         int count = en != null ? en.Length : 0;
         if (EnemyList == null || EnemyIcon_prefab == null) return;
@@ -49,11 +50,15 @@ public class ShowEnemyBoard : MonoBehaviour
             }
 
             var image = iconObj.GetComponent<Image>();
+            TMP_Text multiText = null;
+            if (iconObj.transform.childCount > 0)
+                multiText = iconObj.transform.GetChild(0).GetComponent<TMP_Text>();
             if (image != null)
             {
                 if (blindAllEnemyIcons && hatenaSpriteCache != null)
                 {
                     image.sprite = hatenaSpriteCache;
+                    if (multiText != null) multiText.text = string.Empty;
                     continue;
                 }
 
@@ -63,6 +68,11 @@ public class ShowEnemyBoard : MonoBehaviour
                     enemyIconCache[en[i]] = icon;
                 }
                 image.sprite = icon;
+            }
+            if (multiText != null)
+            {
+                int ratio = (enemyMultipliers != null && i < enemyMultipliers.Length) ? enemyMultipliers[i] : 100;
+                multiText.text = $"{ratio}%";
             }
         }
         // if(resize_board)

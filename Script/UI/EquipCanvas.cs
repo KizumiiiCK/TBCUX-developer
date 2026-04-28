@@ -310,7 +310,7 @@ public class EquipCanvas : UICanvasMain
     public void ChanageSEBShowInfo(string[] enemyAppears, string[] restrictions = null, bool blindEnemyIcons = false)
     {
         currentRestrictions = restrictions;
-        if (SEB != null) SEB.ShowEnemies(enemyAppears, blindEnemyIcons);
+        if (SEB != null) SEB.ShowEnemies(enemyAppears, null, blindEnemyIcons);
         ApplyRestrictionContext(restrictions);
     }
 

@@ -105,7 +105,7 @@ public class CatCharacter : AnimatorCachedCharacter
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
         TakeDMG(DMG);
-        TakeEffects(enemyEffect, subtraits.Sage);
+        if(DMG>0)TakeEffects(enemyEffect, subtraits.Sage);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }
