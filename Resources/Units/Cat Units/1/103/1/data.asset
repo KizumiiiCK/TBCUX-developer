@@ -29,7 +29,7 @@ MonoBehaviour:
   Reload: 137
   DetectionRange: 325
   Cost: 3630
-  Cooldown: 0
+  Cooldown: 4120
   UNITYAnimated: 1
   SPINEAnimated: 0
   traits:
@@ -70,7 +70,7 @@ MonoBehaviour:
   abilities:
   - name: 3
     probability: 50
-    duration: 0
+    duration: 150
     intensity: 150
   atkTypeResis:
   - type: 2

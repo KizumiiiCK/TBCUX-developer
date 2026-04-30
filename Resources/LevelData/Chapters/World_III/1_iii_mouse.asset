@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 1_iii_mouse
+  m_EditorClassIdentifier: 
+  sectionName: 1_iii_mouse
+  mapName: worldmap
+  BGM: GF_EV4_intermission
+  unlockRestriction: World_III+0_worldiii
+  hardness: 1
+  difficulty: 000000000000010000000000
+  coverColor: {r: 0.8627451, g: 0.8745098, b: 0.81960785, a: 1}
+  titleColor: 1
+  levelsOnMap:
+  - levelNameID: id:canada
+    levelPosition: {x: -65, y: 7}
+    tileType: 0
+  - levelNameID: id:newyork
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: id:lasvegas
+    levelPosition: {x: -69, y: 0}
+    tileType: 0
+  - levelNameID: id:hollywood
+    levelPosition: {x: -71, y: -1}
+    tileType: 0

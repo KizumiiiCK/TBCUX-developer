@@ -58,7 +58,6 @@ public class LevelController : MonoBehaviour
     // Reward and Penalty
     private const float REWARD_PENALTY_MULTIPLIER = 2.5f;
     private const int PERCENTAGE_BASE = 100;
-    private const int GUARANTEED_DROP_THRESHOLD = 99;
 
     // Cat Base Max Health
     private const int CAT_BASE_BASE_HEALTH = 1000;
@@ -844,29 +843,10 @@ public class LevelController : MonoBehaviour
     /// </summary>
     private int CalculateRewardGainTimes(Reward rewardInfo, int rewardPenalty)
     {
-        int gainTimes = 0;
-
-        if (rewardInfo.droprate > GUARANTEED_DROP_THRESHOLD)
-        {
-            gainTimes = rewardInfo.drawtimes;
-        }
-        else if (rewardInfo.drawtimes > GUARANTEED_DROP_THRESHOLD)
-        {
-            gainTimes = rewardInfo.drawtimes * rewardInfo.droprate / PERCENTAGE_BASE;
-        }
-        else
-        {
-            for (int gt = 0; gt < rewardInfo.drawtimes; gt++)
-            {
-                int random = Random.Range(0, PERCENTAGE_BASE);
-                if (random < rewardInfo.droprate)
-                {
-                    gainTimes++;
-                }
-            }
-        }
-
-        return gainTimes;
+        //int gainTimes = 0;
+        int p = Random.Range(0, 100);
+        if(p<rewardInfo.droprate) return rewardInfo.drawtimes;
+        else return 0;
     }
 
     /// <summary>
