@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: id:hollywood
   gainXP: 20000
-  BaseHealth: 80000
+  BaseHealth: 280000
   mapSize: 4000
   maxEmenyCount: 50
   BackgroundID: 22
@@ -43,7 +43,7 @@ MonoBehaviour:
     bgm: 030
     enemySummonInfos:
     - enemyID: e042
-      ratio: 300
+      ratio: 400
       bossShock: 0
       repeat: -1
       firstAppear: 360
@@ -62,7 +62,7 @@ MonoBehaviour:
     bgm: 033
     enemySummonInfos:
     - enemyID: e042
-      ratio: 300
+      ratio: 400
       bossShock: 0
       repeat: -1
       firstAppear: 1
@@ -94,7 +94,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: a1ec1932bd6c9bf4eb4e68a35f1343af, type: 3}
     - enemyID: e063
-      ratio: 300
+      ratio: 400
       bossShock: 0
       repeat: 1
       firstAppear: 750

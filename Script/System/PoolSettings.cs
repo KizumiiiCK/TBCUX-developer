@@ -42,7 +42,7 @@ public class Pool
 
 public static class PoolSystemTime
 {
-    public static readonly DateTime openTime = new DateTime(year: 2026, month: 4, day: 28);
+    public static readonly DateTime openTime = new DateTime(year: 2026, month: 4, day: 30);
     public static DateTime Now => DateTime.Now;
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
@@ -355,8 +355,8 @@ public static class PoolInfo
                 /* N     */null,
                 /* EX    */null,
                 /* R     */Regular_Rares,
-                /* SR    */Regular_Superrares,
-                /* UR    */new int[] {171,172,173,174,175},
+                /* SR    */Regular_Superrares.Concat(new int[] {50}).ToArray(),
+                /* UR    */new int[] {171,172,173,174,175,176},
                 /* LR    */new int[] {11 },
                 /* G     */null
             }

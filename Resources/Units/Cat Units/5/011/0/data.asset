@@ -16,18 +16,18 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 1650
+  - ATK: 2475
     frame: 44
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 450, y: 800}
+    ATKRange: {x: 350, y: 800}
   areaATK: 1
   atkDuration: 81
-  Health: 2550
+  Health: 4950
   KB: 4
   Speed: 20
-  Reload: 200
-  DetectionRange: 550
+  Reload: 110
+  DetectionRange: 500
   Cost: 4350
   Cooldown: 4136
   UNITYAnimated: 0
@@ -72,5 +72,7 @@ MonoBehaviour:
     duration: 108
     intensity: 0
   abilities: []
-  atkTypeResis: []
+  atkTypeResis:
+  - type: 1
+    intensity: 100
   effectResistances: []

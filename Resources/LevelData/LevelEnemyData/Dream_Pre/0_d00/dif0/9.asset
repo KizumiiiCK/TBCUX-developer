@@ -46,7 +46,7 @@ MonoBehaviour:
     bgm: lilytales-relic
     enemySummonInfos:
     - enemyID: e114
-      ratio: 150
+      ratio: 200
       bossShock: 0
       repeat: -1
       firstAppear: 400
@@ -54,7 +54,7 @@ MonoBehaviour:
       repeatMax: 1240
       previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
     - enemyID: e115
-      ratio: 150
+      ratio: 200
       bossShock: 0
       repeat: -1
       firstAppear: 500
@@ -91,10 +91,10 @@ MonoBehaviour:
     - enemyID: e116
       ratio: 200
       bossShock: 0
-      repeat: 2
-      firstAppear: 400
-      repeatMin: 2400
-      repeatMax: 2400
+      repeat: 3
+      firstAppear: 3000
+      repeatMin: 1750
+      repeatMax: 1750
       previewSprite: {fileID: 21300000, guid: 50e32a743c93563468ea3b3d04f053f7, type: 3}
     - enemyID: e108
       ratio: 200
@@ -104,6 +104,14 @@ MonoBehaviour:
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: a1ec1932bd6c9bf4eb4e68a35f1343af, type: 3}
+    - enemyID: e040
+      ratio: 300
+      bossShock: 0
+      repeat: 1
+      firstAppear: 750
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: fb4020354f6e282498ae0aa01f21dfa8, type: 3}
     - enemyID: e026
       ratio: 300
       bossShock: 1
@@ -116,7 +124,7 @@ MonoBehaviour:
       ratio: 100
       bossShock: 0
       repeat: 1
-      firstAppear: 1650
+      firstAppear: 1550
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 46ba140dda50545439c77cd036e9ef7b, type: 3}

@@ -20,13 +20,13 @@ MonoBehaviour:
     frame: 72
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 450, y: 800}
+    ATKRange: {x: 400, y: 800}
   areaATK: 1
   atkDuration: 146
   Health: 3250
   KB: 4
   Speed: 20
-  Reload: 200
+  Reload: 150
   DetectionRange: 550
   Cost: 4350
   Cooldown: 4136
@@ -76,9 +76,31 @@ MonoBehaviour:
     probability: 100
     duration: 0
     intensity: 0
-  atkTypeResis: []
+  - name: 10
+    probability: 13
+    duration: 0
+    intensity: 0
+  - name: 13
+    probability: 33
+    duration: 0
+    intensity: 0
+  atkTypeResis:
+  - type: 1
+    intensity: 100
   effectResistances:
   - name: 6
+    probability: 100
+    duration: 0
+    intensity: 100
+  - name: 1
+    probability: 100
+    duration: 0
+    intensity: 100
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 100
+  - name: 7
     probability: 100
     duration: 0
     intensity: 100
