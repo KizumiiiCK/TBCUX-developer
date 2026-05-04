@@ -183,15 +183,20 @@ public class UserUploadAccountPage : MonoBehaviour
         foreach (var kv in dict)
         {
             CharacterUpgradeSave.UpgradeDetails ud = kv.Value ?? new CharacterUpgradeSave.UpgradeDetails();
+            bool[] tireUnlocked = NormalizeBoolArray(ud.tire_unlocked, 4);
+            if (!tireUnlocked[0]) continue;
+
+            CharacterProficiency proficiency = ud.proficiency ?? new CharacterProficiency();
+            int[] proficiencyStack = NormalizeIntArray(proficiency.pro_stack, 4);
             string row = "{"
                 + $"\"pid\":\"{JsonEscape(localUser.pid)}\","
                 + $"\"character_id\":\"{JsonEscape(kv.Key)}\","
-                + $"\"tire_unlocked\":{BoolArrayJson(ud.tire_unlocked)},"
+                + $"\"tire_unlocked\":{BoolArrayJson(tireUnlocked)},"
                 + $"\"talent_unlocked\":{BoolJson(ud.talent_unlocked)},"
-                + $"\"upgraded_level\":{ud.upgraded_level},"
-                + $"\"plus_level\":{ud.plus_level},"
-                + $"\"proficiency_level\":{(ud.proficiency != null ? ud.proficiency.level : 0)},"
-                + $"\"proficiency_stack\":{IntArrayJson(ud.proficiency != null ? ud.proficiency.pro_stack : new int[4])}"
+                + $"\"upgraded_level\":{Mathf.Max(0, ud.upgraded_level)},"
+                + $"\"plus_level\":{Mathf.Max(0, ud.plus_level)},"
+                + $"\"proficiency_level\":{Mathf.Max(0, proficiency.level)},"
+                + $"\"proficiency_stack\":{IntArrayJson(proficiencyStack)}"
                 + "}";
             rows.Add(row);
         }
@@ -498,6 +503,28 @@ public class UserUploadAccountPage : MonoBehaviour
         }
         sb.Append(']');
         return sb.ToString();
+    }
+
+    private static bool[] NormalizeBoolArray(bool[] arr, int expectedLength)
+    {
+        bool[] normalized = new bool[Mathf.Max(1, expectedLength)];
+        if (arr != null && arr.Length > 0)
+        {
+            Array.Copy(arr, normalized, Mathf.Min(arr.Length, normalized.Length));
+        }
+        return normalized;
+    }
+
+    private static int[] NormalizeIntArray(int[] arr, int expectedLength)
+    {
+        int[] normalized = new int[Mathf.Max(0, expectedLength)];
+        if (arr == null || arr.Length == 0) return normalized;
+        int copyLength = Mathf.Min(arr.Length, normalized.Length);
+        for (int i = 0; i < copyLength; i++)
+        {
+            normalized[i] = Mathf.Max(0, arr[i]);
+        }
+        return normalized;
     }
 
     private static string StringArrayJson(string[] arr)

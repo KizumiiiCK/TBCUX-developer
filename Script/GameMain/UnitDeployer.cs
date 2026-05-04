@@ -150,6 +150,7 @@ public class UnitDeployer : MonoBehaviour
         cachedShadeFill = -1f;
         cachedDeployAvailable = false;
         moneyCheckFrameCounter = 0;
+        DeployAvailable(false);
     }
     public void GuestMark() => isGuest = true;
     public void LockByRestriction()
