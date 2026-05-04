@@ -60,6 +60,39 @@ public class EffectManager : MonoBehaviour
             lifetimeFrames);
     }
 
+    public AnimationDisplayer PlayReusableAttachedEffect(
+        ref AnimationDisplayer cachedDisplay,
+        string effectName,
+        Transform parent,
+        Vector3 worldPosition,
+        int animIndex,
+        bool worldPositionStays = true)
+    {
+        if (string.IsNullOrEmpty(effectName) || parent == null) return null;
+        if (cachedDisplay == null)
+        {
+            cachedDisplay = InstantiateAttachedBattleObject(
+                effectName,
+                worldPosition,
+                parent,
+                worldPositionStays,
+                playSound: false,
+                lifetimeFrames: 0);
+        }
+        if (cachedDisplay == null) return null;
+        cachedDisplay.gameObject.SetActive(true);
+        cachedDisplay.SetMaanimPointer(animIndex);
+        PlayEffectSound(effectName, animIndex);
+        return cachedDisplay;
+    }
+
+    public void ReleaseReusableAttachedEffect(ref AnimationDisplayer cachedDisplay, string effectName)
+    {
+        if (cachedDisplay == null) return;
+        RecycleBattleObject(cachedDisplay, effectName);
+        cachedDisplay = null;
+    }
+
     private AnimationDisplayer InstantiateNamedBattleObjectInternal(
         string effectName,
         Vector3 worldPosition,
@@ -91,11 +124,11 @@ public class EffectManager : MonoBehaviour
             if (lifetime == null) lifetime = ad.gameObject.AddComponent<PooledEffectLifetime>();
             lifetime.Activate(this, packKey, lifetimeFrames, true);
         }
-        if (playSound) PlayEffectSound(effectName);
+        if (playSound) PlayEffectSound(effectName, 0);
         return ad;
     }
 
-    private void PlayEffectSound(string effectName)
+    public void PlayEffectSound(string effectName, int animIndex = 0)
     {
         string soundKey = GetEffectSoundKey(effectName);
         if (!effectSoundCache.TryGetValue(soundKey, out AudioClip[] clips))
@@ -108,7 +141,8 @@ public class EffectManager : MonoBehaviour
 
         AudioSource source = GetOrCreateEffectSoundPlayer(soundKey, effectName);
         if (source == null) return;
-        AudioClip clip = clips[UnityEngine.Random.Range(0, clips.Length)];
+        int clipIndex = Mathf.Clamp(animIndex, 0, clips.Length - 1);
+        AudioClip clip = clips[clipIndex];
         source.Stop();
         source.clip = clip;
         source.time = 0f;

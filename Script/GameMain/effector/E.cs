@@ -48,6 +48,7 @@ public abstract class E : MonoBehaviour
     public virtual void EffectInitializer() { }
     public virtual void EffectOperation() { }
     public virtual void RemoveEffect() { }
+    public EffectName GetEffectName() => effectName;
     protected void InstallEffect() {
         string en=string.Empty;
         bool enemy;

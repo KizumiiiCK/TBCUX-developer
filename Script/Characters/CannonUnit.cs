@@ -6,6 +6,7 @@ using UnityEngine;
 public class CannonUnit : Character
 {
     protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
+    private readonly HashSet<Character> attackedTargets = new HashSet<Character>();
 
     // Including NULL steps of a cannon effect animation
     [System.Serializable]
@@ -30,6 +31,7 @@ public class CannonUnit : Character
 
     public override void InitializeCharacter()
     {
+        attackedTargets.Clear();
         catBase = GameObject.Find("CatBase").GetComponent<CatBase>();
         transform.position = catBase.transform.position;
         realDamage = new int[1];
@@ -88,20 +90,22 @@ public class CannonUnit : Character
         CharacterTargetManager.Instance.RefreshTargetsForProjectile(this);
 
         float dmg = realDamage[0] * damage_multiplier;
-        HashSet<Character> processedTargets = new HashSet<Character>();
+        int hitCount = 0;
 
         for (int i = Targets.Count - 1; i >= 0; i--)
         {
             if (Targets[i] == null) continue;
             Character target = Targets[i].GetComponent<Character>();
             if (target == null) continue;
+            if (attackedTargets.Contains(target)) continue;
             float finalDamage = dmg;
             if (cannon_type == 5 && target.traits != null && target.traits.Z)
             {
                 finalDamage = target.GetMaxHealth() * 0.1f;
             }
             target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
-            processedTargets.Add(target);
+            attackedTargets.Add(target);
+            hitCount++;
             if (cannon_type == 0) target.StartKBCoroutine(KB_Type.pushBack);
         }
 
@@ -112,18 +116,19 @@ public class CannonUnit : Character
             {
                 Character target = undetectables[i];
                 if (target == null) continue;
-                if (processedTargets.Contains(target)) continue;
+                if (attackedTargets.Contains(target)) continue;
                 if (target.IsCat() == IsCat()) continue;
                 if (target.traits == null || !target.traits.Z) continue;
                 if (!CharacterTargetManager.Instance.IsTargetInCurrentRange(this, target)) continue;
 
                 float damageToUndetectableZombie = target.GetMaxHealth() * 0.25f;
                 target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
-                processedTargets.Add(target);
+                attackedTargets.Add(target);
+                hitCount++;
             }
         }
 
-        if (processedTargets.Count < 1) return;
+        if (hitCount < 1) return;
         max_times--;
         if (max_times == 0)
         {

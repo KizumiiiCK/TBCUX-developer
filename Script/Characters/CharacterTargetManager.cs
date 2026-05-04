@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public class CharacterTargetManager : MonoBehaviour
 {
+    private const float CharacterTargetVolumeLength = 2f;
+
     private static CharacterTargetManager _instance;
     public static CharacterTargetManager Instance
     {
@@ -345,18 +347,19 @@ public class CharacterTargetManager : MonoBehaviour
         float attackerX = attacker.transform.position.x;
         float worldMin = attackerX + minRange;
         float worldMax = attackerX + maxRange;
-        int startIndex = FindFirstIndexByX(potentialTargets, worldMin);
+        int startIndex = FindFirstIndexByX(potentialTargets, worldMin - CharacterTargetVolumeLength);
         for (int i = startIndex; i < potentialTargets.Count; i++)
         {
             Character target = potentialTargets[i];
             if (target == null || target == attacker) continue; // 跳过自己和null
             if (!target.gameObject.activeInHierarchy) continue;
             // if (target.GetHealth() <= 0) continue;
-            float targetX = target.transform.position.x;
-            if (targetX > worldMax)
+            GetCharacterTargetVolumeRange(target, out float targetMinX, out float targetMaxX);
+            if (targetMinX > worldMax)
             {
                 break;
             }
+            if (targetMaxX < worldMin) continue;
             if (target.IsOnKB()) continue; // KB状态不参与判定
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
@@ -406,8 +409,23 @@ public class CharacterTargetManager : MonoBehaviour
             return worldMin <= target.transform.position.x;
         }
 
-        float relativeX = target.transform.position.x - attackerX;
-        return relativeX >= minRange && relativeX <= maxRange;
+        GetCharacterTargetVolumeRange(target, out float targetMinX, out float targetMaxX);
+        return targetMaxX >= worldMin && targetMinX <= worldMax;
+    }
+
+    private static void GetCharacterTargetVolumeRange(Character target, out float minX, out float maxX)
+    {
+        float targetX = target.transform.position.x;
+        if (target.IsCat())
+        {
+            minX = targetX;
+            maxX = targetX + CharacterTargetVolumeLength;
+        }
+        else
+        {
+            minX = targetX - CharacterTargetVolumeLength;
+            maxX = targetX;
+        }
     }
 
     /// <summary>
@@ -460,12 +478,14 @@ public class CharacterTargetManager : MonoBehaviour
         float attackerX = attacker.transform.position.x;
         float worldMin = attackerX + minRange;
         float worldMax = attackerX + maxRange;
-        int startIndex = FindFirstIndexByX(targets, worldMin);
+        int startIndex = FindFirstIndexByX(targets, worldMin - CharacterTargetVolumeLength);
         for (int i = startIndex; i < targets.Count; i++)
         {
             Character target = targets[i];
             if (target == null || !target.gameObject.activeInHierarchy) continue;
-            if (target.transform.position.x > worldMax) break;
+            GetCharacterTargetVolumeRange(target, out float targetMinX, out float targetMaxX);
+            if (targetMinX > worldMax) break;
+            if (targetMaxX < worldMin) continue;
             // if (target.GetHealth() <= 0) continue;
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;

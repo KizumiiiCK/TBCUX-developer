@@ -119,8 +119,11 @@ public enum AbilityName
 {
     none=0,
     support=1,
-    strategic=2,strengthen=3, survive=4, critical=5, zombieKiller=6, soulStrike=7, barrierBreaker=8, shieldPiercing=9, savage=10, extraMoney=11, metal=12, miniWave=13, wave=14, wave_stop=15, miniSurge=16, surge=17, counter_surge=18, explosion=19, summoner=20, shieldProvider=21, maxShield=22,
-    practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38,
+    strategic=2,strengthen=3, survive=4, critical=5, zombieKiller=6, soulStrike=7, barrierBreaker=8, shieldPiercing=9, savage=10, 
+    extraMoney=11, metal=12, miniWave=13, wave=14, wave_stop=15, miniSurge=16, surge=17, counter_surge=18, explosion=19, summoner=20, 
+    shieldProvider=21, maxShield=22,
+    practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38, clearDebuffs=39, 
+    barrier=40, akuShield=41,
     [EditorBrowsable(EditorBrowsableState.Never)]
     buff_defence = 23, buff_attack = 24, buff_speed = 25, buff_kb = 26, buff_costdown = 27, buff_recover = 28, buff_atkFreq = 29,
     Aux_MaxDMGBlock = 900, Aux_MinDMGBlock = 901,

@@ -7,6 +7,7 @@ using UnityEngine;
 public class WaveUnit : Character
 {
     protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
+    private readonly HashSet<Character> attackedTargets = new HashSet<Character>();
 
     public int wave_level = 1;
     bool Mini=false;
@@ -15,6 +16,7 @@ public class WaveUnit : Character
 
     public void BeginWaveAttack(int level, bool mini, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
+        attackedTargets.Clear();
         wave_level = level;
         Mini = mini;
         realDamage = new int[1] { (int)DMG };
@@ -84,8 +86,10 @@ public class WaveUnit : Character
             if (Targets[i] == null) continue;
             Character target = Targets[i].GetComponent<Character>();
             if (target == null) continue;
+            if (attackedTargets.Contains(target)) continue;
             if (target.GetHealth() <= 0) continue;
             target.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            attackedTargets.Add(target);
         }
     }
 

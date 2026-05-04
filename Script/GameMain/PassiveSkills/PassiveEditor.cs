@@ -30,6 +30,11 @@ public static class AbilityInstaller
         { AbilityName.projectile, typeof(ProjectileLauncher)},
         { AbilityName.ZombieDive, typeof(ZombieDiveAddon)},
         { AbilityName.ZombieRevive, typeof(ZombieReviveAddon)},
+        { AbilityName.clearDebuffs, typeof(ClearDebuffs)},
+        { AbilityName.barrier, typeof(Barrier)},
+        { AbilityName.akuShield, typeof(AkuShield)},
+        { AbilityName.barrierBreaker, typeof(BarrierBreaker)},
+        { AbilityName.shieldPiercing, typeof(SheildPiercing)},
         { AbilityName.invisible, typeof(Aux_InvisibleShow)},
         { AbilityName.dodge, typeof(DodgePassive)},
         { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
@@ -369,6 +374,172 @@ public class MaxShield : PassiveSkill
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         if (DMG > damageLimit) DMG = damageLimit;
+    }
+}
+
+public class Barrier : PassiveSkill
+{
+    private string shieldEffectName;
+    private bool broken;
+    private float hardness;
+    private AnimationDisplayer shieldDisplay;
+
+    public override void OnAddingAbility(Character character)
+    {
+        hardness = Mathf.Max(0f, intensity);
+        broken = false;
+        shieldEffectName = character != null && character.IsCat() ? "barrier" : "barrier_e";
+    }
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null || broken) return;
+        if(DMG < 0f) return;
+        bool isBarrierBreaker = atkTypes != null && atkTypes.Contains(AttackType.barrierBreaker);
+        if (isBarrierBreaker)
+        {
+            PlayShieldAnim(character, 2);
+            broken = true;
+            DMG *= 1.25f;
+            CleanupShieldAnim(character);
+            character.RemovePassiveEffect(this);
+            return;
+        }
+
+        if (DMG < hardness)
+        {
+            PlayShieldAnim(character, 0);
+            DMG = 0f;
+            return;
+        }
+
+        PlayShieldAnim(character, 1);
+        DMG = 0f;
+        broken = true;
+        CleanupShieldAnim(character);
+        character.RemovePassiveEffect(this);
+    }
+
+    public override void OnDead(Character character)
+    {
+        CleanupShieldAnim(character);
+    }
+
+    protected void PlayShieldAnim(Character character, int animIndex)
+    {
+        if (character == null || character.EM == null) return;
+        character.EM.PlayReusableAttachedEffect(
+            ref shieldDisplay,
+            shieldEffectName,
+            character.transform,
+            character.transform.position,
+            animIndex,
+            worldPositionStays: true);
+    }
+
+    private void CleanupShieldAnim(Character character)
+    {
+        if (shieldDisplay == null) return;
+        if (character != null && character.EM != null)
+        {
+            character.EM.ReleaseReusableAttachedEffect(ref shieldDisplay, shieldEffectName);
+        }
+        else
+        {
+            UnityEngine.Object.Destroy(shieldDisplay.gameObject);
+            shieldDisplay = null;
+        }
+    }
+}
+
+public class AkuShield : PassiveSkill
+{
+    private string shieldEffectName;
+    private float maxHardness;
+    private float remainingHardness;
+    private bool broken;
+    private AnimationDisplayer shieldDisplay;
+
+    public override void OnAddingAbility(Character character)
+    {
+        maxHardness = Mathf.Max(0f, intensity);
+        remainingHardness = maxHardness;
+        broken = false;
+        shieldEffectName = character != null && character.IsCat() ? "akuShield" : "akuShield_e";
+    }
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null) return;
+        if (DMG < 0f) return;
+
+        bool isShieldPiercing = atkTypes != null && atkTypes.Contains(AttackType.sheildPiercing);
+        if (isShieldPiercing)
+        {
+            PlayShieldAnim(character, 3);
+            DMG *= 1.25f;
+            remainingHardness = 0f;
+            broken = true;
+            return;
+        }
+
+        if (broken || remainingHardness <= 0f) return;
+
+        float incomingDamage = Mathf.Max(0f, DMG);
+        if (incomingDamage <= 0f) return;
+
+        remainingHardness -= incomingDamage;
+        if (remainingHardness > 0f)
+        {
+            DMG = 0f;
+            PlayShieldAnim(character, 1);
+            return;
+        }
+
+        broken = true;
+        PlayShieldAnim(character, 2);
+        DMG = Mathf.Max(0f, -remainingHardness);
+    }
+
+    public override void OnAfterKB(Character character)
+    {
+        if (character == null) return;
+        if (!broken) return;
+        if (character.GetLastTriggeredKBType() != KB_Type.none) return;
+        remainingHardness = maxHardness;
+        broken = false;
+        PlayShieldAnim(character, 0);
+    }
+
+    public override void OnDead(Character character)
+    {
+        CleanupShieldAnim(character);
+    }
+
+    private void PlayShieldAnim(Character character, int animIndex)
+    {
+        if (character == null || character.EM == null) return;
+        character.EM.PlayReusableAttachedEffect(
+            ref shieldDisplay,
+            shieldEffectName,
+            character.transform,
+            character.transform.position,
+            animIndex,
+            worldPositionStays: true);
+    }
+
+    private void CleanupShieldAnim(Character character)
+    {
+        if (shieldDisplay == null) return;
+        if (character != null && character.EM != null)
+        {
+            character.EM.ReleaseReusableAttachedEffect(ref shieldDisplay, shieldEffectName);
+        }
+        else
+        {
+            UnityEngine.Object.Destroy(shieldDisplay.gameObject);
+            shieldDisplay = null;
+        }
     }
 }
 
@@ -734,6 +905,35 @@ public class ZombieReviveAddon : PassiveSkill
             playSound: false);
     }
 
+}
+
+public class ClearDebuffs : PassiveSkill
+{
+    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
+    {
+        if (character == null) return;
+        if (!Triggered()) return;
+
+        IReadOnlyList<Character> hitTargets = character.GetLastAttackHitTargets();
+        for (int i = 0; i < hitTargets.Count; i++)
+        {
+            ClearNegativeDebuffs(hitTargets[i]);
+        }
+    }
+
+    private static void ClearNegativeDebuffs(Character target)
+    {
+        if (target == null) return;
+        E[] effects = target.GetComponents<E>();
+        for (int i = 0; i < effects.Length; i++)
+        {
+            E effect = effects[i];
+            if (effect == null) continue;
+            // 伤害提升类负面效果（如 deathmark）不清除。
+            if (effect.GetEffectName() == EffectName.deathmark) continue;
+            UnityEngine.Object.Destroy(effect);
+        }
+    }
 }
 
 public class DodgePassive : PassiveSkill

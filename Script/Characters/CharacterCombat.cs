@@ -9,6 +9,8 @@ public abstract partial class Character
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
     [SerializeField] public GameObject BaseTarget;
+    private readonly List<Character> lastAttackHitTargets = new List<Character>(8);
+    private KB_Type lastTriggeredKBType = KB_Type.none;
 
     /* ====== ����ս���ӿ� ====== */
     public void SetSearchTagName(string name) { compareTagName = name; }
@@ -34,7 +36,6 @@ public abstract partial class Character
         return list;
     }
 
-    /* ����ս��������ReceiveAttack / PerformKB / �˺����� ������ԭʵ�� */
     #region Attack Functions
     public void Attack(float dmg, bool areaAttack, bool doNotTrigger, GameObject specific = null)
     {
@@ -46,6 +47,7 @@ public abstract partial class Character
             else
                 return go.GetComponent<EnemyCharacter>() as T;
         }
+        lastAttackHitTargets.Clear();
         Targets.RemoveAll(go => go == null);
         GameObject baseTarget = GetValidBaseTarget();
         if (Targets.Count != 0 || baseTarget != null || specific != null)
@@ -61,6 +63,7 @@ public abstract partial class Character
                 decisionEff = DetermineSelfATKEffects();
                 Character Target = GetTarget<Character>(specific);
                 Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                TryRecordHitTarget(Target);
                 if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
             }
             else
@@ -75,6 +78,7 @@ public abstract partial class Character
                 {
                     Character Target = GetTarget<Character>(FindNearest());
                     Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                    TryRecordHitTarget(Target);
                     if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                 }
                 else
@@ -85,11 +89,13 @@ public abstract partial class Character
                     {
                         Character ec = GetTarget<Character>(Targets[i]);
                         ec?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                        TryRecordHitTarget(ec);
                     }
                     if (baseTarget != null && !Targets.Contains(baseTarget))
                     {
                         Character bt = GetTarget<Character>(baseTarget);
                         bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                        TryRecordHitTarget(bt);
                     }
                 }
                 //if (!atkInfos[animateStep].DoNotTriggerEffects)
@@ -217,13 +223,17 @@ public abstract partial class Character
     protected void TakeDMG(float DMG)
     {
         float afterhealth = realHealth - DMG;
-        Debug.Log($"{NameCode}: {realHealth} - {DMG} / {maxHealth}");
-        //if (DMG < 0) EffectInstaller.Inflict(gameObject, AttackType.heal, 1, 1);
-        if (DMG < 0) EM.InstantiateBattleObject(IsCat()?SEnums.heal:SEnums.heal_e, transform.position.x, transform.position.y);
+        Debug.Log($"{NameCode}: -{DMG}");
+        if (DMG < -1) EM.InstantiateBattleObject(IsCat() ? SEnums.heal : SEnums.heal_e, transform.position.x, transform.position.y);
+        else if (DMG == 0) EM.InstantiateBattleObject(IsCat() ? SEnums.block : SEnums.block_e, transform.position.x, transform.position.y);
         else if (afterhealth < maxHealth - (realKBtimes + 1) * hardness)
         {
             realKBtimes = (int)((maxHealth - afterhealth) / hardness);
-            if (coroutineKB == null) coroutineKB = StartCoroutine(PerformKB());
+            if (coroutineKB == null)
+            {
+                lastTriggeredKBType = KB_Type.none;
+                coroutineKB = StartCoroutine(PerformKB());
+            }
         }
         realHealth = afterhealth;
         if (realHealth > maxHealth) realHealth = maxHealth;
@@ -234,8 +244,11 @@ public abstract partial class Character
     {
         if (Speed == 0 && GetHealth() > 1) return;
         BlockAnimationSwitch = false; 
-        if (coroutineKB == null) 
-        coroutineKB = StartCoroutine(PerformKB(kbt, DX)); 
+        if (coroutineKB == null)
+        {
+            lastTriggeredKBType = kbt;
+            coroutineKB = StartCoroutine(PerformKB(kbt, DX));
+        }
     }
     protected IEnumerator PerformKB(KB_Type kbt = KB_Type.none, float DX = 400)
     {
@@ -255,8 +268,6 @@ public abstract partial class Character
         onKB = true; onATK = false;
         SetAttackRange(0, DetectionRange);
         SwitchAnimation(3);
-        //if(animator!=null)animator.SetInteger("state", 2);//
-        //if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(3);
         Targets.Clear();
         BaseTarget = null;
 
@@ -372,6 +383,15 @@ public abstract partial class Character
     public int GetRealSpeed()=>realSpeed;
     public int GetAnimationStep()=>animateStep;
     public bool IsOnKB() => onKB;
+    public KB_Type GetLastTriggeredKBType() => lastTriggeredKBType;
+    public IReadOnlyList<Character> GetLastAttackHitTargets() => lastAttackHitTargets;
+
+    private void TryRecordHitTarget(Character target)
+    {
+        if (target == null) return;
+        if (lastAttackHitTargets.Contains(target)) return;
+        lastAttackHitTargets.Add(target);
+    }
 
     private GameObject GetValidBaseTarget()
     {
