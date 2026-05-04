@@ -836,17 +836,32 @@ public static class CharacterUpgradeSave
     public static UpgradeDetails GetDetails(string id)
     {
         var dict = Load();
-        if (dict.TryGetValue(id, out var ud))
+        if (!dict.TryGetValue(id, out var ud))
         {
-            if (ud.proficiency == null)
-                ud.proficiency = new CharacterProficiency();
-
-            return ud;
+            // 保底创建：新角色资源已存在但旧存档未包含该 ID 时，避免调用方拿到 null
+            ud = new UpgradeDetails();
+            dict[id] = ud;
+            Save(dict);
+            Debug.LogWarning($"[CharacterUpgradeSave] Missing save entry for {id}, created default UpgradeDetails.");
         }
 
-        // if somehow missing, rebuild
-        Rebuild().TryGetValue(id, out var newud);
-        return newud;
+        bool changed = false;
+        if (ud.tire_unlocked == null || ud.tire_unlocked.Length != 4)
+        {
+            ud.tire_unlocked = new bool[4];
+            changed = true;
+        }
+        if (ud.proficiency == null)
+        {
+            ud.proficiency = new CharacterProficiency();
+            changed = true;
+        }
+        if (changed)
+        {
+            dict[id] = ud;
+            Save(dict);
+        }
+        return ud;
     }
 
     public static bool XPUpgradeAvailable(string id)

@@ -225,7 +225,7 @@ public abstract partial class Character
         float afterhealth = realHealth - DMG;
         Debug.Log($"{NameCode}: -{DMG}");
         if (DMG < -1) EM.InstantiateBattleObject(IsCat() ? SEnums.heal : SEnums.heal_e, transform.position.x, transform.position.y);
-        else if (DMG == 0) EM.InstantiateBattleObject(IsCat() ? SEnums.block : SEnums.block_e, transform.position.x, transform.position.y);
+        else if (DMG == 0) EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y);
         else if (afterhealth < maxHealth - (realKBtimes + 1) * hardness)
         {
             realKBtimes = (int)((maxHealth - afterhealth) / hardness);

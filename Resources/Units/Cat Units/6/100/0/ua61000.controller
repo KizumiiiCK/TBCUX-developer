@@ -45,7 +45,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 2250b1304f3491b4b8fce113f2b234ef, type: 2}
+  m_Motion: {fileID: 7400000, guid: bc9beb0d9dd332840b4113b2883e313a, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -71,7 +71,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 3e64f102c52788a4cabe4902310b0b6f, type: 2}
+  m_Motion: {fileID: 7400000, guid: 99f06a79d8167894db648968fcc565d4, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -166,7 +166,7 @@ AnimatorStateMachine:
     m_Position: {x: 200, y: 0, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4207452822261091292}
-    m_Position: {x: 230, y: 60, z: 0}
+    m_Position: {x: 230, y: 70, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 6663651977555795239}
     m_Position: {x: 300, y: 200, z: 0}
@@ -193,7 +193,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: uae801
+  m_Name: ua61000
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: state
@@ -235,7 +235,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: cd7035e24362f2c48898c90bef9f19cd, type: 2}
+  m_Motion: {fileID: 7400000, guid: 07e47bf7c45e8fd40a7f30b684b5077e, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -261,7 +261,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: c7eba45c0ab5cdf48ad9b6f4b23a6d20, type: 2}
+  m_Motion: {fileID: 7400000, guid: 5e82b3b97267f0e42a7696409b43930b, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
