@@ -266,6 +266,8 @@ public abstract partial class Character
         int d2 = duration - d1;
         BlockAnimationSwitch = false;
         onKB = true; onATK = false;
+        // KB can interrupt a Friendly attack step; force search mode back to enemy side.
+        CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, false);
         SetAttackRange(0, DetectionRange);
         SwitchAnimation(3);
         Targets.Clear();

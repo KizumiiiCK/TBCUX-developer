@@ -121,7 +121,8 @@ public class ProjectileUnit : AnimatorCachedCharacter
             return;
         }
 
-        if (Targets.Count > 0 && realReload >= Reload)
+        // Projectile can attack either normal targets or enemy base target.
+        if ((Targets.Count > 0 || BaseTarget != null) && realReload >= Reload)
         {
             SwitchAnimation(2);
             Passive_OnStartAttack();
@@ -136,7 +137,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         SwitchAnimation(1);
         int dir = IsCat() ? -1 : 1;
         transform.Translate(new Vector2(TBCspeedTranslator(realSpeed * dir) * Time.deltaTime, 0f));
-        //if (Mathf.Abs(transform.position.x) > 200f) Destroy(gameObject);
+        if (Mathf.Abs(transform.position.x) > 50) Destroy(gameObject);
     }
 
     public override float GetFactor() => 1f;

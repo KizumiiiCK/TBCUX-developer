@@ -199,8 +199,6 @@ public class DrawCapsuleCanvas : UICanvasMain
             SetupInfoBoard(current_charactercode);
             yield return PlayRevealThenResultStageVideo();
             GainBtn.interactable = CharacterUpgradeSave.DrawUpgradeAvailable(DrawCharacters[i].ToString("0000"));
-            //for (int t = 0; t < 30; t++) if (draw_skip)break;
-            //else yield return new WaitForFixedUpdate();
             getBGM.Play();
             ConfirmElements.SetActive(true);
             draw_skip = false;
@@ -233,11 +231,11 @@ public class DrawCapsuleCanvas : UICanvasMain
         string char_code = (code % 1000).ToString("000");
         Application.targetFrameRate = 30;
         if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-        string characterCode = $"{rarity}{char_code}0";
+        string characterCode = $"{code}0";
         current_display_character = CharacterSummoner.CreateACharacter(true, characterCode, true);
         if (current_display_character == null) return;
 
-        CharacterSummoner.SetCharacterPosition(current_display_character, new Vector3(0, -5, 10));
+        CharacterSummoner.SetCharacterPosition(current_display_character, new Vector3(0, -3.5f, 10));
         CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "Units", 3);
         CharacterData CD = Resources.Load<CharacterData>($"Units/Cat Units/{rarity}/{char_code}/0/data");
         if (CD != null) CharacterSummoner.SwitchAnimation(current_display_character, CD.UNITYAnimated, 0);

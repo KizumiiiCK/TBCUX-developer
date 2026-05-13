@@ -14,25 +14,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: 12011
   isEliteUnit: 0
-  ATKType: 00000000
+  ATKType: 
   atkInfos:
-  - ATK: 4546
-    frame: 37
+  - ATK: 2
+    frame: 9
     DoNotTriggerEffects: 0
-    ATKRange: {x: 0, y: 600}
-  areaATK: 0
-  atkDuration: 480
-  one_off: 0
-  Health: 76780
-  KB: 8
-  Speed: 40
+    Friendly: 0
+    ATKRange: {x: 1, y: 450}
+  - ATK: 2
+    frame: 6
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: 350, y: 800}
+  - ATK: 2
+    frame: 6
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: 700, y: 1000}
+  areaATK: 1
+  atkDuration: 41
+  Health: 9000
+  KB: 1
+  Speed: 20
   Reload: 0
-  DetectionRange: 400
-  Cost: 33000
-  Cooldown: 0
-  UNITYAnimated: 1
+  DetectionRange: 100
+  Cost: 360
+  Cooldown: 206
+  UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
-    Red: 1
+    Red: 0
     Flt: 1
     Blk: 0
     Mtl: 0
@@ -42,27 +53,21 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 1
+    Warrior: 0
     Deffender: 0
-    Magician: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:
     AggainstWarrior: 0
     AggainstMagician: 0
-    AggainstDeffender: 1
+    AggainstDeffender: 0
     AggainstSuppoter: 0
     AggainstPractician: 0
   DRE:
@@ -71,11 +76,31 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects: []
-  abilities:
-  - name: 14
+  characterEffects:
+  - name: 1
     probability: 100
-    duration: 16
+    duration: 150
+    intensity: 50
+  abilities:
+  - name: 31
+    probability: 1
+    duration: 0
     intensity: 0
   atkTypeResis: []
-  effectResistances: []
+  effectResistances:
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 4
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 7
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 5
+    probability: 100
+    duration: 0
+    intensity: 0

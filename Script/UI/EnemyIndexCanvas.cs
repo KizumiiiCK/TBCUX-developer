@@ -27,10 +27,10 @@ public class EnemyIndexCanvas : UICanvasMain
     [SerializeField] private RectTransform HeadIcon_ScrollingArea;
     [SerializeField] private ScrollRect headIconScrollRect;
     [SerializeField] private GameObject EnemyHeadIcon;
-    [SerializeField] private int headIconColumns = 1;
-    [SerializeField] private float headIconCellWidth = 270f;
-    [SerializeField] private float headIconCellHeight = 150f;
-    [SerializeField] private int headIconPreloadRows = 2;
+    private int headIconColumns = 4;
+    private float headIconCellWidth = 128f;
+    private float headIconCellHeight = 128f;
+    private int headIconPreloadRows = 10;
     //[SerializeField] private CustomScrollbar scrollbar_setting;
     [SerializeField] private GameObject indexUnit;
     [SerializeField] private IndexViewer IV;
