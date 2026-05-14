@@ -139,6 +139,17 @@ public abstract partial class Character
         //SetAttackRange(0, DetectionRange);
         SwitchAnimation(0);
     }
+
+    public void AbortCurrentAttackForControl()
+    {
+        if (!onATK) return;
+        onATK = false;
+        animateStep = 0;
+        animatedframes = 0;
+        realReload = 0;
+        Supporter_Target_Switch(true);
+        SetAttackRange(0, DetectionRange);
+    }
     protected bool AreCorrespondingTraits(Traits targetTrait)
     {
         if (targetTrait == null) return false;

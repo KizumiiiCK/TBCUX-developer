@@ -6,10 +6,12 @@ public class Wrap : E
 {
     private const int TransitionFrames = 30;
     private const float HiddenPosY = -1000f;
+    private const float WrapLiftDistance = 8f;
 
     private Character character;
     private Transform visualRoot;
     private Vector3 originalVisualScale = Vector3.one;
+    private Vector3 originalVisualLocalPosition = Vector3.zero;
     private Vector3 originalWorldPosition = Vector3.zero;
     private int originalAnimationSpeed = 1;
     private int originalFrameStep = 1;
@@ -40,6 +42,7 @@ public class Wrap : E
         {
             visualRoot = character.transform.GetChild(0);
             originalVisualScale = visualRoot.localScale;
+            originalVisualLocalPosition = visualRoot.localPosition;
         }
 
         StartCoroutine(Wrapping());
@@ -57,6 +60,7 @@ public class Wrap : E
         if (visualRoot != null)
         {
             visualRoot.localScale = originalVisualScale;
+            visualRoot.localPosition = originalVisualLocalPosition;
         }
         CleanupWrapAnim();
     }
@@ -71,6 +75,10 @@ public class Wrap : E
             yield break;
         }
 
+        // Interrupt current attack timeline before freezing frame step,
+        // avoiding repeated attack checks while wrapped.
+        character.AbortCurrentAttackForControl();
+
         character.SetAnimationSpeed(0);
         character.SetFrameStep(0);
         character.ChangeSpeed(0);
@@ -78,7 +86,7 @@ public class Wrap : E
 
         // wrap_out：首帧播放0，30帧内缩小到0，并隐藏到不可检测位置
         PlayWrapAnim(0);
-        character.transform.position = new Vector3(character.transform.position.x, HiddenPosY, character.transform.position.z);
+        
         for (int i = 0; i < TransitionFrames; i++)
         {
             if (character == null) yield break;
@@ -86,11 +94,17 @@ public class Wrap : E
             {
                 float ratio = 1f - ((i + 1f) / TransitionFrames);
                 visualRoot.localScale = originalVisualScale * Mathf.Clamp01(ratio);
+                float liftRatio = (i + 1f) / TransitionFrames;
+                float liftedY = Mathf.Lerp(originalVisualLocalPosition.y, originalVisualLocalPosition.y + WrapLiftDistance, liftRatio);
+                Vector3 localPos = visualRoot.localPosition;
+                localPos.y = liftedY;
+                visualRoot.localPosition = localPos;
             }
             yield return new WaitForFixedUpdate();
         }
 
         // 隐藏持续 duration 帧
+        // character.transform.position = new Vector3(character.transform.position.x, HiddenPosY, character.transform.position.z);
         int holdFrames = holdDurationFrames;
         for (int i = 0; i < holdFrames; i++)
         {
@@ -110,6 +124,11 @@ public class Wrap : E
             {
                 float ratio = (i + 1f) / TransitionFrames;
                 visualRoot.localScale = originalVisualScale * Mathf.Clamp01(ratio);
+                float lowerRatio = (i + 1f) / TransitionFrames;
+                float loweredY = Mathf.Lerp(originalVisualLocalPosition.y + WrapLiftDistance, originalVisualLocalPosition.y, lowerRatio);
+                Vector3 localPos = visualRoot.localPosition;
+                localPos.y = loweredY;
+                visualRoot.localPosition = localPos;
             }
             yield return new WaitForFixedUpdate();
         }
@@ -118,6 +137,7 @@ public class Wrap : E
         character.SetFrameStep(originalFrameStep);
         character.ChangeSpeed(originalSpeed);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.AbortCurrentAttackForControl();
         Destroy(this);
     }
 
@@ -128,7 +148,7 @@ public class Wrap : E
             ref wrapDisplay,
             wrapEffectName,
             character.transform,
-            character.transform.position,
+            character.transform.position+new Vector3(0,6,0),
             animIndex,
             worldPositionStays: true);
     }

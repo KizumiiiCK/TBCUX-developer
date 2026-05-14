@@ -367,13 +367,21 @@ public class WaveStop : PassiveSkill
 public class MaxShield : PassiveSkill
 {
     private float damageLimit = int.MaxValue;
+    private const string MaxShieldCutEffectName = "dmgcut";
     public override void OnDeployUnit(Character character)
     {
         damageLimit = character.GetMaxHealth() * probability / 100f;
     }
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
-        if (DMG > damageLimit) DMG = damageLimit;
+        if (DMG > damageLimit)
+        {
+            DMG = damageLimit;
+            if (character != null && character.EM != null)
+            {
+                character.EM.InstantiateBattleObject(MaxShieldCutEffectName, character.transform.position.x, character.transform.position.y);
+            }
+        }
     }
 }
 

@@ -89,14 +89,10 @@ public class AnimationDisplayer : MonoBehaviour
     {
         set
         {
+            if (value > 31000) value = 31000;
+            if(value<-32767) value = -32767;
             if (value < 31000 && value >= -32768)
-            {
-                orderLayerStart = value;
-            }
-            else
-            {
-                Debug.LogError($"The object's order layer will out of range. value:{value}");
-            }
+            orderLayerStart = value;
         }
         get => orderLayerStart;
     }

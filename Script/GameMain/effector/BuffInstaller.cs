@@ -52,12 +52,10 @@ public class EffectInstaller : MonoBehaviour
                 break;
             case EffectName.wrap:
                 Wrap wrp;
-                if (target.GetComponent<Wrap>() != null)
-                {
-                    wrp = target.GetComponent<Wrap>();
-                    wrp.duration = _duration;
-                    wrp.intensity = _intensity;
-                }
+                if (target.GetComponent<Wrap>() != null) wrp = target.GetComponent<Wrap>();
+                else wrp = target.AddComponent<Wrap>();
+                wrp.duration = _duration;
+                wrp.intensity = _intensity;
                 break;
             case EffectName.curse:
                 Curse crs;

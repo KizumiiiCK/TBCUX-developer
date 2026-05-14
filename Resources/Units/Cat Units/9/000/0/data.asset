@@ -67,14 +67,14 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects:
-  - name: 3
-    probability: 100
-    duration: 600
-    intensity: 50
   - name: 10
     probability: 100
     duration: 300
     intensity: 0
+  - name: 5
+    probability: 100
+    duration: 90
+    intensity: -500
   abilities: []
   atkTypeResis: []
   effectResistances: []
