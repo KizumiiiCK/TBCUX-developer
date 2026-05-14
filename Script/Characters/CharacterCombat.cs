@@ -223,7 +223,6 @@ public abstract partial class Character
     protected void TakeDMG(float DMG)
     {
         float afterhealth = realHealth - DMG;
-        Debug.Log($"{NameCode}: -{DMG}");
         if (DMG < -1) EM.InstantiateBattleObject(IsCat() ? SEnums.heal : SEnums.heal_e, transform.position.x, transform.position.y);
         else if (DMG == 0) EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y);
         else if (afterhealth < maxHealth - (realKBtimes + 1) * hardness)
@@ -237,6 +236,11 @@ public abstract partial class Character
         }
         realHealth = afterhealth;
         if (realHealth > maxHealth) realHealth = maxHealth;
+        if (DMG > 0f && maxHealth > 0f)
+        {
+            float damageRatio = Mathf.Clamp01(DMG / maxHealth);
+            CharacterTargetManager.Instance.NotifyCharacterDamaged(this, damageRatio);
+        }
         if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Abs(DMG));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
@@ -268,6 +272,7 @@ public abstract partial class Character
         onKB = true; onATK = false;
         // KB can interrupt a Friendly attack step; force search mode back to enemy side.
         CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, false);
+        CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.kb);
         SetAttackRange(0, DetectionRange);
         SwitchAnimation(3);
         Targets.Clear();

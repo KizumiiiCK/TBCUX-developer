@@ -11,8 +11,11 @@ public abstract class E : MonoBehaviour
     protected Character etarget;
     protected int slotNum=0;
     protected Transform EFF;
+    private AnimationDisplayer pooledEffectDisplay;
     private bool pooledEffectVisual = false;
     private string pooledEffectName = string.Empty;
+    private EffectManager cachedEffectManager;
+    private bool effectVisualReleased = false;
     private int activeDurationFrames = 0;
     private LevelController cachedLevelController;
     private string cachedNameCode = string.Empty;
@@ -23,6 +26,7 @@ public abstract class E : MonoBehaviour
         cachedLevelController = etarget != null ? etarget.levelController : null;
         cachedNameCode = etarget != null ? etarget.NameCode : string.Empty;
         cachedIsCat = etarget != null && etarget.IsCat();
+        cachedEffectManager = etarget != null ? etarget.EM : null;
         for(int i = 0; i < etarget.effectMarkedSlots.Length; i++)
         {
             if (!etarget.effectMarkedSlots[i])
@@ -60,15 +64,17 @@ public abstract class E : MonoBehaviour
             case EffectName.curse: en = "curse"; break;
             case EffectName.toxic: en = "toxic"; break;
             case EffectName.lacerate: en = "lacerate"; break; 
+            case EffectName.deathmark: en = "death_mark"; break;
             default: break;
         }
-        if (etarget.CompareTag("Cat")) enemy = false;
+        if (etarget.IsCat()) enemy = false;
         else enemy = true;
         string effectVisualName = $"{en}{(enemy ? "_e" : string.Empty)}";
         Vector3 pos = etarget.transform.position + new Vector3((enemy ? -1 : 1) * slotNum * 1.2f, 0, 0);
-        if (effectName != EffectName.lacerate && etarget != null && etarget.EM != null)
+        EffectManager effectManager = cachedEffectManager != null ? cachedEffectManager : (etarget != null ? etarget.EM : null);
+        if (effectName != EffectName.lacerate && !string.IsNullOrEmpty(en) && etarget != null && effectManager != null)
         {
-            AnimationDisplayer ad = etarget.EM.InstantiateAttachedBattleObject(
+            AnimationDisplayer ad = effectManager.InstantiateAttachedBattleObject(
                 effectVisualName,
                 pos,
                 etarget.transform,
@@ -77,42 +83,25 @@ public abstract class E : MonoBehaviour
                 lifetimeFrames: 0);
             if (ad != null)
             {
+                pooledEffectDisplay = ad;
                 EFF = ad.transform;
                 pooledEffectVisual = true;
                 pooledEffectName = effectVisualName;
                 return;
             }
         }
-
-        //GameObject eff = Resources.Load<GameObject>($"Effects/{effectVisualName}");
-        //try
-        //{
-        //    EFF = Instantiate(eff, pos, Quaternion.identity).transform;
-        //    EFF.SetParent(etarget.transform);
-        //    pooledEffectVisual = false;
-        //}
-        //catch
-        //{
-        //    Debug.LogError($"Error loading eff {effectName}");
-        //}
     }
+
+    private void OnDisable()
+    {
+        ReleaseEffectVisual();
+    }
+
     protected void OnDestroy()
     {
         ReportEffectDuration();
         RemoveEffect();
-        if (EFF != null)
-        {
-            if (pooledEffectVisual && etarget != null && etarget.EM != null)
-            {
-                AnimationDisplayer ad = EFF.GetComponent<AnimationDisplayer>();
-                if (ad != null) etarget.EM.RecycleBattleObject(ad, pooledEffectName);
-                else Destroy(EFF.gameObject);
-            }
-            else
-            {
-                Destroy(EFF.gameObject);
-            }
-        }
+        ReleaseEffectVisual();
         if (etarget != null && etarget.effectMarkedSlots != null && slotNum >= 0 && slotNum < etarget.effectMarkedSlots.Length)
         {
             etarget.effectMarkedSlots[slotNum] = false;
@@ -125,5 +114,37 @@ public abstract class E : MonoBehaviour
         if (!cachedIsCat || cachedLevelController == null || activeDurationFrames <= 0) return;
         cachedLevelController.RecordProficency_DebuffSuffered(cachedNameCode, activeDurationFrames);
         //cachedLevelController.RecordProficency_EffectDuration(cachedNameCode, effectName, activeDurationFrames);
+    }
+
+    private void ReleaseEffectVisual()
+    {
+        if (effectVisualReleased) return;
+        effectVisualReleased = true;
+
+        AnimationDisplayer ad = pooledEffectDisplay;
+        if (ad == null && EFF != null)
+        {
+            ad = EFF.GetComponent<AnimationDisplayer>();
+        }
+
+        if (ad != null)
+        {
+            EffectManager effectManager = cachedEffectManager != null ? cachedEffectManager : (etarget != null ? etarget.EM : null);
+            if (pooledEffectVisual && effectManager != null)
+            {
+                effectManager.RecycleBattleObject(ad, pooledEffectName);
+            }
+            else if (ad.gameObject != null)
+            {
+                Destroy(ad.gameObject);
+            }
+        }
+        else if (EFF != null && EFF.gameObject != null)
+        {
+            Destroy(EFF.gameObject);
+        }
+
+        pooledEffectDisplay = null;
+        EFF = null;
     }
 }

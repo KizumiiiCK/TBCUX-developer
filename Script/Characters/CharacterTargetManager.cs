@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -44,10 +45,74 @@ public class CharacterTargetManager : MonoBehaviour
 
     // 不可被检测角色（例如遁地潜行中的僵尸）
     private HashSet<Character> undetectableCharacters = new HashSet<Character>();
+    // 拥有死亡标记的角色
+    private HashSet<Character> deathMarkedCharacters = new HashSet<Character>();
     
     // 缓存：避免每帧重新分配
     private List<Character> tempTargets = new List<Character>();
     private readonly List<GameObject> tempTargetGameObjects = new List<GameObject>(16);
+    // Emotion System
+    private const string EmotionEffectRoot = "emo";
+    private const string EmotionRuntimeMaanimName = "maanim";
+    private const int EmotionLifeFrames = 36;
+    private const float AttackEmotionImmediateChance = 0.15f;
+    private const float KbEmotionImmediateChance = 0.30f;
+    private const float TeamTickMinSeconds = 0.35f;
+    private const float TeamTickMaxSeconds = 0.85f;
+    private const float EmotionCooldownMinSeconds = 4f;
+    private const float EmotionCooldownMaxSeconds = 11f;
+    private const float EmotionLateBattleRampSeconds = 200f;
+
+    private readonly Dictionary<Character, EmotionRuntimeState> emotionStates = new Dictionary<Character, EmotionRuntimeState>(256);
+    private readonly Dictionary<string, bool> emotionEffectAvailability = new Dictionary<string, bool>(32);
+    private TeamEmotionTickContext catEmotionTick = new TeamEmotionTickContext();
+    private TeamEmotionTickContext enemyEmotionTick = new TeamEmotionTickContext();
+    private float cumulativeCatSpawnPower;
+    private float cumulativeEnemySpawnPower;
+    private float battleStartTime;
+
+    private static readonly EmotionUX[] EmotionPool =
+    {
+        EmotionUX.flower1, EmotionUX.flower2,
+        EmotionUX.melody1, EmotionUX.melody2,
+        EmotionUX.pollen, EmotionUX.star,
+        EmotionUX.shy, EmotionUX.idea,
+        EmotionUX.silent, EmotionUX.sleepy,
+        EmotionUX.query, EmotionUX.call,
+        EmotionUX.impatient, EmotionUX.angry,
+        EmotionUX.sigh, EmotionUX.hurt,
+        EmotionUX.shock1, EmotionUX.shock2,
+        EmotionUX.great_shock, EmotionUX.startled,
+        EmotionUX.stun, EmotionUX.doomed, EmotionUX.putsu
+    };
+
+    // n x 5 static weights: emotion x (walk, idle, attack, kb, other)
+    private static readonly Dictionary<EmotionUX, int[]> EmotionStateWeightTable = new Dictionary<EmotionUX, int[]>
+    {
+        { EmotionUX.flower1,     new[] { 18, 15,  9,  1, 7 } },
+        { EmotionUX.flower2,     new[] { 16, 13,  8,  1, 6 } },
+        { EmotionUX.melody1,     new[] { 14, 16,  6,  1, 8 } },
+        { EmotionUX.melody2,     new[] { 12, 14,  6,  1, 7 } },
+        { EmotionUX.pollen,      new[] { 10, 12,  5,  1, 6 } },
+        { EmotionUX.star,        new[] {  9, 11,  9,  1, 5 } },
+        { EmotionUX.shy,         new[] {  8, 10,  4,  2, 7 } },
+        { EmotionUX.idea,        new[] {  7, 11,  5,  2, 9 } },
+        { EmotionUX.silent,      new[] {  7, 13,  3,  2,11 } },
+        { EmotionUX.sleepy,      new[] {  7, 12,  2,  1,10 } },
+        { EmotionUX.query,       new[] {  5,  9,  4,  3, 9 } },
+        { EmotionUX.call,        new[] {  4,  5, 12,  4, 6 } },
+        { EmotionUX.impatient,   new[] {  3,  3, 15,  7, 5 } },
+        { EmotionUX.angry,       new[] {  3,  3, 18,  8, 5 } },
+        { EmotionUX.sigh,        new[] {  3,  5,  5, 10,10 } },
+        { EmotionUX.hurt,        new[] {  1,  2,  4, 13, 7 } },
+        { EmotionUX.shock1,      new[] {  1,  2,  6, 18, 6 } },
+        { EmotionUX.shock2,      new[] {  1,  1,  4, 21, 6 } },
+        { EmotionUX.great_shock, new[] {  1,  1,  3, 28, 5 } },
+        { EmotionUX.startled,    new[] {  2,  2,  8, 17, 8 } },
+        { EmotionUX.stun,        new[] {  1,  1,  3, 23, 4 } },
+        { EmotionUX.doomed,      new[] {  1,  1,  3, 16,12 } },
+        { EmotionUX.putsu,       new[] {  2,  2, 14,  6, 7 } },
+    };
     
     // 更新频率控制（可选优化）
     private int updateFrameInterval = 1; // 每N帧更新一次
@@ -59,6 +124,7 @@ public class CharacterTargetManager : MonoBehaviour
         {
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            battleStartTime = Time.time;
         }
         else if (_instance != this)
         {
@@ -87,17 +153,25 @@ public class CharacterTargetManager : MonoBehaviour
         if (character.IsCat())
         {
             if (!allCats.Contains(character))
+            {
                 allCats.Add(character);
+                cumulativeCatSpawnPower += Mathf.Max(1f, character.Health);
+            }
         }
         else
         {
             if (!allEnemies.Contains(character))
+            {
                 allEnemies.Add(character);
+                cumulativeEnemySpawnPower += Mathf.Max(1f, character.Health);
+            }
         }
         
         // 初始化Friendly模式为false（默认攻击敌对阵营）
         if (!friendlyModes.ContainsKey(character))
             friendlyModes[character] = false;
+
+        EnsureEmotionState(character);
     }
 
     /// <summary>
@@ -127,6 +201,8 @@ public class CharacterTargetManager : MonoBehaviour
         attackRanges.Remove(character);
         friendlyModes.Remove(character);
         undetectableCharacters.Remove(character);
+        deathMarkedCharacters.Remove(character);
+        emotionStates.Remove(character);
     }
 
     /// <summary>
@@ -163,6 +239,7 @@ public class CharacterTargetManager : MonoBehaviour
         // 清理攻击范围数据（投射物不使用Friendly）
         attackRanges.Remove(projectile);
         undetectableCharacters.Remove(projectile);
+        deathMarkedCharacters.Remove(projectile);
     }
     
     /// <summary>
@@ -218,6 +295,72 @@ public class CharacterTargetManager : MonoBehaviour
         return result;
     }
 
+    public void RegisterDeathMarkedCharacter(Character character)
+    {
+        if (character == null) return;
+        deathMarkedCharacters.Add(character);
+    }
+
+    public void UnregisterDeathMarkedCharacter(Character character)
+    {
+        if (character == null) return;
+        deathMarkedCharacters.Remove(character);
+    }
+
+    public List<Character> GetDeathMarkedCharacters()
+    {
+        List<Character> result = new List<Character>();
+        foreach (Character character in deathMarkedCharacters)
+        {
+            if (character == null) continue;
+            if (!character.gameObject.activeInHierarchy) continue;
+            result.Add(character);
+        }
+        return result;
+    }
+
+    public int FillDeathMarkedCharacters(List<Character> buffer, Character exclude = null)
+    {
+        if (buffer == null) return 0;
+        buffer.Clear();
+        foreach (Character character in deathMarkedCharacters)
+        {
+            if (character == null) continue;
+            if (character == exclude) continue;
+            if (!character.gameObject.activeInHierarchy) continue;
+            buffer.Add(character);
+        }
+        return buffer.Count;
+    }
+
+    public void NotifyCharacterStatePulse(Character character, EmotionBattleState state)
+    {
+        if (!CanDriveEmotion(character)) return;
+        if (state != EmotionBattleState.attack && state != EmotionBattleState.kb) return;
+
+        EmotionRuntimeState rt = EnsureEmotionState(character);
+        rt.lastState = state;
+
+        float now = Time.time;
+        if (now < rt.nextAvailableAt) return;
+
+        float chance = state == EmotionBattleState.kb ? KbEmotionImmediateChance : AttackEmotionImmediateChance;
+        BattlefieldEmotionPressure pressure = BuildBattlefieldPressure(character.IsCat() ? allCats : allEnemies, character.IsCat() ? allEnemies : allCats);
+        chance *= GetStatePulseChanceMultiplier(character, rt, state, pressure);
+        if (UnityEngine.Random.value > Mathf.Clamp01(chance)) return;
+
+        TrySpawnEmotion(character, state, rt, pressure);
+    }
+
+    public void NotifyCharacterDamaged(Character character, float damageRatio)
+    {
+        if (!CanDriveEmotion(character)) return;
+        EmotionRuntimeState rt = EnsureEmotionState(character);
+        float ratio = Mathf.Clamp01(damageRatio);
+        rt.recentDamageRatio = Mathf.Max(rt.recentDamageRatio, ratio);
+        rt.stress = Mathf.Clamp01(rt.stress + ratio * 0.55f);
+    }
+
     /// <summary>
     /// 每帧更新所有角色的目标列表
     /// </summary>
@@ -232,6 +375,7 @@ public class CharacterTargetManager : MonoBehaviour
         allEnemies.RemoveAll(c => c == null);
         catProjectiles.RemoveAll(p => p == null);
         enemyProjectiles.RemoveAll(p => p == null);
+        deathMarkedCharacters.RemoveWhere(c => c == null || c.gameObject == null || !c.gameObject.activeInHierarchy);
         if (catTower == null || !catTower.gameObject) catTower = null;
         if (dogeTower == null || !dogeTower.gameObject) dogeTower = null;
 
@@ -250,6 +394,8 @@ public class CharacterTargetManager : MonoBehaviour
         // 更新所有投射物的目标（投射物只攻击敌对阵营）
         UpdateTargetsForProjectiles(catProjectiles, allEnemies);
         UpdateTargetsForProjectiles(enemyProjectiles, allCats);
+
+        UpdateEmotionSystem();
     }
 
     /// <summary>
@@ -515,6 +661,366 @@ public class CharacterTargetManager : MonoBehaviour
         }
     }
 
+    private void UpdateEmotionSystem()
+    {
+        float now = Time.time;
+        ProcessTeamEmotionTick(allCats, allEnemies, ref catEmotionTick, now);
+        ProcessTeamEmotionTick(allEnemies, allCats, ref enemyEmotionTick, now);
+    }
+
+    private void ProcessTeamEmotionTick(List<Character> allies, List<Character> enemies, ref TeamEmotionTickContext teamTick, float now)
+    {
+        if (allies == null || allies.Count == 0) return;
+        if (now < teamTick.nextTickAt) return;
+
+        BattlefieldEmotionPressure pressure = BuildBattlefieldPressure(allies, enemies);
+        int aliveAllies = pressure.aliveAllies;
+        if (aliveAllies <= 0)
+        {
+            teamTick.nextTickAt = now + TeamTickMaxSeconds;
+            return;
+        }
+
+        int attempts = Mathf.Clamp(1 + aliveAllies / 8 + Mathf.RoundToInt(pressure.battleIntensity * 2f), 1, 8);
+        for (int i = 0; i < attempts; i++)
+        {
+            Character candidate = PickRandomAliveCharacter(allies);
+            if (!CanDriveEmotion(candidate)) continue;
+
+            EmotionRuntimeState rt = EnsureEmotionState(candidate);
+            EmotionBattleState state = ResolveEmotionState(candidate);
+            rt.lastState = state;
+            rt.stress = Mathf.Clamp01(rt.stress * 0.98f);
+
+            // Attack/KB are handled by immediate pulse path on state entry.
+            if (state == EmotionBattleState.attack || state == EmotionBattleState.kb) continue;
+            if (now < rt.nextAvailableAt) continue;
+
+            float chance = GetPeriodicTriggerChance(candidate, state, rt, pressure);
+            if (UnityEngine.Random.value <= chance)
+            {
+                TrySpawnEmotion(candidate, state, rt, pressure);
+            }
+        }
+
+        float teamDensity = Mathf.Clamp01(aliveAllies / 18f);
+        float next = Mathf.Lerp(TeamTickMaxSeconds, TeamTickMinSeconds, teamDensity);
+        next *= Mathf.Lerp(1f, 0.58f, pressure.battleIntensity);
+        teamTick.nextTickAt = now + UnityEngine.Random.Range(next * 0.9f, next * 1.2f);
+    }
+
+    private bool TrySpawnEmotion(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    {
+        EmotionUX selected = SelectEmotion(character, state, rt, pressure);
+        if (selected == EmotionUX.none) return false;
+        if (!PlayEmotionEffect(character, selected)) return false;
+
+        float cooldown = GetNextEmotionCooldownSeconds(character, state, rt, pressure);
+        rt.nextAvailableAt = Time.time + cooldown;
+        rt.recentDamageRatio *= 0.45f;
+        rt.stress *= 0.7f;
+        return true;
+    }
+
+    private bool PlayEmotionEffect(Character character, EmotionUX emotion)
+    {
+        if (character == null || character.EM == null || emotion == EmotionUX.none) return false;
+        Vector3 localOffset = new Vector3(0f, character.topPositionY + 1f, 1f);
+        Vector3 worldPos = character.transform.TransformPoint(localOffset);
+
+        string emotionName = emotion.ToString();
+        if (!HasEmotionEffect(emotionName)) return false;
+
+        string resourceRoot = $"Effects/{EmotionEffectRoot}/{emotionName}/";
+        AnimationDisplayer ad = character.EM.InstantiateRuntimeBattleObject(
+            resourceRoot,
+            new[] { EmotionRuntimeMaanimName },
+            worldPos,
+            null,
+            worldPositionStays: true);
+        if (ad == null) return false;
+
+        EmotionFollowAnchor follow = ad.GetComponent<EmotionFollowAnchor>();
+        if (follow == null) follow = ad.gameObject.AddComponent<EmotionFollowAnchor>();
+        follow.Bind(character, localOffset, character.EM, GetEmotionRuntimePoolKey(emotionName), EmotionLifeFrames);
+
+        // Enemy emotion visuals should be mirrored.
+        if (!character.IsCat())
+        {
+            Vector3 s = ad.transform.localScale;
+            s.x = -Mathf.Abs(s.x);
+            ad.transform.localScale = s;
+        }
+        return true;
+    }
+
+    private bool HasEmotionEffect(string effectName)
+    {
+        if (string.IsNullOrEmpty(effectName)) return false;
+        if (emotionEffectAvailability.TryGetValue(effectName, out bool cached)) return cached;
+        bool exists = Resources.Load<Texture2D>($"Effects/{EmotionEffectRoot}/{effectName}/sprite") != null;
+        emotionEffectAvailability[effectName] = exists;
+        return exists;
+    }
+
+    private static string GetEmotionRuntimePoolKey(string emotionName)
+    {
+        return $"runtime:Effects/{EmotionEffectRoot}/{emotionName}/|{EmotionRuntimeMaanimName}";
+    }
+
+    private EmotionUX SelectEmotion(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    {
+        float allyVsEnemy = pressure.advantage;
+        int stateIndex = (int)state;
+        float total = 0f;
+        float[] rollWeights = new float[EmotionPool.Length];
+
+        for (int i = 0; i < EmotionPool.Length; i++)
+        {
+            EmotionUX emotion = EmotionPool[i];
+            if (!EmotionStateWeightTable.TryGetValue(emotion, out int[] w)) continue;
+            int baseW = w[stateIndex];
+            if (baseW <= 0) continue;
+
+            float mul = 1f;
+            if (IsPositiveEmotion(emotion))
+            {
+                mul *= 1f + Mathf.Max(0f, allyVsEnemy) * 0.9f;
+                if (state == EmotionBattleState.walk || state == EmotionBattleState.idle || state == EmotionBattleState.attack)
+                    mul *= 1.12f;
+                mul *= 1f + pressure.battleIntensity * 0.28f;
+            }
+            if (IsNegativeEmotion(emotion))
+            {
+                float disadvantage = Mathf.Max(0f, -allyVsEnemy);
+                mul *= 1f + disadvantage * 1.05f;
+                if (character.IsCat()) mul *= 1f + disadvantage * 0.45f;
+                mul *= 1f + rt.stress * 1.35f;
+                mul *= 1f + rt.recentDamageRatio * 1.6f;
+                mul *= 1f + pressure.battleIntensity * 0.42f;
+            }
+            if (emotion == EmotionUX.doomed || emotion == EmotionUX.shock2 || emotion == EmotionUX.great_shock)
+            {
+                float disadvantage = Mathf.Max(0f, -allyVsEnemy);
+                mul *= 1f + disadvantage * (character.IsCat() ? 2.25f : 1.55f);
+                mul *= 1f + pressure.battleIntensity * 0.5f;
+            }
+            if (emotion == character.BaseEmotion)
+            {
+                mul *= 2.8f;
+            }
+
+            float finalW = Mathf.Max(0f, baseW * mul);
+            rollWeights[i] = finalW;
+            total += finalW;
+        }
+
+        if (total <= 0f) return EmotionUX.none;
+        float roll = UnityEngine.Random.value * total;
+        float acc = 0f;
+        for (int i = 0; i < EmotionPool.Length; i++)
+        {
+            acc += rollWeights[i];
+            if (roll <= acc) return EmotionPool[i];
+        }
+        return EmotionPool[EmotionPool.Length - 1];
+    }
+
+    private float GetPeriodicTriggerChance(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    {
+        float baseChance = state switch
+        {
+            EmotionBattleState.walk => 0.125f,
+            EmotionBattleState.idle => 0.10f,
+            EmotionBattleState.other => 0.085f,
+            _ => 0.05f
+        };
+
+        float advantage = pressure.advantage;
+        float stateMoodMul = 1f;
+        if (state == EmotionBattleState.walk || state == EmotionBattleState.idle)
+        {
+            stateMoodMul += Mathf.Max(0f, advantage) * 0.9f;
+            stateMoodMul += Mathf.Max(0f, -advantage) * 0.25f;
+        }
+        else
+        {
+            stateMoodMul += Mathf.Max(0f, -advantage) * 0.95f;
+        }
+
+        float damageMul = 1f + rt.recentDamageRatio * 1.4f;
+        float stressMul = 1f + rt.stress * 0.9f;
+        float chance = baseChance * stateMoodMul * damageMul * stressMul;
+        chance *= Mathf.Lerp(1f, 1.5f, pressure.battleIntensity);
+
+        // Higher pressure yields slightly denser emotion feedback.
+        chance *= Mathf.Lerp(0.92f, 1.22f, 1f - Mathf.Clamp01(character.GetHealth() / Mathf.Max(1f, character.GetMaxHealth())));
+        return Mathf.Clamp01(chance);
+    }
+
+    private float GetNextEmotionCooldownSeconds(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    {
+        float cd = UnityEngine.Random.Range(EmotionCooldownMinSeconds, EmotionCooldownMaxSeconds);
+        cd *= Mathf.Lerp(1f, 0.65f, rt.stress);
+        cd *= Mathf.Lerp(1f, 0.7f, rt.recentDamageRatio);
+        if (state == EmotionBattleState.kb) cd *= 0.85f;
+        if (state == EmotionBattleState.attack) cd *= 0.9f;
+        if (character.BaseEmotion != EmotionUX.none) cd *= 0.92f;
+        cd *= Mathf.Lerp(1f, 0.55f, pressure.battleIntensity);
+        return Mathf.Clamp(cd, 1.6f, 18f);
+    }
+
+    private float GetStatePulseChanceMultiplier(Character character, EmotionRuntimeState rt, EmotionBattleState state, BattlefieldEmotionPressure pressure)
+    {
+        float mul = 1f;
+        float advantage = pressure.advantage;
+        if (state == EmotionBattleState.attack)
+        {
+            mul *= 1f + Mathf.Max(0f, advantage) * 0.35f;
+            mul *= 1f + Mathf.Max(0f, -advantage) * 0.2f;
+        }
+        else if (state == EmotionBattleState.kb)
+        {
+            mul *= 1f + Mathf.Max(0f, -advantage) * 0.65f;
+            mul *= 1f + rt.recentDamageRatio * 0.8f;
+        }
+        mul *= 1f + rt.stress * 0.35f;
+        mul *= Mathf.Lerp(1f, 1.3f, pressure.battleIntensity);
+        return mul;
+    }
+
+    private EmotionBattleState ResolveEmotionState(Character character)
+    {
+        if (character == null) return EmotionBattleState.other;
+        if (character.IsOnKB()) return EmotionBattleState.kb;
+        if (character.IsOnAttack()) return EmotionBattleState.attack;
+
+        bool hasTarget = (character.Targets != null && character.Targets.Count > 0) || character.BaseTarget != null;
+        if (hasTarget) return EmotionBattleState.idle;
+        if (Mathf.Abs(character.GetRealSpeed()) > 0) return EmotionBattleState.walk;
+        return EmotionBattleState.other;
+    }
+
+    private BattlefieldEmotionPressure BuildBattlefieldPressure(List<Character> allies, List<Character> enemies)
+    {
+        CountAliveAndMaxHealth(allies, out int allyCount, out float allyMaxHealth);
+        CountAliveAndMaxHealth(enemies, out int enemyCount, out float enemyMaxHealth);
+
+        int totalCount = Mathf.Max(1, allyCount + enemyCount);
+        float countAdv = (allyCount - enemyCount) / (float)totalCount;
+
+        float totalMaxHealth = Mathf.Max(1f, allyMaxHealth + enemyMaxHealth);
+        float maxHealthAdv = (allyMaxHealth - enemyMaxHealth) / totalMaxHealth;
+
+        float signedSpawnPower = cumulativeCatSpawnPower - cumulativeEnemySpawnPower;
+        float spawnPowerNorm = Mathf.Max(1f, cumulativeCatSpawnPower + cumulativeEnemySpawnPower);
+        float spawnAdvGlobal = Mathf.Clamp(signedSpawnPower / spawnPowerNorm, -1f, 1f);
+        float spawnAdv = allies == allCats ? spawnAdvGlobal : -spawnAdvGlobal;
+
+        float battleElapsed = Mathf.Max(0f, Time.time - battleStartTime);
+        float battleIntensity = Mathf.Clamp01(battleElapsed / EmotionLateBattleRampSeconds);
+
+        float earlyWeight = Mathf.Lerp(0.75f, 0.25f, battleIntensity);
+        float lateCountWeight = Mathf.Lerp(0.25f, 0.75f, battleIntensity);
+        float hpWeight = 0.35f;
+        float advantage = spawnAdv * earlyWeight + countAdv * lateCountWeight + maxHealthAdv * hpWeight;
+        advantage = Mathf.Clamp(advantage, -1f, 1f);
+
+        return new BattlefieldEmotionPressure
+        {
+            aliveAllies = allyCount,
+            aliveEnemies = enemyCount,
+            allyMaxHealthTotal = allyMaxHealth,
+            enemyMaxHealthTotal = enemyMaxHealth,
+            countAdvantage = countAdv,
+            hpAdvantage = maxHealthAdv,
+            spawnAdvantage = spawnAdv,
+            advantage = advantage,
+            battleIntensity = battleIntensity
+        };
+    }
+
+    private void CountAliveAndMaxHealth(List<Character> list, out int count, out float totalMaxHealth)
+    {
+        count = 0;
+        totalMaxHealth = 0f;
+        if (list == null) return;
+        for (int i = 0; i < list.Count; i++)
+        {
+            Character c = list[i];
+            if (!CanDriveEmotion(c)) continue;
+            count++;
+            totalMaxHealth += Mathf.Max(1f, c.GetMaxHealth());
+        }
+    }
+
+    private Character PickRandomAliveCharacter(List<Character> list)
+    {
+        if (list == null || list.Count == 0) return null;
+        int start = UnityEngine.Random.Range(0, list.Count);
+        for (int i = 0; i < list.Count; i++)
+        {
+            Character c = list[(start + i) % list.Count];
+            if (CanDriveEmotion(c)) return c;
+        }
+        return null;
+    }
+
+    private bool CanDriveEmotion(Character character)
+    {
+        return character != null
+               && character.gameObject != null
+               && character.gameObject.activeInHierarchy
+               && !(character is CatBase)
+               && !(character is DogeBase)
+               && character.EM != null;
+    }
+
+    private EmotionRuntimeState EnsureEmotionState(Character character)
+    {
+        if (!emotionStates.TryGetValue(character, out EmotionRuntimeState rt) || rt == null)
+        {
+            rt = new EmotionRuntimeState
+            {
+                nextAvailableAt = Time.time + UnityEngine.Random.Range(1.2f, 3.8f),
+                lastState = EmotionBattleState.other,
+                recentDamageRatio = 0f,
+                stress = 0f
+            };
+            emotionStates[character] = rt;
+        }
+        return rt;
+    }
+
+    private static bool IsPositiveEmotion(EmotionUX emotion)
+    {
+        return emotion == EmotionUX.flower1
+               || emotion == EmotionUX.flower2
+               || emotion == EmotionUX.melody1
+               || emotion == EmotionUX.melody2
+               || emotion == EmotionUX.pollen
+               || emotion == EmotionUX.star
+               || emotion == EmotionUX.shy
+               || emotion == EmotionUX.idea
+               || emotion == EmotionUX.silent
+               || emotion == EmotionUX.sleepy;
+    }
+
+    private static bool IsNegativeEmotion(EmotionUX emotion)
+    {
+        return emotion == EmotionUX.impatient
+               || emotion == EmotionUX.angry
+               || emotion == EmotionUX.sigh
+               || emotion == EmotionUX.hurt
+               || emotion == EmotionUX.shock1
+               || emotion == EmotionUX.shock2
+               || emotion == EmotionUX.great_shock
+               || emotion == EmotionUX.startled
+               || emotion == EmotionUX.stun
+               || emotion == EmotionUX.doomed
+               || emotion == EmotionUX.putsu;
+    }
+
     /// <summary>
     /// 设置更新频率（性能调优）
     /// </summary>
@@ -550,6 +1056,89 @@ public class CharacterTargetManager : MonoBehaviour
         return Mathf.Clamp(low, 0, characters.Count);
     }
 
+    private sealed class EmotionRuntimeState
+    {
+        public float nextAvailableAt;
+        public EmotionBattleState lastState;
+        public float recentDamageRatio;
+        public float stress;
+    }
+
+    private struct BattlefieldEmotionPressure
+    {
+        public int aliveAllies;
+        public int aliveEnemies;
+        public float allyMaxHealthTotal;
+        public float enemyMaxHealthTotal;
+        public float countAdvantage;
+        public float hpAdvantage;
+        public float spawnAdvantage;
+        public float advantage;
+        public float battleIntensity;
+    }
+
+    private struct TeamEmotionTickContext
+    {
+        public float nextTickAt;
+    }
+
+    private sealed class EmotionFollowAnchor : MonoBehaviour
+    {
+        private Character target;
+        private Vector3 localOffset;
+        private EffectManager manager;
+        private AnimationDisplayer display;
+        private string poolKey;
+        private int remainingFrames;
+
+        public void Bind(Character followTarget, Vector3 offset, EffectManager effectManager, string key, int lifeFrames)
+        {
+            target = followTarget;
+            localOffset = offset;
+            manager = effectManager;
+            poolKey = key;
+            display = GetComponent<AnimationDisplayer>();
+            remainingFrames = Mathf.Max(1, lifeFrames);
+            enabled = true;
+            UpdatePosition();
+        }
+
+        private void FixedUpdate()
+        {
+            if (!UpdatePosition())
+            {
+                RecycleNow();
+                return;
+            }
+
+            remainingFrames--;
+            if (remainingFrames <= 0)
+            {
+                RecycleNow();
+            }
+        }
+
+        private bool UpdatePosition()
+        {
+            if (target == null || !target.gameObject.activeInHierarchy) return false;
+            transform.position = target.transform.TransformPoint(localOffset);
+            return true;
+        }
+
+        private void RecycleNow()
+        {
+            enabled = false;
+            if (manager != null && display != null && !string.IsNullOrEmpty(poolKey))
+            {
+                manager.RecycleDisplay(display, poolKey);
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+        }
+    }
+
     /// <summary>
     /// 清理所有注册的角色（场景切换时调用）
     /// </summary>
@@ -564,5 +1153,12 @@ public class CharacterTargetManager : MonoBehaviour
         attackRanges.Clear();
         friendlyModes.Clear();
         undetectableCharacters.Clear();
+        deathMarkedCharacters.Clear();
+        emotionStates.Clear();
+        catEmotionTick = new TeamEmotionTickContext();
+        enemyEmotionTick = new TeamEmotionTickContext();
+        cumulativeCatSpawnPower = 0f;
+        cumulativeEnemySpawnPower = 0f;
+        battleStartTime = Time.time;
     }
 }

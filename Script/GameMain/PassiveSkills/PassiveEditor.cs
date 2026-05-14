@@ -973,6 +973,70 @@ public class DodgePassive : PassiveSkill
     }
 }
 
+public class Aux_DeathMark : PassiveSkill
+{
+    private static bool isSharingDamage;
+    private static readonly List<Character> shareTargetsBuffer = new List<Character>(32);
+    private static readonly List<AttackType> shareDamageTypes = new List<AttackType> { AttackType.effectBlocked };
+
+    private float healthBeforeDamage;
+    private bool trackDamage;
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null) return;
+        if (isSharingDamage) return;
+        if (DMG <= 0f)
+        {
+            trackDamage = false;
+            return;
+        }
+
+        healthBeforeDamage = character.GetHealth();
+        trackDamage = true;
+    }
+
+    public override void OnAfterTakeDamage(Character character)
+    {
+        if (character == null) return;
+        if (isSharingDamage) return;
+        if (!trackDamage) return;
+        trackDamage = false;
+
+        float damageTaken = Mathf.Max(0f, healthBeforeDamage - character.GetHealth());
+        if (damageTaken <= 0f) return;
+
+        int otherCount = CharacterTargetManager.Instance.FillDeathMarkedCharacters(shareTargetsBuffer, character);
+        if (otherCount <= 0) return;
+
+        float sharedDamage = damageTaken / otherCount;
+        if (sharedDamage <= 0f) return;
+
+        isSharingDamage = true;
+        try
+        {
+            for (int i = 0; i < otherCount; i++)
+            {
+                Character target = shareTargetsBuffer[i];
+                if (target == null) continue;
+                // Use a neutral attack type to avoid spawning extra hit VFX/audio for each shared tick.
+                target.ReceiveAttack(sharedDamage, null, null, null, null, null, shareDamageTypes);
+            }
+        }
+        finally
+        {
+            isSharingDamage = false;
+            shareTargetsBuffer.Clear();
+        }
+    }
+
+    public override void OnBeforeKB(Character character)
+    {
+        if (character == null || character.EM == null) return;
+        character.EM.InstantiateBattleObject("doomed", character.transform.position.x, character.transform.position.y);
+    }
+}
+
 public class Aux_InvisibleShow : PassiveSkill
 {
     private Transform ct;

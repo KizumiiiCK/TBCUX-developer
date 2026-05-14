@@ -16,6 +16,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         }
         realSpeed = Speed;
         realKBtimes = 0;
+        CacheTopPositionY();
         Debug.Log($"Enemy:{NameCode}, atk:{realDamage[0]}, hp:{maxHealth}");
     }
     public override void UpdateAnimation()
@@ -38,6 +39,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
                 onATK = true; 
                 animateStep = 0;
                 animatedframes = 0;
+                CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.attack);
                 if (atkInfos[0].Friendly) Supporter_Target_Switch();
                 SetAttackRange(atkInfos[0].ATKRange.x, atkInfos[0].ATKRange.y); 
             }

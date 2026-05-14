@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "data", menuName = "ScriptableObjects/CharacterData", order = 1)]
@@ -35,6 +35,7 @@ public class CharacterData : ScriptableObject
     public CharacterAbility[] abilities;
     public AttackTypeResistance[] atkTypeResis;
     public CharacterEffect[] effectResistances;
+    public EmotionUX baseEmotion = EmotionUX.none;
 
     public CharacterData Clone()
     {

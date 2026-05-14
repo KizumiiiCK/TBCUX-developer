@@ -362,7 +362,9 @@ public class EffectManager : MonoBehaviour
         while (queue.Count > 0)
         {
             AnimationDisplayer ad = queue.Dequeue();
-            if (ad != null) return ad;
+            if (ad == null) continue;
+            if (ad.gameObject == null) continue;
+            return ad;
         }
         return null;
     }
@@ -370,6 +372,7 @@ public class EffectManager : MonoBehaviour
     public void RecycleDisplay(AnimationDisplayer ad, string poolKey)
     {
         if (ad == null || string.IsNullOrEmpty(poolKey)) return;
+        if (ad.gameObject == null) return;
         if (!displayPool.TryGetValue(poolKey, out Queue<AnimationDisplayer> queue) || queue == null)
         {
             queue = new Queue<AnimationDisplayer>();

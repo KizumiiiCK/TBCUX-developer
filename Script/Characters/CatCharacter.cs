@@ -18,6 +18,7 @@ public class CatCharacter : AnimatorCachedCharacter
         }
         realSpeed = Speed;
         realKBtimes = 0;
+        CacheTopPositionY();
         Debug.Log($"Deployed {NameCode}, lvl:{level}, atk:{realDamage[0]}, hp:{maxHealth}");
     }
     public override void UpdateAnimation()
@@ -41,6 +42,7 @@ public class CatCharacter : AnimatorCachedCharacter
                 onATK = true; 
                 animateStep = 0;
                 animatedframes = 0;
+                CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.attack);
                 if (atkInfos[0].Friendly) Supporter_Target_Switch();
                 SetAttackRange(atkInfos[0].ATKRange.x, atkInfos[0].ATKRange.y); 
             }

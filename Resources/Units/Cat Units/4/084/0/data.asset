@@ -31,6 +31,7 @@ MonoBehaviour:
   Cost: 4350
   Cooldown: 3336
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -42,12 +43,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 1
@@ -75,7 +70,7 @@ MonoBehaviour:
   abilities:
   - name: 3
     probability: 66
-    duration: 150
+    duration: 0
     intensity: 150
   - name: 14
     probability: 50
@@ -83,3 +78,4 @@ MonoBehaviour:
     intensity: 0
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

@@ -9,6 +9,8 @@ public abstract partial class Character : MonoBehaviour
     public string NameCode { get; private set; }
     public bool IsEliteUnit { get; private set; }
     public float Power { get; private set; } = 1f;
+    public EmotionUX BaseEmotion { get; private set; } = EmotionUX.none;
+    public float topPositionY { get; private set; } = 0f;
 
     /* ====== ս������ ====== */
     [Header("Combat")]
@@ -87,6 +89,21 @@ public abstract partial class Character : MonoBehaviour
     public bool IsUndetectableByTargeting() => undetectableByTargeting;
     public void SetCanTargetUndetectable(bool value) => canTargetUndetectable = value;
     public bool CanTargetUndetectable() => canTargetUndetectable;
+    public bool IsOnAttack() => onATK;
+
+    public void CacheTopPositionY()
+    {
+        float maxY = float.NegativeInfinity;
+        Transform[] all = GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < all.Length; i++)
+        {
+            Transform t = all[i];
+            if (t == null || t == transform) continue;
+            float y = t.localPosition.y;
+            if (y > maxY) maxY = y;
+        }
+        topPositionY = float.IsNegativeInfinity(maxY) ? 0f : maxY;
+    }
 }
 public static class AnimatorFrameTool
 {

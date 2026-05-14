@@ -71,6 +71,13 @@ public class EffectInstaller : MonoBehaviour
                 else lac = target.AddComponent<Lacerate>();
                 lac.duration = _duration;
                 break;
+            case EffectName.deathmark:
+                DeathMark dmk;
+                if (target.GetComponent<DeathMark>() != null) dmk = target.GetComponent<DeathMark>();
+                else dmk = target.AddComponent<DeathMark>();
+                dmk.duration = _duration;
+                dmk.intensity = _intensity;
+                break;
             //
             case AttackType.invalid:
                 SpawnAttachedEffect(character, "invalid", InvalidEffectLifetime);

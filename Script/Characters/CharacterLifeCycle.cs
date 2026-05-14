@@ -81,6 +81,7 @@ public abstract partial class Character
         NameCode = data.Name;
         if (forceLevel >= 1) level = forceLevel;
         IsEliteUnit = data.isEliteUnit;
+        BaseEmotion = data.baseEmotion;
         Health = (int)(data.Health * treasureBonus);
         KB = data.KB;
         Speed = data.Speed;
