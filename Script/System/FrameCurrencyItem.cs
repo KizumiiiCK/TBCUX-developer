@@ -18,7 +18,7 @@ public class FrameCurrencyItem : MonoBehaviour
         if (Application.isPlaying) return;
         CachePanels();
     }
-    public void SetData(int rewardId, int amount, Color? amountColor = null)
+    public void SetData(int rewardId, int amount, Color? amountColor = null, string amountOverrideText = null)
     {
         CachePanels();
         if (currencyPanel != null)
@@ -27,7 +27,7 @@ public class FrameCurrencyItem : MonoBehaviour
         }
         if (amountPanel != null)
         {
-            string AL = amount.ToString();
+            string AL = string.IsNullOrEmpty(amountOverrideText) ? amount.ToString() : amountOverrideText;
             amountPanel.SetText(AL, c: amountColor);
             amountPanel.SetSize(30*AL.Length, 10);
             amountPanel.GetComponent<RectTransform>().anchoredPosition = 

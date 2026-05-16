@@ -937,7 +937,6 @@ public class ClearDebuffs : PassiveSkill
         {
             E effect = effects[i];
             if (effect == null) continue;
-            // 伤害提升类负面效果（如 deathmark）不清除。
             if (effect.GetEffectName() == EffectName.deathmark) continue;
             UnityEngine.Object.Destroy(effect);
         }

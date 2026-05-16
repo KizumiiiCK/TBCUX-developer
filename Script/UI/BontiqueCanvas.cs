@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,21 +10,15 @@ public class BontiqueCanvas : UICanvasMain
     [SerializeField] private Transform categoryButtonsRoot;
     [SerializeField] private GameObject categoryButtonPrefab; // expects a Button
     [SerializeField] private RectTransform itemsContent;
-    [SerializeField] private ScrollRect itemsScrollRect;
     [SerializeField] private GameObject itemPrefab; // BontiqueItems prefab
-
-    [Header("Grid Settings")]
-    [SerializeField] private int columns = 1;
-    [SerializeField] private float cellWidth = 300f;
-    [SerializeField] private float cellHeight = 200f;
 
     private List<BontiqueShopItem> shopItems = new List<BontiqueShopItem>();
     private readonly Dictionary<BontiqueType, List<BontiqueShopItem>> groupedByCategory = new Dictionary<BontiqueType, List<BontiqueShopItem>>();
     private readonly List<BontiqueShopItem> filteredBuffer = new List<BontiqueShopItem>();
     private readonly Dictionary<string, BontiquePurchaseEntry> purchaseByBid = new Dictionary<string, BontiquePurchaseEntry>();
+    private readonly List<GameObject> spawnedItemCards = new List<GameObject>();
     private static Dictionary<int, RewardName> rewardNameByOrder;
-    private VirtualizedScrollGrid<BontiqueShopItem> grid;
-    private BontiqueType currentCategory = BontiqueType.Type0;
+    private BontiqueType currentCategory = BontiqueType.Dayly;
     private DateTime currentTime;
     private LoadingPage loadingPage;
 
@@ -100,70 +93,29 @@ public class BontiqueCanvas : UICanvasMain
     private void InitializeShopAfterTimeReady()
     {
         InitializeCategories();
-        LoadShopFromCsv("Shop/boutique");
+        LoadShopFromStaticCatalog();
         RebuildPurchaseCache();
         CleanupExpiredPurchaseRecords(currentTime);
-        InitializeGrid();
         RefreshCurrentCategory();
     }
 
-    private void LoadShopFromCsv(string resourcePath)
+    private void LoadShopFromStaticCatalog()
     {
         shopItems.Clear();
         groupedByCategory.Clear();
-        var ta = Resources.Load<TextAsset>(resourcePath);
-        if (ta == null)
+        List<BontiqueShopItem> templates = BontiqueStaticCatalog.GetTemplateItems();
+        for (int i = 0; i < templates.Count; i++)
         {
-            Debug.LogError($"BontiqueCanvas: missing csv at Resources/{resourcePath}");
-            return;
-        }
-        using (StringReader sr = new StringReader(ta.text))
-        {
-            string line;
-            bool firstLine = true;
-            while ((line = sr.ReadLine()) != null)
+            BontiqueShopItem item = templates[i];
+            if (item == null) continue;
+            shopItems.Add(item);
+            if (!groupedByCategory.TryGetValue(item.Category, out List<BontiqueShopItem> list))
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                // optional header skip: if first non-empty line starts with non-digit at category column
-                if (firstLine)
-                {
-                    firstLine = false;
-                    string[] headerProbe = line.Split(',');
-                    if (headerProbe.Length > 2 && !int.TryParse(headerProbe[2], out _)) continue;
-                }
-
-                var cols = line.Split(',');
-                var item = BontiqueShopItem.FromCsvRow(cols);
-                shopItems.Add(item);
-                if (!groupedByCategory.TryGetValue(item.Category, out List<BontiqueShopItem> list))
-                {
-                    list = new List<BontiqueShopItem>();
-                    groupedByCategory[item.Category] = list;
-                }
-                list.Add(item);
+                list = new List<BontiqueShopItem>();
+                groupedByCategory[item.Category] = list;
             }
+            list.Add(item);
         }
-    }
-
-    private void InitializeGrid()
-    {
-        if (itemsContent == null || itemPrefab == null || itemsScrollRect == null) return;
-        grid = new VirtualizedScrollGrid<BontiqueShopItem>(
-            new VirtualizedScrollGrid<BontiqueShopItem>.Settings
-            {
-                Content = itemsContent,
-                ScrollRect = itemsScrollRect,
-                ItemPrefab = itemPrefab,
-                Columns = Mathf.Max(1, columns),
-                CellWidth = Mathf.Max(1f, cellWidth),
-                CellHeight = Mathf.Max(1f, cellHeight),
-                PreloadRows = 1,
-                DisableAutoLayout = true
-            },
-            BindItem
-        );
-        grid.Initialize();
     }
 
     private void BindItem(GameObject go, int _, BontiqueShopItem item)
@@ -175,20 +127,46 @@ public class BontiqueCanvas : UICanvasMain
         controller.Configure(item, remaining, interactable, OnRedeemRequested);
     }
 
-    private void ShowCategory(BontiqueType t, bool forceReset)
+    private void ShowCategory(BontiqueType t)
     {
-        if (grid == null) InitializeGrid();
+        ClearSpawnedItemCards();
         filteredBuffer.Clear();
         if (groupedByCategory.TryGetValue(t, out List<BontiqueShopItem> list) && list != null)
         {
-            filteredBuffer.AddRange(list);
+            for (int i = 0; i < list.Count; i++)
+            {
+                BontiqueShopItem item = list[i];
+                if (ShouldDisplayItem(item, currentTime)) filteredBuffer.Add(item);
+            }
         }
-        grid?.SetData(filteredBuffer, forceReset);
+        SpawnItems(filteredBuffer);
     }
 
     private void RefreshCurrentCategory()
     {
-        ShowCategory(currentCategory, true);
+        ShowCategory(currentCategory);
+    }
+
+    private void SpawnItems(List<BontiqueShopItem> items)
+    {
+        if (itemsContent == null || itemPrefab == null || items == null) return;
+        for (int i = 0; i < items.Count; i++)
+        {
+            BontiqueShopItem item = items[i];
+            GameObject go = Instantiate(itemPrefab, itemsContent);
+            spawnedItemCards.Add(go);
+            BindItem(go, i, item);
+        }
+    }
+
+    private void ClearSpawnedItemCards()
+    {
+        for (int i = spawnedItemCards.Count - 1; i >= 0; i--)
+        {
+            GameObject card = spawnedItemCards[i];
+            if (card != null) Destroy(card);
+        }
+        spawnedItemCards.Clear();
     }
 
     private void RebuildPurchaseCache()
@@ -253,7 +231,14 @@ public class BontiqueCanvas : UICanvasMain
             return;
         }
 
-        RewardingSystem.GainRewardByOrder(item.gainId, item.ObtainAmount);
+        if (item.RewardKind == RewardType.character)
+        {
+            CharacterUpgradeSave.UnlockCharacterTire(item.gainId.ToString("0000"), 0);
+        }
+        else
+        {
+            RewardingSystem.GainRewardByOrder(item.gainId, item.ObtainAmount);
+        }
         BontiquePurchaseSave.AddPurchase(item.bid, currentTime);
         RebuildPurchaseCache();
         RefreshCurrentCategory();
@@ -314,6 +299,16 @@ public class BontiqueCanvas : UICanvasMain
         if (amount <= 0) return true;
         if (!TryGetRewardNameByOrder(rewardOrder, out RewardName rewardName)) return false;
         return RewardingSystem.ConsumeItem(rewardName, amount);
+    }
+
+    private bool ShouldDisplayItem(BontiqueShopItem item, DateTime now)
+    {
+        if (item == null) return false;
+        if (!item.IsInActiveWindow(now)) return false;
+        if (item.Limit != LimitType.OnlyOnce) return true;
+        if (string.IsNullOrEmpty(item.bid)) return true;
+        if (!purchaseByBid.TryGetValue(item.bid, out BontiquePurchaseEntry record) || record == null) return true;
+        return Mathf.Max(0, record.purchaseCount) <= 0;
     }
 
     private static bool TryGetRewardNameByOrder(int rewardOrder, out RewardName rewardName)

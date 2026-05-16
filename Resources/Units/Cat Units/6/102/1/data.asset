@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: data
   m_EditorClassIdentifier: 
   Name: 61021
-  isEliteUnit: 0
+  isEliteUnit: 1
   ATKType: 
   atkInfos:
   - ATK: 3675
@@ -86,3 +86,4 @@ MonoBehaviour:
     probability: 100
     duration: 0
     intensity: 0
+  baseEmotion: 0

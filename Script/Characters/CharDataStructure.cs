@@ -113,7 +113,7 @@ public enum AttackType
 {
     none=0, wave=1, surge=2, explosion=3,
     [EditorBrowsable(EditorBrowsableState.Never)] 
-    critical, savage, zombieKiller, barrierBreaker, sheildPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon
+    critical, savage, zombieKiller, barrierBreaker, sheildPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly
 }
 public enum AbilityName
 {

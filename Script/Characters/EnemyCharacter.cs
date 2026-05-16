@@ -100,12 +100,12 @@ public class EnemyCharacter : AnimatorCachedCharacter
                 }
             }
         }
-        bool matchedTraits = AreCorrespondingTraits(enemyTraits);
+        bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);
         if (matchedTraits) DMG_DREeffects(ref DMG, dre);
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
         TakeDMG(DMG);
-        if (matchedTraits && DMG>0) TakeEffects(enemyEffect, subtraits.Sage);
+        if (matchedTraits && DMG>0) TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }

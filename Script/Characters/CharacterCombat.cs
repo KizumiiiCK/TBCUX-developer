@@ -62,6 +62,8 @@ public abstract partial class Character
             {
                 decisionEff = DetermineSelfATKEffects();
                 Character Target = GetTarget<Character>(specific);
+                if (Target != null && Target.IsCat() == IsCat())
+                    types.Add(AttackType.friendly);
                 Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
                 TryRecordHitTarget(Target);
                 if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
@@ -77,6 +79,8 @@ public abstract partial class Character
                 if (!areaAttack)
                 {
                     Character Target = GetTarget<Character>(FindNearest());
+                    if (Target != null && Target.IsCat() == IsCat())
+                        types.Add(AttackType.friendly);
                     Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
                     TryRecordHitTarget(Target);
                     if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
@@ -88,12 +92,16 @@ public abstract partial class Character
                     for (int i = Targets.Count - 1; i >= 0; i--)
                     {
                         Character ec = GetTarget<Character>(Targets[i]);
+                        if (ec != null && ec.IsCat() == IsCat())
+                            types.Add(AttackType.friendly);
                         ec?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
                         TryRecordHitTarget(ec);
                     }
                     if (baseTarget != null && !Targets.Contains(baseTarget))
                     {
                         Character bt = GetTarget<Character>(baseTarget);
+                        if (bt != null && bt.IsCat() == IsCat())
+                            types.Add(AttackType.friendly);
                         bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
                         TryRecordHitTarget(bt);
                     }
@@ -150,8 +158,9 @@ public abstract partial class Character
         Supporter_Target_Switch(true);
         SetAttackRange(0, DetectionRange);
     }
-    protected bool AreCorrespondingTraits(Traits targetTrait)
+    protected bool AreCorrespondingTraits(Traits targetTrait, List<AttackType> atkTypes = null)
     {
+        if (atkTypes != null && atkTypes.Contains(AttackType.friendly)) return true;
         if (targetTrait == null) return false;
         return (targetTrait.Red && traits.Red) ||
                (targetTrait.Flt && traits.Flt) ||
@@ -201,21 +210,22 @@ public abstract partial class Character
     #endregion
 
     #region Under Attack Functions
-    protected void TakeEffects(List<CharacterEffect> enemyEffect, bool sageBuff = false)
+    protected void TakeEffects(List<CharacterEffect> enemyEffect, bool sageBuff = false, List<AttackType> atkTypes = null)
     {
         if (enemyEffect == null) return;
+        bool friendlyAttack = atkTypes != null && atkTypes.Contains(AttackType.friendly);
         float sagemultiplier = (subtraits.Sage && !sageBuff) ? 0.3f : 1;
         foreach (var ee in enemyEffect)
         {
             int resisted = 0;
             foreach (var myer in effectResistances)
-            {
-                if (ee.name == myer.name)
                 {
-                    resisted = myer.probability;
-                    break;
+                    if (ee.name == myer.name)
+                    {
+                        resisted = myer.probability;
+                        break;
+                    }
                 }
-            }
             float real_duration = ee.duration * sagemultiplier * CounterT(resisted);
             EffectInstaller.Inflict(gameObject, ee.name, real_duration, ee.intensity);
         }

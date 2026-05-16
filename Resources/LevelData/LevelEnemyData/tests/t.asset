@@ -39,3 +39,11 @@ MonoBehaviour:
       repeatMin: 30
       repeatMax: 30
       previewSprite: {fileID: 21300000, guid: 398adfb02260fd84ea72fdd7cd8d276a, type: 3}
+    - enemyID: e020
+      ratio: 200
+      bossShock: 0
+      repeat: -1
+      firstAppear: 300
+      repeatMin: 1800
+      repeatMax: 1800
+      previewSprite: {fileID: 21300000, guid: b76161fd1b209cf4bb3a9fe9bfb13f17, type: 3}

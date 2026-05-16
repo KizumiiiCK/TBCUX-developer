@@ -364,6 +364,29 @@ public static class PoolInfo
 
         new Pool()
         {
+            pool_name="tsumino",
+            pool_start_delay = duration_DEFAULT * 4,
+            pool_cycle_period=cycle_DEFAULT,
+            pool_duration=duration_DEFAULT,
+            gold_capsule=true,
+            cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+            cost_amount=new int[2]{ 1, 1500 },
+            draw_times=new int[2]{ 1, 11},
+            dropRates=new float[7] { 0, 0, 0.67f, 0.30f, 0, 0, 0.03f},
+            dropUnits=new List<int[]>()
+            {
+                /* N     */null,
+                /* EX    */null,
+                /* R     */Regular_Rares,
+                /* SR    */Regular_Superrares,
+                /* UR    */null,
+                /* LR    */null,
+                /* G     */new int[] {100, 101, 102, 103}
+            }
+        }, // Tsumi no Shyoujio
+
+        new Pool()
+        {
             pool_name="platinum",
             pool_start_delay = 0,
             pool_cycle_period=-1,

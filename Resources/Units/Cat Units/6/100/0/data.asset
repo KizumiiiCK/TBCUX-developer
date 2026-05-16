@@ -16,11 +16,16 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: -3200
+  - ATK: 20
     frame: 54
     DoNotTriggerEffects: 0
     Friendly: 1
-    ATKRange: {x: -500, y: 500}
+    ATKRange: {x: -1000, y: 500}
+  - ATK: -3650
+    frame: 150
+    DoNotTriggerEffects: 1
+    Friendly: 1
+    ATKRange: {x: -2750, y: -1250}
   areaATK: 1
   atkDuration: 243
   Health: 7500
@@ -28,8 +33,8 @@ MonoBehaviour:
   Speed: 33
   Reload: 0
   DetectionRange: 300
-  Cost: 0
-  Cooldown: 2525
+  Cost: 1200
+  Cooldown: 30
   UNITYAnimated: 1
   SPINEAnimated: 0
   traits:
@@ -69,7 +74,7 @@ MonoBehaviour:
   characterEffects:
   - name: 5
     probability: 100
-    duration: 45
+    duration: 30
     intensity: 1750
   abilities:
   - name: 1
@@ -77,6 +82,10 @@ MonoBehaviour:
     duration: 0
     intensity: 0
   - name: 39
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 31
     probability: 100
     duration: 0
     intensity: 0
@@ -106,3 +115,4 @@ MonoBehaviour:
     probability: 100
     duration: 0
     intensity: 0
+  baseEmotion: 0

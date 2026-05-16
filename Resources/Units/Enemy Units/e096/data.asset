@@ -43,12 +43,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -57,7 +51,7 @@ MonoBehaviour:
   career:
     Warrior: 0
     Deffender: 0
-    Magician: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:
@@ -76,3 +70,4 @@ MonoBehaviour:
   abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

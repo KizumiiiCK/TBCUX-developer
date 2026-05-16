@@ -3,10 +3,14 @@ using System.Globalization;
 
 public enum BontiqueType
 {
-    Type0 = 0,
-    Type1 = 1,
-    Type2 = 2,
-    Type3 = 3,
+    Dayly = 0,
+    Weekly = 1,
+    Monthly = 2,
+    Supplies = 3,
+    Characters = 4,
+    OnlyOnce = 5,
+    Event = 6,
+    Others = 7,
     Unknown = -1
 }
 public enum LimitType
@@ -33,14 +37,23 @@ public class BontiqueShopItem
     public int CurrencyAmount;
     public LimitType Limit;
     public int LimitCount;
-    public DateTime LimitStart;
-    public DateTime LimitEnd;
+    public DateTime? LimitStart;
+    public DateTime? LimitEnd;
 
     public bool IsInActiveWindow(DateTime now)
     {
         if (Limit == LimitType.Event)
         {
-            return now >= LimitStart && now <= LimitEnd;
+            if (!LimitStart.HasValue || !LimitEnd.HasValue) return false;
+            int nowMd = now.Month * 100 + now.Day;
+            int startMd = LimitStart.Value.Month * 100 + LimitStart.Value.Day;
+            int endMd = LimitEnd.Value.Month * 100 + LimitEnd.Value.Day;
+            if (startMd <= endMd)
+            {
+                return nowMd >= startMd && nowMd <= endMd;
+            }
+            // Support wrapped windows like Dec -> Jan.
+            return nowMd >= startMd || nowMd <= endMd;
         }
         return true;
     }
@@ -69,8 +82,8 @@ public class BontiqueShopItem
             CurrencyAmount = ParseInt(cols, 7),
             Limit = ToLimitType(ParseInt(cols, 8)),
             LimitCount = ParseInt(cols, 9),
-            LimitStart = ParseDate(cols, 10, DateTime.MinValue),
-            LimitEnd = ParseDate(cols, 11, DateTime.MaxValue)
+            LimitStart = ParseDate(cols, 10),
+            LimitEnd = ParseDate(cols, 11)
         };
         return item;
     }
@@ -87,15 +100,16 @@ public class BontiqueShopItem
         return int.TryParse(cols[index], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : 0;
     }
 
-    private static DateTime ParseDate(string[] cols, int index, DateTime fallback)
+    private static DateTime? ParseDate(string[] cols, int index)
     {
-        if (cols == null || index < 0 || index >= cols.Length) return fallback;
-        return DateTime.TryParse(cols[index], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d) ? d : fallback;
+        if (cols == null || index < 0 || index >= cols.Length) return null;
+        if (string.IsNullOrWhiteSpace(cols[index])) return null;
+        return DateTime.TryParse(cols[index], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d) ? d : (DateTime?)null;
     }
 
     private static BontiqueType ToBontiqueType(int value)
     {
-        return value >= 0 && value <= 3 ? (BontiqueType)value : BontiqueType.Unknown;
+        return value >= 0 && value <= 7 ? (BontiqueType)value : BontiqueType.Unknown;
     }
 
     private static RewardType ToRewardType(int value)
