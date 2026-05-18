@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 3_b3_volcano
+  m_EditorClassIdentifier: 
+  sectionName: 3_b3_volcano
+  mapName: behemoth
+  BGM: 
+  unlockRestriction: World_III+0_worldiii
+  hardness: 1
+  difficulty: 000000000000010101000000
+  coverColor: {r: 0.29803923, g: 0.3529412, b: 0.3372549, a: 1}
+  titleColor: 5
+  levelsOnMap:
+  - levelNameID: d-bv:0
+    levelPosition: {x: 2, y: 19}
+    tileType: 0
+  - levelNameID: d-bv:1
+    levelPosition: {x: 0.5, y: 18}
+    tileType: 0
+  - levelNameID: d-bv:2
+    levelPosition: {x: 3, y: 17}
+    tileType: 0
+  - levelNameID: d-bv:3
+    levelPosition: {x: 5, y: 15.5}
+    tileType: 0
+  - levelNameID: d-bv:4
+    levelPosition: {x: 3, y: 14.5}
+    tileType: 0
+  - levelNameID: d-bv:5
+    levelPosition: {x: 1, y: 15}
+    tileType: 0
+  - levelNameID: comingsoon
+    levelPosition: {x: -2, y: 13}
+    tileType: 0
+  - levelNameID: d-bv:7
+    levelPosition: {x: -1, y: 10}
+    tileType: 0
+  - levelNameID: d-bv:8
+    levelPosition: {x: 0.5, y: 12}
+    tileType: 0
+  - levelNameID: d-bv:9
+    levelPosition: {x: 2, y: 9}
+    tileType: 0
+  - levelNameID: d-bv:10
+    levelPosition: {x: 0, y: 7}
+    tileType: 0
+  - levelNameID: d-bv:11
+    levelPosition: {x: -2, y: 2}
+    tileType: 0
+  - levelNameID: d-bv:12
+    levelPosition: {x: -3, y: -1}
+    tileType: 0
+  - levelNameID: d-bv:13
+    levelPosition: {x: 0, y: -2}
+    tileType: 0
+  - levelNameID: d-bv:14
+    levelPosition: {x: 5, y: -1.5}
+    tileType: 0
+  - levelNameID: d-bv:15
+    levelPosition: {x: 7, y: -2}
+    tileType: 0
+  - levelNameID: d-bv:16
+    levelPosition: {x: 7, y: 1}
+    tileType: 0
+  - levelNameID: d-bv:17
+    levelPosition: {x: 4.5, y: 1.5}
+    tileType: 0

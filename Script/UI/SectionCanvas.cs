@@ -13,8 +13,11 @@ public class SectionCanvas : UICanvasMain
     [SerializeField] private GameObject sectionItemPrefab;
     [SerializeField] private TMP_Text chapterName;
     [SerializeField] private float transitionDuration = 0.5f;
-    //[SerializeField] private float itemCellHeight = 180f;
-    //[SerializeField] private int preloadRows = 2;
+    [Header("Section List Layout")]
+    [SerializeField] private float sectionItemXOffset = -1100f;
+    [SerializeField] private float sectionItemSpacing = 15f;
+    [SerializeField] private float sectionItemCellHeight = 30f;
+    [SerializeField] private int sectionPreloadRows = 10;
 
     private readonly List<SectionEntry> sectionEntries = new List<SectionEntry>();
     private Vector2 canvasSize;
@@ -157,6 +160,14 @@ public class SectionCanvas : UICanvasMain
         if (sectionScrollRect == null) sectionScrollRect = sectionContent.GetComponentInParent<ScrollRect>();
         if (sectionScrollRect == null) return;
 
+        float baseItemHeight = sectionItemCellHeight;
+        RectTransform prefabRect = sectionItemPrefab.GetComponent<RectTransform>();
+        if (prefabRect != null && prefabRect.sizeDelta.y > 1f)
+        {
+            baseItemHeight = prefabRect.sizeDelta.y;
+        }
+        float itemHeight = baseItemHeight + Mathf.Max(0f, sectionItemSpacing);
+
         sectionGrid = new VirtualizedScrollGrid<SectionEntry>(
             new VirtualizedScrollGrid<SectionEntry>.Settings
             {
@@ -165,25 +176,24 @@ public class SectionCanvas : UICanvasMain
                 ItemPrefab = sectionItemPrefab,
                 Columns = 1,
                 CellWidth = 450,
-                CellHeight = 85,
-                PreloadRows = 5,
+                CellHeight = Mathf.Max(1f, itemHeight),
+                PreloadRows = Mathf.Max(0, sectionPreloadRows),
                 DisableAutoLayout = true
             },
             BindSectionItem
         );
         sectionGrid.Initialize();
-        VerticalLayoutGroup vlg  = sectionContent.GetComponent<VerticalLayoutGroup>();
-        if (vlg != null)
-        {
-            vlg.enabled = true;
-            vlg.padding.left = -1100;
-            vlg.spacing = 15;
-        }
     }
 
     private void BindSectionItem(GameObject itemGO, int _, SectionEntry entry)
     {
         if (itemGO == null || entry.mapInfo == null) return;
+
+        RectTransform itemRect = itemGO.GetComponent<RectTransform>();
+        if (itemRect != null)
+        {
+            itemRect.anchoredPosition = new Vector2(-350, itemRect.anchoredPosition.y);
+        }
 
         var sectionButton = itemGO.GetComponent<SectionButton>();
         if (sectionButton != null) sectionButton.Configure(entry.mapInfo, entry.sectionOrder);

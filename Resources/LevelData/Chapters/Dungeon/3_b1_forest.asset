@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 3_b1_forest
+  m_EditorClassIdentifier: 
+  sectionName: 3_b1_forest
+  mapName: behemoth
+  BGM: 
+  unlockRestriction: World_III+0_worldiii
+  hardness: 1
+  difficulty: 000000000000010101000000
+  coverColor: {r: 0.29803923, g: 0.3529412, b: 0.3372549, a: 1}
+  titleColor: 5
+  levelsOnMap:
+  - levelNameID: d-bf:0
+    levelPosition: {x: -5, y: 18}
+    tileType: 0
+  - levelNameID: d-bf:1
+    levelPosition: {x: -7, y: 16.5}
+    tileType: 0
+  - levelNameID: d-bf:2
+    levelPosition: {x: -6, y: 16}
+    tileType: 0
+  - levelNameID: d-bf:3
+    levelPosition: {x: -5, y: 15}
+    tileType: 0
+  - levelNameID: d-bf:4
+    levelPosition: {x: -7.5, y: 14}
+    tileType: 0
+  - levelNameID: d-bf:5
+    levelPosition: {x: -6.5, y: 13}
+    tileType: 0
+  - levelNameID: comingsoon
+    levelPosition: {x: -8, y: 11.5}
+    tileType: 0
+  - levelNameID: d-bf:7
+    levelPosition: {x: -11, y: 12}
+    tileType: 0
+  - levelNameID: d-bf:8
+    levelPosition: {x: -14.5, y: 11.5}
+    tileType: 0
+  - levelNameID: d-bf:9
+    levelPosition: {x: -17, y: 12}
+    tileType: 0
+  - levelNameID: d-bf:10
+    levelPosition: {x: -16.5, y: 10}
+    tileType: 0
+  - levelNameID: d-bf:11
+    levelPosition: {x: -15, y: 11}
+    tileType: 0
+  - levelNameID: d-bf:12
+    levelPosition: {x: -14, y: 9.5}
+    tileType: 0
+  - levelNameID: d-bf:13
+    levelPosition: {x: -12.5, y: 10.5}
+    tileType: 0
+  - levelNameID: d-bf:14
+    levelPosition: {x: -12, y: 9}
+    tileType: 0
+  - levelNameID: d-bf:15
+    levelPosition: {x: -8, y: 5}
+    tileType: 0
+  - levelNameID: d-bf:16
+    levelPosition: {x: -5, y: 6.5}
+    tileType: 0
+  - levelNameID: d-bf:17
+    levelPosition: {x: -3.5, y: 4}
+    tileType: 0

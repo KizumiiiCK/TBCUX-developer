@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 0
   m_EditorClassIdentifier: 
-  levelName: 
+  levelName: d-bf:0
   gainXP: 64000
   BaseHealth: 200000
   mapSize: 4500
@@ -28,7 +28,7 @@ MonoBehaviour:
     mapName: 
   rewardlist:
   - type: 0
-    id: 2310
+    id: 2100
     drawtimes: 1
     droprate: 100
     onlyOnce: 1

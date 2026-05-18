@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 3
   m_EditorClassIdentifier: 
-  levelName: 
-  gainXP: 350200
+  levelName: d-bv:3
+  gainXP: 175100
   BaseHealth: 1000000
   mapSize: 3500
   maxEmenyCount: 15
@@ -28,7 +28,7 @@ MonoBehaviour:
     mapName: 
   rewardlist:
   - type: 0
-    id: 1302
+    id: 1201
     drawtimes: 1
     droprate: 100
     onlyOnce: 1

@@ -234,6 +234,10 @@ MonoBehaviour:
   sectionItemPrefab: {fileID: 8608323941026251366, guid: 09a6e417702fe25498885511d049edfa, type: 3}
   chapterName: {fileID: 1037081716277509035}
   transitionDuration: 0.5
+  sectionItemXOffset: -1100
+  sectionItemSpacing: 20
+  sectionItemCellHeight: 85
+  sectionPreloadRows: 5
 --- !u!114 &5642434016032663026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,13 +335,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4101598530926052173}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 38
+    m_Left: -1100
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
