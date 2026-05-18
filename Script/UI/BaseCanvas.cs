@@ -17,6 +17,7 @@ public class BaseCanvas : UICanvasMain
     [SerializeField] private Button EquipBtn;
     [SerializeField] private Button CatBtn;
     [SerializeField] private Button EnemyBtn;
+    [SerializeField] private Button BontiqueBtn;
     [SerializeField] private Button MedalBtn;
     [SerializeField] private Button StorageBtn;
     [SerializeField] private Button CatCapsBtn;
@@ -32,6 +33,7 @@ public class BaseCanvas : UICanvasMain
     private const string EquipCanvasPrefab = "EquipCanvas";
     private const string CapsuleDrawCanvasPrefab = "DrawCapsuleCanvas";
     private const string StorageCanvasPrefab = "StorageCanvas";
+    private const string BontiqueCanvasPrefab = "BontiqueCanvas";
 
     void Start()
     {
@@ -65,10 +67,8 @@ public class BaseCanvas : UICanvasMain
         EquipBtn.onClick.AddListener(delegate { if (operating) return; StartCoroutine(ShowEquipCanvas()); });
         EnemyBtn.onClick.AddListener(delegate { if (operating) return; ToEnemyCanvas(); });
         CatCapsBtn.onClick.AddListener(delegate { if (operating) return; ToCapsuleDrawCanvas(); });
-        //MedalBtn.onClick.AddListener(delegate { StartCoroutine(ShowNextCanvas("Medal")); });
+        BontiqueBtn.onClick.AddListener(delegate { if (operating) return; ToBontiqueCanvas(); });
         StorageBtn.onClick.AddListener(delegate { if (operating) return; ToStorageCanvas(); });
-        //CatCapsBtn.onClick.AddListener(delegate { StartCoroutine(ShowNextCanvas("CatCapsule")); });
-        //RareCapsBtn.onClick.AddListener(delegate { StartCoroutine(ShowNextCanvas("RareCapsule")); });
     }
     public void UpdateCurrencies()
     {
@@ -106,6 +106,7 @@ public class BaseCanvas : UICanvasMain
     public void SubBacktoBase() { StartCoroutine(ReturnBaseFromSub()); Instantiate(Resources.Load<GameObject>("UI/CheckInCanvas")); }
     public void ToEnemyCanvas() { StartCoroutine(ShowEnemyCanvas()); }
     public void ToCapsuleDrawCanvas() { StartCoroutine(ShowCapsuleCanvas()); }
+    public void ToBontiqueCanvas() { StartCoroutine(ShowBontiqueCanvas()); }
     public void ToStorageCanvas() { StartCoroutine(ShowStorageCanvas()); }
     public void MapToEquip(string[] enemies = null, string[] restrictions = null, bool blindEnemyIcons = false)
     {
@@ -200,6 +201,21 @@ public class BaseCanvas : UICanvasMain
     {
         operating = true;
         if (frameUI != null) frameUI.OpenPage(StorageCanvasPrefab, page => currentSubCanvas = page);
+        yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
+        operating = false;
+    }
+    private IEnumerator ShowBontiqueCanvas()
+    {
+        operating = true;
+        if (frameUI != null)
+        {
+            frameUI.OpenPage(
+                BontiqueCanvasPrefab,
+                page => currentSubCanvas = page,
+                null,
+                FrameUIDisplayer.DoorAction.None
+            );
+        }
         yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
         operating = false;
     }

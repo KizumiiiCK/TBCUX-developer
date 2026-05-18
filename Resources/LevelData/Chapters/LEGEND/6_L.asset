@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 6_L
+  m_EditorClassIdentifier: 
+  sectionName: 6_L
+  mapName: lgmap_1
+  BGM: 
+  unlockRestriction: LEGEND+5_L
+  hardness: 1
+  difficulty: 000000000000000100000000
+  coverColor: {r: 0.76470596, g: 0.6666667, b: 0.47058827, a: 1}
+  titleColor: 1
+  levelsOnMap:
+  - levelNameID: L6-0
+    levelPosition: {x: 6, y: 0.5}
+    tileType: 0
+  - levelNameID: L6-1
+    levelPosition: {x: -11, y: -1}
+    tileType: 0
+  - levelNameID: L6-2
+    levelPosition: {x: -16, y: -0.5}
+    tileType: 0
+  - levelNameID: L6-3
+    levelPosition: {x: -11.5, y: 3.5}
+    tileType: 0
+  - levelNameID: L6-4
+    levelPosition: {x: -17, y: 2}
+    tileType: 0
+  - levelNameID: L6-5
+    levelPosition: {x: -16, y: 7.5}
+    tileType: 0

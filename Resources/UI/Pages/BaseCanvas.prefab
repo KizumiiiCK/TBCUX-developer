@@ -1732,6 +1732,7 @@ MonoBehaviour:
   EquipBtn: {fileID: 606958488930495839}
   CatBtn: {fileID: 3392778514662607232}
   EnemyBtn: {fileID: 2879003023733631732}
+  BontiqueBtn: {fileID: 5495209144063484220}
   MedalBtn: {fileID: 2849132270794028175}
   StorageBtn: {fileID: 2167830141612468284}
   CatCapsBtn: {fileID: 6441255149574592220}
@@ -6573,6 +6574,17 @@ PrefabInstance:
       addedObject: {fileID: 5676160504440578135}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
+--- !u!114 &5495209144063484220 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2907894920416133810, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
+  m_PrefabInstance: {fileID: 7212528684466496398}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58ed15fd08aae734c902accde639ebfc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &5789946223132570562 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3765583191199354956, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}

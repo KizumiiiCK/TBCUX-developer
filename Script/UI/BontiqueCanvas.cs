@@ -11,18 +11,20 @@ public class BontiqueCanvas : UICanvasMain
     [SerializeField] private GameObject categoryButtonPrefab; // expects a Button
     [SerializeField] private RectTransform itemsContent;
     [SerializeField] private GameObject itemPrefab; // BontiqueItems prefab
+    [Header("Audio")]
+    [SerializeField] private AudioSource purchaseAudioSource;
+    [SerializeField] private AudioClip purchaseAudioClip;
 
-    private List<BontiqueShopItem> shopItems = new List<BontiqueShopItem>();
-    private readonly Dictionary<BontiqueType, List<BontiqueShopItem>> groupedByCategory = new Dictionary<BontiqueType, List<BontiqueShopItem>>();
     private readonly List<BontiqueShopItem> filteredBuffer = new List<BontiqueShopItem>();
     private readonly Dictionary<string, BontiquePurchaseEntry> purchaseByBid = new Dictionary<string, BontiquePurchaseEntry>();
     private readonly List<GameObject> spawnedItemCards = new List<GameObject>();
     private static Dictionary<int, RewardName> rewardNameByOrder;
-    private BontiqueType currentCategory = BontiqueType.Dayly;
+    private BontiqueType currentCategory = BontiqueType.Daily;
     private DateTime currentTime;
     private LoadingPage loadingPage;
 
     private const string LoadingPagePath = "UI/Pages/loading";
+    private const string RewardCanvasPath = "UI/Pages/RewardCanvas";
 
     private void Start()
     {
@@ -34,10 +36,17 @@ public class BontiqueCanvas : UICanvasMain
         if (categoryButtonsRoot == null || categoryButtonPrefab == null) return;
         // Clear existing
         for (int i = categoryButtonsRoot.childCount - 1; i >= 0; i--) DestroyImmediate(categoryButtonsRoot.GetChild(i).gameObject);
-        // Example: create 4 categories based on enum values (excluding Unknown)
-        foreach (BontiqueType t in Enum.GetValues(typeof(BontiqueType)))
+        List<BontiqueType> visibleCategories = GetVisibleCategories(currentTime);
+        if (visibleCategories.Count == 0)
         {
-            if (t == BontiqueType.Unknown) continue;
+            currentCategory = BontiqueType.Unknown;
+            return;
+        }
+
+        if (!visibleCategories.Contains(currentCategory)) currentCategory = visibleCategories[0];
+
+        foreach (BontiqueType t in visibleCategories)
+        {
             var go = Instantiate(categoryButtonPrefab, categoryButtonsRoot);
             var btn = go.GetComponent<Button>();
             var txt = go.GetComponentInChildren<TMPro.TMP_Text>(true);
@@ -92,30 +101,10 @@ public class BontiqueCanvas : UICanvasMain
 
     private void InitializeShopAfterTimeReady()
     {
-        InitializeCategories();
-        LoadShopFromStaticCatalog();
         RebuildPurchaseCache();
         CleanupExpiredPurchaseRecords(currentTime);
+        InitializeCategories();
         RefreshCurrentCategory();
-    }
-
-    private void LoadShopFromStaticCatalog()
-    {
-        shopItems.Clear();
-        groupedByCategory.Clear();
-        List<BontiqueShopItem> templates = BontiqueStaticCatalog.GetTemplateItems();
-        for (int i = 0; i < templates.Count; i++)
-        {
-            BontiqueShopItem item = templates[i];
-            if (item == null) continue;
-            shopItems.Add(item);
-            if (!groupedByCategory.TryGetValue(item.Category, out List<BontiqueShopItem> list))
-            {
-                list = new List<BontiqueShopItem>();
-                groupedByCategory[item.Category] = list;
-            }
-            list.Add(item);
-        }
     }
 
     private void BindItem(GameObject go, int _, BontiqueShopItem item)
@@ -124,14 +113,16 @@ public class BontiqueCanvas : UICanvasMain
         var controller = go.GetComponent<BontiqueItems>();
         if (controller == null) controller = go.AddComponent<BontiqueItems>();
         EvaluateItemState(item, currentTime, out int remaining, out bool interactable);
-        controller.Configure(item, remaining, interactable, OnRedeemRequested);
+        controller.Configure(item, remaining, interactable, OnRedeemClickedSignal, OnRedeemRequested);
     }
 
     private void ShowCategory(BontiqueType t)
     {
         ClearSpawnedItemCards();
         filteredBuffer.Clear();
-        if (groupedByCategory.TryGetValue(t, out List<BontiqueShopItem> list) && list != null)
+        if (t == BontiqueType.Unknown) return;
+        IReadOnlyList<BontiqueShopItem> list = BontiqueStaticCatalog.GetItemsByCategory(t);
+        if (list != null)
         {
             for (int i = 0; i < list.Count; i++)
             {
@@ -184,9 +175,10 @@ public class BontiqueCanvas : UICanvasMain
     private void CleanupExpiredPurchaseRecords(DateTime now)
     {
         HashSet<string> toRemove = new HashSet<string>();
-        for (int i = 0; i < shopItems.Count; i++)
+        IReadOnlyList<BontiqueShopItem> allItems = BontiqueStaticCatalog.GetAllItems();
+        for (int i = 0; i < allItems.Count; i++)
         {
-            BontiqueShopItem item = shopItems[i];
+            BontiqueShopItem item = allItems[i];
             if (item == null || string.IsNullOrEmpty(item.bid)) continue;
             if (!purchaseByBid.TryGetValue(item.bid, out BontiquePurchaseEntry record) || record == null) continue;
 
@@ -206,6 +198,11 @@ public class BontiqueCanvas : UICanvasMain
     private void OnRedeemRequested(BontiqueShopItem item)
     {
         if (item == null) return;
+        if (!string.IsNullOrEmpty(item.bid))
+        {
+            BontiqueShopItem catalogItem = BontiqueStaticCatalog.GetItemByBid(item.bid);
+            if (catalogItem != null) item = catalogItem;
+        }
 
         CleanupExpiredPurchaseRecords(currentTime);
         EvaluateItemState(item, currentTime, out int remaining, out bool interactable);
@@ -240,8 +237,54 @@ public class BontiqueCanvas : UICanvasMain
             RewardingSystem.GainRewardByOrder(item.gainId, item.ObtainAmount);
         }
         BontiquePurchaseSave.AddPurchase(item.bid, currentTime);
+        ShowRewardTransition(item);
+        // All purchase-related systems save internally on each API call; keep this call last to persist purchase record immediately.
         RebuildPurchaseCache();
+        RefreshCurrencyDisplaysAfterPurchase();
+    }
+
+    private void OnRedeemClickedSignal(BontiqueShopItem _)
+    {
+        PlayPurchaseSfx();
+    }
+
+    private void PlayPurchaseSfx()
+    {
+        if (purchaseAudioSource != null)
+        {
+            if (purchaseAudioClip != null) purchaseAudioSource.PlayOneShot(purchaseAudioClip);
+            else purchaseAudioSource.Play();
+            return;
+        }
+        if (purchaseAudioClip != null) AudioSource.PlayClipAtPoint(purchaseAudioClip, Vector3.zero);
+    }
+
+    private void RefreshCurrencyDisplaysAfterPurchase()
+    {
+        InitializeCategories();
         RefreshCurrentCategory();
+        if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
+    }
+
+    private void ShowRewardTransition(BontiqueShopItem item)
+    {
+        if (item == null) return;
+        GameObject rewardPrefab = Resources.Load<GameObject>(RewardCanvasPath);
+        if (rewardPrefab == null)
+        {
+            Debug.LogWarning($"Bontique: missing reward prefab at Resources/{RewardCanvasPath}");
+            return;
+        }
+
+        GameObject rewardObj = Instantiate(rewardPrefab);
+        RewardCanvas rewardCanvas = rewardObj.GetComponent<RewardCanvas>();
+        if (rewardCanvas == null)
+        {
+            Destroy(rewardObj);
+            Debug.LogWarning("Bontique: RewardCanvas component missing on reward prefab.");
+            return;
+        }
+        rewardCanvas.Initialize(item.RewardKind, item.gainId, item.ObtainAmount);
     }
 
     private void EvaluateItemState(BontiqueShopItem item, DateTime now, out int remaining, out bool interactable)
@@ -305,10 +348,34 @@ public class BontiqueCanvas : UICanvasMain
     {
         if (item == null) return false;
         if (!item.IsInActiveWindow(now)) return false;
-        if (item.Limit != LimitType.OnlyOnce) return true;
+
+        bool requiresHideAfterPurchase = item.Limit == LimitType.OnlyOnce;
+        if (!requiresHideAfterPurchase) return true;
         if (string.IsNullOrEmpty(item.bid)) return true;
         if (!purchaseByBid.TryGetValue(item.bid, out BontiquePurchaseEntry record) || record == null) return true;
         return Mathf.Max(0, record.purchaseCount) <= 0;
+    }
+
+    private List<BontiqueType> GetVisibleCategories(DateTime now)
+    {
+        List<BontiqueType> categories = new List<BontiqueType>();
+        foreach (BontiqueType t in Enum.GetValues(typeof(BontiqueType)))
+        {
+            if (t == BontiqueType.Unknown) continue;
+            if (HasVisibleItemsInCategory(t, now)) categories.Add(t);
+        }
+        return categories;
+    }
+
+    private bool HasVisibleItemsInCategory(BontiqueType category, DateTime now)
+    {
+        IReadOnlyList<BontiqueShopItem> list = BontiqueStaticCatalog.GetItemsByCategory(category);
+        if (list == null || list.Count == 0) return false;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (ShouldDisplayItem(list[i], now)) return true;
+        }
+        return false;
     }
 
     private static bool TryGetRewardNameByOrder(int rewardOrder, out RewardName rewardName)
@@ -325,7 +392,6 @@ public class BontiqueCanvas : UICanvasMain
     public override IEnumerator OnEnter()
     {
         if (FrameUI != null) FrameUI.OpenDoor();
-        // wait door duration if available
         yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
     }
 

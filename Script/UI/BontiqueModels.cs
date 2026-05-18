@@ -3,14 +3,13 @@ using System.Globalization;
 
 public enum BontiqueType
 {
-    Dayly = 0,
+    Daily = 0,
     Weekly = 1,
     Monthly = 2,
     Supplies = 3,
     Characters = 4,
-    OnlyOnce = 5,
-    Event = 6,
-    Others = 7,
+    Event = 5,
+    Others = 6,
     Unknown = -1
 }
 public enum LimitType
@@ -28,7 +27,6 @@ public enum LimitType
 public class BontiqueShopItem
 {
     public string bid;
-    public string b_name_id;
     public BontiqueType Category;
     public RewardType RewardKind;
     public int gainId;
@@ -69,23 +67,30 @@ public class BontiqueShopItem
 
     public static BontiqueShopItem FromCsvRow(string[] cols)
     {
-        // columns: bid, b_name_id, category, rewardType, gainId, obtainAmount, currencyId, currencyAmount, limitType, limitCount, start, end
+        // columns (new): bid, category, rewardType, gainId, obtainAmount, currencyId, currencyAmount, limitType, limitCount, start, end
+        // columns (legacy): bid, b_name_id, category, rewardType, gainId, obtainAmount, currencyId, currencyAmount, limitType, limitCount, start, end
+        int offset = HasLegacyNameColumn(cols) ? 1 : 0;
         var item = new BontiqueShopItem
         {
             bid = GetTrimmed(cols, 0),
-            b_name_id = GetTrimmed(cols, 1),
-            Category = ToBontiqueType(ParseInt(cols, 2)),
-            RewardKind = ToRewardType(ParseInt(cols, 3)),
-            gainId = ParseInt(cols, 4),
-            ObtainAmount = ParseInt(cols, 5),
-            CurrencyId = ParseInt(cols, 6),
-            CurrencyAmount = ParseInt(cols, 7),
-            Limit = ToLimitType(ParseInt(cols, 8)),
-            LimitCount = ParseInt(cols, 9),
-            LimitStart = ParseDate(cols, 10),
-            LimitEnd = ParseDate(cols, 11)
+            Category = ToBontiqueType(ParseInt(cols, 1 + offset)),
+            RewardKind = ToRewardType(ParseInt(cols, 2 + offset)),
+            gainId = ParseInt(cols, 3 + offset),
+            ObtainAmount = ParseInt(cols, 4 + offset),
+            CurrencyId = ParseInt(cols, 5 + offset),
+            CurrencyAmount = ParseInt(cols, 6 + offset),
+            Limit = ToLimitType(ParseInt(cols, 7 + offset)),
+            LimitCount = ParseInt(cols, 8 + offset),
+            LimitStart = ParseDate(cols, 9 + offset),
+            LimitEnd = ParseDate(cols, 10 + offset)
         };
         return item;
+    }
+
+    private static bool HasLegacyNameColumn(string[] cols)
+    {
+        if (cols == null || cols.Length < 3) return false;
+        return !int.TryParse(cols[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
     }
 
     private static string GetTrimmed(string[] cols, int index)

@@ -3,132 +3,99 @@ using System.Collections.Generic;
 
 public static class BontiqueStaticCatalog
 {
-    public static List<BontiqueShopItem> GetTemplateItems()
+    private static readonly List<BontiqueShopItem> Catalog = new List<BontiqueShopItem>
     {
-        // Template catalog organized by current BontiqueType.
-        // Non-event items keep LimitStart/LimitEnd as null. Event items use month-day windows (year ignored).
-        return new List<BontiqueShopItem>
+        // Non-event items keep LimitStart/LimitEnd as null.
+        // Event items use month-day windows (year ignored).
+        #region Daily
+        new BontiqueShopItem
         {
-            new BontiqueShopItem
+            bid = "day:can-sup", Category = BontiqueType.Daily, Limit = LimitType.Day, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 50,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = null, LimitEnd = null
+        },
+        #endregion
+        #region Weekly
+        new BontiqueShopItem
+        {
+            bid = "week:can-sup", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 150,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = null, LimitEnd = null
+        },
+        #endregion
+        #region Monthly
+        new BontiqueShopItem
+        {
+            bid = "month:can-sup", Category = BontiqueType.Monthly, Limit = LimitType.Month, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 500,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = null, LimitEnd = null
+        },
+        #endregion
+        #region OnlyOnce
+        new BontiqueShopItem
+        {
+            bid = "once:open2026", Category = BontiqueType.Event, Limit = LimitType.OnlyOnce, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 2026,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = null, LimitEnd = null
+        },
+        #endregion
+    };
+
+    private static readonly Dictionary<string, BontiqueShopItem> ByBid = new Dictionary<string, BontiqueShopItem>(StringComparer.Ordinal);
+    private static readonly Dictionary<BontiqueType, List<BontiqueShopItem>> ByCategory = new Dictionary<BontiqueType, List<BontiqueShopItem>>();
+    private static readonly IReadOnlyList<BontiqueShopItem> EmptyList = new List<BontiqueShopItem>();
+
+    static BontiqueStaticCatalog()
+    {
+        for (int i = 0; i < Catalog.Count; i++)
+        {
+            BontiqueShopItem item = Catalog[i];
+            if (item == null) continue;
+
+            if (!string.IsNullOrEmpty(item.bid) && !ByBid.ContainsKey(item.bid))
             {
-                bid = "shop_daily_xp",
-                b_name_id = "shop_name_daily_xp",
-                Category = BontiqueType.Dayly,
-                RewardKind = RewardType.item,
-                gainId = 11,
-                ObtainAmount = 5000,
-                CurrencyId = 12,
-                CurrencyAmount = 100,
-                Limit = LimitType.Day,
-                LimitCount = 3,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_weekly_ticket",
-                b_name_id = "shop_name_weekly_ticket",
-                Category = BontiqueType.Weekly,
-                RewardKind = RewardType.item,
-                gainId = 6,
-                ObtainAmount = 1,
-                CurrencyId = 12,
-                CurrencyAmount = 300,
-                Limit = LimitType.Week,
-                LimitCount = 2,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_monthly_catfruit",
-                b_name_id = "shop_name_monthly_catfruit",
-                Category = BontiqueType.Monthly,
-                RewardKind = RewardType.item,
-                gainId = 39,
-                ObtainAmount = 2,
-                CurrencyId = 12,
-                CurrencyAmount = 800,
-                Limit = LimitType.Month,
-                LimitCount = 1,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_supplies_cans_pack",
-                b_name_id = "shop_name_supplies_cans_pack",
-                Category = BontiqueType.Supplies,
-                RewardKind = RewardType.item,
-                gainId = 12,
-                ObtainAmount = 200,
-                CurrencyId = 11,
-                CurrencyAmount = 20000,
-                Limit = LimitType.None,
-                LimitCount = 0,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_characters_starter",
-                b_name_id = "shop_name_characters_starter",
-                Category = BontiqueType.Characters,
-                RewardKind = RewardType.character,
-                gainId = 1000,
-                ObtainAmount = 1,
-                CurrencyId = 12,
-                CurrencyAmount = 2500,
-                Limit = LimitType.None,
-                LimitCount = 0,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_onlyonce_catfruit_bundle",
-                b_name_id = "shop_name_onlyonce_catfruit_bundle",
-                Category = BontiqueType.OnlyOnce,
-                RewardKind = RewardType.item,
-                gainId = 57,
-                ObtainAmount = 50,
-                CurrencyId = 12,
-                CurrencyAmount = 1200,
-                Limit = LimitType.OnlyOnce,
-                LimitCount = 1,
-                LimitStart = null,
-                LimitEnd = null
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_event_golden_ticket",
-                b_name_id = "shop_name_event_golden_ticket",
-                Category = BontiqueType.Event,
-                RewardKind = RewardType.item,
-                gainId = 7,
-                ObtainAmount = 1,
-                CurrencyId = 12,
-                CurrencyAmount = 500,
-                Limit = LimitType.Event,
-                LimitCount = 1,
-                LimitStart = new DateTime(2000, 3, 1, 0, 0, 0),
-                LimitEnd = new DateTime(2000, 3, 31, 23, 59, 59)
-            },
-            new BontiqueShopItem
-            {
-                bid = "shop_others_yearly_legend",
-                b_name_id = "shop_name_others_yearly_legend",
-                Category = BontiqueType.Others,
-                RewardKind = RewardType.item,
-                gainId = 10,
-                ObtainAmount = 1,
-                CurrencyId = 12,
-                CurrencyAmount = 3000,
-                Limit = LimitType.Year,
-                LimitCount = 1,
-                LimitStart = null,
-                LimitEnd = null
+                ByBid[item.bid] = item;
             }
-        };
+
+            if (!ByCategory.TryGetValue(item.Category, out List<BontiqueShopItem> list))
+            {
+                list = new List<BontiqueShopItem>();
+                ByCategory[item.Category] = list;
+            }
+            list.Add(item);
+        }
+    }
+
+    public static IReadOnlyList<BontiqueShopItem> GetAllItems()
+    {
+        return Catalog;
+    }
+
+    public static bool TryGetItemByBid(string bid, out BontiqueShopItem item)
+    {
+        if (string.IsNullOrEmpty(bid))
+        {
+            item = null;
+            return false;
+        }
+        return ByBid.TryGetValue(bid, out item);
+    }
+
+    public static BontiqueShopItem GetItemByBid(string bid)
+    {
+        return TryGetItemByBid(bid, out BontiqueShopItem item) ? item : null;
+    }
+
+    public static IReadOnlyList<BontiqueShopItem> GetItemsByCategory(BontiqueType category)
+    {
+        return ByCategory.TryGetValue(category, out List<BontiqueShopItem> list) ? list : EmptyList;
     }
 }

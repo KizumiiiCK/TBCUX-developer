@@ -14,6 +14,7 @@ public class BontiqueItems : MonoBehaviour
     [SerializeField] private KiButton redeemButton;
 
     private BontiqueShopItem boundItem;
+    private Action<BontiqueShopItem> onRedeemClickedSignal;
     private Action<BontiqueShopItem> onRedeemRequested;
     private static readonly Vector2 CharacterImageSize = new Vector2(110f, 85f);
     private static readonly Vector2 ItemImageSize = new Vector2(128f, 128f);
@@ -48,9 +49,15 @@ public class BontiqueItems : MonoBehaviour
         if (redeemButton == null) redeemButton = GetComponentInChildren<KiButton>(true);
     }
 
-    public void Configure(BontiqueShopItem item, int remaining, bool interactable, Action<BontiqueShopItem> onRedeemRequested)
+    public void Configure(
+        BontiqueShopItem item,
+        int remaining,
+        bool interactable,
+        Action<BontiqueShopItem> onRedeemClickedSignal,
+        Action<BontiqueShopItem> onRedeemRequested)
     {
         boundItem = item;
+        this.onRedeemClickedSignal = onRedeemClickedSignal;
         this.onRedeemRequested = onRedeemRequested;
         CacheRefs();
 
@@ -66,7 +73,7 @@ public class BontiqueItems : MonoBehaviour
 
         if (itemNameText != null)
         {
-            string expectedNameId = string.IsNullOrEmpty(item.b_name_id) ? item.bid : item.b_name_id;
+            string expectedNameId = item.bid;
             itemNameText.text = expectedNameId;
             LocalizationHelper.GetLocalizedText(
                 UXPref.Localized_UI,
@@ -74,7 +81,7 @@ public class BontiqueItems : MonoBehaviour
                 localizedText =>
                 {
                     if (boundItem == null) return;
-                    string currentExpected = string.IsNullOrEmpty(boundItem.b_name_id) ? boundItem.bid : boundItem.b_name_id;
+                    string currentExpected = boundItem.bid;
                     if (!string.Equals(currentExpected, expectedNameId, StringComparison.Ordinal)) return;
                     itemNameText.text = string.IsNullOrEmpty(localizedText) ? expectedNameId : localizedText;
                 });
@@ -90,11 +97,12 @@ public class BontiqueItems : MonoBehaviour
         if (redeemButton != null)
         {
             bool currencyEnough = currentCurrencyAmount >= item.CurrencyAmount;
-            Color targetColor = currencyEnough ? CanBuyButtonColor : CannotBuyButtonColor;
+            bool canRedeem = interactable && currencyEnough;
+            Color targetColor = canRedeem ? CanBuyButtonColor : CannotBuyButtonColor;
             redeemButton.SetFrameColorPersistent(targetColor);
             redeemButton.SetCoverColor(targetColor);
             redeemButton.onClick.RemoveAllListeners();
-            redeemButton.interactable = interactable;
+            redeemButton.interactable = canRedeem;
             redeemButton.onClick.AddListener(OnRedeemClicked);
         }
     }
@@ -117,6 +125,7 @@ public class BontiqueItems : MonoBehaviour
     private void OnRedeemClicked()
     {
         if (boundItem == null) return;
+        onRedeemClickedSignal?.Invoke(boundItem);
         onRedeemRequested?.Invoke(boundItem);
     }
 }

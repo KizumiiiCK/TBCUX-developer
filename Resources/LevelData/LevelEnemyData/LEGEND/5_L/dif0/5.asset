@@ -17,7 +17,6 @@ MonoBehaviour:
   BaseHealth: 360000
   mapSize: 5400
   maxEmenyCount: 15
-  maxCatCount: 50
   BackgroundID: 506
   BaseImageID: 300
   CombatEffect: []
@@ -79,25 +78,25 @@ MonoBehaviour:
     enemySummonInfos:
     - enemyID: e093
       ratio: 100
+      bossShock: 0
+      repeat: 2
+      firstAppear: 0
+      repeatMin: 2300
+      repeatMax: 2500
+      previewSprite: {fileID: 0}
+    - enemyID: e097
+      ratio: 100
       bossShock: 1
       repeat: 1
       firstAppear: 0
       repeatMin: 0
       repeatMax: 0
-      previewSprite: {fileID: 0}
-    - enemyID: e067
-      ratio: 150
-      bossShock: 0
-      repeat: 1
-      firstAppear: 0
-      repeatMin: 0
-      repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: e6c09ad6b75b6f44ca3d4ae04abf139c, type: 3}
+      previewSprite: {fileID: 21300000, guid: 45b77bc4f8636934c948cf35a73814bb, type: 3}
     - enemyID: e127
       ratio: 200
       bossShock: 0
-      repeat: 2
-      firstAppear: 1500
-      repeatMin: 2300
-      repeatMax: 2500
+      repeat: 3
+      firstAppear: 800
+      repeatMin: 1800
+      repeatMax: 2400
       previewSprite: {fileID: 21300000, guid: 7abda3fd44daed341bbc32ca8de2ff68, type: 3}

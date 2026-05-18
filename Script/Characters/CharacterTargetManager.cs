@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class CharacterTargetManager : MonoBehaviour
 {
-    private const float CharacterTargetVolumeLength = 2f;
+    private const float CharacterTargetVolumeLength = 3.2f;
 
     private static CharacterTargetManager _instance;
     public static CharacterTargetManager Instance

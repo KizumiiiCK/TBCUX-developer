@@ -16,14 +16,14 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 900
+  - ATK: 2430
     frame: 68
     DoNotTriggerEffects: 0
     Friendly: 0
     ATKRange: {x: 0, y: 440}
   areaATK: 1
   atkDuration: 91
-  Health: 1400
+  Health: 3780
   KB: 4
   Speed: 8
   Reload: 40
@@ -49,7 +49,7 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 0
+    Warrior: 1
     Deffender: 0
     Magician: 0
     Supporter: 0
@@ -74,3 +74,4 @@ MonoBehaviour:
   abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

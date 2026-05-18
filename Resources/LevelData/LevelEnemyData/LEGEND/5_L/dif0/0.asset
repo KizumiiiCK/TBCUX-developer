@@ -17,7 +17,6 @@ MonoBehaviour:
   BaseHealth: 384200
   mapSize: 4400
   maxEmenyCount: 11
-  maxCatCount: 50
   BackgroundID: 506
   BaseImageID: 313
   CombatEffect: []
@@ -38,7 +37,7 @@ MonoBehaviour:
     bgm: 048
     enemySummonInfos:
     - enemyID: e004
-      ratio: 2400
+      ratio: 3600
       bossShock: 0
       repeat: -1
       firstAppear: 400
@@ -46,7 +45,7 @@ MonoBehaviour:
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
     - enemyID: e042
-      ratio: 600
+      ratio: 700
       bossShock: 0
       repeat: -1
       firstAppear: 600
@@ -64,7 +63,7 @@ MonoBehaviour:
     - enemyID: e092
       ratio: 200
       bossShock: 0
-      repeat: 4
+      repeat: -1
       firstAppear: 1400
       repeatMin: 1400
       repeatMax: 1800
@@ -91,15 +90,15 @@ MonoBehaviour:
     - enemyID: e092
       ratio: 200
       bossShock: 0
-      repeat: 8
+      repeat: 12
       firstAppear: 0
-      repeatMin: 400
+      repeatMin: 300
       repeatMax: 600
       previewSprite: {fileID: 21300000, guid: 06323583c5c023e41800e95e49784786, type: 3}
     - enemyID: e069
       ratio: 1200
       bossShock: 0
-      repeat: 2
+      repeat: 4
       firstAppear: 1200
       repeatMin: 1800
       repeatMax: 2000
@@ -109,14 +108,14 @@ MonoBehaviour:
       bossShock: 0
       repeat: 2
       firstAppear: 300
-      repeatMin: 1800
-      repeatMax: 2000
+      repeatMin: 1400
+      repeatMax: 1600
       previewSprite: {fileID: 21300000, guid: 0200ea53d839f8f4d95e34c4198b189a, type: 3}
     - enemyID: e044
-      ratio: 150
+      ratio: 200
       bossShock: 0
-      repeat: 2
+      repeat: 4
       firstAppear: 0
-      repeatMin: 2400
-      repeatMax: 2600
+      repeatMin: 800
+      repeatMax: 1200
       previewSprite: {fileID: 21300000, guid: c35c59ef9f4a86948b881a5f4951ef01, type: 3}

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public abstract partial class Character
 {
+    private const float RearHitFallbackNearRange = -320f;
     protected enum TargetRegistrationKind
     {
         Character,
@@ -93,7 +94,7 @@ public abstract partial class Character
         SPINEAnimated= data.SPINEAnimated;
 
         ATKTypes = data.ATKType;
-        atkInfos = data.atkInfos;
+        atkInfos = BuildRuntimeAttackInfos(data.atkInfos);
         realDamage = new int[atkInfos.Length];
         for (int i = 0; i < atkInfos.Length; i++) realDamage[i] = (int)(atkInfos[i].ATK * treasureBonus);
         areaATK = data.areaATK;
@@ -115,6 +116,39 @@ public abstract partial class Character
         if (IsEliteUnit) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.strategic});
         if(!IsCat()&&traits.Mtl) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.metal});
         foreach (var ca in characterAbilities) AbilityInstaller.Install(this, ca);
+    }
+
+    private static ATKInfo[] BuildRuntimeAttackInfos(ATKInfo[] sourceInfos)
+    {
+        if (sourceInfos == null || sourceInfos.Length == 0) return new ATKInfo[0];
+
+        ATKInfo[] runtimeInfos = new ATKInfo[sourceInfos.Length];
+        for (int i = 0; i < sourceInfos.Length; i++)
+        {
+            ATKInfo src = sourceInfos[i];
+            if (src == null)
+            {
+                runtimeInfos[i] = new ATKInfo();
+                continue;
+            }
+
+            Vector2 range = src.ATKRange;
+            if (Mathf.Approximately(range.x, 0f))
+            {
+                range.x = RearHitFallbackNearRange;
+            }
+
+            runtimeInfos[i] = new ATKInfo
+            {
+                ATK = src.ATK,
+                frame = src.frame,
+                DoNotTriggerEffects = src.DoNotTriggerEffects,
+                Friendly = src.Friendly,
+                ATKRange = range
+            };
+        }
+
+        return runtimeInfos;
     }
 
     public void SwitchAnimation(int index) {

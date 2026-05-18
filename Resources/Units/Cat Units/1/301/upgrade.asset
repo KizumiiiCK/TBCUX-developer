@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b65c69d997df1444bb721473d84d2072, type: 3}
+  m_Name: upgrade
+  m_EditorClassIdentifier: 
+  cost:
+  - method: 0
+    upgrade_consume: []
+  - method: 3
+    upgrade_consume:
+    - reward_name: 45
+      count: 5
+    - reward_name: 46
+      count: 5
+    - reward_name: 11
+      count: 200000
+  - method: 1
+    upgrade_consume: []
