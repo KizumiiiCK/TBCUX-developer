@@ -1607,6 +1607,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Chapter header
       objectReference: {fileID: 0}
+    - target: {fileID: 3558533814615627915, guid: 4cc55b788cde3d748a20a9edae29239f, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+    - target: {fileID: 3558533814615627915, guid: 4cc55b788cde3d748a20a9edae29239f, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+    - target: {fileID: 3558533814615627915, guid: 4cc55b788cde3d748a20a9edae29239f, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3922649992062565148, guid: 4cc55b788cde3d748a20a9edae29239f, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

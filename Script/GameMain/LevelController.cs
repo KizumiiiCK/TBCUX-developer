@@ -306,6 +306,17 @@ public class LevelController : MonoBehaviour
     protected virtual void ApplyLevelRestrictionSettings()
     {
         maxCatDeploy = LevelRestrictionHelper.GetMaxCatDeploy(levelRestrictions, maxCatDeploy);
+
+        if (IsOneHitBaseRestricted())
+        {
+            AbilityInstaller.Install(catBaseComponent, new CharacterAbility
+            {
+                name = AbilityName.Aux_OneHit,
+                probability = 100,
+                duration = 0,
+                intensity = 0
+            });
+        }
     }
 
     /// <summary>
@@ -379,10 +390,8 @@ public class LevelController : MonoBehaviour
 
         // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
         dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
-        int catBaseHealth = IsOneHitBaseRestricted()
-            ? 1
-            : CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT;
-        catBaseComponent?.ApplyLevelBaseHealth(catBaseHealth);
+        catBaseComponent?.ApplyLevelBaseHealth(
+            CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
 
         // 设置狗基地外�?
         Sprite baseSprite = Resources.Load<Sprite>($"Units/DogeBases/{LD.BaseImageID}");

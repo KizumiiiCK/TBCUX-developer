@@ -61,6 +61,7 @@ public class CatBase : CatCharacter
     {
         if (realHealth <= 0) { realHealth = 0; return; }
         if (DMG < 0) return;
+        Passive_OnBeforeTakeDamage(ref DMG, atkType);
         if (atkType != null) foreach (var ar in atkTypeResis)
         {
             foreach (var at in atkType)
@@ -73,6 +74,7 @@ public class CatBase : CatCharacter
             }
         }
         realHealth -= (int)DMG;
+        Passive_OnAfterTakeDamage();
         if (realHealth <= 0) 
         { 
             realHealth = 0; shakecoroutine = StartCoroutine(ShakeTower(atkType,true));

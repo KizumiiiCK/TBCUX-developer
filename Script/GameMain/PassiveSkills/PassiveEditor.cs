@@ -1098,6 +1098,7 @@ public class Aux_OneHit : PassiveSkill
         if (character == null) yield break;
 
         character.BlockAnimationSwitch = true;
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
         character.RemoveAllTarget();
         character.SwitchAnimation(3);
         FreezeCharacterAnimation(character);
@@ -1129,6 +1130,7 @@ public class Aux_OneHit : PassiveSkill
         visual.rotation = endRotation;
         visual.localScale = endScale;
         character.transform.position = visual.position;
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
         character.Dead();
     }
 
