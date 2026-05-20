@@ -53,6 +53,7 @@ public class LevelTiler : UICanvasMain
     /// <summary>关卡大地图根物体（由本组件创建与销毁，不再由 BaseCanvas 管理）。</summary>
     private GameObject worldMapRoot;
     private Coroutine buildLevelTilesRoutine;
+    private bool isDailyMapLocked;
 
     public GameProgressSave.SectionClearList secClearList;
 
@@ -66,6 +67,7 @@ public class LevelTiler : UICanvasMain
         CombatBtn.onClick.AddListener(LaunchAttack);
         cam.backgroundColor = MI.coverColor;
         InitializeDragSelector();
+        RefreshDailyMapChallengeState();
     }
     private void OnEnable()
     {
@@ -73,12 +75,13 @@ public class LevelTiler : UICanvasMain
         if (selectionsPanel != null) selectionsPanel.SetTeamDisplay(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0), team_txt.text);
         TeamBtn.interactable = true;
         RestoreMapVisibility();
+        RefreshDailyMapChallengeState();
     }
     void Update()
     {
         if (CombatBtn != null)
         {
-            CombatBtn.interactable = dragSelector == null || dragSelector.IsSettled;
+            CombatBtn.interactable = !isDailyMapLocked && (dragSelector == null || dragSelector.IsSettled);
         }
         cam.transform.position = Vector2.Lerp(cam.transform.position, MI.levelsOnMap[current_level_num].levelPosition, Time.deltaTime * moveSpeed);
         cam.transform.position = new Vector3(cam.transform.position.x, cam.transform.position.y, -10);
@@ -476,6 +479,18 @@ public class LevelTiler : UICanvasMain
             worldMapRoot.SetActive(true);
     }
 
+    private void RefreshDailyMapChallengeState()
+    {
+        if (MI == null || !MI.oncePerDay)
+        {
+            isDailyMapLocked = false;
+            return;
+        }
+
+        string currentDateToken = CheckInSystem.GetCachedWorldDateToken();
+        isDailyMapLocked = DailyMapChallengeSave.HasSectionClearRecordToday(currentDateToken, MI.sectionName);
+    }
+
     private void OnDragLevelChanged(int levelIndex)
     {
         ChangeCurrentLevelNum(levelIndex);
@@ -483,7 +498,7 @@ public class LevelTiler : UICanvasMain
 
     private void OnDragSettleStateChanged(bool settled)
     {
-        if (CombatBtn != null) CombatBtn.interactable = settled;
+        if (CombatBtn != null) CombatBtn.interactable = !isDailyMapLocked && settled;
     }
 
     public void ExitLevelPage()

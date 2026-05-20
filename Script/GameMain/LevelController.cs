@@ -788,6 +788,7 @@ public class LevelController : MonoBehaviour
         //int catHeadCount = catBase.GetComponent<CatBase>().;
         GameProgressSave.SaveProgress(chapterName, sectionName, diff, levelNum, level_score,
             gainreward, characters_code, 0);
+        RecordDailyMapClearIfNeeded();
 
         UnlockEnemiesMet();
         LPU.EndAccounting();
@@ -1194,6 +1195,16 @@ public class LevelController : MonoBehaviour
     private bool IsOneHitBaseRestricted()
     {
         return levelRestrictions != null && levelRestrictions.rawValuesByKey.ContainsKey("OH");
+    }
+
+    private void RecordDailyMapClearIfNeeded()
+    {
+        if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return;
+
+        MapInfo mapInfo = Resources.LoadAll<MapInfo>($"LevelData/Chapters/{chapterName}/{sectionName}");
+        if (mapInfos == null) return;
+        if (!mapInfo.oncePerDay) return;
+        DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
     }
 
     private void ApplyInitialMoneyRestrictions()

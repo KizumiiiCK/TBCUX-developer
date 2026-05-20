@@ -28,7 +28,7 @@ public class CheckInSystem : MonoBehaviour
         50000,150,1
     };
     private int[] bonusCount = new int[typeCount];
-    private const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
+    public const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
 
     private void Start()
     {
@@ -222,7 +222,13 @@ public class CheckInSystem : MonoBehaviour
 
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
 
-    private string GetLocalDateToken() => DateTime.Today.ToString("yyyy-MM-dd");
+    private static string GetLocalDateToken() => DateTime.Today.ToString("yyyy-MM-dd");
+
+    public static string GetCachedWorldDateToken()
+    {
+        string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
+        return string.IsNullOrEmpty(cachedDate) ? GetLocalDateToken() : cachedDate;
+    }
 
     private void SaveCachedWorldDate()
     {

@@ -12,6 +12,7 @@ public class MapInfo : ScriptableObject
     public string mapName = "";
     public string BGM=string.Empty;
     public string unlockRestriction = null;
+    public bool oncePerDay = false;
     public int hardness = 1;
     public bool[] difficulty = new bool[12];
     public Color coverColor = Color.black;
@@ -61,13 +62,13 @@ public class TitleColorMap
         {TitleColor.white, Color.white},
         {TitleColor.red, Color.red},
         {TitleColor.black, Color.black},
-        {TitleColor.yellow, new Color(255f / 255f, 194f / 255f, 0f)},
-        {TitleColor.blue, new Color(0f, 209f / 255f, 1f)},
-        {TitleColor.purple, new Color(130f / 255f, 0f, 1f)},
-        {TitleColor.orange, new Color(1f, 92f / 255f, 0f)},
-        {TitleColor.green, new Color(142f / 255f, 217f / 255f, 44f / 255f)},
-        {TitleColor.zerolegend, new Color(104f / 255f, 139f / 255f, 216f / 255f)},
-        {TitleColor.relic, new Color(67f / 255f, 94f / 255f, 22f / 255f)},
+        {TitleColor.yellow, new Color(1f, 0.7607f, 0f)},
+        {TitleColor.blue, new Color(0f, 0.8196f, 1f)},
+        {TitleColor.purple, new Color(0.5098f, 0f, 1f)},
+        {TitleColor.orange, new Color(1f, 0.3607f, 0f)},
+        {TitleColor.green, new Color(0.5568f, 1f, 0.1725f)},
+        {TitleColor.zerolegend, new Color(0.4078f, 0.5451f, 1f)},
+        {TitleColor.relic, new Color(0.2627f, 0.3686f, 0.0862f)},
     };
 
     public static Color GetSectionColor(TitleColor titleColor)

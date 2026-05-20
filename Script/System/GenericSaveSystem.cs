@@ -126,6 +126,82 @@ public static class GenericSaveSystem
         }
         // return SupabaseSaveRemote.Load<T>(filename);
     }
+
+    public static void DeleteData(string filename)
+    {
+        string fullpath = Path.Combine(FirmFilePath, filename + FirmEnding);
+        if (!File.Exists(fullpath)) return;
+
+        try
+        {
+            File.Delete(fullpath);
+            Debug.Log($"Succesfully deleted: {filename}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Delete Error: " + e.Message);
+        }
+    }
+}
+
+[System.Serializable]
+public class DailyMapClearRecord
+{
+    public string dateToken = string.Empty;
+    public List<string> clearedSectionNames = new List<string>();
+}
+
+public static class DailyMapChallengeSave
+{
+    public static readonly string filename = "B6977A5A57A64B3A9C4D1F6B8F0A1D27";
+
+    public static void ResetIfNewDay(string currentDateToken)
+    {
+        if (string.IsNullOrEmpty(currentDateToken)) return;
+
+        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        if (save == null) return;
+        if (save.dateToken == currentDateToken) return;
+
+        GenericSaveSystem.DeleteData(filename);
+    }
+
+    public static bool HasSectionClearRecordToday(string currentDateToken, string sectionName)
+    {
+        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return false;
+
+        ResetIfNewDay(currentDateToken);
+        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        if (save == null) return false;
+        if (save.dateToken != currentDateToken) return false;
+        return save.clearedSectionNames != null && save.clearedSectionNames.Contains(sectionName);
+    }
+
+    public static void RecordSectionClear(string currentDateToken, string sectionName)
+    {
+        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return;
+
+        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        if (save == null || save.dateToken != currentDateToken)
+        {
+            save = new DailyMapClearRecord
+            {
+                dateToken = currentDateToken,
+                clearedSectionNames = new List<string>()
+            };
+        }
+        else if (save.clearedSectionNames == null)
+        {
+            save.clearedSectionNames = new List<string>();
+        }
+
+        if (!save.clearedSectionNames.Contains(sectionName))
+        {
+            save.clearedSectionNames.Add(sectionName);
+        }
+
+        GenericSaveSystem.SaveData(save, filename);
+    }
 }
 
 [System.Serializable]
