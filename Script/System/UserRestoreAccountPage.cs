@@ -11,6 +11,7 @@ using UnityEngine.UI;
 public class UserRestoreAccountPage : MonoBehaviour
 {
     private const string UserTable = "user_accounts";
+    private const string BontiquePurchaseTable = "bontique_purchases";
     private const string LoadingPagePath = "UI/Pages/loading";
     private const string LoginCheckPagePath = "UI/Pages/user/UserLoginCheckPage";
 
@@ -157,6 +158,7 @@ public class UserRestoreAccountPage : MonoBehaviour
                 new LoadingTask("Downloading reward_inventory...", ExecuteDownloadRewardInventoryTask),
                 new LoadingTask("Downloading team_selections...", ExecuteDownloadTeamSelectionsTask),
                 new LoadingTask("Downloading enemy_meet...", ExecuteDownloadEnemyMeetTask),
+                new LoadingTask("Downloading boutique purchases...", ExecuteDownloadBontiquePurchasesTask),
                 new LoadingTask("Downloading user profile...", ExecuteFetchUserProfileForLocalTask),
                 new LoadingTask("Applying downloaded data to local save...", ExecuteApplyLocalCacheTask),
                 new LoadingTask("Writing local user profile...", ExecuteWriteLocalUserTask),
@@ -550,6 +552,50 @@ public class UserRestoreAccountPage : MonoBehaviour
         task.Success = true;
     }
 
+    private IEnumerator ExecuteDownloadBontiquePurchasesTask(LoadingTask task)
+    {
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{BontiquePurchaseTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}";
+        bool reqDone = false;
+        bool reqOk = false;
+        string body = "[]";
+
+        yield return GetRequest(url, r =>
+        {
+            reqOk = r.success;
+            body = r.body;
+            reqDone = true;
+        });
+        while (!reqDone) yield return null;
+
+        if (!reqOk)
+        {
+            task.Success = false;
+            if (loadingPage != null) loadingPage.NotifyFailure("Failed to download bontique_purchases.");
+            yield break;
+        }
+
+        List<object> rows = ParseJsonArray(body);
+        var entries = new List<BontiquePurchaseEntry>(rows.Count);
+        for (int i = 0; i < rows.Count; i++)
+        {
+            Dictionary<string, object> row = rows[i] as Dictionary<string, object>;
+            if (row == null) continue;
+
+            string bid = GetString(row, "bid");
+            if (string.IsNullOrWhiteSpace(bid)) continue;
+
+            entries.Add(new BontiquePurchaseEntry
+            {
+                bid = bid,
+                firstPurchaseDate = GetDateTime(row, "first_purchase_date"),
+                purchaseCount = Mathf.Max(0, GetInt(row, "purchase_count", 0))
+            });
+        }
+
+        cache.bontiquePurchases = entries;
+        task.Success = true;
+    }
+
     private IEnumerator ExecuteFetchUserProfileForLocalTask(LoadingTask task)
     {
         string encodedTransferCode = UnityWebRequest.EscapeURL(pendingTransferCode ?? string.Empty);
@@ -618,6 +664,7 @@ public class UserRestoreAccountPage : MonoBehaviour
             GenericSaveSystem.SaveData(cache.teamSelections ?? new string[SelectionsSave.TeamNum, SelectionsSave.SIZE], SelectionsSave.filename);
             GenericSaveSystem.SaveData(cache.teamNames ?? BuildDefaultTeamNames(), TeamNameSave.filename);
             GenericSaveSystem.SaveData(cache.enemyMeet ?? new bool[EnemyMeetSave.SIZE], EnemyMeetSave.filename);
+            BontiquePurchaseSave.ReplaceAll(cache.bontiquePurchases);
         }
         catch (Exception e)
         {
@@ -684,6 +731,7 @@ public class UserRestoreAccountPage : MonoBehaviour
             "reward_inventory",
             "team_selections",
             "enemy_meet",
+            BontiquePurchaseTable,
         };
 
         for (int i = 0; i < tables.Length; i++)
@@ -806,6 +854,18 @@ public class UserRestoreAccountPage : MonoBehaviour
         if (value is bool b) return b;
         if (bool.TryParse(value.ToString(), out bool parsed)) return parsed;
         return fallback;
+    }
+
+    private static DateTime GetDateTime(Dictionary<string, object> row, string key)
+    {
+        object value = GetValue(row, key);
+        if (value == null) return default(DateTime);
+        if (value is DateTime dateTime) return dateTime;
+        if (DateTime.TryParse(value.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime parsed))
+            return parsed;
+        if (DateTime.TryParse(value.ToString(), out parsed))
+            return parsed;
+        return default(DateTime);
     }
 
     private static int[] ToIntArray(object obj, int fallbackLength)
@@ -1005,5 +1065,6 @@ public class UserRestoreAccountPage : MonoBehaviour
         public string[,] teamSelections;
         public string[] teamNames;
         public bool[] enemyMeet;
+        public List<BontiquePurchaseEntry> bontiquePurchases;
     }
 }

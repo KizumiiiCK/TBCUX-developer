@@ -12,6 +12,7 @@ using UnityEngine.UI;
 public class UserUploadAccountPage : MonoBehaviour
 {
     private const string UserTable = "user_accounts";
+    private const string BontiquePurchaseTable = "bontique_purchases";
     private const string LoadingPagePath = "UI/Pages/loading";
 
     [Header("Main UI")]
@@ -115,6 +116,7 @@ public class UserUploadAccountPage : MonoBehaviour
             new LoadingTask("Uploading reward inventory...", ExecuteUploadRewardInventoryTask),
             new LoadingTask("Uploading enemy meet flags...", ExecuteUploadEnemyMeetTask),
             new LoadingTask("Uploading team selections...", ExecuteUploadTeamSelectionsTask),
+            new LoadingTask("Uploading boutique purchases...", ExecuteUploadBontiquePurchasesTask),
             new LoadingTask("Updating account transfer metadata...", task => ExecuteUpdateUserAccountTask(task, transferCode)),
         };
 
@@ -343,6 +345,48 @@ public class UserUploadAccountPage : MonoBehaviour
         if (!ok && loadingPage != null) loadingPage.NotifyFailure("Failed to upload team_selections.");
     }
 
+    private IEnumerator ExecuteUploadBontiquePurchasesTask(LoadingTask task)
+    {
+        if (loadingPage != null) loadingPage.SetDetail("Reading and uploading bontique_purchases...");
+
+        bool cleared = false;
+        yield return DeleteRowsByPid(BontiquePurchaseTable, success => cleared = success);
+        if (!cleared)
+        {
+            task.Success = false;
+            if (loadingPage != null) loadingPage.NotifyFailure("Failed to clear bontique_purchases.");
+            yield break;
+        }
+
+        List<BontiquePurchaseEntry> entries = BontiquePurchaseSave.GetAll();
+        var rows = new List<string>();
+        for (int i = 0; i < entries.Count; i++)
+        {
+            BontiquePurchaseEntry entry = entries[i];
+            if (entry == null || string.IsNullOrWhiteSpace(entry.bid)) continue;
+
+            string row = "{"
+                + $"\"pid\":\"{JsonEscape(localUser.pid)}\","
+                + $"\"bid\":\"{JsonEscape(entry.bid)}\","
+                + $"\"first_purchase_date\":\"{JsonEscape(entry.firstPurchaseDate.ToString("o", CultureInfo.InvariantCulture))}\","
+                + $"\"purchase_count\":{Mathf.Max(0, entry.purchaseCount)}"
+                + "}";
+            rows.Add(row);
+        }
+
+        if (rows.Count == 0)
+        {
+            task.Success = true;
+            if (loadingPage != null) loadingPage.SetDetail("No local bontique_purchases data. Remote table cleared.");
+            yield break;
+        }
+
+        bool ok = false;
+        yield return Upsert(BontiquePurchaseTable, $"[{string.Join(",", rows)}]", success => ok = success);
+        task.Success = ok;
+        if (!ok && loadingPage != null) loadingPage.NotifyFailure("Failed to upload bontique_purchases.");
+    }
+
     private IEnumerator ExecuteUpdateUserAccountTask(LoadingTask task, string transferCode)
     {
         if (loadingPage != null) loadingPage.SetDetail("Updating user_accounts.transfer_code / device_code / last_update...");
@@ -401,6 +445,27 @@ public class UserUploadAccountPage : MonoBehaviour
             request.SetRequestHeader("apikey", UXPref.SupabaseKey);
             request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
             request.SetRequestHeader("Prefer", "resolution=merge-duplicates");
+
+            yield return request.SendWebRequest();
+            bool success = request.result == UnityWebRequest.Result.Success;
+            if (!success && loadingPage != null)
+            {
+                loadingPage.SetDetail($"[{table}] {request.error} - {request.downloadHandler.text}");
+            }
+            onDone?.Invoke(success);
+        }
+    }
+
+    private IEnumerator DeleteRowsByPid(string table, Action<bool> onDone)
+    {
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{table}?pid=eq.{UnityWebRequest.EscapeURL(localUser.pid)}";
+        using (UnityWebRequest request = new UnityWebRequest(url, "DELETE"))
+        {
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.timeout = 25;
+            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
+            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            request.SetRequestHeader("Prefer", "return=minimal");
 
             yield return request.SendWebRequest();
             bool success = request.result == UnityWebRequest.Result.Success;

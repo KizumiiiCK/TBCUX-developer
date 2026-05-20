@@ -1236,6 +1236,25 @@ public static class BontiquePurchaseSave
         if (removed > 0) Save(data);
         return removed;
     }
+
+    public static void ReplaceAll(IEnumerable<BontiquePurchaseEntry> entries)
+    {
+        var data = new BontiquePurchaseData();
+        if (entries != null)
+        {
+            foreach (var entry in entries)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.bid)) continue;
+                data.entries.Add(new BontiquePurchaseEntry
+                {
+                    bid = entry.bid,
+                    firstPurchaseDate = entry.firstPurchaseDate,
+                    purchaseCount = Mathf.Max(0, entry.purchaseCount)
+                });
+            }
+        }
+        Save(data);
+    }
 }
 
 
