@@ -59,16 +59,22 @@ public class TitleColorMap
 {
     public static Dictionary<TitleColor, Color> sectionMapping = new Dictionary<TitleColor, Color>() {
         {TitleColor.white, Color.white},
-        {TitleColor.red,Color.red },
-        {TitleColor.black,Color.black },
-        {TitleColor.yellow, new Color(255,194,0)},
-        {TitleColor.blue, new Color(0,209,255)},
-        {TitleColor.purple,new Color(130,0,255) },
-        {TitleColor.orange,new Color(255,92,0) },
-        {TitleColor.green,new Color(142,217,44) },
-        {TitleColor.zerolegend,new Color(104,139,216) },
-        {TitleColor.relic,new Color(67,94,22) },
+        {TitleColor.red, Color.red},
+        {TitleColor.black, Color.black},
+        {TitleColor.yellow, new Color(255f / 255f, 194f / 255f, 0f)},
+        {TitleColor.blue, new Color(0f, 209f / 255f, 1f)},
+        {TitleColor.purple, new Color(130f / 255f, 0f, 1f)},
+        {TitleColor.orange, new Color(1f, 92f / 255f, 0f)},
+        {TitleColor.green, new Color(142f / 255f, 217f / 255f, 44f / 255f)},
+        {TitleColor.zerolegend, new Color(104f / 255f, 139f / 255f, 216f / 255f)},
+        {TitleColor.relic, new Color(67f / 255f, 94f / 255f, 22f / 255f)},
     };
+
+    public static Color GetSectionColor(TitleColor titleColor)
+    {
+        if (sectionMapping.TryGetValue(titleColor, out Color color)) return color;
+        return Color.white;
+    }
     public static Dictionary<LevelTileType, int> levelMapping = new Dictionary<LevelTileType, int>(){
         {LevelTileType.Null,0 },
     };

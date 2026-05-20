@@ -411,6 +411,7 @@ public class Dialogue
     public string DialoguerImage;
     public bool faceToRight;
     public bool clearImage;
+    public string cg;
 }
 [System.Serializable]
 public static class RewardingSystem

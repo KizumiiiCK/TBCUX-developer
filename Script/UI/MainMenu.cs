@@ -12,7 +12,7 @@ public class MainMenu : MonoBehaviour
     private static List<string[]> chapterNames = new List<string[]>()
     {
         new string[]{"World_I","World_II","World_III"},
-        new string[]{},
+        new string[]{"Future_I"},
         new string[]{},
         new string[]{"LEGEND"},
         new string[]{"Dream_Pre"},
@@ -68,6 +68,7 @@ public class MainMenu : MonoBehaviour
         StartgameBtn.onClick.AddListener(delegate { if (operating) return; ShowFullCpts(); });
         FullCptReturnBtn.onClick.AddListener(delegate { if (operating) return; StartCoroutine(ReturnToStart()); });
         FullChapterContent.GetChild(0).GetComponent<Button>().onClick.AddListener(delegate { if (operating) return; StartCoroutine(FullToSub(0)); });
+        FullChapterContent.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate { if (operating) return; StartCoroutine(FullToSub(1)); });
         FullChapterContent.GetChild(3).GetComponent<Button>().onClick.AddListener(delegate { if (operating) return; StartCoroutine(FullToSub(3)); });
         FullChapterContent.GetChild(4).GetComponent<Button>().onClick.AddListener(delegate { if (operating) return; StartCoroutine(FullToSub(4)); });
         SubCptReturnBtn.onClick.AddListener(delegate { if (operating) return; StartCoroutine(SubToFull()); });

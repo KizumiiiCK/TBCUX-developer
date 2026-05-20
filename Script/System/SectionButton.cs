@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static Unity.Collections.AllocatorManager;
-
 public class SectionButton : MonoBehaviour
 {
     public MapInfo mapinfo;
@@ -47,10 +45,8 @@ public class SectionButton : MonoBehaviour
         CacheDefaultsIfNeeded();
         ResetVisualsToDefault();
 
-        Image s0 = GetComponent<Image>();
-        TMP_Text lvname = HeaderName.GetComponent<TMP_Text>();
-        s0.color = TitleColorMap.sectionMapping[mi.titleColor];
-        lvname.text = mi.sectionName;
+        TMP_Text lvname = HeaderName != null ? HeaderName.GetComponent<TMP_Text>() : null;
+        if (lvname != null) lvname.text = mi.sectionName;
         for (int i = 0; i < 12; i++) if (mi.difficulty[i]) { Image star = Stars.GetChild(i).GetComponent<Image>(); star.sprite = marked_star; }
         for (int i = 0; i < 5; i++) if (mi.hardness < i + 1) { Image crown = Crowns.GetChild(i).GetComponent<Image>(); crown.color = new Color(0, 0, 0, 0); }
 
@@ -102,6 +98,31 @@ public class SectionButton : MonoBehaviour
         LocalizationHelper.GetLocalizedText(UXPref.Localized_CS, mi.sectionName,
                 localizedText => sectionName.text = localizedText ?? mi.sectionName);
 
+        ApplySectionTitleColor(mi);
+    }
+
+    private void ApplySectionTitleColor(MapInfo mi)
+    {
+        if (mi == null) return;
+
+        Image bg = GetComponent<Image>();
+        if (bg == null) return;
+
+        Color titleCol = TitleColorMap.GetSectionColor(mi.titleColor);
+        Button btn = GetComponent<Button>();
+        if (btn != null)
+        {
+            // 避免 Button 的 ColorTint 把已设置的主题色冲回白色/灰色
+            ColorBlock cb = btn.colors;
+            cb.normalColor = Color.white;
+            cb.highlightedColor = new Color(0.95f, 0.95f, 0.95f, 1f);
+            cb.pressedColor = new Color(0.82f, 0.82f, 0.82f, 1f);
+            cb.selectedColor = Color.white;
+            cb.disabledColor = new Color(0.72f, 0.72f, 0.72f, 0.65f);
+            btn.colors = cb;
+        }
+
+        bg.color = titleCol;
     }
     private void CacheDefaultsIfNeeded()
     {

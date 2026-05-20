@@ -16,12 +16,15 @@ public static class LevelRestrictionHelper
             { "U-", ParseDenyUnit },
             { "CC", ParseMaxCatCount },
             { "LC", ParseMaxCatLevel },
+            { "MM", ParseInitialMoneyLevel },
+            { "mm", ParseInitialMoneyAmount },
             { "P+", ParseRestrictionValue },
             { "P-", ParseRestrictionValue },
             { "D+", ParseRestrictionValue },
             { "D-", ParseRestrictionValue },
             { "ES", ParseRestrictionValue },
             { "IV", ParseRestrictionValue },
+            { "OH", ParseRestrictionValue },
             { "S+", ParseSurgeRestrictionValue },
             { "S-", ParseSurgeRestrictionValue },
             { "s+", ParseSurgeRestrictionValue },
@@ -40,6 +43,8 @@ public static class LevelRestrictionHelper
         public bool hasAllowRarity;
         public int maxCatCount = NoLimit;
         public int maxCatLevel = NoLimit;
+        public int initialMoneyLevel = NoLimit;
+        public int initialMoneyAmount = NoLimit;
         public float unitCostMultiplier = 1f;
 
         public void AddRawValue(string key, string value)
@@ -146,6 +151,18 @@ public static class LevelRestrictionHelper
         return Mathf.Max(0f, rules.unitCostMultiplier);
     }
 
+    public static int GetInitialMoneyLevel(RestrictionRules rules, int fallback)
+    {
+        if (rules == null || rules.initialMoneyLevel < 1) return fallback;
+        return rules.initialMoneyLevel;
+    }
+
+    public static int GetInitialMoney(RestrictionRules rules, int fallback)
+    {
+        if (rules == null || rules.initialMoneyAmount < 0) return fallback;
+        return rules.initialMoneyAmount;
+    }
+
     public static int ApplyUnitCostMultiplier(int cost, float multiplier)
     {
         if (cost <= 0) return 0;
@@ -211,6 +228,9 @@ public static class LevelRestrictionHelper
                 case "IV":
                     if (!isCatTeam) ApplyInvisibleShowRestriction(data);
                     break;
+                case "OH":
+                    if (isCatTeam) ApplyOneHitRestriction(data);
+                    break;
                 case "ES":
                     if (!isCatTeam) ApplyEnemyStrengthenRestriction(data, entry.Value);
                     break;
@@ -263,6 +283,22 @@ public static class LevelRestrictionHelper
         {
             name = AbilityName.invisible,
             probability = 0,
+            duration = 0,
+            intensity = 0
+        });
+    }
+
+    /// <summary>
+    /// Adds the one-hit gag ability to cat units when OH is active.
+    /// </summary>
+    private static void ApplyOneHitRestriction(CharacterData data)
+    {
+        if (HasAbility(data, AbilityName.Aux_OneHit)) return;
+
+        AddAbilityToData(data, new CharacterAbility
+        {
+            name = AbilityName.Aux_OneHit,
+            probability = 100,
             duration = 0,
             intensity = 0
         });
@@ -440,6 +476,18 @@ public static class LevelRestrictionHelper
         ApplyMinimumLimit(ref rules.maxCatLevel, maxCatLevel);
     }
 
+    private static void ParseInitialMoneyLevel(RestrictionRules rules, string value)
+    {
+        if (!TryParseBoundedInt(value, 1, 8, out int initialMoneyLevel)) return;
+        rules.initialMoneyLevel = initialMoneyLevel;
+    }
+
+    private static void ParseInitialMoneyAmount(RestrictionRules rules, string value)
+    {
+        if (!TryParseNonNegativeInt(value, out int initialMoneyAmount)) return;
+        rules.initialMoneyAmount = initialMoneyAmount;
+    }
+
     //private static void ParseUnitCostMultiplier(RestrictionRules rules, string value)
     //{
     //    if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float multiplier)) return;
@@ -588,7 +636,7 @@ public static class LevelRestrictionHelper
     {
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
-        if (trimmed == "s+" || trimmed == "s-") return trimmed;
+        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 }

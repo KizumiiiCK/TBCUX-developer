@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public static class AbilityInstaller
@@ -39,6 +38,7 @@ public static class AbilityInstaller
         { AbilityName.dodge, typeof(DodgePassive)},
         { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
         { AbilityName.Aux_MinDMGBlock, typeof(Aux_MinDMGBlock)},
+        { AbilityName.Aux_OneHit, typeof(Aux_OneHit)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -201,6 +201,7 @@ public class OneOff : PassiveSkill
     public override void OnAfterKB(Character character) { if (off) character.Dead(); }
     public override void OnFinishAttack(Character character)=> character.Dead();
 }
+
 public class LaceratedEffect : PassiveSkill
 {
     public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
@@ -1043,7 +1044,6 @@ public class Aux_DeathMark : PassiveSkill
         character.EM.InstantiateBattleObject("doomed", character.transform.position.x, character.transform.position.y);
     }
 }
-
 public class Aux_InvisibleShow : PassiveSkill
 {
     private Transform ct;
@@ -1060,5 +1060,144 @@ public class Aux_InvisibleShow : PassiveSkill
     {
         if(!tracked) ct.position = new Vector2(ct.position.x, originalPosY);
         tracked = true;
+    }
+}
+public class Aux_OneHit : PassiveSkill
+{
+    private bool pendingPositiveDamage = false;
+    private bool triggered = false;
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (triggered)
+        {
+            if (DMG > 0f) DMG = 0f;
+            return;
+        }
+
+        pendingPositiveDamage = DMG > 0f;
+    }
+
+    public override void OnAfterTakeDamage(Character character)
+    {
+        if (!pendingPositiveDamage || triggered || character == null) return;
+
+        pendingPositiveDamage = false;
+        triggered = true;
+        if (character.GetHealth() <= 0)
+        {
+            character.SetHealth(1);
+        }
+
+        character.RemovePassiveEffect(this);
+        character.StartCoroutine(OneHitDeathFlight(character));
+    }
+
+    private IEnumerator OneHitDeathFlight(Character character)
+    {
+        if (character == null) yield break;
+
+        character.BlockAnimationSwitch = true;
+        character.RemoveAllTarget();
+        character.SwitchAnimation(3);
+        FreezeCharacterAnimation(character);
+
+        float durationSeconds = UnityEngine.Random.Range(0.5f, 2f);
+        float totalRotation = UnityEngine.Random.Range(1540f, 2440f) * (UnityEngine.Random.value > 0.5f ? 1f : -1f);
+        Transform visual = character.transform.childCount > 0 ? character.transform.GetChild(0) : character.transform;
+        Vector3 startPosition = visual.position;
+        Vector3 endPosition = GetOffscreenTarget(startPosition);
+        Vector3 startScale = visual.localScale;
+        Vector3 endScale = GetEndScale(startScale, endPosition.y >= startPosition.y);
+        Quaternion startRotation = visual.rotation;
+        Quaternion endRotation = Quaternion.Euler(0f, 0f, startRotation.eulerAngles.z + totalRotation);
+
+        float elapsed = 0f;
+        while (elapsed < durationSeconds && character != null && visual != null)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / durationSeconds);
+            visual.position = Vector3.Lerp(startPosition, endPosition, t);
+            visual.rotation = Quaternion.Lerp(startRotation, endRotation, t);
+            visual.localScale = Vector3.Lerp(startScale, endScale, t);
+            yield return null;
+        }
+
+        if (character == null || visual == null) yield break;
+
+        visual.position = endPosition;
+        visual.rotation = endRotation;
+        visual.localScale = endScale;
+        character.transform.position = visual.position;
+        character.Dead();
+    }
+
+    private static void FreezeCharacterAnimation(Character character)
+    {
+        if (character == null) return;
+
+        Transform visual = character.transform.childCount > 0 ? character.transform.GetChild(0) : null;
+        AnimationDisplayer animationDisplayer = visual != null
+            ? visual.GetComponent<AnimationDisplayer>()
+            : character.GetComponentInChildren<AnimationDisplayer>();
+        if (animationDisplayer != null)
+        {
+            animationDisplayer.SetAnimationSpeed(0);
+        }
+
+        Animator animator = character.GetComponentInChildren<Animator>();
+        if (animator != null)
+        {
+            animator.speed = 0f;
+        }
+    }
+
+    private static Vector3 GetOffscreenTarget(Vector3 startPosition)
+    {
+        Camera camera = Camera.main;
+        if (camera == null)
+        {
+            Vector2 fallbackDirection = UnityEngine.Random.insideUnitCircle;
+            if (fallbackDirection.sqrMagnitude < 0.01f) fallbackDirection = Vector2.up;
+            fallbackDirection.Normalize();
+            return startPosition + new Vector3(fallbackDirection.x * 18f, fallbackDirection.y * 10f, 0f);
+        }
+
+        Vector2 direction = UnityEngine.Random.insideUnitCircle;
+        if (direction.sqrMagnitude < 0.01f)
+        {
+            direction = new Vector2(UnityEngine.Random.value > 0.5f ? 1f : -1f, UnityEngine.Random.value > 0.5f ? 1f : -1f);
+        }
+        direction.Normalize();
+
+        Vector3 viewportPosition = camera.WorldToViewportPoint(startPosition);
+        float viewportX = direction.x >= 0f ? 1.25f : -0.25f;
+        float viewportY = direction.y >= 0f ? 1.25f : -0.25f;
+        float depth = Mathf.Max(0.01f, viewportPosition.z);
+        Vector3 target = camera.ViewportToWorldPoint(new Vector3(viewportX, viewportY, depth));
+        target.z = startPosition.z;
+        return target;
+    }
+
+    private static Vector3 GetEndScale(Vector3 startScale, bool isFlyingUpward)
+    {
+        if (isFlyingUpward)
+        {
+            return new Vector3(
+                ScaleAxis(startScale.x, 0.1f),
+                ScaleAxis(startScale.y, 0.1f),
+                ScaleAxis(startScale.z, 1f));
+        }
+
+        return new Vector3(
+            ScaleAxis(startScale.x, 1.8f),
+            ScaleAxis(startScale.y, 1.8f),
+            ScaleAxis(startScale.z, 1f));
+    }
+
+    private static float ScaleAxis(float value, float multiplier)
+    {
+        float sign = value < 0f ? -1f : 1f;
+        return sign * Mathf.Max(0f, Mathf.Abs(value) * multiplier);
     }
 }

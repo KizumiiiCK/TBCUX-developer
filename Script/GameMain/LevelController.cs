@@ -206,6 +206,7 @@ public class LevelController : MonoBehaviour
         InitializeButtons();
         SetUpgradeActive(false);
         InitializeLevelData();
+        ApplyInitialMoneyRestrictions();
         BindCannonToBase();
         LoadPlot();
         MaxDeployed.SetActive(false);
@@ -378,8 +379,10 @@ public class LevelController : MonoBehaviour
 
         // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
         dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
-        catBaseComponent?.ApplyLevelBaseHealth(
-            CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
+        int catBaseHealth = IsOneHitBaseRestricted()
+            ? 1
+            : CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT;
+        catBaseComponent?.ApplyLevelBaseHealth(catBaseHealth);
 
         // 设置狗基地外�?
         Sprite baseSprite = Resources.Load<Sprite>($"Units/DogeBases/{LD.BaseImageID}");
@@ -1178,6 +1181,34 @@ public class LevelController : MonoBehaviour
     //            break;
     //    }
     //}
+
+    private bool IsOneHitBaseRestricted()
+    {
+        return levelRestrictions != null && levelRestrictions.rawValuesByKey.ContainsKey("OH");
+    }
+
+    private void ApplyInitialMoneyRestrictions()
+    {
+        current_money_level = Mathf.Clamp(
+            LevelRestrictionHelper.GetInitialMoneyLevel(levelRestrictions, current_money_level),
+            1,
+            MAX_MONEY_LEVEL);
+
+        int initialMoney = LevelRestrictionHelper.GetInitialMoney(
+            levelRestrictions,
+            Mathf.Max(0, Mathf.FloorToInt(currentMoney)));
+
+        currentMoney = 0f;
+        AddMoney(initialMoney);
+
+        bool canUpgrade = current_money_level < MAX_MONEY_LEVEL &&
+            currentMoney > money_upgrade_cost * current_money_level * multiplier;
+        SetUpgradeActive(canUpgrade);
+        upgradeUiDirty = true;
+        cachedUpgradeCost = -1;
+        cachedUpgradeLevel = -1;
+        cachedUpgradeButtonState = !canUpgrade;
+    }
 
     #endregion
 }
