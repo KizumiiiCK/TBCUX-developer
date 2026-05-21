@@ -1201,8 +1201,8 @@ public class LevelController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return;
 
-        MapInfo mapInfo = Resources.LoadAll<MapInfo>($"LevelData/Chapters/{chapterName}/{sectionName}");
-        if (mapInfos == null) return;
+        MapInfo mapInfo = Resources.Load<MapInfo>($"LevelData/Chapters/{chapterName}/{sectionName}");
+        if (mapInfo == null) return;
         if (!mapInfo.oncePerDay) return;
         DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
     }

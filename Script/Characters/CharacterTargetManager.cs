@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class CharacterTargetManager : MonoBehaviour
 {
-    private const float CharacterTargetVolumeLength = 3.2f;
+    private const float RearSearchExtension = 3.2f;
 
     private static CharacterTargetManager _instance;
     public static CharacterTargetManager Instance
@@ -493,7 +493,8 @@ public class CharacterTargetManager : MonoBehaviour
         float attackerX = attacker.transform.position.x;
         float worldMin = attackerX + minRange;
         float worldMax = attackerX + maxRange;
-        int startIndex = FindFirstIndexByX(potentialTargets, worldMin - CharacterTargetVolumeLength);
+        float searchWorldMin = worldMin - RearSearchExtension;
+        int startIndex = FindFirstIndexByX(potentialTargets, searchWorldMin);
         for (int i = startIndex; i < potentialTargets.Count; i++)
         {
             Character target = potentialTargets[i];
@@ -505,7 +506,7 @@ public class CharacterTargetManager : MonoBehaviour
             {
                 break;
             }
-            if (targetMaxX < worldMin) continue;
+            if (targetMaxX < searchWorldMin) continue;
             if (target.IsOnKB()) continue; // KB状态不参与判定
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
@@ -562,16 +563,8 @@ public class CharacterTargetManager : MonoBehaviour
     private static void GetCharacterTargetVolumeRange(Character target, out float minX, out float maxX)
     {
         float targetX = target.transform.position.x;
-        if (target.IsCat())
-        {
-            minX = targetX;
-            maxX = targetX + CharacterTargetVolumeLength;
-        }
-        else
-        {
-            minX = targetX - CharacterTargetVolumeLength;
-            maxX = targetX;
-        }
+        minX = targetX;
+        maxX = targetX;
     }
 
     /// <summary>
@@ -624,14 +617,15 @@ public class CharacterTargetManager : MonoBehaviour
         float attackerX = attacker.transform.position.x;
         float worldMin = attackerX + minRange;
         float worldMax = attackerX + maxRange;
-        int startIndex = FindFirstIndexByX(targets, worldMin - CharacterTargetVolumeLength);
+        float searchWorldMin = worldMin - RearSearchExtension;
+        int startIndex = FindFirstIndexByX(targets, searchWorldMin);
         for (int i = startIndex; i < targets.Count; i++)
         {
             Character target = targets[i];
             if (target == null || !target.gameObject.activeInHierarchy) continue;
             GetCharacterTargetVolumeRange(target, out float targetMinX, out float targetMaxX);
             if (targetMinX > worldMax) break;
-            if (targetMaxX < worldMin) continue;
+            if (targetMaxX < searchWorldMin) continue;
             // if (target.GetHealth() <= 0) continue;
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;

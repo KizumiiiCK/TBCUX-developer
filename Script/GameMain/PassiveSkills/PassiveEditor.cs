@@ -1104,8 +1104,9 @@ public class Aux_OneHit : PassiveSkill
         FreezeCharacterAnimation(character);
 
         float durationSeconds = UnityEngine.Random.Range(0.5f, 2f);
-        float totalRotation = UnityEngine.Random.Range(1540f, 2440f) * (UnityEngine.Random.value > 0.5f ? 1f : -1f);
-        Transform visual = character.transform.childCount > 0 ? character.transform.GetChild(0) : character.transform;
+        float totalRotation = UnityEngine.Random.Range(540f/3, 1440f/3) * (UnityEngine.Random.value > 0.5f ? 1f : -1f);
+        //Transform visual = character.transform.childCount > 0 ? character.transform.GetChild(0) : character.transform;
+        Transform visual = character.transform;
         Vector3 startPosition = visual.position;
         Vector3 endPosition = GetOffscreenTarget(startPosition);
         Vector3 startScale = visual.localScale;
