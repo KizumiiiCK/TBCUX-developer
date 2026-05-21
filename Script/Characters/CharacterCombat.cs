@@ -6,6 +6,7 @@ using UnityEngine;
 
 public abstract partial class Character
 {
+    private const float CharacterTargetVolumeLength = 200;
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
     [SerializeField] public GameObject BaseTarget;
@@ -131,7 +132,7 @@ public abstract partial class Character
         realReload = 0; 
         animateStep = 0;
         Supporter_Target_Switch(true); // 重置Friendly模式
-        SetAttackRange(0, DetectionRange); // 重置攻击范围为检测范围
+        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange); // 重置攻击范围为检测范围
         for(int i = Targets.Count - 1; i >= 0; i--)
         {
             if (Targets[i]==null) Targets.RemoveAt(i);
@@ -156,7 +157,7 @@ public abstract partial class Character
         animatedframes = 0;
         realReload = 0;
         Supporter_Target_Switch(true);
-        SetAttackRange(0, DetectionRange);
+        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
     }
     protected bool AreCorrespondingTraits(Traits targetTrait, List<AttackType> atkTypes = null)
     {
@@ -294,7 +295,7 @@ public abstract partial class Character
         // KB can interrupt a Friendly attack step; force search mode back to enemy side.
         CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, false);
         CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.kb);
-        SetAttackRange(0, DetectionRange);
+        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
         SwitchAnimation(3);
         Targets.Clear();
         BaseTarget = null;

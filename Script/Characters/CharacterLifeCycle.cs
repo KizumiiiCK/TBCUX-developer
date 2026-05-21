@@ -5,7 +5,6 @@ using UnityEngine;
 
 public abstract partial class Character
 {
-    private const float RearHitFallbackNearRange = -320f;
     protected enum TargetRegistrationKind
     {
         Character,
@@ -46,7 +45,7 @@ public abstract partial class Character
         
         realSpeed = Speed;
         realReload = Reload;
-        SetAttackRange(0, DetectionRange);
+        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
         StartPos();
         EM = GameObject.Find("Effects").GetComponent<EffectManager>();
         InitializeCharacter();
@@ -135,7 +134,7 @@ public abstract partial class Character
             Vector2 range = src.ATKRange;
             if (Mathf.Approximately(range.x, 0f))
             {
-                range.x = RearHitFallbackNearRange;
+                range.x = -CharacterTargetVolumeLength;
             }
 
             runtimeInfos[i] = new ATKInfo
