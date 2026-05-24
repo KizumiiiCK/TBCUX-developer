@@ -263,7 +263,7 @@ public abstract partial class Character
             float damageRatio = Mathf.Clamp01(DMG / maxHealth);
             CharacterTargetManager.Instance.NotifyCharacterDamaged(this, damageRatio);
         }
-        if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Abs(DMG));
+        if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Max(DMG,0));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
     public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400) 

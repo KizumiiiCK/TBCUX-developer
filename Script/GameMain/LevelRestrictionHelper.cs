@@ -25,6 +25,7 @@ public static class LevelRestrictionHelper
             { "ES", ParseRestrictionValue },
             { "IV", ParseRestrictionValue },
             { "OH", ParseRestrictionValue },
+            { "oh", ParseRestrictionValue },
             { "S+", ParseSurgeRestrictionValue },
             { "S-", ParseSurgeRestrictionValue },
             { "s+", ParseSurgeRestrictionValue },
@@ -230,6 +231,9 @@ public static class LevelRestrictionHelper
                     break;
                 case "OH":
                     if (isCatTeam) ApplyOneHitRestriction(data);
+                    break;
+                case "oh":
+                    if (!isCatTeam) ApplyOneHitRestriction(data);
                     break;
                 case "ES":
                     if (!isCatTeam) ApplyEnemyStrengthenRestriction(data, entry.Value);
@@ -636,7 +640,7 @@ public static class LevelRestrictionHelper
     {
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
-        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm") return trimmed;
+        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 }

@@ -19,7 +19,7 @@ public class IndexCatButton : MonoBehaviour
     private void ShowCharacter()
     {
         CIC.ShowCertainCharacter(character_code);
-        CIC.ShowCertainCharInTire(0);
+        CIC.ShowCertainCharInTire(CIC.GetCurrentCharacterDefaultTire());
     }
 
     public void SetUnlocked(bool unlocked)

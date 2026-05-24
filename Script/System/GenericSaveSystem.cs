@@ -38,6 +38,7 @@ public static class UXPref
     public const string Localized_UnitNames = "UnitNames";
     public const string Localized_CS = "ChapterSections";
     public const string Localized_BM = "BaseMessages";
+    public const string Localized_InsDailyClear = "insClear";
     //public static readonly DateTime REASONABLEDATE_LATE = new DateTime(year: 2026, month: 12, day: 11);
     //public static readonly DateTime REASONABLEDATE_EARLY = new DateTime(year: 2025, month: 11, day: 15);
     // Specials
@@ -465,20 +466,23 @@ public enum RewardType
 [System.Serializable]
 public enum RewardName
 {
-    Cateye_EX, Cateye_Rare, Cateye_SuperRare, Cateye_UberRare, Cateye_Legend, Cateye_Dark,
-    Ticket_Normal, Ticket_Gold, Ticket_Platinum, Ticket_PlatinumShard, Ticket_Legend,
-    XP, CANs, NP,
-    Catamin_A, Catamin_B, Catamin_C,
-    Prop_Treasure, Prop_max, Prop_Sniper,
-    Base_Atk, Base_Charge, Base_Worker, Base_Health, Base_Cooldown, Base_Accounting, Base_Study,
-    CatfruitSeed_Purple, CatfruitSeed_Red, CatfruitSeed_Blue, CatfruitSeed_Green, CatfruitSeed_Yellow, CatfruitSeed_Rainbow, CatfruitSeed_Relic, CatfruitSeed_Gold, CatfruitSeed_Aku,
-    Catfruit_Purple, Catfruit_Red, Catfruit_Blue, Catfruit_Green, Catfruit_Yellow, Catfruit_Rainbow, Catfruit_Relic, Catfruit_Gold, Catfruit_Aku,
-    BS_Purple, BS_Red, BS_Blue, BS_Green, BS_Yellow, BS_Rainbow,
-    Material_Brick, Material_Feather, Material_Coal, Material_Gear, Material_Gold, Material_Meteorite, Material_Bone,
-    EmptySlot1, EmptySlot2,
-    WorldTreasures,
-    UpgradeMax_N, UpgradeMax_EX, UpgradeMax_R, UpgradeMax_SR, UpgradeMax_UR, UpgradeMax_LR, UpgradeMax_G,
-    DrawMax_N, DrawMax_EX, DrawMax_R, DrawMax_SR, DrawMax_UR, DrawMax_LR, DrawMax_G,
+    Cateye_EX=0, Cateye_Rare=1, Cateye_SuperRare=2, Cateye_UberRare=3, Cateye_Legend=4, Cateye_Dark=5,
+    Ticket_Normal=6, Ticket_Gold=7, Ticket_Platinum=8, Ticket_PlatinumShard=9, Ticket_Legend=10,
+    XP=11, CANs=12, NP=13,
+    //Catamin_A=14, Catamin_B=15, Catamin_C=16,
+    //Prop_Treasure=17, Prop_max=18, Prop_Sniper=19,
+    //Base_Atk=20, Base_Charge=21, Base_Worker=22, Base_Health=23, Base_Cooldown=24, Base_Accounting=25,
+    Base_Study=26,
+    CatfruitSeed_Purple=27, CatfruitSeed_Red=28, CatfruitSeed_Blue=29, CatfruitSeed_Green=30, CatfruitSeed_Yellow=31, CatfruitSeed_Rainbow=32, CatfruitSeed_Relic=33, CatfruitSeed_Gold=34, CatfruitSeed_Aku=35,
+    Catfruit_Purple=36, Catfruit_Red=37, Catfruit_Blue=38, Catfruit_Green=39, Catfruit_Yellow=40, Catfruit_Rainbow=41, Catfruit_Relic=42, Catfruit_Gold=43, Catfruit_Aku=44,
+    BS_Purple=45, BS_Red=46, BS_Blue=47, BS_Green=48, BS_Yellow=49, BS_Rainbow=50,
+    //Material_Brick=51, Material_Feather=52, Material_Coal=53, Material_Gear=54, Material_Gold=55, Material_Meteorite=56, Material_Bone=57,
+    //EmptySlot1=58, EmptySlot2=59,
+    WorldTreasures=60,
+    UpgradeMax_N=61, UpgradeMax_EX=62, UpgradeMax_R=63, UpgradeMax_SR=64, UpgradeMax_UR=65, UpgradeMax_LR=66, UpgradeMax_G=67,
+    DrawMax_N=68, DrawMax_EX=69, DrawMax_R=70, DrawMax_SR=71, DrawMax_UR=72, DrawMax_LR=73, DrawMax_G=74,
+    Bottle_Water=75, Bottle_Soul=76,
+    SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80
 }
 [System.Serializable]
 public class Dialogue
@@ -508,18 +512,18 @@ public static class RewardingSystem
         {RewardName.Ticket_Legend,10 },
         {RewardName.XP,11 },
         {RewardName.CANs,12 },
-        {RewardName.Catamin_A,13 },
-        {RewardName.Catamin_B,14 },
-        {RewardName.Catamin_C,15 },
-        {RewardName.Prop_Treasure,16},
-        {RewardName.Prop_max,17},
-        {RewardName.Prop_Sniper,18},
-        {RewardName.Base_Atk,19},
-        {RewardName.Base_Charge,20},
-        {RewardName.Base_Worker,21},
-        {RewardName.Base_Health,22},
-        {RewardName.Base_Cooldown,23},
-        {RewardName.Base_Accounting,24},
+        //{RewardName.Catamin_A,13 },
+        //{RewardName.Catamin_B,14 },
+        //{RewardName.Catamin_C,15 },
+        //{RewardName.Prop_Treasure,16},
+        //{RewardName.Prop_max,17},
+        //{RewardName.Prop_Sniper,18},
+        //{RewardName.Base_Atk,19},
+        //{RewardName.Base_Charge,20},
+        //{RewardName.Base_Worker,21},
+        //{RewardName.Base_Health,22},
+        //{RewardName.Base_Cooldown,23},
+        //{RewardName.Base_Accounting,24},
         {RewardName.Base_Study,25},
         {RewardName.CatfruitSeed_Purple,26},
         {RewardName.CatfruitSeed_Red,27},
@@ -543,15 +547,15 @@ public static class RewardingSystem
         {RewardName.BS_Green,45},
         {RewardName.BS_Yellow,46},
         {RewardName.BS_Rainbow,47},
-        {RewardName.Material_Brick,48},
-        {RewardName.Material_Feather,49},
-        {RewardName.Material_Coal,50},
-        {RewardName.Material_Gear,51},
-        {RewardName.Material_Gold,52},
-        {RewardName.Material_Meteorite,53},
-        {RewardName.Material_Bone,54},
-        {RewardName.EmptySlot1,55},
-        {RewardName.EmptySlot2,56},
+        //{RewardName.Material_Brick,48},
+        //{RewardName.Material_Feather,49},
+        //{RewardName.Material_Coal,50},
+        //{RewardName.Material_Gear,51},
+        //{RewardName.Material_Gold,52},
+        //{RewardName.Material_Meteorite,53},
+        //{RewardName.Material_Bone,54},
+        //{RewardName.EmptySlot1,55},
+        //{RewardName.EmptySlot2,56},
         {RewardName.NP,57},
         {RewardName.CatfruitSeed_Aku,58},
         {RewardName.Catfruit_Aku,59},
@@ -570,19 +574,64 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
+        {RewardName.Bottle_Water,110},
+        {RewardName.Bottle_Soul,111},
+        {RewardName.SecMed_Purple,120},
+        {RewardName.SecMed_Red,121},
+        {RewardName.SecMed_Blue,122},
+        {RewardName.SecMed_Green,123},
     };
+    static RewardingSystem()
+    {
+        ValidateRewardNumMap();
+    }
+
+    public static int ExpectedInventoryLength => RewardNumMap.Values.Max() + 1;
+
+    private static void ValidateRewardNumMap()
+    {
+        if (RewardNumMap == null || RewardNumMap.Count == 0)
+        {
+            Debug.LogError("[RewardingSystem] RewardNumMap is empty.");
+            return;
+        }
+
+        HashSet<int> seenIds = new HashSet<int>();
+        foreach (var kv in RewardNumMap)
+        {
+            if (kv.Value < 0)
+            {
+                Debug.LogError($"[RewardingSystem] Negative reward id for {kv.Key}: {kv.Value}");
+                continue;
+            }
+            if (!seenIds.Add(kv.Value))
+            {
+                Debug.LogError($"[RewardingSystem] Duplicate reward id detected: {kv.Value}");
+            }
+        }
+
+        RewardName[] allNames = (RewardName[])Enum.GetValues(typeof(RewardName));
+        for (int i = 0; i < allNames.Length; i++)
+        {
+            RewardName rewardName = allNames[i];
+            if (!RewardNumMap.ContainsKey(rewardName))
+            {
+                Debug.LogWarning($"[RewardingSystem] Missing RewardNumMap entry for {rewardName}.");
+            }
+        }
+    }
     /// <summary>
     /// 加载存档；若不存在或长度不符，自动重建并拷贝旧数据
     /// </summary>
     private static int[] LoadOrResize()
     {
         int[] old = GenericSaveSystem.LoadData<int[]>(filename);
-        int expected = RewardNumMap.Count;
+        int expectedLength = ExpectedInventoryLength;
 
-        if (old == null || old.Length != expected)
+        if (old == null || old.Length != expectedLength)
         {
-            int[] neo = new int[expected];
-            if (old != null) Array.Copy(old, 0, neo, 0, Math.Min(old.Length, expected));
+            int[] neo = new int[expectedLength];
+            if (old != null) Array.Copy(old, 0, neo, 0, Math.Min(old.Length, expectedLength));
             GenericSaveSystem.SaveData(neo, filename);
             return neo;
         }
@@ -945,7 +994,8 @@ public static class CharacterUpgradeSave
     {
         UpgradeDetails ud=GetDetails(id);
         int tire = id[0] - '0';
-        int ugmax = RewardingSystem.GetAmount(61 + tire)+10;
+        RewardName maxRewardName = GetUpgradeMaxRewardName(tire);
+        int ugmax = RewardingSystem.GetAmount(maxRewardName) + 10;
         if (ud.upgraded_level > ugmax)
         {
             ud.upgraded_level = ugmax;
@@ -959,7 +1009,8 @@ public static class CharacterUpgradeSave
     {
         UpgradeDetails ud = GetDetails(id);
         int tire = id[0] - '0';
-        int ugmax = RewardingSystem.GetAmount(68 + tire)+10;
+        RewardName maxRewardName = GetDrawMaxRewardName(tire);
+        int ugmax = RewardingSystem.GetAmount(maxRewardName) + 10;
         if (ud.plus_level > ugmax)
         {
             ud.plus_level = ugmax;
@@ -968,6 +1019,40 @@ public static class CharacterUpgradeSave
             Save(dict);
         }
         return ud.plus_level < ugmax;
+    }
+
+    private static RewardName GetUpgradeMaxRewardName(int tire)
+    {
+        switch (tire)
+        {
+            case 0: return RewardName.UpgradeMax_N;
+            case 1: return RewardName.UpgradeMax_EX;
+            case 2: return RewardName.UpgradeMax_R;
+            case 3: return RewardName.UpgradeMax_SR;
+            case 4: return RewardName.UpgradeMax_UR;
+            case 5: return RewardName.UpgradeMax_LR;
+            case 6: return RewardName.UpgradeMax_G;
+            default:
+                Debug.LogWarning($"[CharacterUpgradeSave] Invalid tire {tire}, fallback to UpgradeMax_N.");
+                return RewardName.UpgradeMax_N;
+        }
+    }
+
+    private static RewardName GetDrawMaxRewardName(int tire)
+    {
+        switch (tire)
+        {
+            case 0: return RewardName.DrawMax_N;
+            case 1: return RewardName.DrawMax_EX;
+            case 2: return RewardName.DrawMax_R;
+            case 3: return RewardName.DrawMax_SR;
+            case 4: return RewardName.DrawMax_UR;
+            case 5: return RewardName.DrawMax_LR;
+            case 6: return RewardName.DrawMax_G;
+            default:
+                Debug.LogWarning($"[CharacterUpgradeSave] Invalid tire {tire}, fallback to DrawMax_N.");
+                return RewardName.DrawMax_N;
+        }
     }
     #endregion
 }

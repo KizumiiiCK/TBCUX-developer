@@ -419,7 +419,7 @@ public class UserRestoreAccountPage : MonoBehaviour
             yield break;
         }
 
-        int expected = RewardingSystem.RewardNumMap.Count;
+        int expected = RewardingSystem.ExpectedInventoryLength;
         int[] amounts = new int[expected];
         List<object> rows = ParseJsonArray(body);
 
@@ -660,7 +660,7 @@ public class UserRestoreAccountPage : MonoBehaviour
         {
             GenericSaveSystem.SaveData(cache.characterUpgrades ?? new Dictionary<string, CharacterUpgradeSave.UpgradeDetails>(), CharacterUpgradeSave.filename);
             GenericSaveSystem.SaveData(cache.gameProgress ?? Array.Empty<GameProgressSave.ChapterClearList>(), GameProgressSave.filename);
-            GenericSaveSystem.SaveData(cache.rewardInventory ?? new int[RewardingSystem.RewardNumMap.Count], RewardingSystem.filename);
+            GenericSaveSystem.SaveData(cache.rewardInventory ?? new int[RewardingSystem.ExpectedInventoryLength], RewardingSystem.filename);
             GenericSaveSystem.SaveData(cache.teamSelections ?? new string[SelectionsSave.TeamNum, SelectionsSave.SIZE], SelectionsSave.filename);
             GenericSaveSystem.SaveData(cache.teamNames ?? BuildDefaultTeamNames(), TeamNameSave.filename);
             GenericSaveSystem.SaveData(cache.enemyMeet ?? new bool[EnemyMeetSave.SIZE], EnemyMeetSave.filename);

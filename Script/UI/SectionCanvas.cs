@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class SectionCanvas : UICanvasMain
 {
+    private const string DailyRemarkPrefabPath = "UI/FunctionalPanels/sectionDailyRemark";
+    private const string DailyRemarkNodeName = "__SectionDailyRemark";
+    private const string DailyTextId = "id:daily";
+    private const string DailyClearedTextId = "id:daily_cleared";
+
     [Header("Section UI")]
     [SerializeField] private RectTransform sectionRoot;
     [SerializeField] private RectTransform sectionContent;
@@ -197,9 +202,53 @@ public class SectionCanvas : UICanvasMain
 
         var sectionButton = itemGO.GetComponent<SectionButton>();
         if (sectionButton != null) sectionButton.Configure(entry.mapInfo, entry.sectionOrder);
+        RefreshDailyRemark(itemGO.transform, entry.mapInfo);
 
         LocalizationHelper.GetLocalizedText(UXPref.Localized_CS, entry.mapInfo.sectionName,
             localizedText => itemGO.name = localizedText ?? entry.mapInfo.sectionName);
+    }
+
+    private void RefreshDailyRemark(Transform sectionItemRoot, MapInfo mapInfo)
+    {
+        if (sectionItemRoot == null) return;
+
+        Transform existing = sectionItemRoot.Find(DailyRemarkNodeName);
+        if (mapInfo == null || !mapInfo.oncePerDay)
+        {
+            if (existing != null) existing.gameObject.SetActive(false);
+            return;
+        }
+
+        GameObject remarkGO = existing != null ? existing.gameObject : CreateDailyRemark(sectionItemRoot);
+        if (remarkGO == null) return;
+        remarkGO.SetActive(true);
+
+        Transform textRoot = remarkGO.transform.childCount > 0 ? remarkGO.transform.GetChild(0) : null;
+        TMP_Text remarkText = textRoot != null ? textRoot.GetComponent<TMP_Text>() : null;
+        if (remarkText == null) return;
+
+        bool clearedToday = DailyMapChallengeSave.HasSectionClearRecordToday(
+            CheckInSystem.GetCachedWorldDateToken(),
+            mapInfo.sectionName);
+        string textId = clearedToday ? DailyClearedTextId : DailyTextId;
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, textId,
+            localizedText => remarkText.text = localizedText ?? textId);
+    }
+
+    private GameObject CreateDailyRemark(Transform parent)
+    {
+        GameObject prefab = Resources.Load<GameObject>(DailyRemarkPrefabPath);
+        if (prefab == null) return null;
+
+        GameObject instance = Instantiate(prefab, parent);
+        instance.name = DailyRemarkNodeName;
+        RectTransform rect = instance.GetComponent<RectTransform>();
+        if (rect != null)
+        {
+            rect.localScale = Vector3.one;
+            rect.anchoredPosition3D = Vector3.zero;
+        }
+        return instance;
     }
 
     private void OnDestroy()

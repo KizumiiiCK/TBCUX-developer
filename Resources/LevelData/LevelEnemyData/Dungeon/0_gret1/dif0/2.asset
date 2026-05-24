@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 2
+  m_EditorClassIdentifier: 
+  levelName: greet2
+  gainXP: 0
+  BaseHealth: 202605
+  mapSize: 2900
+  maxEmenyCount: 50
+  BackgroundID: 137
+  BaseImageID: 900
+  CombatEffect: []
+  Restriction:
+  - oh:0
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 7
+    drawtimes: 10
+    droprate: 100
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: lowtea
+    enemySummonInfos:
+    - enemyID: e083
+      ratio: 100
+      bossShock: 1
+      repeat: 30
+      firstAppear: 2
+      repeatMin: 2
+      repeatMax: 2
+      previewSprite: {fileID: 21300000, guid: d002ec4626550914f81f9f19e4e28e12, type: 3}

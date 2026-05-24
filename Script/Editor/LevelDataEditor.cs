@@ -164,6 +164,7 @@ public class LevelDataEditor : Editor
                         string path = $"Units/Enemy Units/{info.enemyID}/enemy_icon";
                         info.previewSprite = Resources.Load<Sprite>(path);
                     }
+                    info.ratio = EditorGUILayout.IntField("倍率(%)", info.ratio);
 
                     EditorGUILayout.Space(4);
 
@@ -185,8 +186,6 @@ public class LevelDataEditor : Editor
                     //info.firstAppear = EditorGUILayout.IntField("初出现f：", info.firstAppear); 
                     //info.repeatMin = EditorGUILayout.IntField("再出现最短f：", info.repeatMin); 
                     //info.repeatMax = EditorGUILayout.IntField("再出现最长f：", info.repeatMax);
-                    EditorGUILayout.LabelField($"倍率: {info.ratio}%", labelSmall);
-
                     CharacterData enemyData = GetEnemyData(info.enemyID);
                     int scaledHealth = enemyData != null ? Mathf.RoundToInt(enemyData.Health * info.ratio / 100f) : 0;
                     string scaledAtkText = BuildScaledAtkText(enemyData, info.ratio);

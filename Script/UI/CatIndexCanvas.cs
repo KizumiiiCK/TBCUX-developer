@@ -155,7 +155,7 @@ public class CatIndexCanvas : UICanvasMain
         if (currentRarityCodes.Count > 0)
         {
             ShowCertainCharacter(currentRarityCodes[0]);
-            ShowCertainCharInTire(0);
+            ShowCertainCharInTire(current_tire);
         }
     }
     public void ShowCertainCharacter(string char_code)
@@ -166,6 +166,7 @@ public class CatIndexCanvas : UICanvasMain
         CharacterUpgradeSave.UpgradeDetails UD = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
         bool[] unlocked = UD.tire_unlocked;
         current_level = UD.TotalLevel();
+        current_tire = GetDefaultDisplayTire(unlocked);
         if (unlocked[0]) { upgradeLock = false; }
         else { upgradeLock = true; }
         bool enableTireButton = true;
@@ -192,6 +193,22 @@ public class CatIndexCanvas : UICanvasMain
                 else { enableTireButton = false; b.transform.GetChild(0).gameObject.SetActive(true); }
             }
         }
+    }
+
+    private int GetDefaultDisplayTire(bool[] unlocked)
+    {
+        if (unlocked == null || unlocked.Length == 0) return 0;
+        for (int i = unlocked.Length - 1; i >= 0; i--)
+        {
+            if (unlocked[i]) return i;
+        }
+        return 0;
+    }
+
+    public int GetCurrentCharacterDefaultTire()
+    {
+        CharacterUpgradeSave.UpgradeDetails ud = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
+        return GetDefaultDisplayTire(ud.tire_unlocked);
     }
     public void ShowCertainCharInTire(int tire, bool resetAnimation=true)
     {

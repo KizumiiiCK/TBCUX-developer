@@ -189,7 +189,7 @@ public static class SupabaseSaveRemote
         yield return GetJson(url, json =>
         {
             var rows = JsonHelper.FromJsonArray<RewardRow>(json);
-            int[] items = new int[RewardingSystem.RewardNumMap.Count];
+            int[] items = new int[RewardingSystem.ExpectedInventoryLength];
             foreach (var row in rows)
             {
                 if (row.reward_id >= 0 && row.reward_id < items.Length)
@@ -288,7 +288,7 @@ public static class SupabaseSaveRemote
 
     private static IEnumerator UploadRewardInventory()
     {
-        var items = Load<int[]>(RewardingSystem.filename) ?? new int[RewardingSystem.RewardNumMap.Count];
+        var items = Load<int[]>(RewardingSystem.filename) ?? new int[RewardingSystem.ExpectedInventoryLength];
         var rows = new List<string>();
         for (int i = 0; i < items.Length; i++)
         {

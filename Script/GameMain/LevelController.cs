@@ -788,7 +788,8 @@ public class LevelController : MonoBehaviour
         //int catHeadCount = catBase.GetComponent<CatBase>().;
         GameProgressSave.SaveProgress(chapterName, sectionName, diff, levelNum, level_score,
             gainreward, characters_code, 0);
-        RecordDailyMapClearIfNeeded();
+        bool dailyMapCleared = RecordDailyMapClearIfNeeded();
+        if (dailyMapCleared) clearCanvasComponent.DisableRestartBtn();
 
         UnlockEnemiesMet();
         LPU.EndAccounting();
@@ -903,7 +904,8 @@ public class LevelController : MonoBehaviour
     private void ProcessExperience(GameObject clearCanvas)
     {
         GameProgressSave.SectionClearList sectionClearList = GameProgressSave.LoadSectionProgress(chapterName, sectionName);
-        int studyPower = GenericSaveSystem.LoadData<int[]>(RewardingSystem.filename)[RewardingSystem.RewardNumMap[RewardName.Base_Study]];
+        int studyPower = RewardingSystem.GetAmount(RewardName.Base_Study); // legacy code
+        // int studyPower = GenericSaveSystem.LoadData<int[]>(RewardingSystem.filename)[RewardingSystem.RewardNumMap[RewardName.Base_Study]];
 
         float xpMultiplier = 1 + studyPower * STUDY_POWER_MULTIPLIER / STUDY_POWER_DIVISOR;
         int clearTimes = sectionClearList.clear_times[diff, levelNum];
@@ -1197,14 +1199,16 @@ public class LevelController : MonoBehaviour
         return levelRestrictions != null && levelRestrictions.rawValuesByKey.ContainsKey("OH");
     }
 
-    private void RecordDailyMapClearIfNeeded()
+    private bool RecordDailyMapClearIfNeeded()
     {
-        if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return;
+        if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return false;
 
         MapInfo mapInfo = Resources.Load<MapInfo>($"LevelData/Chapters/{chapterName}/{sectionName}");
-        if (mapInfo == null) return;
-        if (!mapInfo.oncePerDay) return;
+        if (mapInfo == null) return false;
+        if (!mapInfo.oncePerDay) return false;
         DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
+        //PlayerPrefs.SetString(UXPref.Localized_InsDailyClear, "TRUE");
+        return true;
     }
 
     private void ApplyInitialMoneyRestrictions()

@@ -261,7 +261,7 @@ public class UserUploadAccountPage : MonoBehaviour
     {
         if (loadingPage != null) loadingPage.SetDetail("Reading and uploading reward_inventory as one int[] row...");
 
-        int expectedLength = RewardingSystem.RewardNumMap.Count;
+        int expectedLength = RewardingSystem.ExpectedInventoryLength;
         int[] localAmounts = GenericSaveSystem.LoadData<int[]>(RewardingSystem.filename) ?? new int[expectedLength];
         int[] amounts;
         if (localAmounts.Length == expectedLength)

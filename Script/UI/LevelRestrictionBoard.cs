@@ -35,6 +35,7 @@ public class LevelRestrictionBoard : MonoBehaviour
             { "U-", HandleUnitDisplay },
             { "IV", HandleNoneValueDisplay },
             { "OH", HandleNoneValueDisplay },
+            { "oh", HandleNoneValueDisplay },
             { "S+", HandleSurgeDisplay },
             { "S-", HandleSurgeDisplay },
             { "s+", HandleSurgeDisplay },
@@ -241,7 +242,7 @@ public class LevelRestrictionBoard : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
-        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm") return trimmed;
+        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 

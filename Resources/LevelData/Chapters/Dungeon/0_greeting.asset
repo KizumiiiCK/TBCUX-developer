@@ -14,11 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sectionName: 0_greeting
   mapName: event0
+  BGM: 
   unlockRestriction: 
+  oncePerDay: 0
   hardness: 1
   difficulty: 010000000000000000000000
   coverColor: {r: 0.69803923, g: 0.7803922, b: 0.8470589, a: 1}
-  titleColor: 5
+  titleColor: 0
   levelsOnMap:
   - levelNameID: greet0
     levelPosition: {x: -10, y: -4}

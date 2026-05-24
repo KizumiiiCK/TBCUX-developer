@@ -1104,15 +1104,14 @@ public class Aux_OneHit : PassiveSkill
         FreezeCharacterAnimation(character);
 
         float durationSeconds = UnityEngine.Random.Range(0.5f, 2f);
-        float totalRotation = UnityEngine.Random.Range(540f/3, 1440f/3) * (UnityEngine.Random.value > 0.5f ? 1f : -1f);
+        float totalRotation = UnityEngine.Random.Range(360f, 1080f) * (UnityEngine.Random.value > 0.5f ? 1f : -1f);
         //Transform visual = character.transform.childCount > 0 ? character.transform.GetChild(0) : character.transform;
         Transform visual = character.transform;
         Vector3 startPosition = visual.position;
         Vector3 endPosition = GetOffscreenTarget(startPosition);
         Vector3 startScale = visual.localScale;
         Vector3 endScale = GetEndScale(startScale, endPosition.y >= startPosition.y);
-        Quaternion startRotation = visual.rotation;
-        Quaternion endRotation = Quaternion.Euler(0f, 0f, startRotation.eulerAngles.z + totalRotation);
+        float startRotationZ = visual.eulerAngles.z;
 
         float elapsed = 0f;
         while (elapsed < durationSeconds && character != null && visual != null)
@@ -1120,7 +1119,8 @@ public class Aux_OneHit : PassiveSkill
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / durationSeconds);
             visual.position = Vector3.Lerp(startPosition, endPosition, t);
-            visual.rotation = Quaternion.Lerp(startRotation, endRotation, t);
+            float currentRotationZ = startRotationZ + totalRotation * t;
+            visual.rotation = Quaternion.Euler(0f, 0f, currentRotationZ);
             visual.localScale = Vector3.Lerp(startScale, endScale, t);
             yield return null;
         }
@@ -1128,7 +1128,7 @@ public class Aux_OneHit : PassiveSkill
         if (character == null || visual == null) yield break;
 
         visual.position = endPosition;
-        visual.rotation = endRotation;
+        visual.rotation = Quaternion.Euler(0f, 0f, startRotationZ + totalRotation);
         visual.localScale = endScale;
         character.transform.position = visual.position;
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
@@ -1187,14 +1187,14 @@ public class Aux_OneHit : PassiveSkill
         if (isFlyingUpward)
         {
             return new Vector3(
-                ScaleAxis(startScale.x, 0.1f),
-                ScaleAxis(startScale.y, 0.1f),
+                ScaleAxis(startScale.x, 0.33f),
+                ScaleAxis(startScale.y, 0.33f),
                 ScaleAxis(startScale.z, 1f));
         }
 
         return new Vector3(
-            ScaleAxis(startScale.x, 1.8f),
-            ScaleAxis(startScale.y, 1.8f),
+            ScaleAxis(startScale.x, 2f),
+            ScaleAxis(startScale.y, 2f),
             ScaleAxis(startScale.z, 1f));
     }
 
