@@ -53,6 +53,7 @@ public class BontiqueItems : MonoBehaviour
         BontiqueShopItem item,
         int remaining,
         bool interactable,
+        DateTime now,
         Action<BontiqueShopItem> onRedeemClickedSignal,
         Action<BontiqueShopItem> onRedeemRequested)
     {
@@ -87,11 +88,22 @@ public class BontiqueItems : MonoBehaviour
                 });
         }
 
-        if (remainingText != null) remainingText.text = "Remaining: " + (remaining < 0 ? "∞" : Mathf.Max(0, remaining).ToString());
+        if (remainingText != null)
+        {
+            string remainingLabel = "Remaining: " + (remaining < 0 ? "∞" : Mathf.Max(0, remaining).ToString());
+            if (item.Limit == LimitType.Event && item.IsInActiveWindow(now))
+            {
+                int daysLeft = GetEventDaysLeft(item, now);
+                remainingLabel += $"\n<color=#FF6060>{daysLeft}</color> DAYS  LEFT!";
+            }
+            remainingText.text = remainingLabel;
+        }
         int currentCurrencyAmount = RewardingSystem.GetAmount(item.CurrencyId);
         if (currencyDisplay != null)
         {
-            string costAndOwned = $"{Mathf.Max(0, item.CurrencyAmount)} / {Mathf.Max(0, currentCurrencyAmount)}";
+            string costAndOwned = (item.CurrencyId == 11 || item.CurrencyId == 12)
+                ? Mathf.Max(0, item.CurrencyAmount).ToString()
+                : $"{Mathf.Max(0, item.CurrencyAmount)} / {Mathf.Max(0, currentCurrencyAmount)}";
             currencyDisplay.SetData(item.CurrencyId, currentCurrencyAmount, null, costAndOwned);
         }
         if (redeemButton != null)
@@ -115,11 +127,27 @@ public class BontiqueItems : MonoBehaviour
             string cid = item.gainId.ToString("0000");
             return Resources.Load<Sprite>($"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy");
         }
-        if (item.gainId >= 0 && item.gainId < RewardingSystem.RewardNumMap.Count)
+        if (item.gainId >= 0)
         {
             return StorageImageHelper.GetItemImageByOrder(item.gainId);
         }
         return null;
+    }
+
+    private static int GetEventDaysLeft(BontiqueShopItem item, DateTime now)
+    {
+        if (item == null || !item.LimitStart.HasValue || !item.LimitEnd.HasValue) return 0;
+        DateTime today = now.Date;
+        int nowMd = today.Month * 100 + today.Day;
+        int startMd = item.LimitStart.Value.Month * 100 + item.LimitStart.Value.Day;
+        int endMd = item.LimitEnd.Value.Month * 100 + item.LimitEnd.Value.Day;
+
+        int endYear = today.Year;
+        if (startMd > endMd && nowMd >= startMd) endYear += 1;
+        DateTime endDate = new DateTime(endYear, item.LimitEnd.Value.Month, item.LimitEnd.Value.Day);
+
+        int days = (endDate - today).Days + 1;
+        return Mathf.Max(1, days);
     }
 
     private void OnRedeemClicked()

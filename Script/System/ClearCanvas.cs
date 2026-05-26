@@ -8,6 +8,7 @@ public class ClearCanvas : UICanvasMain
     private Animator animator;
     [SerializeField] GameObject RC;
     [SerializeField] Button RestartBtn;
+    private bool restartDisabled;
     private GameObject currentRC = null;
     private List<RewardType> rt=new List<RewardType>();
     private List<int> code=new List<int>();
@@ -18,7 +19,11 @@ public class ClearCanvas : UICanvasMain
     {
         rt.Add(_rt); code.Add(_code); count.Add(_count); i++;
     }
-    public void DisableRestartBtn() => RestartBtn.interactable = false;
+    public void DisableRestartBtn()
+    {
+        restartDisabled = true;
+        ApplyRestartButtonState();
+    }
     public void DisplayAllRewards() { if (i < 1) return; StartCoroutine(RewardingCoroutine()); }
     private IEnumerator RewardingCoroutine()
     {
@@ -39,6 +44,13 @@ public class ClearCanvas : UICanvasMain
         //    PlayerPrefs.DeleteKey(UXPref.Localized_InsDailyClear);
         //}
         animator.speed = 1;
+        ApplyRestartButtonState();
+    }
+
+    private void ApplyRestartButtonState()
+    {
+        if (!restartDisabled || RestartBtn == null) return;
+        RestartBtn.interactable = false;
     }
 
     public override IEnumerator OnEnter()

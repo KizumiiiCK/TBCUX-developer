@@ -113,7 +113,7 @@ public class BontiqueCanvas : UICanvasMain
         var controller = go.GetComponent<BontiqueItems>();
         if (controller == null) controller = go.AddComponent<BontiqueItems>();
         EvaluateItemState(item, currentTime, out int remaining, out bool interactable);
-        controller.Configure(item, remaining, interactable, OnRedeemClickedSignal, OnRedeemRequested);
+        controller.Configure(item, remaining, interactable, currentTime, OnRedeemClickedSignal, OnRedeemRequested);
     }
 
     private void ShowCategory(BontiqueType t)

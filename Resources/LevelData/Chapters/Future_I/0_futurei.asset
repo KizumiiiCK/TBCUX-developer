@@ -16,6 +16,7 @@ MonoBehaviour:
   mapName: world_future
   BGM: 
   unlockRestriction: World_III+0_worldiii
+  oncePerDay: 0
   hardness: 1
   difficulty: 000000000001010100000000
   coverColor: {r: 0.4784314, g: 0.7725491, b: 0.8470589, a: 1}
@@ -80,8 +81,8 @@ MonoBehaviour:
     tileType: 0
   - levelNameID: id:sahara
     levelPosition: {x: -16.5, y: -6.5}
-    tileType: 0
-  - levelNameID: id:egypt
+    tileType: 3
+  - levelNameID: comingsoon
     levelPosition: {x: -7.5, y: -4.5}
     tileType: 0
   - levelNameID: id:turkey

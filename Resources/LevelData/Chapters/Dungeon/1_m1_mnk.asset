@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 1_m1_mnk
+  m_EditorClassIdentifier: 
+  sectionName: 1_m1_mnk
+  mapName: majomap
+  BGM: 
+  unlockRestriction: Future_II+0_futureii
+  oncePerDay: 1
+  hardness: 1
+  difficulty: 000000000000000101000000
+  coverColor: {r: 0.13333334, g: 0.1882353, b: 0.21960784, a: 1}
+  titleColor: 3
+  levelsOnMap:
+  - levelNameID: mnk:10
+    levelPosition: {x: -14, y: 0}
+    tileType: 0
+  - levelNameID: mnk:11
+    levelPosition: {x: -8, y: 4}
+    tileType: 0
+  - levelNameID: mnk:12
+    levelPosition: {x: -1, y: 3.5}
+    tileType: 0
+  - levelNameID: mnk:13
+    levelPosition: {x: 4, y: 7}
+    tileType: 0
+  - levelNameID: mnk:14
+    levelPosition: {x: 6, y: 3}
+    tileType: 0
+  - levelNameID: mnk:15
+    levelPosition: {x: 11.5, y: 6.5}
+    tileType: 0
+  - levelNameID: mnk:16
+    levelPosition: {x: 16, y: 4}
+    tileType: 0
+  - levelNameID: mnk:17
+    levelPosition: {x: 19, y: 8}
+    tileType: 0
+  - levelNameID: mnk:18
+    levelPosition: {x: 12, y: 11.5}
+    tileType: 0
+  - levelNameID: mnk:19
+    levelPosition: {x: 17.5, y: 13}
+    tileType: 0

@@ -37,8 +37,8 @@ public class EvolveComfirm : MonoBehaviour
         bool canEvolve = true;
         for(int i = 0; i < 6; i++)
         {
-            GameObject img = ConsumeItems.GetChild(i).GetChild(0).gameObject;
-            TMP_Text txt = ConsumeItems.GetChild(i).GetChild(1).GetComponent<TMP_Text>();
+            GameObject img = ConsumeItems.GetChild(i).GetChild(1).gameObject;
+            TMP_Text txt = ConsumeItems.GetChild(i).GetChild(2).GetComponent<TMP_Text>();
             if (c < a && itemDisplayFormat[a, i])
             {
                 img.SetActive(true);

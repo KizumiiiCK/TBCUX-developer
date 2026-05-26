@@ -1203,12 +1203,29 @@ public class LevelController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return false;
 
-        MapInfo mapInfo = Resources.Load<MapInfo>($"LevelData/Chapters/{chapterName}/{sectionName}");
+        MapInfo mapInfo = TryGetCurrentMapInfo();
         if (mapInfo == null) return false;
         if (!mapInfo.oncePerDay) return false;
         DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
         //PlayerPrefs.SetString(UXPref.Localized_InsDailyClear, "TRUE");
         return true;
+    }
+
+    private MapInfo TryGetCurrentMapInfo()
+    {
+        if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return null;
+        MapInfo[] mapInfos = Resources.LoadAll<MapInfo>($"LevelData/Chapters/{chapterName}");
+        if (mapInfos == null || mapInfos.Length == 0) return null;
+        for (int i = 0; i < mapInfos.Length; i++)
+        {
+            MapInfo mapInfo = mapInfos[i];
+            if (mapInfo == null) continue;
+            if (string.Equals(mapInfo.sectionName, sectionName, System.StringComparison.Ordinal))
+            {
+                return mapInfo;
+            }
+        }
+        return null;
     }
 
     private void ApplyInitialMoneyRestrictions()
