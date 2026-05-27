@@ -124,6 +124,7 @@ public enum AbilityName
     shieldProvider=21, maxShield=22,
     practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38, clearDebuffs=39, 
     barrier=40, akuShield=41,
+    selfSlow=100, selfWeaken=101, selfLacerate=102, selfDeathmark=103,
     [EditorBrowsable(EditorBrowsableState.Never)]
     buff_defence = 23, buff_attack = 24, buff_speed = 25, buff_kb = 26, buff_costdown = 27, buff_recover = 28, buff_atkFreq = 29,
     Aux_MaxDMGBlock = 900, Aux_MinDMGBlock = 901, Aux_OneHit = 902,

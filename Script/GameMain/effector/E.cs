@@ -72,7 +72,7 @@ public abstract class E : MonoBehaviour
         string effectVisualName = $"{en}{(enemy ? "_e" : string.Empty)}";
         Vector3 pos = etarget.transform.position + new Vector3((enemy ? -1 : 1) * slotNum * 1.2f, 0, 0);
         EffectManager effectManager = cachedEffectManager != null ? cachedEffectManager : (etarget != null ? etarget.EM : null);
-        if (effectName != EffectName.lacerate && !string.IsNullOrEmpty(en) && etarget != null && effectManager != null)
+        if (!string.IsNullOrEmpty(en) && etarget != null && effectManager != null)
         {
             AnimationDisplayer ad = effectManager.InstantiateAttachedBattleObject(
                 effectVisualName,

@@ -26,7 +26,12 @@ MonoBehaviour:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 11
+    drawtimes: 330000
+    droprate: 33
+    onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: 003

@@ -49,6 +49,7 @@ public class BaseCanvas : UICanvasMain
     }
     private void Awake()
     {
+        Camera.main.backgroundColor = Color.black;
         Input.multiTouchEnabled = false;
     }
     void PositionCorners()

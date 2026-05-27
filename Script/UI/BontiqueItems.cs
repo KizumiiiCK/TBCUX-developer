@@ -77,7 +77,7 @@ public class BontiqueItems : MonoBehaviour
             string expectedNameId = item.bid;
             itemNameText.text = expectedNameId;
             LocalizationHelper.GetLocalizedText(
-                UXPref.Localized_UI,
+                UXPref.Localized_Bontiques,
                 expectedNameId,
                 localizedText =>
                 {

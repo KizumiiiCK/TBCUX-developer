@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: id:japan
   gainXP: 88300
   BaseHealth: 244440
-  mapSize: 3250
+  mapSize: 4250
   maxEmenyCount: 50
   BackgroundID: 40
   BaseImageID: 106
@@ -38,7 +38,7 @@ MonoBehaviour:
   - type: 1
     id: 110
     drawtimes: 1
-    droprate: 2
+    droprate: 3
     onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
@@ -79,23 +79,23 @@ MonoBehaviour:
     - enemyID: e070
       ratio: 600
       bossShock: 0
-      repeat: 3
-      firstAppear: 660
+      repeat: 2
+      firstAppear: 0
       repeatMin: 66
       repeatMax: 66
       previewSprite: {fileID: 21300000, guid: 80b31e8cc256af242bb47102c195eca0, type: 3}
     - enemyID: e039
       ratio: 100
       bossShock: 0
-      repeat: 4
+      repeat: 3
       firstAppear: 1350
-      repeatMin: 266
-      repeatMax: 266
+      repeatMin: 1266
+      repeatMax: 1266
       previewSprite: {fileID: 21300000, guid: 3c716184d1a169b4ea1a0a54bbd00772, type: 3}
     - enemyID: e061
       ratio: 500
       bossShock: 0
-      repeat: 3
+      repeat: 1
       firstAppear: 1230
       repeatMin: 90
       repeatMax: 300

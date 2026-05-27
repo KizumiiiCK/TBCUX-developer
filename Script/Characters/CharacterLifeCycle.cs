@@ -149,9 +149,11 @@ public abstract partial class Character
 
         return runtimeInfos;
     }
-
+    private int current_animation_index = 999;
     public void SwitchAnimation(int index) {
         if (BlockAnimationSwitch) return;
+        if (current_animation_index == index) return;
+        current_animation_index = index;
         if (UNITYAnimated){ animator.SetInteger("state", index);}
         else { animatorDisplayer.SetMaanimPointer(index); }
     }

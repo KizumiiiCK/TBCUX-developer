@@ -36,7 +36,7 @@ MonoBehaviour:
   - type: 1
     id: 110
     drawtimes: 1
-    droprate: 2
+    droprate: 3
     onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
@@ -103,22 +103,14 @@ MonoBehaviour:
       bossShock: 0
       repeat: 3
       firstAppear: 860
-      repeatMin: 600
-      repeatMax: 600
+      repeatMin: 1240
+      repeatMax: 1240
       previewSprite: {fileID: 21300000, guid: e625ebe4e5b75a5438afcc872e9051b3, type: 3}
     - enemyID: e071
       ratio: 1000
       bossShock: 0
       repeat: 2
       firstAppear: 570
-      repeatMin: 1800
-      repeatMax: 1800
-      previewSprite: {fileID: 21300000, guid: 9df1214173658a948a82cbcf39c8be62, type: 3}
-    - enemyID: e071
-      ratio: 1000
-      bossShock: 0
-      repeat: 2
-      firstAppear: 600
       repeatMin: 1800
       repeatMax: 1800
       previewSprite: {fileID: 21300000, guid: 9df1214173658a948a82cbcf39c8be62, type: 3}

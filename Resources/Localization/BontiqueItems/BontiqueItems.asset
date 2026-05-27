@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5be51871efa6c3e4eae1703925c8f5ac, type: 3}
+  m_Name: BontiqueItems
+  m_EditorClassIdentifier: 
+  m_SharedTableData: {fileID: 11400000, guid: be148fe85256e4340807a13663824d8e, type: 2}
+  m_Tables:
+  - {fileID: 11400000, guid: 342bf2a7876c9254ab0de212910481ff, type: 2}
+  - {fileID: 11400000, guid: 1c4e0ef26fb56ba46ab516dbd8e9c10a, type: 2}
+  - {fileID: 11400000, guid: 6ca9a81cdb2dcf74da8b9206feb08f0f, type: 2}
+  m_Extensions: []
+  m_Group: String Table
+  references:
+    version: 2
+    RefIds: []

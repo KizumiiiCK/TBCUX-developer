@@ -28,6 +28,7 @@ public class BontiqueCanvas : UICanvasMain
 
     private void Start()
     {
+        Camera.main.backgroundColor = Color.black;
         StartCoroutine(BootstrapWithWorldTime());
     }
 

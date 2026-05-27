@@ -34,6 +34,10 @@ public static class AbilityInstaller
         { AbilityName.akuShield, typeof(AkuShield)},
         { AbilityName.barrierBreaker, typeof(BarrierBreaker)},
         { AbilityName.shieldPiercing, typeof(SheildPiercing)},
+        { AbilityName.selfSlow, typeof(SelfSlowDebuff)},
+        { AbilityName.selfWeaken, typeof(SelfWeakenDebuff)},
+        { AbilityName.selfLacerate, typeof(SelfLacerateDebuff)},
+        { AbilityName.selfDeathmark, typeof(SelfDeathmarkDebuff)},
         { AbilityName.invisible, typeof(Aux_InvisibleShow)},
         { AbilityName.dodge, typeof(DodgePassive)},
         { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
@@ -288,6 +292,52 @@ public class SheildPiercing : PassiveSkill
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
         if (Triggered()) types.Add(AttackType.sheildPiercing);
+    }
+}
+public abstract class SelfPermanentDebuffBase : PassiveSkill
+{
+    private const int PermanentDuration = int.MaxValue;
+    private bool applied;
+
+    public override void OnDeployUnit(Character character)
+    {
+        if (applied || character == null) return;
+        applied = true;
+        ApplyDebuff(character, PermanentDuration);
+    }
+
+    protected abstract void ApplyDebuff(Character character, int durationFrames);
+}
+
+public class SelfSlowDebuff : SelfPermanentDebuffBase
+{
+    protected override void ApplyDebuff(Character character, int durationFrames)
+    {
+        EffectInstaller.Inflict(character.gameObject, EffectName.slow, durationFrames, 0);
+    }
+}
+
+public class SelfWeakenDebuff : SelfPermanentDebuffBase
+{
+    protected override void ApplyDebuff(Character character, int durationFrames)
+    {
+        EffectInstaller.Inflict(character.gameObject, EffectName.weaken, durationFrames, intensity);
+    }
+}
+
+public class SelfLacerateDebuff : SelfPermanentDebuffBase
+{
+    protected override void ApplyDebuff(Character character, int durationFrames)
+    {
+        EffectInstaller.Inflict(character.gameObject, EffectName.lacerate, durationFrames, 0);
+    }
+}
+
+public class SelfDeathmarkDebuff : SelfPermanentDebuffBase
+{
+    protected override void ApplyDebuff(Character character, int durationFrames)
+    {
+        EffectInstaller.Inflict(character.gameObject, EffectName.deathmark, durationFrames, 0);
     }
 }
 public class Savage : PassiveSkill

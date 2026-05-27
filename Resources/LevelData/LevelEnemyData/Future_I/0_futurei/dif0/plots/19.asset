@@ -10,22 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 373cbc5a1c45ee84286cb20306813a8b, type: 3}
-  m_Name: plot
+  m_Name: 19
   m_EditorClassIdentifier: 
-  contentID: d-mnk-0
+  contentID: f1-19
   dialogues:
-  - DialoguerName: Miko
-    DialoguerImage: Miko_happy
-    faceToRight: 1
-    clearImage: 0
-    cg: 
-  - DialoguerName: Bird_3
-    DialoguerImage: Bird_3_kb
+  - DialoguerName: Gross
+    DialoguerImage: Gross_3
     faceToRight: 0
     clearImage: 0
     cg: 
-  - DialoguerName: Miko
-    DialoguerImage: Miko_surprise
+  - DialoguerName: Cat
+    DialoguerImage: Cat_3_angry
     faceToRight: 1
     clearImage: 0
     cg: 
@@ -34,43 +29,78 @@ MonoBehaviour:
     faceToRight: 0
     clearImage: 0
     cg: 
-  - DialoguerName: Miko
-    DialoguerImage: Miko_happy
+  - DialoguerName: Reisen
+    DialoguerImage: Reisen_serious
     faceToRight: 1
-    clearImage: 1
+    clearImage: 0
     cg: 
-  - DialoguerName: Bird_3
-    DialoguerImage: Bird_3
+  - DialoguerName: KK
+    DialoguerImage: KK_smirk_1
     faceToRight: 0
     clearImage: 0
     cg: 
-  - DialoguerName: Bird_3
+  - DialoguerName: Baha
+    DialoguerImage: Baha_0
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Reisen
     DialoguerImage: 
     faceToRight: 0
     clearImage: 0
     cg: 
-  - DialoguerName: Miko
-    DialoguerImage: 
-    faceToRight: 0
-    clearImage: 0
-    cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_0
-    faceToRight: 0
-    clearImage: 0
-    cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_blur
-    faceToRight: 0
+  - DialoguerName: Moneko
+    DialoguerImage: Moneko_smile
+    faceToRight: 1
     clearImage: 0
     cg: 
   - DialoguerName: Cat
-    DialoguerImage: Cat_3
+    DialoguerImage: Cat_3_angry
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Alina
+    DialoguerImage: Alina_angry
+    faceToRight: 0
+    clearImage: 1
+    cg: 
+  - DialoguerName: Axe_3
+    DialoguerImage: Axe_3_atk
     faceToRight: 1
     clearImage: 0
     cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_0
+  - DialoguerName: Alina
+    DialoguerImage: Alina_angry
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Alina
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Moneko
+    DialoguerImage: Moneko_shock
+    faceToRight: 1
+    clearImage: 0
+    cg: 
+  - DialoguerName: Alina
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Baha
+    DialoguerImage: Baha_0
+    faceToRight: 1
+    clearImage: 0
+    cg: 
+  - DialoguerName: Axe_3
+    DialoguerImage: Axe_3_atk
+    faceToRight: 1
+    clearImage: 0
+    cg: 
+  - DialoguerName: Alina
+    DialoguerImage: Alina_burst
     faceToRight: 0
     clearImage: 0
     cg: 
@@ -94,33 +124,8 @@ MonoBehaviour:
     faceToRight: 1
     clearImage: 0
     cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_blur
-    faceToRight: 0
-    clearImage: 0
-    cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_good
-    faceToRight: 0
-    clearImage: 0
-    cg: 
-  - DialoguerName: Axe_3
-    DialoguerImage: Axe_3
-    faceToRight: 1
-    clearImage: 0
-    cg: 
-  - DialoguerName: Miko
-    DialoguerImage: Miko_happy
-    faceToRight: 1
-    clearImage: 0
-    cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: 
-    faceToRight: 0
-    clearImage: 0
-    cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: 
+  - DialoguerName: Titan
+    DialoguerImage: Titan_3_atk
     faceToRight: 0
     clearImage: 0
     cg: 
@@ -129,13 +134,23 @@ MonoBehaviour:
     faceToRight: 1
     clearImage: 0
     cg: 
-  - DialoguerName: Cynthia
-    DialoguerImage: Cynthia_blur
+  - DialoguerName: Moneko
+    DialoguerImage: Moneko_love
     faceToRight: 0
     clearImage: 0
     cg: 
-  - DialoguerName: Miko
-    DialoguerImage: Miko_happy
+  - DialoguerName: Reisen
+    DialoguerImage: Reisen_stun
+    faceToRight: 1
+    clearImage: 0
+    cg: 
+  - DialoguerName: KK
+    DialoguerImage: KK_smirk_2
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Reisen
+    DialoguerImage: Reisen_serious
     faceToRight: 1
     clearImage: 0
     cg: 

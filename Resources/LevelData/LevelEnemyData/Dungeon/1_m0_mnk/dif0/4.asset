@@ -17,7 +17,7 @@ MonoBehaviour:
   BaseHealth: 245000
   mapSize: 4280
   maxEmenyCount: 50
-  BackgroundID: 2
+  BackgroundID: 25
   BaseImageID: 307
   CombatEffect: []
   Restriction: []
@@ -27,6 +27,11 @@ MonoBehaviour:
     enter_rate: 0
     mapName: 
   rewardlist:
+  - type: 1
+    id: 63
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
   - type: 1
     id: 0
     drawtimes: 2
@@ -59,5 +64,72 @@ MonoBehaviour:
     onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
-    bgm: 
-    enemySummonInfos: []
+    bgm: 032
+    enemySummonInfos:
+    - enemyID: e048
+      ratio: 300
+      bossShock: 0
+      repeat: -1
+      firstAppear: 240
+      repeatMin: 960
+      repeatMax: 1120
+      previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
+    - enemyID: e042
+      ratio: 500
+      bossShock: 0
+      repeat: -1
+      firstAppear: 300
+      repeatMin: 1260
+      repeatMax: 1480
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
+  - HealthPercentageOnBreak: 99
+    bgm: 031
+    enemySummonInfos:
+    - enemyID: e046
+      ratio: 100
+      bossShock: 0
+      repeat: 4
+      firstAppear: 1
+      repeatMin: 30
+      repeatMax: 30
+      previewSprite: {fileID: 21300000, guid: e0b7f54e12e6f5a428c983a933c346bc, type: 3}
+    - enemyID: e046
+      ratio: 500
+      bossShock: 0
+      repeat: 4
+      firstAppear: 1000
+      repeatMin: 30
+      repeatMax: 30
+      previewSprite: {fileID: 21300000, guid: e0b7f54e12e6f5a428c983a933c346bc, type: 3}
+    - enemyID: e077
+      ratio: 400
+      bossShock: 0
+      repeat: 3
+      firstAppear: 240
+      repeatMin: 450
+      repeatMax: 660
+      previewSprite: {fileID: 21300000, guid: 2330b5046993da946b3a4c4c4a89a199, type: 3}
+    - enemyID: e076
+      ratio: 400
+      bossShock: 0
+      repeat: -1
+      firstAppear: 2
+      repeatMin: 960
+      repeatMax: 960
+      previewSprite: {fileID: 21300000, guid: 9b1709bd4d98bba489aa7b6f21801e70, type: 3}
+    - enemyID: e074
+      ratio: 800
+      bossShock: 0
+      repeat: 2
+      firstAppear: 980
+      repeatMin: 1800
+      repeatMax: 2000
+      previewSprite: {fileID: 21300000, guid: 0200ea53d839f8f4d95e34c4198b189a, type: 3}
+    - enemyID: e079
+      ratio: 500
+      bossShock: 1
+      repeat: 1
+      firstAppear: 1
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 1ebee35acc7c7ca47abd7de76511eed5, type: 3}

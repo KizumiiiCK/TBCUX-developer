@@ -36,6 +36,7 @@ public static class UXPref
     public const string Localized_DialogueNames = "DialogueNames";
     public const string Localized_Descriptions = "Descriptions";
     public const string Localized_UnitNames = "UnitNames";
+    public const string Localized_Bontiques = "BontiqueItems";
     public const string Localized_CS = "ChapterSections";
     public const string Localized_BM = "BaseMessages";
     public const string Localized_InsDailyClear = "insClear";

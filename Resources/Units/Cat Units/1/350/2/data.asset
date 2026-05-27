@@ -16,17 +16,17 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 1245
+  - ATK: 845
     frame: 10
     DoNotTriggerEffects: 1
     Friendly: 0
     ATKRange: {x: 0, y: 600}
-  - ATK: 1245
+  - ATK: 845
     frame: 18
     DoNotTriggerEffects: 1
     Friendly: 0
     ATKRange: {x: 0, y: 600}
-  - ATK: 4045
+  - ATK: 2022
     frame: 100
     DoNotTriggerEffects: 1
     Friendly: 0
@@ -38,7 +38,7 @@ MonoBehaviour:
     ATKRange: {x: -1000, y: 800}
   areaATK: 1
   atkDuration: 266
-  Health: 8275
+  Health: 3310
   KB: 4
   Speed: 40
   Reload: 0
