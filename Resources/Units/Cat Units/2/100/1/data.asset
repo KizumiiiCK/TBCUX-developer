@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 300
+  - ATK: 305
     frame: 4
     DoNotTriggerEffects: 0
     Friendly: 0
@@ -66,15 +66,8 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects:
-  - name: 4
-    probability: 100
-    duration: 1
-    intensity: 0
-  abilities:
-  - name: 14
-    probability: 100
-    duration: 3
-    intensity: 0
+  characterEffects: []
+  abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

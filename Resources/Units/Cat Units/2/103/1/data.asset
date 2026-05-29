@@ -68,9 +68,10 @@ MonoBehaviour:
     strongAgainst: 0
   characterEffects:
   - name: 4
-    probability: 1
+    probability: 100
     duration: 1
     intensity: 0
   abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0
