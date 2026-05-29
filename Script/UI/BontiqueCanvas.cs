@@ -18,6 +18,7 @@ public class BontiqueCanvas : UICanvasMain
     private readonly List<BontiqueShopItem> filteredBuffer = new List<BontiqueShopItem>();
     private readonly Dictionary<string, BontiquePurchaseEntry> purchaseByBid = new Dictionary<string, BontiquePurchaseEntry>();
     private readonly List<GameObject> spawnedItemCards = new List<GameObject>();
+    private readonly List<BontiqueShopItem> spawnedItemData = new List<BontiqueShopItem>();
     private static Dictionary<int, RewardName> rewardNameByOrder;
     private BontiqueType currentCategory = BontiqueType.Daily;
     private DateTime currentTime;
@@ -147,6 +148,7 @@ public class BontiqueCanvas : UICanvasMain
             BontiqueShopItem item = items[i];
             GameObject go = Instantiate(itemPrefab, itemsContent);
             spawnedItemCards.Add(go);
+            spawnedItemData.Add(item);
             BindItem(go, i, item);
         }
     }
@@ -159,6 +161,7 @@ public class BontiqueCanvas : UICanvasMain
             if (card != null) Destroy(card);
         }
         spawnedItemCards.Clear();
+        spawnedItemData.Clear();
     }
 
     private void RebuildPurchaseCache()
@@ -210,7 +213,7 @@ public class BontiqueCanvas : UICanvasMain
         if (!interactable)
         {
             Debug.Log($"Bontique: item not purchasable now. bid={item.bid}, remaining={remaining}");
-            RefreshCurrentCategory();
+            RefreshSpawnedItemStatesAfterPurchase();
             return;
         }
 
@@ -218,14 +221,14 @@ public class BontiqueCanvas : UICanvasMain
         if (have < item.CurrencyAmount)
         {
             Debug.Log("Not enough currency");
-            RefreshCurrentCategory();
+            RefreshSpawnedItemStatesAfterPurchase();
             return;
         }
 
         if (!TryConsumeByOrder(item.CurrencyId, item.CurrencyAmount))
         {
             Debug.LogWarning($"Bontique: failed to consume currency order={item.CurrencyId}, amount={item.CurrencyAmount}");
-            RefreshCurrentCategory();
+            RefreshSpawnedItemStatesAfterPurchase();
             return;
         }
 
@@ -237,7 +240,7 @@ public class BontiqueCanvas : UICanvasMain
         {
             RewardingSystem.GainRewardByOrder(item.gainId, item.ObtainAmount);
         }
-        BontiquePurchaseSave.AddPurchase(item.bid, currentTime);
+        BontiquePurchaseSave.AddPurchase(item.bid, currentTime.Date);
         ShowRewardTransition(item);
         // All purchase-related systems save internally on each API call; keep this call last to persist purchase record immediately.
         RebuildPurchaseCache();
@@ -262,9 +265,24 @@ public class BontiqueCanvas : UICanvasMain
 
     private void RefreshCurrencyDisplaysAfterPurchase()
     {
-        InitializeCategories();
-        RefreshCurrentCategory();
+        RefreshSpawnedItemStatesAfterPurchase();
         if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
+    }
+
+    private void RefreshSpawnedItemStatesAfterPurchase()
+    {
+        int count = Mathf.Min(spawnedItemCards.Count, spawnedItemData.Count);
+        for (int i = 0; i < count; i++)
+        {
+            GameObject card = spawnedItemCards[i];
+            BontiqueShopItem item = spawnedItemData[i];
+            if (card == null || item == null) continue;
+            BontiqueItems controller = card.GetComponent<BontiqueItems>();
+            if (controller == null) continue;
+
+            EvaluateItemState(item, currentTime, out int remaining, out bool interactable);
+            controller.RefreshPurchaseState(item, remaining, interactable, currentTime);
+        }
     }
 
     private void ShowRewardTransition(BontiqueShopItem item)

@@ -42,7 +42,7 @@ public class Pool
 
 public static class PoolSystemTime
 {
-    public static readonly DateTime openTime = new DateTime(year: 2026, month: 5, day: 1);
+    public static readonly DateTime openTime = new DateTime(year: 2026, month: 5, day: 12);
     public static DateTime Now => DateTime.Now;
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
@@ -92,7 +92,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="darkheros",
-            pool_start_delay = duration_DEFAULT * 5,
+            pool_start_delay = duration_DEFAULT * 1,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -114,7 +114,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="unknown",
-            pool_start_delay = duration_DEFAULT * 5,
+            pool_start_delay = duration_DEFAULT * 1,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -136,7 +136,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="dragon",
-            pool_start_delay = duration_DEFAULT,
+            pool_start_delay = duration_DEFAULT*2,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -158,7 +158,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="ancient",
-            pool_start_delay = duration_DEFAULT,
+            pool_start_delay = duration_DEFAULT*2,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -181,7 +181,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="galaxygals",
-            pool_start_delay = duration_DEFAULT * 2,
+            pool_start_delay = duration_DEFAULT * 3,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -204,7 +204,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="almighties",
-            pool_start_delay = duration_DEFAULT * 2,
+            pool_start_delay = duration_DEFAULT * 3,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -227,7 +227,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="sengoku",
-            pool_start_delay = duration_DEFAULT * 3,
+            pool_start_delay = duration_DEFAULT * 5,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -250,7 +250,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="dynamits",
-            pool_start_delay = duration_DEFAULT * 3,
+            pool_start_delay = duration_DEFAULT * 5,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -273,7 +273,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="iron",
-            pool_start_delay = duration_DEFAULT * 4,
+            pool_start_delay = 0,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -296,7 +296,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="monstergals",
-            pool_start_delay = duration_DEFAULT * 4,
+            pool_start_delay = 0,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -319,7 +319,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="sprites",
-            pool_start_delay = 0,
+            pool_start_delay = duration_DEFAULT * 4,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -342,7 +342,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="madoka",
-            pool_start_delay = 0,
+            pool_start_delay = duration_DEFAULT * 4,
             pool_cycle_period=cycle_DEFAULT,
             pool_duration=duration_DEFAULT,
             gold_capsule=true,
@@ -365,9 +365,9 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="tsumino",
-            pool_start_delay = duration_DEFAULT * 4,
-            pool_cycle_period=cycle_DEFAULT,
-            pool_duration=duration_DEFAULT,
+            pool_start_delay = 0,
+            pool_cycle_period=cycle_DEFAULT-duration_DEFAULT,
+            pool_duration=duration_DEFAULT*2,
             gold_capsule=true,
             cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
             cost_amount=new int[2]{ 1, 1500 },

@@ -17,10 +17,10 @@ MonoBehaviour:
   BaseHealth: 200000
   mapSize: 4400
   maxEmenyCount: 8
-  maxCatCount: 50
   BackgroundID: 12
   BaseImageID: 316
   CombatEffect: []
+  Restriction: []
   CombatAura: []
   exstage:
     exist: 0
@@ -82,10 +82,10 @@ MonoBehaviour:
     - enemyID: e051
       ratio: 100
       bossShock: 0
-      repeat: 7
+      repeat: 6
       firstAppear: 2
-      repeatMin: 200
-      repeatMax: 500
+      repeatMin: 300
+      repeatMax: 700
       previewSprite: {fileID: 21300000, guid: e625ebe4e5b75a5438afcc872e9051b3, type: 3}
     - enemyID: e051
       ratio: 100

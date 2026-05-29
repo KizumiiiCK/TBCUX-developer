@@ -29,6 +29,7 @@ public class CheckInSystem : MonoBehaviour
     };
     private int[] bonusCount = new int[typeCount];
     public const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
+    private static readonly TimeSpan Utc8Offset = TimeSpan.FromHours(8);
 
     private void Start()
     {
@@ -67,7 +68,7 @@ public class CheckInSystem : MonoBehaviour
 
         var tasks = new List<LoadingTask>
         {
-            new LoadingTask("Getting local time...", ExecuteFetchTimeTask),
+            new LoadingTask("Getting world time...", ExecuteFetchTimeTask),
             new LoadingTask("Pulling check-in data...", ExecuteFetchCheckInDataTask),
             new LoadingTask("Uploading check-in data...", ExecuteUploadCheckInDataTask)
         };
@@ -128,7 +129,7 @@ public class CheckInSystem : MonoBehaviour
     private bool ShouldSkipByLocalDate()
     {
         string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
-        string today = GetLocalDateToken();
+        string today = GetUtc8TodayToken();
         if (string.IsNullOrEmpty(cachedDate))
         {
             return false;
@@ -222,17 +223,18 @@ public class CheckInSystem : MonoBehaviour
 
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
 
-    private static string GetLocalDateToken() => DateTime.Today.ToString("yyyy-MM-dd");
+    private static string GetUtc8TodayToken() => DateTime.UtcNow.Add(Utc8Offset).Date.ToString("yyyy-MM-dd");
 
     public static string GetCachedWorldDateToken()
     {
         string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
-        return string.IsNullOrEmpty(cachedDate) ? GetLocalDateToken() : cachedDate;
+        return string.IsNullOrEmpty(cachedDate) ? GetUtc8TodayToken() : cachedDate;
     }
 
     private void SaveCachedWorldDate()
     {
-        PlayerPrefs.SetString(LastWorldDateCacheKey, GetLocalDateToken());
+        DateTime date = currentServerDate != DateTime.MinValue ? currentServerDate.Date : DateTime.UtcNow.Add(Utc8Offset).Date;
+        PlayerPrefs.SetString(LastWorldDateCacheKey, date.ToString("yyyy-MM-dd"));
         PlayerPrefs.Save();
     }
 

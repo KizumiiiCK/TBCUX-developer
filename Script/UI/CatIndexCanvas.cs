@@ -84,7 +84,7 @@ public class CatIndexCanvas : UICanvasMain
     private static readonly Color UpgradeButtonEnabledColor = new Color(0.55f, 0.95f, 0.9f, 1f);
     private static readonly Color UpgradeButtonDisabledColor = new Color(1f, 0.72f, 0.72f, 1f);
     private bool returnToEquipMode = false;
-    private bool showUnownedCharacters = false;
+    private bool showUnownedCharacters = true;
     private bool isLoadingRarityCharacters = false;
     private Coroutine loadRarityRoutine;
     private const string EquipCanvasPrefab = "EquipCanvas";

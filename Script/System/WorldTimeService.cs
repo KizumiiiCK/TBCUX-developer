@@ -168,11 +168,39 @@ public static class WorldTimeService
         utc8 = default;
         if (string.IsNullOrWhiteSpace(dateText)) return false;
 
-        if (!DateTimeOffset.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset dto))
+        string trimmed = dateText.Trim();
+        if (!HasExplicitTimezoneSuffix(trimmed))
+        {
+            // Some providers (e.g. timeapi) return local wall-clock time without timezone.
+            // Treat it directly as UTC+8 time instead of parsing it as UTC then shifting.
+            if (!DateTime.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime localUtc8))
+                return false;
+            utc8 = localUtc8;
+            return true;
+        }
+
+        if (!DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset dto))
             return false;
 
         utc8 = dto.ToOffset(Utc8Offset).DateTime;
         return true;
+    }
+
+    private static bool HasExplicitTimezoneSuffix(string dateText)
+    {
+        if (string.IsNullOrWhiteSpace(dateText)) return false;
+        string trimmed = dateText.Trim();
+        if (trimmed.EndsWith("Z", StringComparison.OrdinalIgnoreCase)) return true;
+
+        int plus = trimmed.LastIndexOf('+');
+        int minus = trimmed.LastIndexOf('-');
+        int signIndex = Math.Max(plus, minus);
+        // Ignore date-only dashes (e.g. yyyy-MM-dd).
+        if (signIndex <= 10) return false;
+
+        int suffixLength = trimmed.Length - signIndex;
+        // Supports +08, +0800, +08:00 and their negative variants.
+        return suffixLength == 3 || suffixLength == 5 || suffixLength == 6;
     }
 
     private static bool TryConvertUnixToUtc8(long unixValue, out DateTime utc8)

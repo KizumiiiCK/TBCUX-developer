@@ -64,11 +64,18 @@ public class EquipCanvas : UICanvasMain
         if (char_codes[0] != null || char_codes[0] == string.Empty)
             ShowCertainCharacter(char_codes[0][0]-'0', char_codes[0].Substring(1, 3), char_codes[0][4]-'0');
     }
-
+    private void OnDisable()
+    {
+        if(current_display_character != null)
+        {
+            Destroy(current_display_character);
+            current_display_character = null;
+        }
+    }
     // Update is called once per frame
     //void Update()
     //{
-        
+
     //}
     public void LoadCharatersFromRality(int R)
     {

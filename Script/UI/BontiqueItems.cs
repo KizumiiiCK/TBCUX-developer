@@ -88,6 +88,20 @@ public class BontiqueItems : MonoBehaviour
                 });
         }
 
+        RefreshPurchaseState(item, remaining, interactable, now);
+    }
+
+    public void RefreshPurchaseState(BontiqueShopItem item, int remaining, bool interactable, DateTime now)
+    {
+        if (item == null) return;
+        boundItem = item;
+        CacheRefs();
+        int currentCurrencyAmount = RewardingSystem.GetAmount(item.CurrencyId);
+        UpdateRemainingAndPurchaseUi(item, remaining, interactable, now, currentCurrencyAmount);
+    }
+
+    private void UpdateRemainingAndPurchaseUi(BontiqueShopItem item, int remaining, bool interactable, DateTime now, int currentCurrencyAmount)
+    {
         if (remainingText != null)
         {
             string remainingLabel = "Remaining: " + (remaining < 0 ? "∞" : Mathf.Max(0, remaining).ToString());
@@ -98,7 +112,6 @@ public class BontiqueItems : MonoBehaviour
             }
             remainingText.text = remainingLabel;
         }
-        int currentCurrencyAmount = RewardingSystem.GetAmount(item.CurrencyId);
         if (currencyDisplay != null)
         {
             string costAndOwned = (item.CurrencyId == 11 || item.CurrencyId == 12)

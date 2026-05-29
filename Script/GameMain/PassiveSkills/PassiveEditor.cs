@@ -296,7 +296,8 @@ public class SheildPiercing : PassiveSkill
 }
 public abstract class SelfPermanentDebuffBase : PassiveSkill
 {
-    private const int PermanentDuration = int.MaxValue;
+    // Keep "permanent" long enough for battles while avoiding float->int overflow/precision edge cases
+    private const int PermanentDuration = 1000000;
     private bool applied;
 
     public override void OnDeployUnit(Character character)

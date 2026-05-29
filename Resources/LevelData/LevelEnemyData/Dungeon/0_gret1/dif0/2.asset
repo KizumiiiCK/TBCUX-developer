@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
   m_Name: 2
   m_EditorClassIdentifier: 
-  levelName: greet2
+  levelName: greet7
   gainXP: 0
   BaseHealth: 202605
   mapSize: 2900
@@ -37,11 +37,11 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 100
     bgm: lowtea
     enemySummonInfos:
-    - enemyID: e083
-      ratio: 100
+    - enemyID: e042
+      ratio: 300
       bossShock: 1
       repeat: 30
       firstAppear: 2
       repeatMin: 2
       repeatMax: 2
-      previewSprite: {fileID: 21300000, guid: d002ec4626550914f81f9f19e4e28e12, type: 3}
+      previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
