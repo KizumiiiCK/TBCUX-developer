@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 4000
     frame: 1
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 120}
   areaATK: 1
@@ -51,7 +52,7 @@ MonoBehaviour:
   career:
     Warrior: 0
     Deffender: 0
-    Magician: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:
@@ -74,3 +75,4 @@ MonoBehaviour:
   abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

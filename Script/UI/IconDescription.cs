@@ -17,7 +17,7 @@ public class IconDescription : MonoBehaviour
     }
     public void SetFullDescription(Sprite icon, string namecode, string descriptioncode, object p = null, object d = null, object i = null)
     {
-        iconA.sprite = icon;
+        iconA.sprite = EAIconResolver.LoadByNameCode(namecode);
         LocalizationHelper.GetLocalizedText(UXPref.Localized_Descriptions, namecode,
             localizedText => nameA.text = localizedText ?? namecode);
         string description_format = string.Empty;

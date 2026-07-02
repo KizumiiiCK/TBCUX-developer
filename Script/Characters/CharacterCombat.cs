@@ -7,6 +7,7 @@ using UnityEngine;
 public abstract partial class Character
 {
     private const float CharacterTargetVolumeLength = 200;
+    private bool incomingTraitCorresponding;
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
     [SerializeField] public GameObject BaseTarget;
@@ -36,9 +37,14 @@ public abstract partial class Character
         }
         return list;
     }
+    private bool CanHitTargetNow(Character target)
+    {
+        if (target == null || target.gameObject == null || !target.gameObject.activeInHierarchy) return false;
+        return !CharacterTargetManager.Instance.IsCharacterUndetectable(target) || CanTargetUndetectable();
+    }
 
     #region Attack Functions
-    public void Attack(float dmg, bool areaAttack, bool doNotTrigger, GameObject specific = null)
+    public void Attack(float dmg, bool areaAttack, bool doNotTrigger, GameObject specific = null, bool doNotTriggerAbilities = false)
     {
         Character GetTarget<T>(GameObject go) where T : Character
         {
@@ -58,16 +64,22 @@ public abstract partial class Character
             foreach (var at in ATKTypes) types.Add(at);
             //float dmg = realDamage[animateStep] * ATK_muiltipier;
             dmg *= ATK_muiltipier;
-            Passive_OnAttacking(ref dmg, ref types);
+            if (!doNotTriggerAbilities)
+            {
+                Passive_OnAttacking(ref dmg, ref types);
+            }
             if (specific != null)
             {
                 decisionEff = DetermineSelfATKEffects();
                 Character Target = GetTarget<Character>(specific);
-                if (Target != null && Target.IsCat() == IsCat())
-                    types.Add(AttackType.friendly);
-                Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
-                TryRecordHitTarget(Target);
-                if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                if (CanHitTargetNow(Target))
+                {
+                    if (Target != null && Target.IsCat() == IsCat())
+                        types.Add(AttackType.friendly);
+                    Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                    TryRecordHitTarget(Target);
+                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                }
             }
             else
             {
@@ -80,11 +92,14 @@ public abstract partial class Character
                 if (!areaAttack)
                 {
                     Character Target = GetTarget<Character>(FindNearest());
-                    if (Target != null && Target.IsCat() == IsCat())
-                        types.Add(AttackType.friendly);
-                    Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
-                    TryRecordHitTarget(Target);
-                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                    if (CanHitTargetNow(Target))
+                    {
+                        if (Target != null && Target.IsCat() == IsCat())
+                            types.Add(AttackType.friendly);
+                        Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                        TryRecordHitTarget(Target);
+                        if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                    }
                 }
                 else
                 {
@@ -93,6 +108,7 @@ public abstract partial class Character
                     for (int i = Targets.Count - 1; i >= 0; i--)
                     {
                         Character ec = GetTarget<Character>(Targets[i]);
+                        if (!CanHitTargetNow(ec)) continue;
                         if (ec != null && ec.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
                         ec?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
@@ -101,14 +117,17 @@ public abstract partial class Character
                     if (baseTarget != null && !Targets.Contains(baseTarget))
                     {
                         Character bt = GetTarget<Character>(baseTarget);
-                        if (bt != null && bt.IsCat() == IsCat())
-                            types.Add(AttackType.friendly);
-                        bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
-                        TryRecordHitTarget(bt);
+                        if (CanHitTargetNow(bt))
+                        {
+                            if (bt != null && bt.IsCat() == IsCat())
+                                types.Add(AttackType.friendly);
+                            bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                            TryRecordHitTarget(bt);
+                        }
                     }
                 }
                 //if (!atkInfos[animateStep].DoNotTriggerEffects)
-                if (!doNotTrigger)
+                if (!doNotTrigger && !doNotTriggerAbilities)
                 {
                     Passive_OnAfterAttack(dmg, decisionEff, types);
                 }
@@ -174,6 +193,8 @@ public abstract partial class Character
                (targetTrait.Aku && traits.Aku) ||
                (targetTrait.None && traits.None);
     }
+    protected void SetIncomingTraitCorresponding(bool matched) => incomingTraitCorresponding = matched;
+    public bool HasIncomingTraitCorresponding() => incomingTraitCorresponding;
     public void SetNewTarget(GameObject newTarget, bool quickTrigger) { if (quickTrigger) Attack(realDamage[animateStep],false,false,newTarget); else Targets.Add(newTarget); }
     public void RemoveTarget(GameObject newTarget) { Targets.Remove(newTarget); }
     public void RemoveAllTarget() { Targets = new List<GameObject>(); BaseTarget = null; }
@@ -235,12 +256,18 @@ public abstract partial class Character
     protected void DMG_CarrerEffects(ref float DMG, AgainstCareer opponentAC)
     {
         if (opponentAC == null) return;
-        if (career.Warrior && opponentAC.AggainstWarrior ||
-            career.Deffender && opponentAC.AggainstDeffender ||
-            career.Magician && opponentAC.AggainstMagician ||
-            career.Supporter && opponentAC.AggainstSuppoter ||
-            career.Practician && opponentAC.AggainstPractician)
-            DMG *= 4;
+        List<EffectName> matchedEffect = new List<EffectName>();
+        int duration_stack = 0;
+        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 60; matchedEffect.Add(EffectName.weaken); }
+        if (career.Deffender && opponentAC.AggainstDeffender) { duration_stack += 60; matchedEffect.Add(EffectName.stop); }
+        if (career.Magician && opponentAC.AggainstMagician) { duration_stack += 60; matchedEffect.Add(EffectName.slow); }
+        if (career.Supporter && opponentAC.AggainstSupporter) { duration_stack += 120; matchedEffect.Add(EffectName.deathmark); EffectInstaller.Inflict(gameObject, EffectName.knockback, 1, 1); }
+        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 120; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
+
+        if (duration_stack > 0)
+        {
+            for (int i = 0; i < matchedEffect.Count; i++) EffectInstaller.Inflict(gameObject, matchedEffect[i], duration_stack, 50);
+        }
     }
     protected void TakeDMG(float DMG)
     {

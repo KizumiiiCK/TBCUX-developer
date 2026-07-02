@@ -24,16 +24,13 @@ public class IndexViewer : MonoBehaviour
     [SerializeField] private Transform CareerList;
     [SerializeField] private Transform IconList;
     [SerializeField] private TMP_Text DetailsText;
-    [SerializeField] private GameObject ImageHelper;
-    private IconImageHelper IIH;
+    [SerializeField] private ScrollRect IconScrollRect;
     private int tresureCount = 0;
     private GameObject iconUnitPrefab;
 
     public void ShowCharacterDetails(CharacterData cd, bool consider_treasure, int level)
     {
         if (cd == null) return;
-        if (ImageHelper != null) IIH = ImageHelper.GetComponent<IconImageHelper>();
-        if (IIH == null) return;
 
         ApplyTraitGroups(cd);
         SetDetailedText(cd, consider_treasure, level);
@@ -46,47 +43,47 @@ public class IndexViewer : MonoBehaviour
 
         if (cd.isEliteUnit)
         {
-            payloads.Add(NewPayload(IIH.strategic, "N:s", "D:s"));
+            payloads.Add(NewPayloadByCode("N:s", "D:s"));
         }
         if (cd.DRE.massiveDamage)
         {
-            payloads.Add(NewPayload(IIH.icon_massive, "N:dre:m", "D:dre:m"));
+            payloads.Add(NewPayloadByCode("N:dre:m", "D:dre:m"));
         }
         if (cd.DRE.insaneDamage)
         {
-            payloads.Add(NewPayload(IIH.icon_insane, "N:dre:i", "D:dre:i"));
+            payloads.Add(NewPayloadByCode("N:dre:i", "D:dre:i"));
         }
         if (cd.DRE.tough)
         {
-            payloads.Add(NewPayload(IIH.icon_tough, "N:dre:t", "D:dre:t"));
+            payloads.Add(NewPayloadByCode("N:dre:t", "D:dre:t"));
         }
         if (cd.DRE.aegis)
         {
-            payloads.Add(NewPayload(IIH.icon_aegis, "N:dre:a", "D:dre:a"));
+            payloads.Add(NewPayloadByCode("N:dre:a", "D:dre:a"));
         }
         if (cd.DRE.strongAgainst)
         {
-            payloads.Add(NewPayload(IIH.icon_strongagainst, "N:dre:s", "D:dre:s"));
+            payloads.Add(NewPayloadByCode("N:dre:s", "D:dre:s"));
         }
         if (cd.againstCareer.AggainstWarrior)
         {
-            payloads.Add(NewPayload(IIH.against_W, "N:ac:1", "D:ac:1"));
+            payloads.Add(NewPayloadByCode("N:ac:1", "D:ac:1"));
         }
         if (cd.againstCareer.AggainstDeffender)
         {
-            payloads.Add(NewPayload(IIH.against_D, "N:ac:2", "D:ac:2"));
+            payloads.Add(NewPayloadByCode("N:ac:2", "D:ac:2"));
         }
         if (cd.againstCareer.AggainstMagician)
         {
-            payloads.Add(NewPayload(IIH.against_M, "N:ac:3", "D:ac:3"));
+            payloads.Add(NewPayloadByCode("N:ac:3", "D:ac:3"));
         }
-        if (cd.againstCareer.AggainstSuppoter)
+        if (cd.againstCareer.AggainstSupporter)
         {
-            payloads.Add(NewPayload(IIH.against_S, "N:ac:4", "D:ac:4"));
+            payloads.Add(NewPayloadByCode("N:ac:4", "D:ac:4"));
         }
         if (cd.againstCareer.AggainstPractician)
         {
-            payloads.Add(NewPayload(IIH.against_P, "N:ac:5", "D:ac:5"));
+            payloads.Add(NewPayloadByCode("N:ac:5", "D:ac:5"));
         }
 
         if (cd.characterEffects != null)
@@ -95,9 +92,8 @@ public class IndexViewer : MonoBehaviour
             {
                 try
                 {
-                    int ibenum = Array.IndexOf(Enum.GetValues(typeof(EffectName)), cd.characterEffects[i].name);
-                    payloads.Add(NewPayload(
-                        IIH.GetIconSprite(cd.characterEffects[i].name),
+                    int ibenum = GetEnumNumericId(cd.characterEffects[i].name);
+                    payloads.Add(NewPayloadByCode(
                         $"N:e:{ibenum}",
                         $"D:e:{ibenum}",
                         cd.characterEffects[i].probability,
@@ -115,9 +111,8 @@ public class IndexViewer : MonoBehaviour
             {
                 try
                 {
-                    int ibenum = Array.IndexOf(Enum.GetValues(typeof(AbilityName)), cd.abilities[i].name);
-                    payloads.Add(NewPayload(
-                        IIH.GetIconSprite(cd.abilities[i].name),
+                    int ibenum = GetEnumNumericId(cd.abilities[i].name);
+                    payloads.Add(NewPayloadByCode(
                         $"N:a:{ibenum}",
                         $"D:a:{ibenum}",
                         cd.abilities[i].probability,
@@ -135,9 +130,8 @@ public class IndexViewer : MonoBehaviour
             {
                 try
                 {
-                    int ibenum = Array.IndexOf(Enum.GetValues(typeof(AttackType)), cd.atkTypeResis[i].type);
-                    payloads.Add(NewPayload(
-                        IIH.GetAtkResSprite(cd.atkTypeResis[i].type),
+                    int ibenum = GetEnumNumericId(cd.atkTypeResis[i].type);
+                    payloads.Add(NewPayloadByCode(
                         $"N:ra:{ibenum}",
                         $"D:ra:{ibenum}",
                         cd.atkTypeResis[i].intensity
@@ -153,9 +147,8 @@ public class IndexViewer : MonoBehaviour
             {
                 try
                 {
-                    int ibenum = Array.IndexOf(Enum.GetValues(typeof(EffectName)), cd.effectResistances[i].name);
-                    payloads.Add(NewPayload(
-                        IIH.GetEffResSprite(cd.effectResistances[i].name),
+                    int ibenum = GetEnumNumericId(cd.effectResistances[i].name);
+                    payloads.Add(NewPayloadByCode(
                         $"N:re:{ibenum}",
                         $"D:re:{ibenum}",
                         cd.effectResistances[i].probability
@@ -183,6 +176,8 @@ public class IndexViewer : MonoBehaviour
                 );
             }
         }
+
+        RefreshIconScrollContent(payloads.Count);
     }
 
     public void SetDetailedText(CharacterData cd, bool consider_treasure, int level=1)
@@ -257,6 +252,21 @@ public class IndexViewer : MonoBehaviour
             Intensity = intensity
         };
     }
+    private IconPayload NewPayloadByCode(
+        string nameCode,
+        string descriptionCode,
+        int probability = 0,
+        int duration = 0,
+        int intensity = 0)
+    {
+        return NewPayload(
+            EAIconResolver.LoadByNameCode(nameCode),
+            nameCode,
+            descriptionCode,
+            probability,
+            duration,
+            intensity);
+    }
 
     private void RebuildIconUnits(int requiredCount)
     {
@@ -285,6 +295,107 @@ public class IndexViewer : MonoBehaviour
             var go = Instantiate(iconUnitPrefab, IconList, false);
             go.SetActive(true);
         }
+
+        EnsureIconListHorizontalLayout();
+    }
+
+    private void EnsureIconListHorizontalLayout()
+    {
+        if (IconList == null) return;
+        var contentRect = IconList as RectTransform;
+        if (contentRect == null) return;
+
+        if (IconScrollRect == null) IconScrollRect = contentRect.GetComponentInParent<ScrollRect>();
+        if (IconScrollRect != null)
+        {
+            if (IconScrollRect.content != contentRect) IconScrollRect.content = contentRect;
+            IconScrollRect.horizontal = true;
+            IconScrollRect.vertical = false;
+        }
+
+        var horizontal = contentRect.GetComponent<HorizontalLayoutGroup>();
+        if (horizontal != null)
+        {
+            horizontal.childAlignment = TextAnchor.MiddleLeft;
+            horizontal.childForceExpandWidth = false;
+            horizontal.childForceExpandHeight = false;
+        }
+
+        var fitter = contentRect.GetComponent<ContentSizeFitter>();
+        if (fitter != null)
+        {
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+    }
+
+    private void RefreshIconScrollContent(int iconCount)
+    {
+        if (IconList == null) return;
+        var contentRect = IconList as RectTransform;
+        if (contentRect == null) return;
+
+        EnsureIconListHorizontalLayout();
+
+        float iconWidth = 0f;
+        float iconHeight = 0f;
+        if (IconList.childCount > 0)
+        {
+            var first = IconList.GetChild(0) as RectTransform;
+            if (first != null)
+            {
+                iconWidth = Mathf.Max(iconWidth, LayoutUtility.GetPreferredWidth(first));
+                iconHeight = Mathf.Max(iconHeight, LayoutUtility.GetPreferredHeight(first));
+                if (iconWidth <= 0f) iconWidth = Mathf.Max(iconWidth, first.rect.width);
+                if (iconHeight <= 0f) iconHeight = Mathf.Max(iconHeight, first.rect.height);
+                if (iconWidth <= 0f) iconWidth = Mathf.Max(iconWidth, first.sizeDelta.x);
+                if (iconHeight <= 0f) iconHeight = Mathf.Max(iconHeight, first.sizeDelta.y);
+            }
+        }
+
+        if (iconWidth <= 0f || iconHeight <= 0f)
+        {
+            if (iconUnitPrefab == null) iconUnitPrefab = Resources.Load<GameObject>(IconUnitPrefabPath);
+            if (iconUnitPrefab != null)
+            {
+                var prefabRect = iconUnitPrefab.GetComponent<RectTransform>();
+                if (prefabRect != null)
+                {
+                    if (iconWidth <= 0f) iconWidth = Mathf.Max(prefabRect.rect.width, prefabRect.sizeDelta.x);
+                    if (iconHeight <= 0f) iconHeight = Mathf.Max(prefabRect.rect.height, prefabRect.sizeDelta.y);
+                }
+            }
+        }
+
+        if (iconWidth <= 0f) iconWidth = 64f;
+        if (iconHeight <= 0f) iconHeight = 64f;
+
+        float spacing = 0f;
+        RectOffset padding = null;
+        var horizontal = contentRect.GetComponent<HorizontalLayoutGroup>();
+        if (horizontal != null)
+        {
+            spacing = horizontal.spacing;
+            padding = horizontal.padding;
+        }
+
+        float width = iconCount > 0
+            ? iconCount * iconWidth + Mathf.Max(0, iconCount - 1) * spacing + (padding != null ? padding.left + padding.right : 0)
+            : 0f;
+        float height = iconHeight + (padding != null ? padding.top + padding.bottom : 0);
+
+        if (IconScrollRect != null && IconScrollRect.viewport != null)
+        {
+            width = Mathf.Max(width, IconScrollRect.viewport.rect.width);
+            height = Mathf.Max(height, IconScrollRect.viewport.rect.height);
+        }
+
+        contentRect.sizeDelta = new Vector2(width, height);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+        if (IconScrollRect != null)
+        {
+            IconScrollRect.horizontalNormalizedPosition = 0f;
+        }
     }
 
     private void LightUpTrait(Image source_img, bool lightup)
@@ -292,5 +403,76 @@ public class IndexViewer : MonoBehaviour
         if (source_img == null) return;
         if (lightup) { source_img.color = Color.white; }
         else { source_img.color = new Color(0.4f, 0.4f, 0.4f, 1); }
+    }
+
+    private static int GetEnumNumericId<TEnum>(TEnum value) where TEnum : Enum
+    {
+        return Convert.ToInt32(value);
+    }
+}
+
+public static class EAIconResolver
+{
+    private const string RootPath = "EAIcons/";
+    private const string FallbackPath = "EAIcons/null";
+    private static readonly Dictionary<string, Sprite> cache = new Dictionary<string, Sprite>();
+    private static Sprite fallbackSprite;
+
+    public static Sprite LoadByNameCode(string nameCode)
+    {
+        string iconPath = NameCodeToPath(nameCode);
+        return LoadSpriteOrFallback(iconPath);
+    }
+
+    public static Sprite LoadSpriteOrFallback(string iconPath)
+    {
+        if (string.IsNullOrEmpty(iconPath))
+        {
+            return GetFallback();
+        }
+        if (cache.TryGetValue(iconPath, out var cached) && cached != null)
+        {
+            return cached;
+        }
+        Sprite sprite = Resources.Load<Sprite>(iconPath);
+        if (sprite == null)
+        {
+            sprite = GetFallback();
+        }
+        cache[iconPath] = sprite;
+        return sprite;
+    }
+
+    private static Sprite GetFallback()
+    {
+        if (fallbackSprite == null)
+        {
+            fallbackSprite = Resources.Load<Sprite>(FallbackPath);
+        }
+        return fallbackSprite;
+    }
+
+    private static string NameCodeToPath(string nameCode)
+    {
+        if (string.IsNullOrEmpty(nameCode)) return FallbackPath;
+        if (nameCode == "N:s") return RootPath + "s";
+
+        string[] parts = nameCode.Split(':');
+        if (parts.Length != 3 || parts[0] != "N") return FallbackPath;
+
+        string kind = parts[1];
+        string id = parts[2];
+        if (string.IsNullOrEmpty(id)) return FallbackPath;
+
+        return kind switch
+        {
+            "e" => RootPath + "e-" + id,
+            "a" => RootPath + "a-" + id,
+            "ra" => RootPath + "ra-" + id,
+            "re" => RootPath + "re-" + id,
+            "dre" => RootPath + "dre-" + id,
+            "ac" => RootPath + "ac-" + id,
+            _ => FallbackPath
+        };
     }
 }

@@ -28,7 +28,11 @@ public class CatCharacter : AnimatorCachedCharacter
         if (onATK)
         {
             animatedframes += frame_step;
-            if (animatedframes == atkInfos[animateStep].frame) Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects);
+            if (animatedframes == atkInfos[animateStep].frame) Attack(
+                realDamage[animateStep],
+                areaATK,
+                atkInfos[animateStep].DoNotTriggerEffects,
+                doNotTriggerAbilities: atkInfos[animateStep].DoNotTriggerAbilities);
             if (animatedframes == atkDuration) { Passive_OnFinishAttack(); ExitAttack(); }
             return;
         }
@@ -90,6 +94,8 @@ public class CatCharacter : AnimatorCachedCharacter
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         if(onKB) return;
+        bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);
+        SetIncomingTraitCorresponding(matchedTraits);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         if(atkTypes!=null)foreach (var ar in atkTypeResis)
         {
@@ -102,7 +108,6 @@ public class CatCharacter : AnimatorCachedCharacter
                 }
             }
         }
-        bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);
         if (matchedTraits) DMG_DREeffects(ref DMG, dre);
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);

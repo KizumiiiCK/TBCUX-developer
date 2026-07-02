@@ -77,4 +77,17 @@ MonoBehaviour:
     duration: 3
     intensity: 0
   atkTypeResis: []
-  effectResistances: []
+  effectResistances:
+  - name: 1
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 9
+    probability: 80
+    duration: 0
+    intensity: 0
+  - name: 10
+    probability: 80
+    duration: 0
+    intensity: 0
+  baseEmotion: 0

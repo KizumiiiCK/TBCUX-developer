@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: data
   m_EditorClassIdentifier: 
   Name: 10101
-  isEliteUnit: 1
+  isEliteUnit: 0
   ATKType: 
   atkInfos:
   - ATK: 180
-    frame: 20
+    frame: 16
     DoNotTriggerEffects: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 200}
+    ATKRange: {x: 0, y: 190}
   areaATK: 0
   atkDuration: 47
   Health: 400
   KB: 4
   Speed: 100
   Reload: 44
-  DetectionRange: 200
+  DetectionRange: 190
   Cost: 1050
-  Cooldown: 289
+  Cooldown: 376
   UNITYAnimated: 0
   SPINEAnimated: 0
   traits:
@@ -37,12 +37,12 @@ MonoBehaviour:
     Flt: 1
     Blk: 0
     Mtl: 0
-    Ang: 1
+    Ang: 0
     Aln: 0
     Z: 0
     Re: 0
     Aku: 0
-    None: 1
+    None: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -68,8 +68,8 @@ MonoBehaviour:
     strongAgainst: 1
   characterEffects:
   - name: 9
-    probability: 100
-    duration: 150
+    probability: 50
+    duration: 90
     intensity: 0
   abilities: []
   atkTypeResis: []

@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 6666
     frame: 1
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 200}
   areaATK: 1
@@ -50,7 +51,7 @@ MonoBehaviour:
     Sage: 0
   career:
     Warrior: 0
-    Deffender: 0
+    Deffender: 1
     Magician: 0
     Supporter: 0
     Practician: 0

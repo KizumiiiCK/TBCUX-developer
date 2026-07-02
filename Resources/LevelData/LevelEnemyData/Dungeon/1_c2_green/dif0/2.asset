@@ -36,14 +36,14 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 100
     bgm: 003
     enemySummonInfos:
-    - enemyID: e0004
+    - enemyID: e004
       ratio: 300
       bossShock: 0
       repeat: -1
       firstAppear: 1300
       repeatMin: 120
       repeatMax: 360
-      previewSprite: {fileID: 21300000, guid: 0498a632fe0daa0488d049ac73be9a44, type: 3}
+      previewSprite: {fileID: 0}
     - enemyID: e024
       ratio: 1000
       bossShock: 0

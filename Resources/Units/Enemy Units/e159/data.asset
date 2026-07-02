@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 7777
     frame: 1
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 180}
   areaATK: 1
@@ -49,7 +50,7 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 0
+    Warrior: 1
     Deffender: 0
     Magician: 0
     Supporter: 0
@@ -78,3 +79,4 @@ MonoBehaviour:
     intensity: 300
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
+  m_Name: data
+  m_EditorClassIdentifier: 
+  Name: 13081
+  isEliteUnit: 0
+  ATKType: 00000000
+  atkInfos:
+  - ATK: 3704
+    frame: 84
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: -250, y: 550}
+  areaATK: 1
+  atkDuration: 136
+  Health: 4445
+  KB: 4
+  Speed: 35
+  Reload: 140
+  DetectionRange: 350
+  Cost: 5400
+  Cooldown: 4200
+  UNITYAnimated: 0
+  SPINEAnimated: 0
+  traits:
+    Red: 1
+    Flt: 1
+    Blk: 1
+    Mtl: 0
+    Ang: 1
+    Aln: 1
+    Z: 1
+    Re: 1
+    Aku: 1
+    None: 1
+  subtraits:
+    Starred: 0
+    Colossus: 0
+    Behemoth: 1
+    Sage: 0
+  career:
+    Warrior: 0
+    Deffender: 0
+    Magician: 1
+    Supporter: 0
+    Practician: 0
+  againstCareer:
+    AggainstWarrior: 0
+    AggainstMagician: 0
+    AggainstDeffender: 0
+    AggainstSuppoter: 0
+    AggainstPractician: 0
+  DRE:
+    massiveDamage: 0
+    insaneDamage: 0
+    tough: 0
+    aegis: 0
+    strongAgainst: 0
+  characterEffects:
+  - name: 1
+    probability: 100
+    duration: 60
+    intensity: 50
+  abilities: []
+  atkTypeResis:
+  - type: 1
+    intensity: 100
+  - type: 2
+    intensity: 100
+  effectResistances:
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 3
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 5
+    probability: 100
+    duration: 0
+    intensity: 0
+  baseEmotion: 0

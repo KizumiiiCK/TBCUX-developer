@@ -1003,6 +1003,7 @@ public class DodgePassive : PassiveSkill
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         if (character == null) return;
+        if (character.IsCat() && !character.HasIncomingTraitCorresponding()) return;
         if (invulnerable)
         {
             DMG = 0f;

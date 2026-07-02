@@ -39,6 +39,12 @@ public sealed class VirtualizedScrollGrid<TData>
         if (initialized) return;
         if (settings.Content == null || settings.ScrollRect == null || settings.ItemPrefab == null) return;
 
+        // Ensure ScrollRect drives the same content used by this virtualized grid.
+        if (settings.ScrollRect.content != settings.Content)
+        {
+            settings.ScrollRect.content = settings.Content;
+        }
+
         viewport = settings.ScrollRect.viewport != null
             ? settings.ScrollRect.viewport
             : settings.ScrollRect.GetComponent<RectTransform>();
@@ -101,11 +107,17 @@ public sealed class VirtualizedScrollGrid<TData>
         int columns = Mathf.Max(1, settings.Columns);
         float cellHeight = Mathf.Max(1f, settings.CellHeight);
         float viewportHeight = viewport != null ? viewport.rect.height : 0f;
-        float contentY = Mathf.Max(0f, settings.Content.anchoredPosition.y);
+        float viewHeight = Mathf.Max(viewportHeight, cellHeight);
+        int rows = Mathf.CeilToInt(items.Count / (float)columns);
+        float totalHeight = rows * cellHeight;
+        float normalized = settings.ScrollRect != null ? settings.ScrollRect.verticalNormalizedPosition : 1f;
+        if (float.IsNaN(normalized) || float.IsInfinity(normalized)) normalized = 1f;
+        float scrollRatio = 1f - Mathf.Clamp01(normalized); // 1 at top, 0 at bottom
+        float scrollY = scrollRatio * Mathf.Max(0f, totalHeight - viewHeight);
 
-        int startRow = Mathf.FloorToInt(contentY / cellHeight) - Mathf.Max(0, settings.PreloadRows);
+        int startRow = Mathf.FloorToInt(scrollY / cellHeight) - Mathf.Max(0, settings.PreloadRows);
         startRow = Mathf.Max(0, startRow);
-        int visibleRows = Mathf.CeilToInt(Mathf.Max(cellHeight, viewportHeight) / cellHeight) + Mathf.Max(0, settings.PreloadRows) * 2 + 1;
+        int visibleRows = Mathf.CeilToInt(viewHeight / cellHeight) + Mathf.Max(0, settings.PreloadRows) * 2 + 1;
 
         int startIndex = startRow * columns;
         int endIndex = Mathf.Min(items.Count - 1, (startRow + visibleRows) * columns - 1);

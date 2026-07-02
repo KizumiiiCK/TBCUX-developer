@@ -103,14 +103,15 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 7095798022144
     m_Localized: "Has a {0}% chance to deal true damage equal to {1}% of the enemy\u2019s
-      max HP.\n(Only affect enemies with matched traits for cats)"
+      max HP.\r\n(Only affect enemies with matched traits for cats)"
     m_Metadata:
       m_Items: []
   - m_Id: 7112109670400
     m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
       all damage from them.
 
-      (Only affect enemies with matched traits for cats)'
+      (Only affect enemies with matched traits for
+      cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 7777754103808
@@ -125,8 +126,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , making
       all marked characters suffer the taken damage one more time.
 
-      (Only affect
-      enemies with matched traits for cats)'
+      (Only
+      affect enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 55728509632512
@@ -381,9 +382,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 69776101949446
-    m_Localized: This unit will provide an Aku shield equivalent to {0}% of its hp
-      to nearby units, this cannot be stacked with units that have the Aku shield
-      ability.
+    m_Localized: This unit has a <color=#00FFFF>{0}%</color> chance to provide an
+      Aku shield with <color=#00FFFF>{2}</color> HP to the targets. This cannot be
+      stacked with the units that their Aku shield are not broken.
     m_Metadata:
       m_Items: []
   - m_Id: 69776101949447
@@ -603,23 +604,23 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 20812184120803328
-    m_Localized: "Deploy the character for 100 times. \nProf reward: Character HP
-      +<color=#FF6060>5</color>% \n\nProgress:  {0} / 100."
+    m_Localized: "Deploy the character for 100 times. \r\nProf reward: Character
+      HP +<color=#FF6060>5</color>% \r\n\r\nProgress:  {0} / 100."
     m_Metadata:
       m_Items: []
   - m_Id: 20812184120803329
-    m_Localized: "The character deals stack up to 50000000 damage to enemies. \nProf
-      reward: Character ATK +<color=#FF6060>5</color>% \n\nProgress:  {0} / 50000000."
+    m_Localized: "The character deals stack up to 50000000 damage to enemies. \r\nProf
+      reward: Character ATK +<color=#FF6060>5</color>% \r\n\r\nProgress:  {0} / 50000000."
     m_Metadata:
       m_Items: []
   - m_Id: 20812184120803330
-    m_Localized: "The character suffers stack up to 20000000 damage.\nProf reward:
-      Cost -<color=#FF6060>7</color>% \n\nProgress:  {0} / 20000000."
+    m_Localized: "The character suffers stack up to 20000000 damage.\r\nProf reward:
+      Cost -<color=#FF6060>7</color>% \r\n\r\nProgress:  {0} / 20000000."
     m_Metadata:
       m_Items: []
   - m_Id: 20812184120803331
-    m_Localized: "The duration of buffs / debuffs suffered stack up to 300000f. \nProf
-      reward: In team, all teammates' HP and ATK +<color=#FF6060>2</color>% \n\nProgress: 
+    m_Localized: "The duration of buffs / debuffs suffered stack up to 300000f. \r\nProf
+      reward: In team, all teammates' HP and ATK +<color=#FF6060>2</color>% \r\n\r\nProgress: 
       {0} / 300000."
     m_Metadata:
       m_Items: []
@@ -632,7 +633,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 32395895614291968
-    m_Localized: The Fractured Omen
+    m_Localized: XP Hammer Punch!
     m_Metadata:
       m_Items: []
   - m_Id: 32395895614291969
@@ -728,6 +729,170 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 80540659358187520
     m_Localized: All enemies can not suffer even one hit from your cats!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973489254400
+    m_Localized: Sacrifice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751872
+    m_Localized: Projectile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751873
+    m_Localized: Dive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751874
+    m_Localized: Revive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751875
+    m_Localized: Invincible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751876
+    m_Localized: Heal - Debuffs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751877
+    m_Localized: Barrier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751878
+    m_Localized: Aku Sheild
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751879
+    m_Localized: Barrier Provider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751880
+    m_Localized: Distraction - Slow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751881
+    m_Localized: Distraction - Weaken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751882
+    m_Localized: Distraction - Lacerate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973564751883
+    m_Localized: Distraction - Death Mark
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529088
+    m_Localized: Sacrifice <color=#FF4040>{2}%</color> Max HP after finishing an
+      attack flow.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529089
+    m_Localized: This unit launches projectiles instead of normal attacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529090
+    m_Localized: This unit dives after meeting opponents, becoming an undetectable
+      unit, with a maximum of <color=#00FFFF>{0}</color> diving times. Each time
+      dives for <color=#00FFFF>{1}f</color> .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529091
+    m_Localized: This unit revives with <color=#00FFFF>{2}%</color> of Max HP after
+      dead for <color=#00FFFF>{1}f</color>. With a maximum of <color=#00FFFF>{0}</color>
+      revive times.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529092
+    m_Localized: After being attacked by the enemy of the matched traits, there's
+      a <color=#00FFFF>{0}%</color> chance to gain invincible for <color=#00FFFF>{1}f</color>
+      , ignoring all damage during the time.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529093
+    m_Localized: This unit has a <color=#00FFFF>{0}%</color> chance to clear all
+      debuffs on his/her target.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529094
+    m_Localized: This unit starts with a <color=#00FFFF>{2}</color> HP barrier, absorbing
+      all damage that lower than this HP before it is being destoryed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529095
+    m_Localized: When start and being knockback(take damage), this unit gains an
+      aku sheild with <color=#00FFFF>{2}</color> HP.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529096
+    m_Localized: This unit has a <color=#00FFFF>{0}%</color> chance to provide a
+      Barrier with <color=#00FFFF>{2}</color> HP to the targets.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529097
+    m_Localized: This unit starts with permanent <color=#00FFFF>Slow</color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529098
+    m_Localized: This unit starts with permanent <color=#00FFFF>Weaken</color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529099
+    m_Localized: This unit starts with permanent <color=#00FFFF>Lacerate</color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529100
+    m_Localized: This unit starts with permanent <color=#00FFFF>Death Mark</color>.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92497973581529101
+    m_Localized: Resist-??
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92500187553284096
+    m_Localized: Normal attacks are {0}% ??? useless to this character.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159360
+    m_Localized: Aux - Ceil Damage Block
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159361
+    m_Localized: Aux - Floor Damage Block
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159362
+    m_Localized: Aux - One Hit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159363
+    m_Localized: Aux - Invisible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159364
+    m_Localized: Damage higher than {2} is nonsence to this unit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159365
+    m_Localized: Damage lower than {2} is nonsence to this unit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159366
+    m_Localized: This unit cannot suffer even one hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159367
+    m_Localized: This unit is invisible before being hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159368
+    m_Localized: Resist-Base
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92529100950159369
+    m_Localized: Damage taken from <color=#00FFFF>Base</color> is reduced by {0}%
+      .
     m_Metadata:
       m_Items: []
   references:

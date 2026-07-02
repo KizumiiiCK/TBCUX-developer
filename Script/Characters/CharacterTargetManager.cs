@@ -375,6 +375,7 @@ public class CharacterTargetManager : MonoBehaviour
         catProjectiles.RemoveAll(p => p == null);
         enemyProjectiles.RemoveAll(p => p == null);
         deathMarkedCharacters.RemoveWhere(c => c == null || c.gameObject == null || !c.gameObject.activeInHierarchy);
+        undetectableCharacters.RemoveWhere(c => c == null || c.gameObject == null || !c.gameObject.activeInHierarchy);
         if (catTower == null || !catTower.gameObject) catTower = null;
         if (dogeTower == null || !dogeTower.gameObject) dogeTower = null;
 
