@@ -85,11 +85,10 @@ public class CatCharacter : AnimatorCachedCharacter
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        LevelController lc = GameObject.Find("Level Initializer").GetComponent<LevelController>();
-        if (lc == null) { Debug.LogError("LC not found."); return; }
+        if (levelController == null) { Debug.LogError("LC not found."); return; }
         //if (gameObject.CompareTag("Cat")) lc.RemoveACat();
         //else lc.RemoveAnEnemy();
-        lc.RemoveACat();
+        levelController.RemoveACat();
     }
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
@@ -103,7 +102,7 @@ public class CatCharacter : AnimatorCachedCharacter
             {
                 if (ar.type == at)
                 {
-                    if (ar.intensity > 99) { HitEffect(new List<AttackType> { AttackType.wave_invalid }); return; }
+                    if (ar.intensity > 99) { HitEffect(WaveInvalidHitTypes); return; }
                     else { DMG *= (100 - ar.intensity) / 100f; }
                 }
             }

@@ -114,7 +114,7 @@ public class CharacterTargetManager : MonoBehaviour
     };
     
     // 更新频率控制（可选优化）
-    private int updateFrameInterval = 1; // 每N帧更新一次
+    private int updateFrameInterval = 2; // 每N帧更新一次
     private int frameCounter = 0;
 
     private void Awake()
@@ -400,14 +400,28 @@ public class CharacterTargetManager : MonoBehaviour
 
     /// <summary>
     /// 按x轴位置排序角色列表
+    /// 使用插入排序：角色每帧移动极小，列表几乎总是有序，插入排序在近乎有序的数据上接近O(n)，
+    /// 且避免了List.Sort的比较器委托分配与每次比较的transform.position原生调用。
     /// </summary>
     private void SortCharactersByX(List<Character> characters)
     {
-        characters.Sort((a, b) => 
+        if (characters == null) return;
+        int count = characters.Count;
+        for (int i = 1; i < count; i++)
         {
-            if (a == null || b == null) return 0;
-            return a.transform.position.x.CompareTo(b.transform.position.x);
-        });
+            Character key = characters[i];
+            float keyX = key != null ? key.transform.position.x : float.NegativeInfinity;
+            int j = i - 1;
+            while (j >= 0)
+            {
+                Character other = characters[j];
+                float otherX = other != null ? other.transform.position.x : float.NegativeInfinity;
+                if (otherX <= keyX) break;
+                characters[j + 1] = other;
+                j--;
+            }
+            characters[j + 1] = key;
+        }
     }
 
     /// <summary>

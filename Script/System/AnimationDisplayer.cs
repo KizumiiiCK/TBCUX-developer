@@ -69,7 +69,7 @@ public class AnimationDisplayer : MonoBehaviour
     float OpacityRate { get => animPack.RateData.OpacityRate; }
     [SerializeField] protected float GlowRate = 0.5f;
     [SerializeField] public float AnimationSpeedRate = 1;
-    [SerializeField] RuntimeExecutionMode runtimeExecutionMode = RuntimeExecutionMode.Legacy;
+    [SerializeField] RuntimeExecutionMode runtimeExecutionMode = RuntimeExecutionMode.Baked;
     [SerializeField] bool enableStateConsistencyCheck = false;
     [SerializeField] bool aggressiveBakePrewarm = true;
     [SerializeField] int maxFrameDiffLogs = 10;
@@ -126,6 +126,7 @@ public class AnimationDisplayer : MonoBehaviour
     Dictionary<int, Dictionary<int, BakedFrameData>> bakedFrameCacheByClip = new Dictionary<int, Dictionary<int, BakedFrameData>>();
     Transform[] parentTransforms = null;
     Transform[] childTransforms = null;
+    bool transformCacheDirty = true;
     int[] parentLink = null;
     int[] firstChildLink = null;
     int[] lastChildLink = null;
@@ -429,6 +430,7 @@ public class AnimationDisplayer : MonoBehaviour
             Target.tag = "Animation";
         }
         ObjectList = new SpriteRenderer[ModelData.GetLength(0)];
+        transformCacheDirty = true;
         for (int i = 0; i < ModelData.GetLength(0); i++)
         {
             GameObject parent;
@@ -557,6 +559,13 @@ public class AnimationDisplayer : MonoBehaviour
         {
             return;
         }
+        bool needsRebuild = transformCacheDirty
+            || parentTransforms == null || childTransforms == null
+            || parentTransforms.Length != count || childTransforms.Length != count;
+        if (!needsRebuild)
+        {
+            return;
+        }
         if (parentTransforms == null || childTransforms == null || parentTransforms.Length != count || childTransforms.Length != count)
         {
             parentTransforms = new Transform[count];
@@ -567,6 +576,7 @@ public class AnimationDisplayer : MonoBehaviour
             childTransforms[i] = ObjectList[i].transform;
             parentTransforms[i] = ObjectList[i].transform.parent;
         }
+        transformCacheDirty = false;
     }
     void RebuildHierarchyLinksFromModelTree()
     {

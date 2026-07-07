@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 public abstract partial class Character
@@ -29,16 +28,15 @@ public abstract partial class Character
         }
         passiveSnapshotDirty = false;
     }
-    private void InvokePassive(Action<PassiveNode> action)
+
+    protected void Passive_OnDeployUnit()
     {
         BuildPassiveSnapshotIfNeeded();
         for (int i = 0; i < passiveSnapshot.Count; i++)
         {
-            action?.Invoke(passiveSnapshot[i]);
+            passiveSnapshot[i]?.OnDeployUnit(this);
         }
     }
-
-    protected void Passive_OnDeployUnit() => InvokePassive(n => n?.OnDeployUnit(this));
     protected void Passive_OnBeforeTakeDamage(ref float dmg, List<AttackType> types)
     {
         BuildPassiveSnapshotIfNeeded();
@@ -47,9 +45,30 @@ public abstract partial class Character
             passiveSnapshot[i]?.OnBeforeTakeDamage(this, ref dmg, types);
         }
     }
-    protected void Passive_OnAfterTakeDamage() => InvokePassive(n => n?.OnAfterTakeDamage(this));
-    protected void Passive_OnStartAttack() => InvokePassive(n => n?.OnStartAttack(this));
-    protected void Passive_OnFinishAttack() => InvokePassive(n => n?.OnFinishAttack(this));
+    protected void Passive_OnAfterTakeDamage()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnAfterTakeDamage(this);
+        }
+    }
+    protected void Passive_OnStartAttack()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnStartAttack(this);
+        }
+    }
+    protected void Passive_OnFinishAttack()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnFinishAttack(this);
+        }
+    }
     protected void Passive_OnAttacking(ref float dmg, ref List<AttackType> types)
     {
         BuildPassiveSnapshotIfNeeded();
@@ -58,9 +77,37 @@ public abstract partial class Character
             passiveSnapshot[i]?.OnAttacking(this, ref dmg, ref types);
         }
     }
-    protected void Passive_OnAfterAttack(float dmg, List<CharacterEffect> ces, List<AttackType> types) => InvokePassive(n => n?.OnAfterAttack(this, dmg, ces, types));
-    protected void Passive_OnBeforeKB() => InvokePassive(n => n?.OnBeforeKB(this));
-    protected void Passive_OnAfterKB() => InvokePassive(n => n?.OnAfterKB(this));
-    protected void Passive_OnDead() => InvokePassive(n => n?.OnDead(this));
+    protected void Passive_OnAfterAttack(float dmg, List<CharacterEffect> ces, List<AttackType> types)
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnAfterAttack(this, dmg, ces, types);
+        }
+    }
+    protected void Passive_OnBeforeKB()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnBeforeKB(this);
+        }
+    }
+    protected void Passive_OnAfterKB()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnAfterKB(this);
+        }
+    }
+    protected void Passive_OnDead()
+    {
+        BuildPassiveSnapshotIfNeeded();
+        for (int i = 0; i < passiveSnapshot.Count; i++)
+        {
+            passiveSnapshot[i]?.OnDead(this);
+        }
+    }
 
 }

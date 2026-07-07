@@ -65,7 +65,6 @@ public abstract partial class Character
         realReload++;
         UpdateAnimation();
     }
-    private void Update() { }
 
     /* ====== 数据加载，统一管理器 ====== */
     public void LoadCharacterData(LevelController lc, CharacterData data, int forceLevel=1, float treasureCount=0)

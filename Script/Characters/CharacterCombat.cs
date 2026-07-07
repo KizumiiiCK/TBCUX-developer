@@ -7,6 +7,8 @@ using UnityEngine;
 public abstract partial class Character
 {
     private const float CharacterTargetVolumeLength = 200;
+    // 全抗性命中特效类型，只读共享，避免每次完全抵抗命中时分配新List
+    protected static readonly List<AttackType> WaveInvalidHitTypes = new List<AttackType> { AttackType.wave_invalid };
     private bool incomingTraitCorresponding;
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
