@@ -559,23 +559,43 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039749
-    m_Localized: Deals <color=#00FFFF>4x</color> damage to Warrior type enemies.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Warrior type characters.
+      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Weaken</color>.
+      Each time that Warrior takes an against career damage, he/she gains +1 stack
+      of <color=#00FFFF>Weaken</color> for <color=#00FFFF>20</color>f, with a maximum
+      of 20 stacks.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039750
-    m_Localized: Deals <color=#00FFFF>4x</color> damage to Deffender type enemies.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Deffender type characters.
+      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Stop</color>.
+      Each time that Deffender takes an against career damage, he/she gains +1 stack
+      of <color=#00FFFF>Stop</color> for <color=#00FFFF>20</color>f, with a maximum
+      of 20 stacks.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039751
-    m_Localized: Deals <color=#00FFFF>4x</color> damage to Magician type enemies.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Magician type characters.
+      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Slow</color>.
+      Each time that Magician takes an against career damage, he/she gains +1 stack
+      of <color=#00FFFF>Slow</color> for <color=#00FFFF>20</color>f, with a maximum
+      of 20 stacks.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039752
-    m_Localized: Deals <color=#00FFFF>4x</color> damage to Supporter type enemies.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Supporter type characters. 
+      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Weaken</color>.
+      Each time that Supporter takes an against career damage, he/she gains <color=#00FFFF>Knockback</color>
+      and +2 stacks of <color=#00FFFF>Death Mark</color> for <color=#00FFFF>20</color>f,
+      with a maximum of 20 stacks.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039753
-    m_Localized: Deals <color=#00FFFF>4x</color> damage to Practician type enemies.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Practician type characters.
+      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Slow</color>
+      and <color=#00FFFF>Lacerate</color>. Each time that Practician takes an against
+      career damage, he/she gains +2 stack of <color=#00FFFF>Slow</color> and <color=#00FFFF>Lacerate</color>
+      for <color=#00FFFF>20</color>f, with a maximum of 20 stacks.
     m_Metadata:
       m_Items: []
   - m_Id: 11635609110396928

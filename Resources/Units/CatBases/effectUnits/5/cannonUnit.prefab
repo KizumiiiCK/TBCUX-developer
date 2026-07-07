@@ -121,7 +121,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 1
@@ -145,7 +145,7 @@ MonoBehaviour:
   EM: {fileID: 0}
   cannon_type: 5
   max_times: -1
-  damage_multiplier: 0
+  damage_multiplier: 0.0001
   cannon_patterns:
   - eff_flow_num: 0
     eff_flow_time: 15

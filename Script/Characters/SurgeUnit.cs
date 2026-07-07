@@ -20,7 +20,8 @@ public class SurgeUnit : Character
         surge_level = level;
         Mini = mini;
         distance = dis / 100f;
-        realDamage = new int[1] { (int)DMG };
+        float scaledDamage = Mini ? DMG * 0.2f : DMG;
+        realDamage = new int[1] { Mathf.Max(0, Mathf.RoundToInt(scaledDamage)) };
         traits = _traits;
         subtraits = _subtraits;
         againstCareer = opponentCE;
@@ -51,7 +52,9 @@ public class SurgeUnit : Character
         Vector3 basePos = transform.position;
         if (basePos.y < -900) basePos = basePos + new Vector3(0, 1000, 0);
         float surgeX = basePos.x + distance * sign;
-        SEnums surgeEffect = IsCat() ? SEnums.surge : SEnums.surge_e;
+        SEnums surgeEffect = IsCat()
+            ? (Mini ? SEnums.minisurge : SEnums.surge)
+            : (Mini ? SEnums.minisurge_e : SEnums.surge_e);
         AnimationDisplayer ads = EM.InstantiateBattleObject(surgeEffect, surgeX, basePos.y);
 
         // 固定判定范围(-150,150)

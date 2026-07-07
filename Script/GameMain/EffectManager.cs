@@ -194,10 +194,14 @@ public class EffectManager : MonoBehaviour
         { SEnums.invalid,      30 },
         { SEnums.wave,         30 },
         { SEnums.wave_e,       30 },
+        { SEnums.miniwave,     30 },
+        { SEnums.miniwave_e,   30 },
         { SEnums.heal,         60 },
         { SEnums.heal_e,       60 },
         { SEnums.surge,        -1 },
-        { SEnums.surge_e,      -1 }
+        { SEnums.surge_e,      -1 },
+        { SEnums.minisurge,    -1 },
+        { SEnums.minisurge_e,  -1 }
     };
     private static Dictionary<SEnums, int> Ydeviation = new Dictionary<SEnums, int>() {
         { SEnums.soul,         1 },
@@ -209,10 +213,14 @@ public class EffectManager : MonoBehaviour
         { SEnums.invalid,      1 },
         { SEnums.wave,         -1 },
         { SEnums.wave_e,       -1 },
+        { SEnums.miniwave,     -1 },
+        { SEnums.miniwave_e,   -1 },
         { SEnums.heal,         1 },
         { SEnums.heal_e,       1 },
         { SEnums.surge,        -1 },
-        { SEnums.surge_e,      -1 }
+        { SEnums.surge_e,      -1 },
+        { SEnums.minisurge,    -1 },
+        { SEnums.minisurge_e,  -1 }
     };
     private AnimDecryptPack GetOrCreateEffectPack(string effectName)
     {
@@ -404,7 +412,10 @@ public class EffectManager : MonoBehaviour
 }
 public enum SEnums
 {
-    soul, bite, critical, savage, zombieKiller, wave_invalid, invalid, wave, wave_e, heal, heal_e, surge, surge_e
+    soul, bite, critical, savage, zombieKiller, wave_invalid, invalid,
+    wave, wave_e, miniwave, miniwave_e,
+    heal, heal_e,
+    surge, surge_e, minisurge, minisurge_e
 }
 
 public class PooledEffectLifetime : MonoBehaviour

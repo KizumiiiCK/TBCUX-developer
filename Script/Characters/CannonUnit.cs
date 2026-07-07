@@ -99,9 +99,13 @@ public class CannonUnit : Character
             if (target == null) continue;
             if (attackedTargets.Contains(target)) continue;
             float finalDamage = dmg;
+            if (cannon_type == 4 && target.traits != null && target.traits.Mtl)
+            {
+                finalDamage = target.GetMaxHealth() * 0.7f;
+            }
             if (cannon_type == 5 && target.traits != null && target.traits.Z)
             {
-                finalDamage = target.GetMaxHealth() * 0.1f;
+                finalDamage = target.GetMaxHealth() * 0.15f;
             }
             target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
@@ -121,7 +125,7 @@ public class CannonUnit : Character
                 if (target.traits == null || !target.traits.Z) continue;
                 if (!CharacterTargetManager.Instance.IsTargetInCurrentRange(this, target)) continue;
 
-                float damageToUndetectableZombie = target.GetMaxHealth() * 0.25f;
+                float damageToUndetectableZombie = target.GetMaxHealth() * 0.30f;
                 target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
                 attackedTargets.Add(target);
                 hitCount++;

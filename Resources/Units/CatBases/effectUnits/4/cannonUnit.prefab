@@ -78,8 +78,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Targets: []
+  BaseTarget: {fileID: 0}
   UNITYAnimated: 0
-  animatorDisplayer: {fileID: 0}
+  SPINEAnimated: 0
   levelController: {fileID: 0}
   BlockAnimationSwitch: 0
   Health: 0
@@ -89,7 +90,7 @@ MonoBehaviour:
   DetectionRange: 0
   Cost: 0
   Cooldown: 0
-  ATKTypes: 0d00000004000000
+  ATKTypes: 0d000000
   atkInfos: []
   areaATK: 1
   atkDuration: 0
@@ -105,12 +106,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -126,7 +121,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 1
@@ -139,19 +134,14 @@ MonoBehaviour:
     probability: 100
     duration: 90
     intensity: 0
-  characterAbilities:
-  - name: 5
-    probability: 100
-    duration: 1
-    intensity: 1
+  characterAbilities: []
   atkTypeResis: []
   effectResistances: []
   effectMarkedSlots: 0000000000
   EM: {fileID: 0}
   cannon_type: 4
   max_times: 2
-  damage_multiplier: 0.1
-  DO_NOT_summon_while_no_target: 1
+  damage_multiplier: 0.001
   cannon_patterns:
   - eff_flow_num: 0
     eff_flow_time: 30

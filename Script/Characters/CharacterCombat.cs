@@ -253,20 +253,24 @@ public abstract partial class Character
         }
     }
     public abstract void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes);
+    protected int duration_agnCarrer_stack = 0;
     protected void DMG_CarrerEffects(ref float DMG, AgainstCareer opponentAC)
     {
         if (opponentAC == null) return;
         List<EffectName> matchedEffect = new List<EffectName>();
         int duration_stack = 0;
-        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 60; matchedEffect.Add(EffectName.weaken); }
-        if (career.Deffender && opponentAC.AggainstDeffender) { duration_stack += 60; matchedEffect.Add(EffectName.stop); }
-        if (career.Magician && opponentAC.AggainstMagician) { duration_stack += 60; matchedEffect.Add(EffectName.slow); }
-        if (career.Supporter && opponentAC.AggainstSupporter) { duration_stack += 120; matchedEffect.Add(EffectName.deathmark); EffectInstaller.Inflict(gameObject, EffectName.knockback, 1, 1); }
-        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 120; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
+        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 20; matchedEffect.Add(EffectName.weaken); }
+        if (career.Deffender && opponentAC.AggainstDeffender) { duration_stack += 20; matchedEffect.Add(EffectName.stop); }
+        if (career.Magician && opponentAC.AggainstMagician) { duration_stack += 20; matchedEffect.Add(EffectName.slow); }
+        if (career.Supporter && opponentAC.AggainstSupporter) { duration_stack += 40; matchedEffect.Add(EffectName.deathmark); EffectInstaller.Inflict(gameObject, EffectName.knockback, 1, 1); }
+        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 40; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
 
         if (duration_stack > 0)
         {
-            for (int i = 0; i < matchedEffect.Count; i++) EffectInstaller.Inflict(gameObject, matchedEffect[i], duration_stack, 50);
+            DMG *= 1.35f;
+            duration_agnCarrer_stack += duration_stack;
+            if(duration_agnCarrer_stack>400) duration_agnCarrer_stack = 400;
+            for (int i = 0; i < matchedEffect.Count; i++) EffectInstaller.Inflict(gameObject, matchedEffect[i], duration_agnCarrer_stack, 50);
         }
     }
     protected void TakeDMG(float DMG)

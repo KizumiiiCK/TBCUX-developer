@@ -177,6 +177,7 @@ public class CharacterDataEditor : Editor
         DrawSprite(portrait ?? EAIconResolver.LoadSpriteOrFallback(string.Empty), portraitW, portraitH);
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField($"{data.Name} {(data.isEliteUnit ? "[战术单位]" : string.Empty)}", subtitleStyle);
+        EditorGUILayout.LabelField($"{(isCat ? "50 级满宝数据" : "100% 倍率数据")}", subtitleStyle);
         DrawMainStatGrid(data, animSource);
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
@@ -185,9 +186,10 @@ public class CharacterDataEditor : Editor
     private void DrawMainStatGrid(CharacterData data, string animSource)
     {
         EditorGUILayout.Space(2f);
-        DrawMainStatRow("血量", data.Health.ToString(), "KB", data.KB.ToString());
+        int hp = data.Health * (isCat ? 27 : 1);
+        DrawMainStatRow("血量", hp.ToString(), "KB", data.KB.ToString());
         DrawMainStatRow("速度", data.Speed.ToString(), "攻击恢复", data.Reload.ToString());
-        DrawMainStatRow("索敌距离", data.DetectionRange.ToString(), "花费", data.Cost.ToString());
+        DrawMainStatRow("索敌距离", data.DetectionRange.ToString(), "金钱", data.Cost.ToString());
         DrawMainStatRow("冷却", data.Cooldown.ToString(), "范围攻击", data.areaATK ? "是" : "否");
         DrawMainStatRow("攻击时长", data.atkDuration.ToString(), "动画源", animSource);
     }
@@ -285,7 +287,8 @@ public class CharacterDataEditor : Editor
     {
         EditorGUILayout.BeginHorizontal("box");
         DrawAtkInfoTableCell(index.ToString(), AtkColIndexWidth, atkTableCellStyle);
-        DrawAtkInfoTableCell(info.ATK.ToString("0.##"), AtkColAtkWidth, atkTableCellStyle);
+        int atk = (int)info.ATK * (isCat ? 27 : 1);
+        DrawAtkInfoTableCell(atk.ToString("0.##"), AtkColAtkWidth, atkTableCellStyle);
         DrawAtkInfoTableCell($"({info.ATKRange.x}, {info.ATKRange.y})", AtkColRangeWidth, atkTableCellStyle);
         DrawAtkInfoTableCell(info.frame.ToString(), AtkColFrameWidth, atkTableCellStyle);
         DrawAtkInfoTableCell(FormatAtkInfoFlags(info), AtkColFlagsWidth, atkTableCellStyle);

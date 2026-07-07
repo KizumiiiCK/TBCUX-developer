@@ -19,7 +19,8 @@ public class WaveUnit : Character
         attackedTargets.Clear();
         wave_level = level;
         Mini = mini;
-        realDamage = new int[1] { (int)DMG };
+        float scaledDamage = Mini ? DMG * 0.2f : DMG;
+        realDamage = new int[1] { Mathf.Max(0, Mathf.RoundToInt(scaledDamage)) };
         traits = _traits;
         subtraits = _subtraits;
         againstCareer = opponentCE;
@@ -60,7 +61,10 @@ public class WaveUnit : Character
             float offsetX = (dis + i * 2) * sign;
             float waveX = basePos.x + offsetX;
             transform.position = new Vector3(waveX, basePos.y, basePos.z);
-            EM.InstantiateBattleObject(IsCat() ? SEnums.wave : SEnums.wave_e, waveX, basePos.y);
+            SEnums waveEffect = IsCat()
+                ? (Mini ? SEnums.miniwave : SEnums.wave)
+                : (Mini ? SEnums.miniwave_e : SEnums.wave_e);
+            EM.InstantiateBattleObject(waveEffect, waveX, basePos.y);
 
             // 单帧判定：范围(-100,100)，立刻攻击一次
             SetAttackRange(-100, 100);

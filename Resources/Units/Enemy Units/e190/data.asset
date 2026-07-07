@@ -12,54 +12,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: 10022
+  Name: e099
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 500
-    frame: 18
+  - ATK: 4200
+    frame: 32
     DoNotTriggerEffects: 0
-    DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 220}
+    ATKRange: {x: 0, y: 550}
+  - ATK: 4200
+    frame: 40
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: 0, y: 550}
+  - ATK: 8400
+    frame: 62
+    DoNotTriggerEffects: 0
+    Friendly: 0
+    ATKRange: {x: 600, y: 700}
   areaATK: 0
-  atkDuration: 24
-  Health: 540
-  KB: 3
-  Speed: 7
-  Reload: 40
-  DetectionRange: 220
-  Cost: 450
-  Cooldown: 60
-  UNITYAnimated: 0
-  SPINEAnimated: 0
+  atkDuration: 90
+  Health: 85236
+  KB: 6
+  Speed: 40
+  Reload: 150
+  DetectionRange: 500
+  Cost: 6969
+  Cooldown: 0
+  UNITYAnimated: 1
   traits:
-    Red: 1
-    Flt: 1
-    Blk: 1
+    Red: 0
+    Flt: 0
+    Blk: 0
     Mtl: 0
-    Ang: 1
-    Aln: 1
-    Z: 1
-    Re: 1
-    Aku: 1
+    Ang: 0
+    Aln: 0
+    Z: 0
+    Re: 0
+    Aku: 0
     None: 1
+  traitSpecials:
+    barrierValue: 0
+    akuSheildValue: 0
+    zombieReviveTimes: 0
+    zombieDiveTime: 0
+    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 1
+    Warrior: 0
     Deffender: 0
     Magician: 0
     Supporter: 0
-    Practician: 0
+    Practician: 1
   againstCareer:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSupporter: 0
+    AggainstSuppoter: 1
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -68,27 +82,18 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects:
-  - name: 1
-    probability: 22
-    duration: 144
-    intensity: 75
-  - name: 3
-    probability: 22
-    duration: 72
+  - name: 2
+    probability: 100
+    duration: 120
     intensity: 0
   abilities:
-  - name: 8
-    probability: 20
-    duration: 0
-    intensity: 0
-  - name: 13
-    probability: 33
-    duration: 1
-    intensity: 0
-  - name: 16
-    probability: 33
-    duration: 2
+  - name: 30
+    probability: 60
+    duration: 100
     intensity: 900
   atkTypeResis: []
-  effectResistances: []
-  baseEmotion: 0
+  effectResistances:
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
