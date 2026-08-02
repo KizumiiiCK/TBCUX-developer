@@ -59,9 +59,25 @@ public class CharacterSummoner : MonoBehaviour
     public static void ResetSpineOrderLayer(GameObject go, string sortingLayer, int order)
     {
         if (go == null) return;
-        MeshRenderer mr = go.GetComponentInChildren<MeshRenderer>(true);
-        if (mr != null)
+        // Spine单位可能包含多个MeshRenderer（含子层/分离层），
+        // 只设置第一个会导致部分单位仍保持0层级。
+        SkeletonAnimation[] skeletonAnimations = go.GetComponentsInChildren<SkeletonAnimation>(true);
+        for (int i = 0; i < skeletonAnimations.Length; i++)
         {
+            SkeletonAnimation skeleton = skeletonAnimations[i];
+            if (skeleton == null) continue;
+            MeshRenderer mr = skeleton.GetComponent<MeshRenderer>();
+            if (mr == null) continue;
+            mr.sortingLayerName = sortingLayer;
+            mr.sortingOrder = order;
+        }
+
+        // 兜底：部分Spine结构在同一对象树中还会有额外MeshRenderer，统一写入避免残留0层级。
+        MeshRenderer[] renderers = go.GetComponentsInChildren<MeshRenderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            MeshRenderer mr = renderers[i];
+            if (mr == null) continue;
             mr.sortingLayerName = sortingLayer;
             mr.sortingOrder = order;
         }

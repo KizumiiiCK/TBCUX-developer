@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: id:moonexpruins
   gainXP: 0
-  BaseHealth: 999999
-  mapSize: 3500
+  BaseHealth: 300000
+  mapSize: 3600
   maxEmenyCount: 50
   BackgroundID: 2
   BaseImageID: 334
@@ -29,21 +29,24 @@ MonoBehaviour:
   rewardlist: []
   enemySummoners:
   - HealthPercentageOnBreak: 100
-    bgm: 003
+    bgm: HazeReverb-Feast
     enemySummonInfos:
-    - enemyID: e016
-      ratio: 1800
-      bossShock: 0
-      repeat: -1
-      firstAppear: 120
-      repeatMin: 30
-      repeatMax: 30
-      previewSprite: {fileID: 21300000, guid: 398adfb02260fd84ea72fdd7cd8d276a, type: 3}
-    - enemyID: e020
-      ratio: 200
-      bossShock: 0
-      repeat: -1
-      firstAppear: 300
-      repeatMin: 1800
-      repeatMax: 1800
-      previewSprite: {fileID: 21300000, guid: b76161fd1b209cf4bb3a9fe9bfb13f17, type: 3}
+    - enemyID: e705
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 150
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 60beb280315321b4db1a0778581afa08, type: 3}
+  - HealthPercentageOnBreak: 99
+    bgm: HazeReverb-Feast
+    enemySummonInfos:
+    - enemyID: e701
+      ratio: 100
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 60beb280315321b4db1a0778581afa08, type: 3}

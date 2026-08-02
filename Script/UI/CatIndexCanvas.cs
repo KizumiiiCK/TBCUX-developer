@@ -347,6 +347,10 @@ public class CatIndexCanvas : UICanvasMain
     {
         CharacterUpgradeSave.UpgradeCharacterByXP($"{rality}{current_code}");
         RewardingSystem.ConsumeItem(RewardName.XP, upgrade_cost);
+        if (cateyeConsume_Amount > 0)
+        {
+            RewardingSystem.ConsumeItem(cateyeConsuming, cateyeConsume_Amount);
+        }
         baseCanvas.UpdateCurrencies();
         ShowCertainCharInTire(current_tire, false);
         CheckUpgradeAvailable();
@@ -357,11 +361,10 @@ public class CatIndexCanvas : UICanvasMain
         CharacterUpgradeSave.UpgradeDetails UD = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
         current_level = UD.TotalLevel();
         upgrade_cost = (int)(UpgradeCost.XPcost[rality, UD.upgraded_level % 10] * (1 + UD.upgraded_level / 10 * 0.5f));
-        cateyeConsuming = CateyeConsume_rality[rality];
-        cateyeConsume_Amount = (UD.upgraded_level < 30 ? 0 : 1) + (UD.upgraded_level < 45 ? 0 : 1);
-        cateyeConsume_Amount = rality == 0 ? 0 : cateyeConsume_Amount;
+        cateyeConsuming = GetCateyeConsumeReward(rality);
+        cateyeConsume_Amount = GetCateyeConsumeAmount(rality, UD.upgraded_level);
         bool XPenough = RewardingSystem.CheckItemIsEnough(RewardName.XP, upgrade_cost);
-        bool EYEenough = RewardingSystem.CheckItemIsEnough(cateyeConsuming, cateyeConsume_Amount);
+        bool EYEenough = cateyeConsume_Amount <= 0 || RewardingSystem.CheckItemIsEnough(cateyeConsuming, cateyeConsume_Amount);
         int xpRewardId = RewardingSystem.RewardNumMap[RewardName.XP];
         int catEyeRewardId = RewardingSystem.RewardNumMap[cateyeConsuming];
         if (CharacterUpgradeSave.XPUpgradeAvailable($"{rality}{current_code}"))
@@ -796,9 +799,26 @@ public class CatIndexCanvas : UICanvasMain
         }
     }
 
+    private RewardName GetCateyeConsumeReward(int rarity)
+    {
+        if (CateyeConsume_rality.TryGetValue(rarity, out RewardName reward))
+        {
+            return reward;
+        }
+        return RewardName.Cateye_EX;
+    }
+
+    private int GetCateyeConsumeAmount(int rarity, int upgradedLevel)
+    {
+        if (rarity <= 0 || upgradedLevel < 30) return 0;
+        if (upgradedLevel < 40) return 1;
+        if (upgradedLevel < 50) return 2;
+        return 5;
+    }
+
     private void RefreshFrameUICurrenciesForRarity()
     {
-        cateyeConsuming = CateyeConsume_rality[rality];
+        cateyeConsuming = GetCateyeConsumeReward(rality);
         runtimeExtraCurrencyIds.Clear();
 
         if (ExtraCurrencyIds != null)

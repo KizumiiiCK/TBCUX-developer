@@ -24,7 +24,7 @@ public class CatCharacter : AnimatorCachedCharacter
     public override void UpdateAnimation()
     {
         //0:idle;   1:atk;    2:kb;   3:wait.
-        if (BlockAnimationSwitch) return;
+        if (externalAnimControl) return;
         if (onATK)
         {
             animatedframes += frame_step;
@@ -95,6 +95,7 @@ public class CatCharacter : AnimatorCachedCharacter
         if(onKB) return;
         bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);
         SetIncomingTraitCorresponding(matchedTraits);
+        if (matchedTraits) Passive_OnMatchedTraits(atkTypes);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         if(atkTypes!=null)foreach (var ar in atkTypeResis)
         {

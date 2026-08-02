@@ -35,6 +35,11 @@ public class CharacterTargetManager : MonoBehaviour
     // 投射物不存在Friendly攻击
     private List<Character> catProjectiles = new List<Character>();
     private List<Character> enemyProjectiles = new List<Character>();
+    // 波动/烈波对象池（用于快速定位特定投射物）
+    private List<WaveUnit> catWaves = new List<WaveUnit>();
+    private List<WaveUnit> enemyWaves = new List<WaveUnit>();
+    private List<SurgeUnit> catSurges = new List<SurgeUnit>();
+    private List<SurgeUnit> enemySurges = new List<SurgeUnit>();
     
     // 攻击范围存储：角色 -> (nearRange, farRange)
     private Dictionary<Character, Vector2> attackRanges = new Dictionary<Character, Vector2>();
@@ -215,11 +220,19 @@ public class CharacterTargetManager : MonoBehaviour
         {
             if (!catProjectiles.Contains(projectile))
                 catProjectiles.Add(projectile);
+            if (projectile is WaveUnit catWave && !catWaves.Contains(catWave))
+                catWaves.Add(catWave);
+            if (projectile is SurgeUnit catSurge && !catSurges.Contains(catSurge))
+                catSurges.Add(catSurge);
         }
         else
         {
             if (!enemyProjectiles.Contains(projectile))
                 enemyProjectiles.Add(projectile);
+            if (projectile is WaveUnit enemyWave && !enemyWaves.Contains(enemyWave))
+                enemyWaves.Add(enemyWave);
+            if (projectile is SurgeUnit enemySurge && !enemySurges.Contains(enemySurge))
+                enemySurges.Add(enemySurge);
         }
     }
 
@@ -231,9 +244,17 @@ public class CharacterTargetManager : MonoBehaviour
         if (projectile == null) return;
 
         if (projectile.IsCat())
+        {
             catProjectiles.Remove(projectile);
+            if (projectile is WaveUnit catWave) catWaves.Remove(catWave);
+            if (projectile is SurgeUnit catSurge) catSurges.Remove(catSurge);
+        }
         else
+        {
             enemyProjectiles.Remove(projectile);
+            if (projectile is WaveUnit enemyWave) enemyWaves.Remove(enemyWave);
+            if (projectile is SurgeUnit enemySurge) enemySurges.Remove(enemySurge);
+        }
 
         // 清理攻击范围数据（投射物不使用Friendly）
         attackRanges.Remove(projectile);
@@ -332,6 +353,44 @@ public class CharacterTargetManager : MonoBehaviour
         return buffer.Count;
     }
 
+    /// <summary>
+    /// 将指定阵营的角色写入buffer（可选包含不可检测角色），用于基地倒塌等批量处理。
+    /// 仅返回激活中的普通角色（不含基地塔），并自动去重。
+    /// </summary>
+    public int FillTeamCharacters(bool catTeam, List<Character> buffer, Character exclude = null, bool includeUndetectable = true)
+    {
+        if (buffer == null) return 0;
+        buffer.Clear();
+
+        List<Character> source = catTeam ? allCats : allEnemies;
+        for (int i = 0; i < source.Count; i++)
+        {
+            Character character = source[i];
+            if (!IsValidTeamMember(character, catTeam, exclude)) continue;
+            buffer.Add(character);
+        }
+
+        if (includeUndetectable)
+        {
+            foreach (Character character in undetectableCharacters)
+            {
+                if (!IsValidTeamMember(character, catTeam, exclude)) continue;
+                if (!buffer.Contains(character)) buffer.Add(character);
+            }
+        }
+
+        return buffer.Count;
+    }
+
+    private bool IsValidTeamMember(Character character, bool catTeam, Character exclude)
+    {
+        if (character == null || character == exclude) return false;
+        if (character.gameObject == null || !character.gameObject.activeInHierarchy) return false;
+        if (character.IsCat() != catTeam) return false;
+        if (character is CatBase || character is DogeBase) return false;
+        return true;
+    }
+
     public void NotifyCharacterStatePulse(Character character, EmotionBattleState state)
     {
         if (!CanDriveEmotion(character)) return;
@@ -374,6 +433,10 @@ public class CharacterTargetManager : MonoBehaviour
         allEnemies.RemoveAll(c => c == null);
         catProjectiles.RemoveAll(p => p == null);
         enemyProjectiles.RemoveAll(p => p == null);
+        catWaves.RemoveAll(w => w == null);
+        enemyWaves.RemoveAll(w => w == null);
+        catSurges.RemoveAll(s => s == null);
+        enemySurges.RemoveAll(s => s == null);
         deathMarkedCharacters.RemoveWhere(c => c == null || c.gameObject == null || !c.gameObject.activeInHierarchy);
         undetectableCharacters.RemoveWhere(c => c == null || c.gameObject == null || !c.gameObject.activeInHierarchy);
         if (catTower == null || !catTower.gameObject) catTower = null;
@@ -446,6 +509,23 @@ public class CharacterTargetManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 供未注册到allCats/allEnemies中的角色（如BaseCharacter替身）主动刷新目标。
+    /// 这样它可以攻击，但仍不会被常规目标系统当作受击对象。
+    /// </summary>
+    public void RefreshTargetsForCharacter(Character attacker)
+    {
+        if (attacker == null || attacker.gameObject == null || !attacker.gameObject.activeInHierarchy) return;
+
+        bool isFriendly = friendlyModes.TryGetValue(attacker, out bool friendly) && friendly;
+        bool isCat = attacker.IsCat();
+        List<Character> targetList = isFriendly
+            ? (isCat ? allCats : allEnemies)
+            : (isCat ? allEnemies : allCats);
+
+        UpdateTargetsForCharacter(attacker, targetList, !isFriendly);
+    }
+
+    /// <summary>
     /// 为投射物列表更新目标（投射物只攻击敌对阵营）
     /// </summary>
     private void UpdateTargetsForProjectiles(List<Character> projectiles, List<Character> targetList)
@@ -466,6 +546,39 @@ public class CharacterTargetManager : MonoBehaviour
 
         List<Character> targets = projectile.IsCat() ? allEnemies : allCats;
         UpdateTargetsForCharacter(projectile, targets, true);
+    }
+
+    /// <summary>
+    /// 移除离目标最近的敌方 WaveUnit（仅影响敌方波动，不影响己方波动）。
+    /// </summary>
+    public bool TryRemoveNearestIncomingWaveUnit(Character target)
+    {
+        if (target == null) return false;
+        bool targetIsCat = target.IsCat();
+        List<WaveUnit> incomingWaves = targetIsCat ? enemyWaves : catWaves;
+        if (incomingWaves == null || incomingWaves.Count == 0) return false;
+
+        WaveUnit nearest = null;
+        float bestSqr = float.MaxValue;
+        Vector3 targetPos = target.transform.position;
+        for (int i = 0; i < incomingWaves.Count; i++)
+        {
+            WaveUnit wave = incomingWaves[i];
+            if (wave == null || wave.gameObject == null || !wave.gameObject.activeInHierarchy) continue;
+            float sqr = (wave.transform.position - targetPos).sqrMagnitude;
+            if (sqr < bestSqr)
+            {
+                bestSqr = sqr;
+                nearest = wave;
+            }
+        }
+
+        if (nearest == null) return false;
+        incomingWaves.Remove(nearest);
+        if (targetIsCat) enemyProjectiles.Remove(nearest);
+        else catProjectiles.Remove(nearest);
+        Destroy(nearest.gameObject);
+        return true;
     }
 
     /// <summary>
@@ -1149,6 +1262,10 @@ public class CharacterTargetManager : MonoBehaviour
         dogeTower = null;
         catProjectiles.Clear();
         enemyProjectiles.Clear();
+        catWaves.Clear();
+        enemyWaves.Clear();
+        catSurges.Clear();
+        enemySurges.Clear();
         attackRanges.Clear();
         friendlyModes.Clear();
         undetectableCharacters.Clear();

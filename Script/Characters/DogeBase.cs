@@ -13,6 +13,7 @@ public class DogeBase : EnemyCharacter
     private AudioSource audioSource;
     private TMP_Text healthInfo;
     private Coroutine shakecoroutine;
+    private readonly List<Character> teamDeadBuffer = new List<Character>(128);
     private bool dead = false;
     public bool bossLock = false;
     //public override void Attack(GameObject specific = null) { }
@@ -60,12 +61,16 @@ public class DogeBase : EnemyCharacter
                 Dead();
                 realHealth = 0;
                 shakecoroutine = StartCoroutine(ShakeTower(atkType, true));
-                GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-                for (int i = 0; i < enemies.Length; i++)
+                CharacterTargetManager manager = CharacterTargetManager.Instance;
+                int count = manager.FillTeamCharacters(false, teamDeadBuffer, this, includeUndetectable: true);
+                for (int i = 0; i < count; i++)
                 {
-                    EnemyCharacter cc = enemies[i].GetComponent<EnemyCharacter>();
-                    if (cc != null) cc.Dead();
+                    EnemyCharacter cc = teamDeadBuffer[i] as EnemyCharacter;
+                    if (cc == null) continue;
+                    if (cc.HasAbility(AbilityName.BaseCharacter)) continue;
+                    cc.Dead();
                 }
+                teamDeadBuffer.Clear();
             }  
         }
         else if (shakecoroutine == null) shakecoroutine = StartCoroutine(ShakeTower(atkType));

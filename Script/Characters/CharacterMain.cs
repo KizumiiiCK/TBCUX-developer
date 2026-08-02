@@ -66,6 +66,7 @@ public abstract partial class Character : MonoBehaviour
     private bool cancelAttackStartRequested = false;
     private bool undetectableByTargeting = false;
     private bool canTargetUndetectable = false;
+    private bool skipTargetRegistration = false;
     public bool[] effectMarkedSlots = new bool[5];
     protected float startingY = 1;
     protected Coroutine coroutineKB = null;
@@ -89,6 +90,19 @@ public abstract partial class Character : MonoBehaviour
     public bool IsUndetectableByTargeting() => undetectableByTargeting;
     public void SetCanTargetUndetectable(bool value) => canTargetUndetectable = value;
     public bool CanTargetUndetectable() => canTargetUndetectable;
+    public void SetSkipTargetRegistration(bool value) => skipTargetRegistration = value;
+    public bool ShouldSkipTargetRegistration() => skipTargetRegistration;
+    public bool HasAbility(AbilityName abilityName)
+    {
+        if (characterAbilities == null) return false;
+        for (int i = 0; i < characterAbilities.Length; i++)
+        {
+            CharacterAbility ability = characterAbilities[i];
+            if (ability == null) continue;
+            if (ability.name == abilityName) return true;
+        }
+        return false;
+    }
     public bool IsOnAttack() => onATK;
 
     public void CacheTopPositionY()

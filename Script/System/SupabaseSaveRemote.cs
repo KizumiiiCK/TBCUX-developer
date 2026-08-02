@@ -208,17 +208,20 @@ public static class SupabaseSaveRemote
             var dict = new Dictionary<string, CharacterUpgradeSave.UpgradeDetails>();
             foreach (var row in rows)
             {
+                CharacterProficiency proficiency = new CharacterProficiency
+                {
+                    level = row.proficiency_level
+                };
+                proficiency.LoadFromLongProgressArray(row.proficiency_stack);
+                proficiency.UpdateLevel();
+
                 var ud = new CharacterUpgradeSave.UpgradeDetails
                 {
                     tire_unlocked = row.tire_unlocked ?? new bool[4],
                     talent_unlocked = row.talent_unlocked,
                     upgraded_level = row.upgraded_level,
                     plus_level = row.plus_level,
-                    proficiency = new CharacterProficiency
-                    {
-                        level = row.proficiency_level,
-                        pro_stack = row.proficiency_stack ?? new int[4]
-                    }
+                    proficiency = proficiency
                 };
                 dict[row.character_id] = ud;
             }
@@ -310,6 +313,12 @@ public static class SupabaseSaveRemote
         foreach (var kv in dict)
         {
             var ud = kv.Value ?? new CharacterUpgradeSave.UpgradeDetails();
+            if (ud.proficiency != null)
+            {
+                ud.proficiency.NormalizeProgress();
+                ud.proficiency.UpdateLevel();
+            }
+            long[] proficiencyStack = ud.proficiency != null ? ud.proficiency.ToLongProgressArray() : new long[4];
             string row = "{"
                 + $"\"pid\":\"{pid}\","
                 + $"\"character_id\":\"{JsonEscape(kv.Key)}\","
@@ -318,7 +327,7 @@ public static class SupabaseSaveRemote
                 + $"\"upgraded_level\":{ud.upgraded_level},"
                 + $"\"plus_level\":{ud.plus_level},"
                 + $"\"proficiency_level\":{(ud.proficiency != null ? ud.proficiency.level : 0)},"
-                + $"\"proficiency_stack\":{IntArrayJson(ud.proficiency != null ? ud.proficiency.pro_stack : new int[4])}"
+                + $"\"proficiency_stack\":{LongArrayJson(proficiencyStack)}"
                 + "}";
             rows.Add(row);
         }
@@ -510,6 +519,19 @@ public static class SupabaseSaveRemote
         return sb.ToString();
     }
 
+    private static string LongArrayJson(long[] arr)
+    {
+        if (arr == null) return "[]";
+        var sb = new StringBuilder("[");
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if (i > 0) sb.Append(',');
+            sb.Append(arr[i]);
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
     private static string StringArrayJson(string[] arr)
     {
         if (arr == null) return "[]";
@@ -624,7 +646,7 @@ public static class SupabaseSaveRemote
         public int upgraded_level;
         public int plus_level;
         public int proficiency_level;
-        public int[] proficiency_stack;
+        public long[] proficiency_stack;
     }
 
     [Serializable]

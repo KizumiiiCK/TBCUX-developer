@@ -17,6 +17,7 @@ public class SurgeUnit : Character
 
     public void BeginSurgeAttack(int level, bool mini, int dis, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
+        CharacterTargetManager.Instance.RegisterProjectile(this);
         surge_level = level;
         Mini = mini;
         distance = dis / 100f;

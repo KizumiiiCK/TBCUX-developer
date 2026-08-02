@@ -19,9 +19,10 @@ MonoBehaviour:
   - ATK: 720
     frame: 8
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 400}
-  areaATK: 1
+  areaATK: 0
   atkDuration: 29
   Health: 1620
   KB: 3
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0

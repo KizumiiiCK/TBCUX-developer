@@ -12,54 +12,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: e099
+  Name: e190
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 4200
-    frame: 32
-    DoNotTriggerEffects: 0
+  - ATK: 12000
+    frame: 75
+    DoNotTriggerEffects: 1
+    DoNotTriggerAbilities: 0
+    Friendly: 0
+    ATKRange: {x: 0, y: 350}
+  - ATK: 12000
+    frame: 88
+    DoNotTriggerEffects: 1
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 550}
-  - ATK: 4200
-    frame: 40
+  - ATK: 7200
+    frame: 285
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 550}
-  - ATK: 8400
-    frame: 62
+    ATKRange: {x: 450, y: 850}
+  - ATK: 7200
+    frame: 290
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 600, y: 700}
-  areaATK: 0
-  atkDuration: 90
-  Health: 85236
-  KB: 6
-  Speed: 40
-  Reload: 150
-  DetectionRange: 500
-  Cost: 6969
+    ATKRange: {x: 850, y: 1250}
+  areaATK: 1
+  atkDuration: 390
+  Health: 720000
+  KB: 8
+  Speed: 44
+  Reload: 100
+  DetectionRange: 350
+  Cost: 8250
   Cooldown: 0
   UNITYAnimated: 1
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
     Blk: 0
     Mtl: 0
     Ang: 0
-    Aln: 0
+    Aln: 1
     Z: 0
     Re: 0
     Aku: 0
-    None: 1
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
+    None: 0
   subtraits:
-    Starred: 0
+    Starred: 1
     Colossus: 0
     Behemoth: 0
     Sage: 0
@@ -73,7 +77,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 1
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -82,18 +86,15 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects:
-  - name: 2
+  - name: 9
     probability: 100
-    duration: 120
-    intensity: 0
-  abilities:
-  - name: 30
-    probability: 60
-    duration: 100
-    intensity: 900
+    duration: 150
+    intensity: 5
+  abilities: []
   atkTypeResis: []
   effectResistances:
-  - name: 2
+  - name: 4
     probability: 100
     duration: 0
     intensity: 0
+  baseEmotion: 0

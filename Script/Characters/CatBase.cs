@@ -20,6 +20,7 @@ public class CatBase : CatCharacter
     private AudioSource audioSource;
     private TMP_Text healthInfo;
     private Coroutine shakecoroutine;
+    private readonly List<Character> teamDeadBuffer = new List<Character>(128);
     private int num_base;
     private int num_deco;
     private int cannonCharged = 0;
@@ -78,13 +79,16 @@ public class CatBase : CatCharacter
         Passive_OnAfterTakeDamage();
         if (realHealth <= 0) 
         { 
+            Dead();
             realHealth = 0; shakecoroutine = StartCoroutine(ShakeTower(atkType,true));
-            GameObject[] cats = GameObject.FindGameObjectsWithTag("Cat");
-            for (int i = 0; i < cats.Length; i++)
+            CharacterTargetManager manager = CharacterTargetManager.Instance;
+            int count = manager.FillTeamCharacters(true, teamDeadBuffer, this, includeUndetectable: true);
+            for (int i = 0; i < count; i++)
             {
-                CatCharacter cc = cats[i].GetComponent<CatCharacter>();
+                CatCharacter cc = teamDeadBuffer[i] as CatCharacter;
                 if (cc != null) cc.Dead();
             }
+            teamDeadBuffer.Clear();
         }
         else if (shakecoroutine == null) shakecoroutine = StartCoroutine(ShakeTower(atkType));
         UpdateHealthInfo();
@@ -117,6 +121,7 @@ public class CatBase : CatCharacter
     public override void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 350) { }
     public override void Dead()
     {
+        if (isBaseDefeated) return;
         isBaseDefeated = true;
         GameObject.Find("Level Initializer").GetComponent<LevelController>().Failed();
         StartCoroutine(BreakingDown());

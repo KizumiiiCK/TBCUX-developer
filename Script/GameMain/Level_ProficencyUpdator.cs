@@ -82,7 +82,7 @@ public class Level_ProficencyUpdator : MonoBehaviour
         int idx = FindIndex(code);
         if (idx < 0 || proficiencies[idx] == null) return;
 
-        proficiencies[idx].pro_stack[0]++;
+        proficiencies[idx].AddProgress(0, 1);
     }
 
     public void Record_CharacterDamageDealt(string code, int dmg)
@@ -90,7 +90,7 @@ public class Level_ProficencyUpdator : MonoBehaviour
         int idx = FindIndex(code);
         if (idx < 0 || proficiencies[idx] == null) return;
 
-        proficiencies[idx].pro_stack[1] += Mathf.Abs(dmg);
+        proficiencies[idx].AddProgress(1, SafeAbsInt(dmg));
     }
 
     public void Record_CharacterDamageTaken(string code, int dmg)
@@ -98,7 +98,7 @@ public class Level_ProficencyUpdator : MonoBehaviour
         int idx = FindIndex(code);
         if (idx < 0 || proficiencies[idx] == null) return;
 
-        proficiencies[idx].pro_stack[2] += Mathf.Abs(dmg);
+        proficiencies[idx].AddProgress(2, SafeAbsInt(dmg));
     }
 
     public void Record_CharacterDebuffSuffered(string code, int t)
@@ -106,7 +106,13 @@ public class Level_ProficencyUpdator : MonoBehaviour
         int idx = FindIndex(code);
         if (idx < 0 || proficiencies[idx] == null) return;
 
-        proficiencies[idx].pro_stack[3] += Mathf.Abs(t);
+        proficiencies[idx].AddProgress(3, SafeAbsInt(t));
+    }
+
+    private static int SafeAbsInt(int value)
+    {
+        if (value >= 0) return value;
+        return value == int.MinValue ? int.MaxValue : -value;
     }
 
     // ============================================================

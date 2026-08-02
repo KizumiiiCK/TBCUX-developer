@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Ink_Body
+  m_Shader: {fileID: 4800000, guid: 7b9dd214420510247a1737761b916e88, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: e824bcfea6b47a1448c6f85288d03f84, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AttackIntensity: 0
+    - _BreathAmp: 0.08
+    - _BreathPhase: 0
+    - _ChargeLevel: 0
+    - _ColorInheritance: 0.269
+    - _ConeTightness: -5.36
+    - _DashGhost: 0
+    - _Directionality: 0.341
+    - _EdgeSoftness: 0.49
+    - _HitFlash: 0
+    - _IsBack: 0
+    - _NoiseScale: 0.63
+    - _OutlineWidth: 2.63
+    - _SpreadRange: 0.02
+    - _WobbleAmp: 0.27
+    - _WobbleSpeed: 0.66
+    m_Colors:
+    - _ChargeDarken: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EdgeColor: {r: 0.02, g: 0.02, b: 0.02, a: 0.95}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpreadDirection: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []

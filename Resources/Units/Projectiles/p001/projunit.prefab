@@ -68,21 +68,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Targets: []
-  UNITYAnimated: 0
+  BaseTarget: {fileID: 0}
+  UNITYAnimated: 1
   SPINEAnimated: 0
   levelController: {fileID: 0}
-  BlockAnimationSwitch: 0
   Health: 0
   KB: 0
   Speed: 0
   Reload: 0
-  DetectionRange: 0
+  DetectionRange: 30
   Cost: 0
   Cooldown: 0
   ATKTypes: 
-  atkInfos: []
+  atkInfos:
+  - ATK: 0
+    frame: 0
+    DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
+    Friendly: 0
+    ATKRange: {x: 0, y: 50}
   areaATK: 0
-  atkDuration: 0
+  atkDuration: 30
   one_off: 0
   traits:
     Red: 0
@@ -95,12 +101,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -116,7 +116,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0

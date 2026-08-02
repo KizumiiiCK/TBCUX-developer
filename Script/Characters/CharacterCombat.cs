@@ -9,6 +9,8 @@ public abstract partial class Character
     private const float CharacterTargetVolumeLength = 200;
     // 全抗性命中特效类型，只读共享，避免每次完全抵抗命中时分配新List
     protected static readonly List<AttackType> WaveInvalidHitTypes = new List<AttackType> { AttackType.wave_invalid };
+    // 当本次攻击禁止触发效果时，职业克制也应失效（全false）。
+    private static readonly AgainstCareer EmptyAgainstCareer = new AgainstCareer();
     private bool incomingTraitCorresponding;
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
@@ -46,7 +48,7 @@ public abstract partial class Character
     }
 
     #region Attack Functions
-    public void Attack(float dmg, bool areaAttack, bool doNotTrigger, GameObject specific = null, bool doNotTriggerAbilities = false)
+    public void Attack(float dmg, bool areaAttack, bool doNotTrigger, bool doNotTriggerAbilities, GameObject specific = null)
     {
         Character GetTarget<T>(GameObject go) where T : Character
         {
@@ -63,6 +65,7 @@ public abstract partial class Character
         {
             List<CharacterEffect> decisionEff = new List<CharacterEffect>();
             List<AttackType> types = new List<AttackType>();
+            AgainstCareer effectiveAgainstCareer = doNotTrigger ? EmptyAgainstCareer : againstCareer;
             foreach (var at in ATKTypes) types.Add(at);
             //float dmg = realDamage[animateStep] * ATK_muiltipier;
             dmg *= ATK_muiltipier;
@@ -78,7 +81,7 @@ public abstract partial class Character
                 {
                     if (Target != null && Target.IsCat() == IsCat())
                         types.Add(AttackType.friendly);
-                    Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                    Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                     TryRecordHitTarget(Target);
                     if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                 }
@@ -98,7 +101,7 @@ public abstract partial class Character
                     {
                         if (Target != null && Target.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        Target?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                        Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                         TryRecordHitTarget(Target);
                         if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                     }
@@ -113,7 +116,7 @@ public abstract partial class Character
                         if (!CanHitTargetNow(ec)) continue;
                         if (ec != null && ec.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        ec?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                        ec?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                         TryRecordHitTarget(ec);
                     }
                     if (baseTarget != null && !Targets.Contains(baseTarget))
@@ -123,7 +126,7 @@ public abstract partial class Character
                         {
                             if (bt != null && bt.IsCat() == IsCat())
                                 types.Add(AttackType.friendly);
-                            bt?.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, decisionEff, types);
+                            bt?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                             TryRecordHitTarget(bt);
                         }
                     }
@@ -265,7 +268,7 @@ public abstract partial class Character
         if (career.Deffender && opponentAC.AggainstDeffender) { duration_stack += 20; matchedEffect.Add(EffectName.stop); }
         if (career.Magician && opponentAC.AggainstMagician) { duration_stack += 20; matchedEffect.Add(EffectName.slow); }
         if (career.Supporter && opponentAC.AggainstSupporter) { duration_stack += 40; matchedEffect.Add(EffectName.deathmark); EffectInstaller.Inflict(gameObject, EffectName.knockback, 1, 1); }
-        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 40; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
+        if (career.Practician && opponentAC.AggainstPractician) { duration_stack += 40; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
 
         if (duration_stack > 0)
         {
@@ -299,10 +302,10 @@ public abstract partial class Character
         if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Max(DMG,0));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
-    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400) 
+    public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400)
     {
         if (Speed == 0 && GetHealth() > 1) return;
-        BlockAnimationSwitch = false; 
+        externalAnimControl = false;
         if (coroutineKB == null)
         {
             lastTriggeredKBType = kbt;
@@ -323,7 +326,7 @@ public abstract partial class Character
         }
         int d1 = duration * 2 / 3;
         int d2 = duration - d1;
-        BlockAnimationSwitch = false;
+        externalAnimControl = false;
         onKB = true; onATK = false;
         // KB can interrupt a Friendly attack step; force search mode back to enemy side.
         CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, false);
@@ -395,6 +398,7 @@ public abstract partial class Character
         string e = IsCat() ? "Cat Units" : "Enemy Units";
         GameObject wu = Resources.Load<GameObject>($"Units/{e}/waveunit");
         WaveUnit ww = Instantiate(wu, transform.position, Quaternion.identity).GetComponent<WaveUnit>();
+        CharacterTargetManager.Instance.RegisterProjectile(ww);
         ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
     }
     public void Surge_Attack(int level, bool mini, int dis, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
@@ -402,6 +406,7 @@ public abstract partial class Character
         string e = IsCat() ? "Cat Units" : "Enemy Units";
         GameObject su = Resources.Load<GameObject>($"Units/{e}/surgeunit");
         SurgeUnit ss = Instantiate(su, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
+        CharacterTargetManager.Instance.RegisterProjectile(ss);
         ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
     }
     public virtual void Dead()
@@ -447,6 +452,8 @@ public abstract partial class Character
     public bool IsOnKB() => onKB;
     public KB_Type GetLastTriggeredKBType() => lastTriggeredKBType;
     public IReadOnlyList<Character> GetLastAttackHitTargets() => lastAttackHitTargets;
+    public int GetRealReload() => realReload;
+    public void SetRealReload(int reloadT) => realReload = reloadT < 0 ? 0 : reloadT;
 
     private void TryRecordHitTarget(Character target)
     {

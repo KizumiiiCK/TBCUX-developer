@@ -13,9 +13,11 @@ public class WaveUnit : Character
     bool Mini=false;
     private GameObject W;
     private AnimDecryptPack adp;
+    private GameObject currentWave;
 
     public void BeginWaveAttack(int level, bool mini, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
+        CharacterTargetManager.Instance.RegisterProjectile(this);
         attackedTargets.Clear();
         wave_level = level;
         Mini = mini;
@@ -52,7 +54,7 @@ public class WaveUnit : Character
     {
         Vector3 basePos = transform.position;
         if (basePos.y < -900) basePos = basePos + new Vector3(0, 1000, 0);
-        int dis = 1;
+        int dis = 3;
         int sign=IsCat() ? -1 : 1;
         int delayer = Mini ? 2 : 5;
         for(int i = 0; i < wave_level; i++)
@@ -64,11 +66,13 @@ public class WaveUnit : Character
             SEnums waveEffect = IsCat()
                 ? (Mini ? SEnums.miniwave : SEnums.wave)
                 : (Mini ? SEnums.miniwave_e : SEnums.wave_e);
-            EM.InstantiateBattleObject(waveEffect, waveX, basePos.y);
+            currentWave = EM.InstantiateBattleObject(waveEffect, waveX, basePos.y).gameObject;
 
             // 单帧判定：范围(-100,100)，立刻攻击一次
-            SetAttackRange(-100, 100);
-            ApplyProjectileAttack(1f);
+            int minRange = i == 0 ? -300 : -100;
+            int maxRange = 100;
+            SetAttackRange(minRange, maxRange);
+            if (ApplyProjectileAttack(1f)) yield break;
             for (int j=0; j<delayer;j++) yield return new WaitForFixedUpdate();
         }
         Destroy(gameObject);
@@ -78,13 +82,25 @@ public class WaveUnit : Character
 
     }
 
-    private void ApplyProjectileAttack(float damageScale)
+    /// <returns>true if wave was stopped and this unit was destroyed</returns>
+    private bool ApplyProjectileAttack(float damageScale)
     {
         CharacterTargetManager.Instance.RefreshTargetsForProjectile(this);
 
-        float dmg = realDamage[0] * damageScale;
-        var effects = characterEffects != null ? new List<CharacterEffect>(characterEffects) : null;
+        // 群体伤害前：区间内若有 WaveStop 对手，直接移除自身，避免同框友军仍被打到。
+        for (int i = 0; i < Targets.Count; i++)
+        {
+            if (Targets[i] == null) continue;
+            Character probe = Targets[i].GetComponent<Character>();
+            if (probe == null || probe.GetHealth() <= 0) continue;
+            if (!probe.HasAbility(AbilityName.wave_stop)) continue;
+            EM?.InstantiateBattleObject(SEnums.wave_stop, probe.transform.position.x, probe.transform.position.y);
+            Destroy(currentWave);
+            Destroy(gameObject);
+            return true;
+        }
 
+        float dmg = realDamage[0] * damageScale;
         for (int i = Targets.Count - 1; i >= 0; i--)
         {
             if (Targets[i] == null) continue;
@@ -95,6 +111,7 @@ public class WaveUnit : Character
             target.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
         }
+        return false;
     }
 
     protected override void OnDestroy() => base.OnDestroy();

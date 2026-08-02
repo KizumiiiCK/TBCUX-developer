@@ -19,7 +19,12 @@ public abstract partial class Character
     protected AnimationDisplayer animatorDisplayer;
     protected SkeletonAnimation skeletonAnimator;
     public LevelController levelController;
-    public bool BlockAnimationSwitch = false;
+    // 外部动画控制：某个被动技能正在完全接管该角色（自定义动画 + 移动/攻击流程），
+    // 此时角色自身的 UpdateAnimation 行为应暂停，但 SwitchAnimation 仍可正常写入
+    // （由驱动型被动通过 OnAfterSwitchingAnim 钉住动画号）。取代旧的、易出错的 BlockAnimationSwitch。
+    protected bool externalAnimControl = false;
+    public void SetExternalAnimControl(bool value) => externalAnimControl = value;
+    public bool IsExternalAnimControlled() => externalAnimControl;
     protected int frame_step = 1;
 
     //private const string CAT_PATH_FMT = "Units/Cat Units/{0}/{1:000}/{2}/data";
@@ -58,6 +63,7 @@ public abstract partial class Character
     }
     
     protected void StartPos()=>startingY = transform.position.y;
+    public void RefreshStartPos() => StartPos();
 
     private void FixedUpdate()
     {
@@ -141,6 +147,7 @@ public abstract partial class Character
                 ATK = src.ATK,
                 frame = src.frame,
                 DoNotTriggerEffects = src.DoNotTriggerEffects,
+                DoNotTriggerAbilities = src.DoNotTriggerAbilities,
                 Friendly = src.Friendly,
                 ATKRange = range
             };
@@ -150,7 +157,9 @@ public abstract partial class Character
     }
     private int current_animation_index = 999;
     public void SwitchAnimation(int index) {
-        if (BlockAnimationSwitch) return;
+        // 被动技能可以把请求的动画号改写成自己的阶段动画（如遁地、practician），
+        // 从而无需再用 BlockAnimationSwitch 关闭/打开来打断原动画更新。KB/死亡等动画会被放行。
+        index = Passive_OnAfterSwitchingAnim(index);
         if (current_animation_index == index) return;
         current_animation_index = index;
         if (UNITYAnimated){ animator.SetInteger("state", index);}
@@ -187,6 +196,7 @@ public abstract partial class Character
 
     private void RegisterToTargetManager()
     {
+        if (ShouldSkipTargetRegistration()) return;
         switch (RegistrationKind)
         {
             case TargetRegistrationKind.Projectile:

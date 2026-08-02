@@ -32,12 +32,8 @@ public class ProjectileUnit : AnimatorCachedCharacter
         KB = 1;
         Speed = projectileSpeed;
         Reload = 0;
-        DetectionRange = 50;
         Cost = 0;
         Cooldown = 0;
-        UNITYAnimated = true;
-        areaATK = false;
-        atkDuration = 30;
 
         traits = JsonUtility.FromJson<Traits>(JsonUtility.ToJson(source.traits));
         subtraits = JsonUtility.FromJson<SubTraits>(JsonUtility.ToJson(source.subtraits));
@@ -55,7 +51,6 @@ public class ProjectileUnit : AnimatorCachedCharacter
         if (effects != null && triggerEffectThisAttack)
         {
             characterEffects = effects.Select(e => JsonUtility.FromJson<CharacterEffect>(JsonUtility.ToJson(e))).ToArray();
-            for (int i = 0; i < characterEffects.Length; i++) characterEffects[i].probability = 100;
         }
         else
         {
@@ -63,14 +58,13 @@ public class ProjectileUnit : AnimatorCachedCharacter
         }
 
         // Use one attack step from current hit.
-        atkInfos = new ATKInfo[1];
         atkInfos[0] = new ATKInfo
         {
             ATK = damage,
             frame = 1,
             DoNotTriggerEffects = !triggerEffectThisAttack,
+            DoNotTriggerAbilities = !triggerEffectThisAttack,
             Friendly = false,
-            ATKRange = new Vector2(0, 50)
         };
         realDamage = new int[1] { Mathf.Max(1, Mathf.RoundToInt(damage)) };
 
@@ -105,14 +99,14 @@ public class ProjectileUnit : AnimatorCachedCharacter
 
     public override void UpdateAnimation()
     {
-        if (BlockAnimationSwitch) return;
+        if (externalAnimControl) return;
         if (onKB) return;
 
         if (onATK)
         {
             animatedframes += frame_step;
             if (animatedframes == atkInfos[animateStep].frame)
-                Attack(realDamage[animateStep], false, atkInfos[animateStep].DoNotTriggerEffects);
+                Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects, atkInfos[animateStep].DoNotTriggerAbilities);
             if (animatedframes >= atkDuration)
             {
                 Passive_OnFinishAttack();
@@ -134,7 +128,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         }
 
         // Move forward until hit or destroyed by out-of-bounds check.
-        SwitchAnimation(1);
+        SwitchAnimation(0);
         int dir = IsCat() ? -1 : 1;
         transform.Translate(new Vector2(TBCspeedTranslator(realSpeed * dir) * Time.deltaTime, 0f));
         if (Mathf.Abs(transform.position.x) > 50) Destroy(gameObject);

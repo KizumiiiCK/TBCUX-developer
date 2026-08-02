@@ -320,10 +320,11 @@ public class UserRestoreAccountPage : MonoBehaviour
                 plus_level = GetInt(row, "plus_level", 0),
                 proficiency = new CharacterProficiency
                 {
-                    level = GetInt(row, "proficiency_level", 0),
-                    pro_stack = ToIntArray(GetValue(row, "proficiency_stack"), 4)
+                    level = GetInt(row, "proficiency_level", 0)
                 }
             };
+            ud.proficiency.LoadFromLongProgressArray(ToLongArray(GetValue(row, "proficiency_stack"), 4));
+            ud.proficiency.UpdateLevel();
             dict[id] = ud;
         }
 
@@ -884,6 +885,25 @@ public class UserRestoreAccountPage : MonoBehaviour
             return arr;
         }
         return fallbackLength > 0 ? new int[fallbackLength] : Array.Empty<int>();
+    }
+
+    private static long[] ToLongArray(object obj, int fallbackLength)
+    {
+        if (obj is List<object> list)
+        {
+            long[] arr = new long[list.Count];
+            for (int i = 0; i < list.Count; i++)
+            {
+                object v = list[i];
+                if (v is long l) arr[i] = l;
+                else if (v is int i32) arr[i] = i32;
+                else if (v is double d) arr[i] = (long)d;
+                else if (!long.TryParse(v?.ToString() ?? "0", out arr[i])) arr[i] = 0L;
+                if (arr[i] < 0L) arr[i] = 0L;
+            }
+            return arr;
+        }
+        return fallbackLength > 0 ? new long[fallbackLength] : Array.Empty<long>();
     }
 
     private static bool[] ToBoolArray(object obj, int fallbackLength)

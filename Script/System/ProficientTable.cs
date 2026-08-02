@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,11 +60,23 @@ public class ProficientTable : MonoBehaviour
     private void GetDescriptionText(int L)
     {
         string tcolor = "<color=#" + (CP.Compare(L) ? "00FF00" : "FF6060") + ">";
-        string formated = tcolor + CP.pro_stack[L].ToString() + "</color>";
+        long progressValue = CP != null ? CP.GetProgressLong(L) : 0L;
+        string formated = tcolor + FormatProgressValue(progressValue) + "</color>";
         LocalizationHelper.GetLocalizedText(UXPref.Localized_Descriptions, $"D:p:{L}",
                 LocalizedText => description_txt.text = string.Format(LocalizedText, formated) ?? "NULL");
         medalImg.sprite = StorageImageHelper.GetItemImageByOrder(100 + L);
         medalImg.color = L < CP.level ? Color.white : new Color(0.5f, 0.5f, 0.5f);
+    }
+
+    private static string FormatProgressValue(long value)
+    {
+        if (value > 1_000_000_000L)
+        {
+            int exponent = (int)Math.Floor(Math.Log10(value));
+            double mantissa = value / Math.Pow(10d, exponent);
+            return $"{mantissa:0.0000}e+{exponent}";
+        }
+        return value.ToString();
     }
     private void InitialzeButtons()
     {

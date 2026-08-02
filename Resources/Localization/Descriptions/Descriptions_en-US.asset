@@ -530,12 +530,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 9849289182625792
-    m_Localized: "<size=36>While this character launchs an attack <color=#00FFFF>that
-      triggers effects</color>, accumulate 1 stack of <color=#FF4040>20%</color>
-      attack damage, and launches a special attack after <color=#FF4040>6</color>
-      stacks\u3002If the character is knocked back\uFF0Cinstantly launches special
-      attack with {2} range\u3002Special attack (animation) once consumes all stacks
-      off attack damage\u3002</size>"
+    m_Localized: "While this character launchs an attack <color=#00FFFF>that triggers
+      effects</color>, accumulate 1 stack of <color=#FF4040>20%</color> attack damage,
+      and launches a special attack after <color=#FF4040>6</color> stacks\u3002If
+      the character is knocked back\uFF0Cinstantly launches special attack with {2}
+      range\u3002Special attack (animation) once consumes all stacks off attack damage\u3002"
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039744
@@ -913,6 +912,28 @@ MonoBehaviour:
   - m_Id: 92529100950159369
     m_Localized: Damage taken from <color=#00FFFF>Base</color> is reduced by {0}%
       .
+    m_Metadata:
+      m_Items: []
+  - m_Id: 103440311086563328
+    m_Localized: Impatience
+    m_Metadata:
+      m_Items: []
+  - m_Id: 103440311145283584
+    m_Localized: Pressure Learning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 103440311145283585
+    m_Localized: The character receive only {0}% of the damages. After finishing
+      an attack, reduce attack cooldown by {1}f, but suffers {2}% more damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 103440311145283586
+    m_Localized: "Trains itself to gain attack type resistance. While receiving an
+      attack, the character gains {0}\u2030 resistance to normal attacks. While receiving
+      special attacks like wave and surge, gains {0}% resistance to that attack.
+      For any resistance reaches 100%, it blocks all damage and gains 100% <color=#00FFFF>Savage
+      Blow</color>. However, receiving <color=#00FFFF>Critical</color> attacks takes
+      full damage and reduce all resistance by 15%."
     m_Metadata:
       m_Items: []
   references:

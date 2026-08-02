@@ -741,6 +741,11 @@ public static class CharacterUpgradeSave
                 ud.proficiency = new CharacterProficiency();
                 Debug.Log($"[Save Upgrade] Added proficiency to {kv.Key}");
             }
+            else if (ud.proficiency.NormalizeProgress())
+            {
+                needsUpdate = true;
+                Debug.Log($"[Save Upgrade] Normalized overflowed proficiency for {kv.Key}");
+            }
         }
         
         // 确保默认角色存在且正确初始化（只检查这一个角色，不遍历所有角色）
@@ -918,6 +923,7 @@ public static class CharacterUpgradeSave
             CharacterProficiency incoming = pros[i];
 
             if (incoming == null) continue;
+            incoming.NormalizeProgress();
 
             // Ensure entry exists
             if (!dict.TryGetValue(id, out UpgradeDetails ud))
@@ -929,8 +935,9 @@ public static class CharacterUpgradeSave
             // Ensure proficiency exists
             if (ud.proficiency == null)
                 ud.proficiency = new CharacterProficiency();
-            // Add (accumulate) values instead of overwriting
-            for (int j = 0; j < 4; j++) ud.proficiency.pro_stack[j] = incoming.pro_stack[j];
+            // Persist full progress (base int + overflow counter) without changing save schema shape.
+            ud.proficiency.LoadFromLongProgressArray(incoming.ToLongProgressArray());
+            ud.proficiency.NormalizeProgress();
             ud.proficiency.UpdateLevel();
         }
         Save(dict);
@@ -943,6 +950,7 @@ public static class CharacterUpgradeSave
         string id = character_codes;
 
         if (pros == null) return;
+        pros.NormalizeProgress();
 
         // Ensure entry exists
         if (!dict.TryGetValue(id, out UpgradeDetails ud))
@@ -953,8 +961,9 @@ public static class CharacterUpgradeSave
         // Ensure proficiency exists
         if (ud.proficiency == null)
             ud.proficiency = new CharacterProficiency();
-        // Add (accumulate) values instead of overwriting
-        for (int j = 0; j < 4; j++) ud.proficiency.pro_stack[j] = pros.pro_stack[j];
+        // Persist full progress (base int + overflow counter) without changing save schema shape.
+        ud.proficiency.LoadFromLongProgressArray(pros.ToLongProgressArray());
+        ud.proficiency.NormalizeProgress();
         ud.proficiency.UpdateLevel();
         Save(dict);
     }
@@ -981,6 +990,10 @@ public static class CharacterUpgradeSave
         if (ud.proficiency == null)
         {
             ud.proficiency = new CharacterProficiency();
+            changed = true;
+        }
+        else if (ud.proficiency.NormalizeProgress())
+        {
             changed = true;
         }
         if (changed)

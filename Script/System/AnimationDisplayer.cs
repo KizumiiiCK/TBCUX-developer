@@ -1392,54 +1392,6 @@ public class AnimationDisplayer : MonoBehaviour
         return defaultValueGetters[id](node);
     }
 
-    void ButtonControl()
-    {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            maanimPointer = -1;
-            AnimationReset();
-        }
-        else if (Input.GetKeyDown(KeyCode.W))
-        {
-            PrintTree();
-            Debug.Log(ModelTree.GetLength(0));
-        }
-        else if (Input.GetKeyDown(KeyCode.E))
-        {
-            FrameUpdate();
-            if (AnimationSpeedRate == 0)
-            {
-                CurrentFrame += 1;
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.R))
-        {
-            //Debug.Log("reset model");
-            ResetOpacity(0);
-            ResetScaleTree(0);
-            ResetCurrentRotation(0);
-        }
-        else if (Input.GetKeyDown(KeyCode.T))
-        {
-            PrintMaanimData();
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            SetMaanimPointer(0);
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            SetMaanimPointer(1);
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            SetMaanimPointer(2);
-        }
-        else if (Input.GetKeyDown(KeyCode.F))
-        {
-            SetMaanimPointer(3);
-        }
-    }
     public void Initialization(AnimDecryptPack decryptPack)
     {
         isInitialzed = true;
@@ -1494,10 +1446,6 @@ public class AnimationDisplayer : MonoBehaviour
         if (!isInitialzed)
         {
             return;
-        }
-        if (EnabledButtonControllMovement)
-        {
-            ButtonControl();
         }
         FrameUpdate();
     }

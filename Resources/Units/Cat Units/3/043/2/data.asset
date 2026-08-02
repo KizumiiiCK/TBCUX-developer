@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 360
     frame: 6
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 350}
   areaATK: 0
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -70,7 +71,8 @@ MonoBehaviour:
   abilities:
   - name: 14
     probability: 100
-    duration: 4
+    duration: 5
     intensity: 0
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

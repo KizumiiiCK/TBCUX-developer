@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 public static class AbilityInstaller
@@ -18,6 +19,7 @@ public static class AbilityInstaller
         { AbilityName.savage,     typeof(Savage)},
         { AbilityName.wave,       typeof(Wave)},
         { AbilityName.miniWave,   typeof(MiniWave)},
+        { AbilityName.wave_stop,  typeof(WaveStop)},
         { AbilityName.surge,      typeof(Surge)},
         { AbilityName.miniSurge,  typeof(MiniSurge)},
         { AbilityName.metal,      typeof(Metal)},
@@ -34,10 +36,13 @@ public static class AbilityInstaller
         { AbilityName.akuShield, typeof(AkuShield)},
         { AbilityName.barrierBreaker, typeof(BarrierBreaker)},
         { AbilityName.shieldPiercing, typeof(SheildPiercing)},
+        { AbilityName.impatience, typeof(Impatience)},
+        { AbilityName.pressureLearn, typeof(PressureLearn)},
         { AbilityName.selfSlow, typeof(SelfSlowDebuff)},
         { AbilityName.selfWeaken, typeof(SelfWeakenDebuff)},
         { AbilityName.selfLacerate, typeof(SelfLacerateDebuff)},
         { AbilityName.selfDeathmark, typeof(SelfDeathmarkDebuff)},
+        { AbilityName.BaseCharacter, typeof(BaseCharacter)},
         { AbilityName.invisible, typeof(Aux_InvisibleShow)},
         { AbilityName.dodge, typeof(DodgePassive)},
         { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
@@ -59,17 +64,42 @@ public static class AbilityInstaller
         passive.OnAddingAbility(C);
     }
 }
+[Flags]
+public enum PassiveHooks
+{
+    None              = 0,
+    OnStartingGame    = 1 << 0,
+    OnDeployUnit      = 1 << 1,
+    OnAddingAbility   = 1 << 2,
+    OnBeforeTakeDamage= 1 << 3,
+    OnMatchedTraits   = 1 << 4,
+    OnAfterTakeDamage = 1 << 5,
+    OnStartAttack     = 1 << 6,
+    OnAttacking       = 1 << 7,
+    OnAfterAttack     = 1 << 8,
+    OnFinishAttack    = 1 << 9,
+    OnAfterSwitchingAnim = 1 << 10,
+    OnBeforeKB        = 1 << 11,
+    OnAfterKB         = 1 << 12,
+    OnDead            = 1 << 13,
+}
+
 public interface PassiveNode
 {
+    // Bitmask of the hooks this passive actually overrides, so hot paths can skip
+    // dispatch entirely when no installed passive listens to a given hook.
+    PassiveHooks Hooks { get; }
     void OnStartingGame();
     void OnDeployUnit(Character character);
     void OnAddingAbility(Character character);
     void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes);
+    void OnMatchedTraits(Character character, List<AttackType> atkTypes);
     void OnAfterTakeDamage(Character character);
     void OnStartAttack(Character character);
     void OnAttacking(Character character, ref float dmg, ref List<AttackType> types);
     void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types);
     void OnFinishAttack(Character character);
+    void OnAfterSwitchingAnim(Character character, ref int index);
     void OnBeforeKB(Character character);
     void OnAfterKB(Character character);
     void OnDead(Character character);
@@ -81,15 +111,67 @@ public abstract class PassiveSkill : PassiveNode
     protected int probability;
     protected int duration;
     protected int intensity;
+
+    // Reflection is done once per concrete skill type, then cached. Each skill exposes only
+    // the hooks it actually overrides, so Character can aggregate a mask and skip dead dispatch.
+    private static readonly Dictionary<Type, PassiveHooks> hookCache = new Dictionary<Type, PassiveHooks>();
+    private static readonly (string method, PassiveHooks flag)[] hookMethods =
+    {
+        (nameof(OnStartingGame),       PassiveHooks.OnStartingGame),
+        (nameof(OnDeployUnit),         PassiveHooks.OnDeployUnit),
+        (nameof(OnAddingAbility),      PassiveHooks.OnAddingAbility),
+        (nameof(OnBeforeTakeDamage),   PassiveHooks.OnBeforeTakeDamage),
+        (nameof(OnMatchedTraits),      PassiveHooks.OnMatchedTraits),
+        (nameof(OnAfterTakeDamage),    PassiveHooks.OnAfterTakeDamage),
+        (nameof(OnStartAttack),        PassiveHooks.OnStartAttack),
+        (nameof(OnAttacking),          PassiveHooks.OnAttacking),
+        (nameof(OnAfterAttack),        PassiveHooks.OnAfterAttack),
+        (nameof(OnFinishAttack),       PassiveHooks.OnFinishAttack),
+        (nameof(OnAfterSwitchingAnim), PassiveHooks.OnAfterSwitchingAnim),
+        (nameof(OnBeforeKB),           PassiveHooks.OnBeforeKB),
+        (nameof(OnAfterKB),            PassiveHooks.OnAfterKB),
+        (nameof(OnDead),               PassiveHooks.OnDead),
+    };
+
+    private PassiveHooks cachedHooks = (PassiveHooks)(-1); // -1 = not computed yet
+    public PassiveHooks Hooks
+    {
+        get
+        {
+            if (cachedHooks == (PassiveHooks)(-1)) cachedHooks = ResolveHooks(GetType());
+            return cachedHooks;
+        }
+    }
+
+    private static PassiveHooks ResolveHooks(Type type)
+    {
+        if (hookCache.TryGetValue(type, out PassiveHooks cached)) return cached;
+
+        PassiveHooks mask = PassiveHooks.None;
+        for (int i = 0; i < hookMethods.Length; i++)
+        {
+            MethodInfo mi = type.GetMethod(hookMethods[i].method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            // If the method is declared somewhere other than PassiveSkill, the skill overrides it.
+            if (mi != null && mi.DeclaringType != typeof(PassiveSkill))
+            {
+                mask |= hookMethods[i].flag;
+            }
+        }
+        hookCache[type] = mask;
+        return mask;
+    }
+
     public virtual void OnStartingGame() { }
     public virtual void OnDeployUnit(Character character) { }
     public virtual void OnAddingAbility(Character character) { }
     public virtual void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes) { }
+    public virtual void OnMatchedTraits(Character character, List<AttackType> atkTypes) { }
     public virtual void OnAfterTakeDamage(Character character) { }
     public virtual void OnStartAttack(Character character) { }
     public virtual void OnAttacking(Character character, ref float dmg, ref List<AttackType> types) { }
     public virtual void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types) { }
     public virtual void OnFinishAttack(Character character) { }
+    public virtual void OnAfterSwitchingAnim(Character character, ref int index) { }
     public virtual void OnBeforeKB(Character character) { }
     public virtual void OnAfterKB(Character character) { }
     public virtual void OnDead(Character character) { }
@@ -97,6 +179,90 @@ public abstract class PassiveSkill : PassiveNode
     public bool Triggered() { return UnityEngine.Random.Range(0, 100) < probability; }
     protected virtual void SummonPassiveEffect() { }
 }
+
+/// <summary>
+/// 驱动型被动技能的基类：技能通过协程完全接管角色的动画/移动/攻击（如遁地 ZombieDive、practician 特殊攻击）。
+/// 取代旧的、散落在各处的 BlockAnimationSwitch 开关写法：
+///  - BeginDrive/EndDrive 管理 externalAnimControl（暂停角色自身行为，但不阻断 SwitchAnimation）。
+///  - 当驱动中时，OnAfterSwitchingAnim 把角色试图切换的动画号钉在当前阶段动画上（KB/死亡动画放行）。
+///  - RunDrive 用 try/finally 包裹协程，保证无论如何退出（KB、角色销毁、异常）都会释放控制权，
+///    从根本上消除"卡在自定义动画里出不来"的问题。
+/// </summary>
+public abstract class AnimationDrivingPassive : PassiveSkill
+{
+    protected bool driving;
+    private int pinnedAnim = -1;
+
+    // KB 与死亡动画永远放行，其它动画号在驱动期间被钉住。
+    private const int KBAnim = 3;
+
+    /// <summary>进入驱动模式：暂停角色自身 UpdateAnimation，并把动画钉在 phaseAnim。</summary>
+    protected void BeginDrive(Character c, int phaseAnim)
+    {
+        if (c == null) return;
+        driving = true;
+        pinnedAnim = phaseAnim;
+        c.SetExternalAnimControl(true);
+        c.SwitchAnimation(phaseAnim);
+    }
+
+    /// <summary>切换到驱动期间的另一个阶段动画（如 in -> dive -> out）。</summary>
+    protected void SetPhaseAnim(Character c, int phaseAnim)
+    {
+        pinnedAnim = phaseAnim;
+        if (c != null) c.SwitchAnimation(phaseAnim);
+    }
+
+    /// <summary>退出驱动模式，把控制权还给角色。可安全重复调用。</summary>
+    protected void EndDrive(Character c)
+    {
+        driving = false;
+        pinnedAnim = -1;
+        if (c != null) c.SetExternalAnimControl(false);
+    }
+
+    public override void OnAfterSwitchingAnim(Character character, ref int index)
+    {
+        if (!driving) return;
+        if (index == KBAnim) return; // KB 动画放行
+        index = pinnedAnim;          // 其它一律钉在当前阶段动画
+    }
+
+    /// <summary>
+    /// 用 try/finally 包裹实际驱动协程，保证结束时一定 EndDrive。
+    /// 子类实现 DriveRoutine，正常按帧 yield 即可，无需手动清理控制标志。
+    /// </summary>
+    protected IEnumerator RunDrive(Character character, int enterAnim)
+    {
+        BeginDrive(character, enterAnim);
+        try
+        {
+            IEnumerator inner = DriveRoutine(character);
+            while (true)
+            {
+                // 角色被销毁或已被 KB 打断则提前结束。
+                if (character == null || character.IsOnKB()) break;
+                bool moveNext;
+                try { moveNext = inner.MoveNext(); }
+                catch (System.Exception e) { Debug.LogError($"[AnimationDrivingPassive] drive error: {e}"); break; }
+                if (!moveNext) break;
+                yield return inner.Current;
+            }
+        }
+        finally
+        {
+            EndDrive(character);
+            OnDriveEnd(character);
+        }
+    }
+
+    /// <summary>子类的实际驱动逻辑；期间可用 SetPhaseAnim 切换阶段动画。</summary>
+    protected abstract IEnumerator DriveRoutine(Character character);
+
+    /// <summary>驱动结束时（无论正常完成、被 KB 打断还是异常）保证执行的清理。可用 character.IsOnKB() 区分退出原因。</summary>
+    protected virtual void OnDriveEnd(Character character) { }
+}
+
 public class AffectByStrategy : PassiveSkill
 {
     public override void OnDeployUnit(Character character)
@@ -150,50 +316,55 @@ public class AffectByStrategy : PassiveSkill
 public class Supporter : PassiveSkill
 {
 }
-public class Practician : PassiveSkill
+public class Practician : AnimationDrivingPassive
 {
+    private const int SpecialAnim = 4;
     private float atk = 1;
     private int stack = 0;
     private static int maxStack = 6;
     private static float atkMuitipiler = 0.2f;
+
     public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
         if (stack > maxStack) return;
         stack++;
-        Debug.Log($"Stack = {stack}");
         atk += Mathf.Abs(dmg);
     }
     public override void OnFinishAttack(Character character)
     {
-        if (stack >= maxStack) SpecialAttack(character,false);
+        if (stack >= maxStack) SpecialAttack(character);
     }
     public override void OnAfterKB(Character character)
     {
-        SpecialAttack(character,true);
+        SpecialAttack(character);
     }
-    private void SpecialAttack(Character c, bool extend)
+    private void SpecialAttack(Character c)
     {
-        c.SwitchAnimation(4);
-        c.BlockAnimationSwitch = true;
-        c.StartCoroutine(SpecialProcess(c,extend));
+        if (c == null || driving) return;
+        c.StartCoroutine(RunDrive(c, SpecialAnim));
     }
-    private IEnumerator SpecialProcess(Character c, bool extend)
+    protected override IEnumerator DriveRoutine(Character c)
     {
         int t = 0;
         c.Supporter_Target_Switch(true);
-        c.SetAttackRange(0, extend?Mathf.Abs(intensity):c.DetectionRange);
+        c.SetAttackRange(0, Mathf.Abs(intensity));
         while (t < duration && !c.IsOnKB())
         {
             t++;
             if (t == probability)
             {
-                c.Attack(atk * atkMuitipiler, true, intensity<0);
+                c.Attack(atk * atkMuitipiler, true, intensity < 0, false);
             }
             yield return new WaitForFixedUpdate();
         }
-        c.BlockAnimationSwitch = false;
-        c.ExitAttack();
-        c.Supporter_Target_Switch(true);
+    }
+    protected override void OnDriveEnd(Character c)
+    {
+        if (c != null)
+        {
+            c.ExitAttack();
+            c.Supporter_Target_Switch(true);
+        }
         atk = 1;
         stack = 0;
     }
@@ -294,6 +465,116 @@ public class SheildPiercing : PassiveSkill
         if (Triggered()) types.Add(AttackType.sheildPiercing);
     }
 }
+public class Impatience : PassiveSkill
+{
+    private int impatience_level = 0;
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        DMG = DMG * (probability + intensity * impatience_level) / 100;
+    }
+    public override void OnFinishAttack(Character character)
+    {
+        impatience_level++;
+        character.SetRealReload(character.GetRealReload() - duration);
+    }
+}
+public class PressureLearn : PassiveSkill
+{
+    private const int MaxPressure = 1000;
+    private const int CriticalReducer = 200;
+    private const int SpecMultiplier = 10;
+
+    private int normal_pressure = 0;
+    private int wave_pressure = 0;
+    private int surge_pressure = 0;
+    private int explode_pressure = 0;
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        bool hasCritical = false;
+        bool hasNormal = false;
+        bool hasWave = false;
+        bool hasSurge = false;
+        bool hasExplode = false;
+
+        if (atkTypes != null)
+        {
+            for (int i = 0; i < atkTypes.Count; i++)
+            {
+                switch (atkTypes[i])
+                {
+                    case AttackType.critical:
+                        hasCritical = true;
+                        break;
+                    case AttackType.none:
+                        hasNormal = true;
+                        break;
+                    case AttackType.wave:
+                        hasWave = true;
+                        break;
+                    case AttackType.surge:
+                        hasSurge = true;
+                        break;
+                    case AttackType.explosion:
+                        hasExplode = true;
+                        break;
+                }
+            }
+        }
+
+        if (hasCritical)
+        {
+            ReduceAllPressure(CriticalReducer);
+            return;
+        }
+
+        bool hasRecognizedType = hasNormal || hasWave || hasSurge || hasExplode;
+        if (!hasRecognizedType)
+        {
+            ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+        }
+        else
+        {
+            if (hasNormal) ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+            if (hasWave) ApplyPressureAndScaleDamage(ref wave_pressure, duration * SpecMultiplier, ref DMG);
+            if (hasSurge) ApplyPressureAndScaleDamage(ref surge_pressure, duration * SpecMultiplier, ref DMG);
+            if (hasExplode) ApplyPressureAndScaleDamage(ref explode_pressure, duration * SpecMultiplier, ref DMG);
+        }
+
+        if (GetMaxPressure() >= MaxPressure) DMG = 0f;
+    }
+
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (GetMaxPressure() < MaxPressure) return;
+
+        if (types == null) types = new List<AttackType>();
+        if (!types.Contains(AttackType.savage))
+        {
+            types.Add(AttackType.savage);
+        }
+    }
+
+    private void ApplyPressureAndScaleDamage(ref int pressure, int gain, ref float dmg)
+    {
+        pressure = Mathf.Clamp(pressure + Mathf.Max(0, gain), 0, MaxPressure);
+        dmg *= (MaxPressure - pressure) / (float)MaxPressure;
+    }
+
+    private void ReduceAllPressure(int reducer)
+    {
+        normal_pressure = Mathf.Max(0, normal_pressure - reducer);
+        wave_pressure = Mathf.Max(0, wave_pressure - reducer);
+        surge_pressure = Mathf.Max(0, surge_pressure - reducer);
+        explode_pressure = Mathf.Max(0, explode_pressure - reducer);
+    }
+
+    private int GetMaxPressure()
+    {
+        return Mathf.Max(normal_pressure, wave_pressure, surge_pressure, explode_pressure);
+    }
+}
+
 public abstract class SelfPermanentDebuffBase : PassiveSkill
 {
     // Keep "permanent" long enough for battles while avoiding float->int overflow/precision edge cases
@@ -403,17 +684,17 @@ public class MiniSurge : PassiveSkill
         }
     }
 }
+/// <summary>
+/// 波动阻挡：由 WaveUnit 在群体结算前主动检测 HasAbility(wave_stop) 并自毁。
+/// 这里仅作兜底：若仍收到 wave 伤害则清零。
+/// </summary>
 public class WaveStop : PassiveSkill
 {
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
-        bool wave = false;
-        foreach (var at in atkTypes) { if (at == AttackType.wave) wave = true; break; }
-        if (!wave) return;
-        else
-        {
-            //?????????????????
-        }
+        if (character == null || atkTypes == null || atkTypes.Count == 0) return;
+        if (!atkTypes.Contains(AttackType.wave)) return;
+        DMG = 0f;
     }
 }
 public class MaxShield : PassiveSkill
@@ -693,7 +974,7 @@ public class ProjectileLauncher : PassiveSkill
             {
                 CharacterEffect source = character.characterEffects[i];
                 if (source == null) continue;
-                ReusableEffectPayload.Add(CloneEffectWithGuaranteedProbability(source));
+                ReusableEffectPayload.Add(CloneEffectForProjectile(source, character.GetFactor()));
             }
             effectPayload = new List<CharacterEffect>(ReusableEffectPayload);
         }
@@ -703,23 +984,28 @@ public class ProjectileLauncher : PassiveSkill
         // Block this attack's native hit while keeping attack animation/state flow intact.
         character.RemoveAllTarget();
     }
-    private static CharacterEffect CloneEffectWithGuaranteedProbability(CharacterEffect source)
+    private static CharacterEffect CloneEffectForProjectile(CharacterEffect source, float chanceFactor)
     {
+        int adjustedProbability = Mathf.Clamp(Mathf.RoundToInt(source.probability * Mathf.Max(0f, chanceFactor)), 0, 100);
         return new CharacterEffect
         {
             name = source.name,
-            probability = 100,
+            probability = adjustedProbability,
             duration = source.duration,
             intensity = source.intensity
         };
     }
 }
 
-public class ZombieDiveAddon : PassiveSkill
+public class ZombieDiveAddon : AnimationDrivingPassive
 {
+    private const int InAnim = 4;
+    private const int DiveAnim = 5;
+    private const int OutAnim = 6;
+    private const int TransitionFrames = 30;
+
     private int remainingDiveTimes;
     private bool initialized;
-    private bool diving;
 
     public override void OnAddingAbility(Character character)
     {
@@ -730,111 +1016,70 @@ public class ZombieDiveAddon : PassiveSkill
 
     public override void OnStartAttack(Character character)
     {
-        if (character == null || diving) return;
+        if (character == null || driving) return;
         if (remainingDiveTimes == 0) return;
         if (CanAttackBaseNow(character)) return;
 
         if (remainingDiveTimes > 0) remainingDiveTimes--;
         character.RequestCancelAttackStart();
-        character.StartCoroutine(DiveRoutine(character));
+        character.StartCoroutine(RunDrive(character, InAnim));
     }
 
     public override void OnAfterKB(Character character)
     {
-        if (diving && character != null)
-        {
-            // If KB happens during diving, immediately restore detectability and end dive lock.
-            CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-            character.BlockAnimationSwitch = false;
-            character.ChangeSpeed(ResolveTransitExitSpeed(character));
-            diving = false;
-        }
-        if (remainingDiveTimes == 0)
+        // 若 KB 期间仍持有控制权，RunDrive 会在下一帧自行释放（finally -> OnDriveEnd）；
+        // 这里只需在配额耗尽时移除被动。
+        if (remainingDiveTimes == 0 && character != null)
         {
             CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
             character.RemovePassiveEffect(this);
         }
     }
 
-    private IEnumerator DiveRoutine(Character character)
+    protected override IEnumerator DriveRoutine(Character character)
     {
-        if (character == null) yield break;
-        diving = true;
-        // In
+        // In：潜入前摇，原地不动。
         int speedBeforeIn = ResolveTransitExitSpeed(character);
-        character.SwitchAnimation(4);
-        character.BlockAnimationSwitch = true;
         character.ChangeSpeed(0);
-
-        int transitionFrames = 30;
-
         int t = 0;
-        while (t < transitionFrames && !CanAttackBaseNow(character))
+        while (t < TransitionFrames && !CanAttackBaseNow(character))
         {
             t += character.GetFrameStep();
-            if (character == null) yield break;
-            if (character.IsOnKB())
-            {
-                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-                character.BlockAnimationSwitch = false;
-                character.ChangeSpeed(ResolveTransitExitSpeed(character));
-                diving = false;
-                yield break;
-            }
             yield return new WaitForFixedUpdate();
         }
-        // Diving
+
+        // Diving：潜地推进，不可被检测。
         character.ChangeSpeed(speedBeforeIn);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
+        SetPhaseAnim(character, DiveAnim);
         int moveDir = character.IsCat() ? -1 : 1;
         int moveFrames = Mathf.Max(0, duration) * 2;
-        character.BlockAnimationSwitch = false;
-        character.SwitchAnimation(5);
-        character.BlockAnimationSwitch = true;
         for (int i = 0; i < moveFrames; i++)
         {
-            if (character == null) yield break;
-            if (character.IsOnKB())
-            {
-                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-                character.BlockAnimationSwitch = false;
-                character.ChangeSpeed(ResolveTransitExitSpeed(character));
-                diving = false;
-                yield break;
-            }
             if (CanAttackBaseNow(character)) break;
             int currentSpeed = Mathf.Max(0, character.GetRealSpeed());
             character.transform.Translate(new Vector2(character.TBCspeedTranslator(currentSpeed) * moveDir * Time.deltaTime, 0));
             yield return new WaitForFixedUpdate();
         }
-        // Out
-        int speedBeforeOut = ResolveTransitExitSpeed(character);
+
+        // Out：钻出后摇，恢复可检测。
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
         character.ChangeSpeed(0);
-        character.BlockAnimationSwitch = false;
-        character.SwitchAnimation(6);
-        character.BlockAnimationSwitch = true;
+        SetPhaseAnim(character, OutAnim);
         t = 0;
-        while (t < transitionFrames)
+        while (t < TransitionFrames)
         {
             t += character.GetFrameStep();
-            if (character == null) yield break;
-            if (character.IsOnKB())
-            {
-                CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-                character.BlockAnimationSwitch = false;
-                character.ChangeSpeed(ResolveTransitExitSpeed(character));
-                diving = false;
-                yield break;
-            }
             yield return new WaitForFixedUpdate();
         }
+    }
 
-        character.BlockAnimationSwitch = false;
-        character.SwitchAnimation(0);
-        character.ChangeSpeed(ResolveTransitExitSpeed(character, speedBeforeOut));
-        diving = false;
-
+    protected override void OnDriveEnd(Character character)
+    {
+        if (character == null) return;
+        // 无论正常结束还是被 KB 打断，都恢复可检测并还原速度。
+        CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.ChangeSpeed(ResolveTransitExitSpeed(character));
         if (remainingDiveTimes == 0)
         {
             character.RemovePassiveEffect(this);
@@ -912,7 +1157,7 @@ public class ZombieReviveAddon : PassiveSkill
 
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
         SetCharacterRenderersVisible(character, false);
-        character.BlockAnimationSwitch = true;
+        character.SetExternalAnimControl(true);
         character.RemoveAllTarget();
 
         AnimationDisplayer corpse = CreateCorpseOnCharacter(character);
@@ -934,7 +1179,7 @@ public class ZombieReviveAddon : PassiveSkill
 
         SetCharacterRenderersVisible(character, true);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
-        character.BlockAnimationSwitch = false;
+        character.SetExternalAnimControl(false);
         character.SwitchAnimation(0);
         reviving = false;
     }
@@ -998,12 +1243,24 @@ public class ClearDebuffs : PassiveSkill
 public class DodgePassive : PassiveSkill
 {
     private bool invulnerable;
+    private bool matchedThisHit;
     private Coroutine invulnRoutine;
+
+    // Cats only dodge trait-matched hits; enemies dodge any hit.
+    // OnMatchedTraits fires right before OnBeforeTakeDamage, so we record the match here
+    // instead of reaching into the character's shared incoming-trait flag.
+    public override void OnMatchedTraits(Character character, List<AttackType> atkTypes)
+    {
+        matchedThisHit = true;
+    }
 
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
+        bool matched = matchedThisHit;
+        matchedThisHit = false;
+
         if (character == null) return;
-        if (character.IsCat() && !character.HasIncomingTraitCorresponding()) return;
+        if (character.IsCat() && !matched) return;
         if (invulnerable)
         {
             DMG = 0f;
@@ -1030,6 +1287,123 @@ public class DodgePassive : PassiveSkill
         }
         invulnerable = false;
         invulnRoutine = null;
+    }
+}
+
+public class BaseCharacter : PassiveSkill
+{
+    private const int IdleAnimIndex = 3;
+    private const int FixedSortingOrder = 2000;
+    private const float FixedSortingYOffset = FixedSortingOrder / 10000f;
+    private Coroutine monitorBaseRoutine;
+    private Coroutine breakdownRoutine;
+    private bool baseDefeatHandled;
+
+    public override void OnAddingAbility(Character character)
+    {
+        if (character == null) return;
+        if (character.IsCat()) return; // 我方先预留空逻辑
+        character.SetSkipTargetRegistration(true);
+    }
+
+    public override void OnDeployUnit(Character character)
+    {
+        if (character == null) return;
+        if (character.IsCat()) return; // 我方先预留空逻辑
+
+        character.SetSkipTargetRegistration(true);
+        character.Speed = 0;
+        character.ChangeSpeed(0);
+        character.RemoveAllTarget();
+        CharacterTargetManager manager = CharacterTargetManager.Instance;
+        manager.UnregisterCharacter(character);
+
+        DogeBase dogeBase = UnityEngine.Object.FindObjectOfType<DogeBase>();
+        if (dogeBase == null) return;
+
+        SnapToBaseWithFixedSorting(character, dogeBase.transform.position);
+        ApplyFixedSortingLayer(character);
+        if (dogeBase.transform.childCount > 0)
+        {
+            dogeBase.transform.GetChild(0).gameObject.SetActive(false);
+        }
+        manager.RefreshTargetsForCharacter(character);
+
+        if (monitorBaseRoutine != null) character.StopCoroutine(monitorBaseRoutine);
+        monitorBaseRoutine = character.StartCoroutine(MonitorBaseDefeat(character, dogeBase, manager));
+    }
+
+    public override void OnDead(Character character)
+    {
+        if (character == null) return;
+        if (monitorBaseRoutine != null)
+        {
+            character.StopCoroutine(monitorBaseRoutine);
+            monitorBaseRoutine = null;
+        }
+        if (breakdownRoutine != null)
+        {
+            character.StopCoroutine(breakdownRoutine);
+            breakdownRoutine = null;
+        }
+    }
+
+    private IEnumerator MonitorBaseDefeat(Character character, DogeBase dogeBase, CharacterTargetManager manager)
+    {
+        while (character != null && dogeBase != null && dogeBase.GetHealthPercentage() > 0f)
+        {
+            SnapToBaseWithFixedSorting(character, dogeBase.transform.position, refreshStartPos: false);
+            manager?.RefreshTargetsForCharacter(character);
+            yield return new WaitForFixedUpdate();
+        }
+
+        monitorBaseRoutine = null;
+        if (character == null || baseDefeatHandled) yield break;
+        baseDefeatHandled = true;
+
+        character.SetExternalAnimControl(true);
+        character.Speed = 0;
+        character.ChangeSpeed(0);
+        character.RemoveAllTarget();
+        character.SwitchAnimation(IdleAnimIndex);
+
+        if (breakdownRoutine != null) character.StopCoroutine(breakdownRoutine);
+        breakdownRoutine = character.StartCoroutine(BreakingDown(character));
+    }
+
+    private IEnumerator BreakingDown(Character character)
+    {
+        const float width = 6f;
+        const float height = 6f;
+        while (character != null && character.EM != null)
+        {
+            float dx = -UnityEngine.Random.Range(0f, width);
+            float dy = UnityEngine.Random.Range(0f, height);
+            character.EM.InstantiateBattleObject(SEnums.bite, character.transform.position.x + dx, character.transform.position.y + dy, false);
+            yield return new WaitForFixedUpdate();
+        }
+    }
+
+    private static void SnapToBaseWithFixedSorting(Character character, Vector3 basePos, bool refreshStartPos = true)
+    {
+        character.transform.position = new Vector3(basePos.x, basePos.y - FixedSortingYOffset, basePos.z);
+        if (refreshStartPos) character.RefreshStartPos();
+    }
+
+    private static void ApplyFixedSortingLayer(Character character)
+    {
+        if (character == null) return;
+        if (character.UNITYAnimated)
+        {
+            if (character.SPINEAnimated)
+                CharacterSummoner.ResetSpineOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+            else
+                CharacterSummoner.ResetAnimationOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+            return;
+        }
+
+        AnimationDisplayer ad = character.GetComponent<AnimationDisplayer>();
+        if (ad != null) CharacterSummoner.ResetAnimationOrderLayer(ad, FixedSortingOrder);
     }
 }
 
@@ -1149,7 +1523,7 @@ public class Aux_OneHit : PassiveSkill
     {
         if (character == null) yield break;
 
-        character.BlockAnimationSwitch = true;
+        character.SetExternalAnimControl(true);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
         character.RemoveAllTarget();
         character.SwitchAnimation(3);
