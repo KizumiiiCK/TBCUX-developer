@@ -4,6 +4,9 @@
 # Keep this file
 !/.gitignore
 
+# Keep the repository README
+!/README.md
+
 # Include only Unity folders we want to version
 !/Resources/
 !/Script/
