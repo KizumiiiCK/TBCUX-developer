@@ -16,6 +16,47 @@
 !/Resources/**
 !/Script/**
 
+# --- Exclude heavy peripheral media (kept locally, not versioned) ---
+# These do not affect core game data (stats, level, localization, unit data).
+# Re-ignored AFTER the whitelist above, so last-match-wins drops them.
+
+# Fonts (TTF/OTF/TTC + generated TMP SDF atlases) — System/ holds only fonts
+/Resources/System/**
+
+# Music & sound tracks (keep .mixer routing asset)
+/Resources/Music/**/*.mp3
+/Resources/Music/**/*.MP3
+/Resources/Music/**/*.ogg
+/Resources/Music/**/*.mp3.meta
+/Resources/Music/**/*.MP3.meta
+/Resources/Music/**/*.ogg.meta
+
+# Cutscene videos (keep .renderTexture)
+/Resources/video/**/*.mp4
+/Resources/video/**/*.mp4.meta
+
+# CG artwork (keep shaders/materials)
+/Resources/CG/**/*.png
+/Resources/CG/**/*.PNG
+/Resources/CG/**/*.jpg
+/Resources/CG/**/*.JPG
+/Resources/CG/**/*.png.meta
+/Resources/CG/**/*.PNG.meta
+/Resources/CG/**/*.jpg.meta
+/Resources/CG/**/*.JPG.meta
+
+# Dialogue portrait art (keep DialoguePortraitSettings.asset)
+/Resources/DialogueImage/**/*.png
+/Resources/DialogueImage/**/*.PNG
+/Resources/DialogueImage/**/*.png.meta
+/Resources/DialogueImage/**/*.PNG.meta
+
+# Battle background art (keep prefabs/shaders/materials/scripts)
+/Resources/Background/**/*.png
+/Resources/Background/**/*.PNG
+/Resources/Background/**/*.png.meta
+/Resources/Background/**/*.PNG.meta
+
 # Optional local/OS noise
 *.tmp
 *.bak

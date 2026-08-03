@@ -24,7 +24,7 @@ MonoBehaviour:
     ATKRange: {x: 0, y: 220}
   areaATK: 0
   atkDuration: 24
-  Health: 540
+  Health: 1245
   KB: 3
   Speed: 7
   Reload: 40
@@ -81,14 +81,6 @@ MonoBehaviour:
     probability: 20
     duration: 0
     intensity: 0
-  - name: 13
-    probability: 33
-    duration: 1
-    intensity: 0
-  - name: 16
-    probability: 33
-    duration: 2
-    intensity: 900
   atkTypeResis: []
   effectResistances: []
   baseEmotion: 0

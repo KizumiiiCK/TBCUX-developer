@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 305
+  - ATK: 500
     frame: 4
     DoNotTriggerEffects: 0
     Friendly: 0
@@ -29,7 +29,7 @@ MonoBehaviour:
   Reload: 0
   DetectionRange: 150
   Cost: 360
-  Cooldown: 306
+  Cooldown: 336
   UNITYAnimated: 0
   SPINEAnimated: 0
   traits:
@@ -67,7 +67,11 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects: []
-  abilities: []
+  abilities:
+  - name: 14
+    probability: 100
+    duration: 3
+    intensity: 0
   atkTypeResis: []
   effectResistances: []
   baseEmotion: 0
