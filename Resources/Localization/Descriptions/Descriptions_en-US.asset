@@ -936,6 +936,24 @@ MonoBehaviour:
       full damage and reduce all resistance by 15%."
     m_Metadata:
       m_Items: []
+  - m_Id: 106666155854610432
+    m_Localized: All cats' attack deal damage to themselves. However when healing,
+      deal damage to the first enemy with {0} fixed damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 106666155900747776
+    m_Localized: All cats' attack deal damage to themselves. However when healing,
+      deal damage to all enemies with {0} fixed damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 106666155900747777
+    m_Localized: When healing, the healed allies also gain {0}% attack power.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 106666155900747778
+    m_Localized: '-'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -391,6 +391,68 @@ public class CharacterTargetManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 填充 attacker 的全部敌对单位（含敌方基地塔）到 buffer，返回数量。用于全体直接伤害类技能。
+    /// </summary>
+    public int FillOpponentsWithBase(Character attacker, List<Character> buffer)
+    {
+        if (buffer == null) return 0;
+        buffer.Clear();
+        if (attacker == null) return 0;
+
+        bool attackerIsCat = attacker.IsCat();
+        // 敌对阵营的普通单位
+        List<Character> source = attackerIsCat ? allEnemies : allCats;
+        for (int i = 0; i < source.Count; i++)
+        {
+            Character c = source[i];
+            if (c == null || c == attacker) continue;
+            if (c.gameObject == null || !c.gameObject.activeInHierarchy) continue;
+            buffer.Add(c);
+        }
+        // 敌对阵营的基地塔
+        Character tower = attackerIsCat ? (Character)dogeTower : catTower;
+        if (tower != null && tower.gameObject != null && tower.gameObject.activeInHierarchy && !buffer.Contains(tower))
+        {
+            buffer.Add(tower);
+        }
+        return buffer.Count;
+    }
+
+    /// <summary>
+    /// 返回 attacker 最前方的敌对单位（含敌方基地塔）；没有则返回 null。用于单体直接伤害类技能。
+    /// </summary>
+    public Character GetFrontmostOpponent(Character attacker)
+    {
+        if (attacker == null) return null;
+        bool attackerIsCat = attacker.IsCat();
+        List<Character> source = attackerIsCat ? allEnemies : allCats;
+
+        Character best = null;
+        float bestX = 0f;
+        for (int i = 0; i < source.Count; i++)
+        {
+            Character c = source[i];
+            if (c == null || c == attacker) continue;
+            if (c.gameObject == null || !c.gameObject.activeInHierarchy) continue;
+            float x = c.transform.position.x;
+            // 猫向左攻击，最前方=x最小；敌人向右攻击，最前方=x最大。
+            if (best == null || (attackerIsCat ? x < bestX : x > bestX))
+            {
+                best = c;
+                bestX = x;
+            }
+        }
+
+        // 若没有普通敌人，退化到敌方基地塔。
+        if (best == null)
+        {
+            Character tower = attackerIsCat ? (Character)dogeTower : catTower;
+            if (tower != null && tower.gameObject != null && tower.gameObject.activeInHierarchy) best = tower;
+        }
+        return best;
+    }
+
     public void NotifyCharacterStatePulse(Character character, EmotionBattleState state)
     {
         if (!CanDriveEmotion(character)) return;

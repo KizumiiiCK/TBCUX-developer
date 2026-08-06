@@ -428,6 +428,7 @@ MonoBehaviour:
   current_prof:
     level: 0
     pro_stack: 00000000000000000000000000000000
+    pro_overflow: 00000000000000000000000000000000
   Char_Rarity_Btns:
   - {fileID: 4688903195375354339}
   - {fileID: 5640634430750148201}
@@ -438,8 +439,8 @@ MonoBehaviour:
   GoToEquip_btn: {fileID: 0}
   ToggleUnowned_btn: {fileID: 2459353175319137023}
   ToggleUnowned_image: {fileID: 3180708263772230920}
-  ToggleShowUnowned_sprite: {fileID: 21300000, guid: bf7f8887ea11d304ca8680d43fcdf946, type: 3}
-  ToggleHideUnowned_sprite: {fileID: 21300000, guid: 40dab69f5067585418f75176035e8132, type: 3}
+  ToggleShowUnowned_sprite: {fileID: 21300000, guid: 62844995cdd73f14cb978122e1559fb2, type: 3}
+  ToggleHideUnowned_sprite: {fileID: 21300000, guid: 034fbf7ba4288d449aeeb09dd67beb99, type: 3}
   Upgrade_btn: {fileID: 3769157116186998388}
   TireUp_btn: {fileID: 6081804105608950336}
   EvolveComfirmCanvas: {fileID: 1524196547502679812}
@@ -1011,7 +1012,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: bf7f8887ea11d304ca8680d43fcdf946, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 62844995cdd73f14cb978122e1559fb2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1470,7 +1471,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 961156766, guid: 8a115de836d439648ace9f4fcc6653c2, type: 3}
+  m_Sprite: {fileID: 705559534, guid: 6001247cfbb0fe64c8595c9aa1246d85, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

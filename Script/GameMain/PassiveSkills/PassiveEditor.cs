@@ -48,6 +48,8 @@ public static class AbilityInstaller
         { AbilityName.Aux_MaxDMGBlock, typeof(Aux_MaxDMGBlock)},
         { AbilityName.Aux_MinDMGBlock, typeof(Aux_MinDMGBlock)},
         { AbilityName.Aux_OneHit, typeof(Aux_OneHit)},
+        { AbilityName.Aux_SelfDamage, typeof(Aux_SelfDamage)},
+        { AbilityName.Aux_HealDamage, typeof(Aux_HealDamage)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -901,12 +903,62 @@ public class Aux_MinDMGBlock : PassiveSkill
         if (DMG < intensity) DMG = 0;
     }
 }
+
+/// <summary>
+/// hd / hD 关卡限制的一部分：本单位的普通攻击（伤害>0）仅对自身造成等量的无属性真实伤害，
+/// 不再命中其他目标。将 ref dmg 置 0 即可阻断对他人的伤害（无额外分配，性能最优）。
+/// </summary>
+public class Aux_SelfDamage : PassiveSkill
+{
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (character == null) return;
+        if (dmg <= 0f) return; // 仅拦截正伤害攻击；治愈（负伤害）交给 Aux_HealDamage
+        float selfDamage = dmg;
+        dmg = 0f; // 该次攻击对其他目标造成 0 伤害
+        character.ReceiveAttack(selfDamage, null, null, null, null, null, null);
+    }
+}
+
+/// <summary>
+/// hd / hD 关卡限制的一部分：本单位每施展一次治愈技能（伤害&lt;0），对敌方直接造成 intensity 点伤害。
+/// probability &gt; 0 表示对全体敌人（含基地）造成群体伤害；否则只对最前方的敌人造成单体伤害。
+/// </summary>
+public class Aux_HealDamage : PassiveSkill
+{
+    private static readonly List<Character> targetBuffer = new List<Character>(32);
+
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (character == null) return;
+        if (dmg >= 0f) return; // 仅在治愈（负伤害）时触发
+        float damage = intensity;
+        if (damage <= 0f) return;
+
+        CharacterTargetManager mgr = CharacterTargetManager.Instance;
+        if (probability > 0)
+        {
+            int count = mgr.FillOpponentsWithBase(character, targetBuffer);
+            for (int i = 0; i < count; i++)
+            {
+                Character t = targetBuffer[i];
+                if (t == null) continue;
+                t.ReceiveAttack(damage, null, null, null, null, null, null);
+            }
+            targetBuffer.Clear();
+        }
+        else
+        {
+            Character front = mgr.GetFrontmostOpponent(character);
+            if (front != null) front.ReceiveAttack(damage, null, null, null, null, null, null);
+        }
+    }
+}
 public class ATK_Buffer : PassiveSkill
 {
     public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
-        Debug.Log($"Buff count: {character.Targets.Count}");
-        for (int i = 0; i < character.Targets.Count; i++) 
+        for (int i = 0; i < character.Targets.Count; i++)
         {
             IncreaseATK(character.Targets[i].GetComponent<Character>());
         }

@@ -29,7 +29,10 @@ public static class LevelRestrictionHelper
             { "S+", ParseSurgeRestrictionValue },
             { "S-", ParseSurgeRestrictionValue },
             { "s+", ParseSurgeRestrictionValue },
-            { "s-", ParseSurgeRestrictionValue }
+            { "s-", ParseSurgeRestrictionValue },
+            { "hd", ParseRestrictionValue },
+            { "hD", ParseRestrictionValue },
+            { "ht", ParseRestrictionValue }
         };
 
     public class RestrictionRules
@@ -244,6 +247,15 @@ public static class LevelRestrictionHelper
                 case "s-":
                     if (!isCatTeam) ApplySurgeRestriction(data, entry.Value, AbilityName.miniSurge);
                     break;
+                case "hd":
+                    if (isCatTeam) ApplyHealDamageRestriction(data, entry.Value, false);
+                    break;
+                case "hD":
+                    if (isCatTeam) ApplyHealDamageRestriction(data, entry.Value, true);
+                    break;
+                case "ht":
+                    if (isCatTeam) ApplyHealBuffRestriction(data, entry.Value);
+                    break;
             }
         }
     }
@@ -305,6 +317,76 @@ public static class LevelRestrictionHelper
             probability = 100,
             duration = 0,
             intensity = 0
+        });
+    }
+
+    /// <summary>
+    /// hd / hD：本关猫咪攻击仅对自己造成等量伤害；每次治愈（负伤害攻击）对敌方造成直接伤害。
+    /// groupWide=true（hD）为全体敌人（含基地）伤害；false（hd）为最前方单体伤害。
+    /// 伤害数值取所配置的最大值。
+    /// </summary>
+    private static void ApplyHealDamageRestriction(CharacterData data, List<string> values, bool groupWide)
+    {
+        int? damage = GetExtremeParsedValue(values, false); // 取最大值
+        if (!damage.HasValue || damage.Value <= 0) return;
+
+        // 自伤能力：普通攻击只对自己造成等量真实伤害。
+        if (!HasAbility(data, AbilityName.Aux_SelfDamage))
+        {
+            AddAbilityToData(data, new CharacterAbility
+            {
+                name = AbilityName.Aux_SelfDamage,
+                probability = 0,
+                duration = 0,
+                intensity = 0
+            });
+        }
+
+        // 治愈伤害能力：probability>0 表示群体，intensity 为伤害值。
+        AddAbilityToData(data, new CharacterAbility
+        {
+            name = AbilityName.Aux_HealDamage,
+            probability = groupWide ? 1 : 0,
+            duration = 0,
+            intensity = damage.Value
+        });
+    }
+
+    /// <summary>
+    /// ht：每当猫咪被治愈（拥有负伤害的攻击段）时，永久获得 {value}% 的伤害提升。
+    /// 通过给拥有治愈攻击段的角色添加 ATK_Buffer（intensity=100+value），
+    /// 并把其它正伤害攻击段设为 DoNotTriggerAbilities，避免普通攻击也触发增益。
+    /// </summary>
+    private static void ApplyHealBuffRestriction(CharacterData data, List<string> values)
+    {
+        if (data == null || data.atkInfos == null || data.atkInfos.Length == 0) return;
+
+        int? buff = GetExtremeParsedValue(values, false); // 取最大值
+        if (!buff.HasValue || buff.Value <= 0) return;
+
+        bool hasHealAttack = false;
+        for (int i = 0; i < data.atkInfos.Length; i++)
+        {
+            ATKInfo info = data.atkInfos[i];
+            if (info == null) continue;
+            if (info.ATK < 0f) hasHealAttack = true;      // 治愈攻击段
+            else info.DoNotTriggerAbilities = true;        // 正伤害攻击段不触发能力
+        }
+
+        if (!hasHealAttack) return; // 没有治愈能力则不生效
+
+        if (TryGetAbility(data, AbilityName.ATK_Buffer, out CharacterAbility existing))
+        {
+            existing.intensity = 100 + buff.Value;
+            return;
+        }
+
+        AddAbilityToData(data, new CharacterAbility
+        {
+            name = AbilityName.ATK_Buffer,
+            probability = 0,
+            duration = 0,
+            intensity = 100 + buff.Value
         });
     }
 
@@ -641,6 +723,8 @@ public static class LevelRestrictionHelper
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
         if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
+        // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
+        if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 }
