@@ -117,6 +117,41 @@ public static class BontiqueStaticCatalog
         },
         new BontiqueShopItem
         {
+            bid = "week:cf-p2cf-rb", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 34, CurrencyAmount = 8,
+            LimitCount = 1,
+        },
+        new BontiqueShopItem
+        {
+            bid = "week:cf-r2cf-rb", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 35, CurrencyAmount = 8,
+            LimitCount = 1,
+        },
+        new BontiqueShopItem
+        {
+            bid = "week:cf-b2cf-rb", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 36, CurrencyAmount = 8,
+            LimitCount = 1,
+        },
+        new BontiqueShopItem
+        {
+            bid = "week:cf-g2cf-rb", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 37, CurrencyAmount = 8,
+            LimitCount = 1,
+        },
+        new BontiqueShopItem
+        {
+            bid = "week:cf-y2cf-rb", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 38, CurrencyAmount = 8,
+            LimitCount = 1,
+        },
+        new BontiqueShopItem
+        {
             bid = "week:can2gt", Category = BontiqueType.Weekly, Limit = LimitType.Week, RewardKind = RewardType.item,
             gainId = 7, ObtainAmount = 10,
             CurrencyId = 12, CurrencyAmount = 1200,
@@ -261,13 +296,117 @@ public static class BontiqueStaticCatalog
         },
         #endregion
         #region Event
+        //new BontiqueShopItem
+        //{
+        //    bid = "once:open2026", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+        //    gainId = 12, ObtainAmount = 2026,
+        //    CurrencyId = 11, CurrencyAmount = 1,
+        //    LimitCount = 1,
+        //    LimitStart = new DateTime(2026, 5, 27), LimitEnd = new DateTime(2026, 6, 14)
+        //},
+        #endregion
+        #region Builda
         new BontiqueShopItem
         {
-            bid = "once:open2026", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
-            gainId = 12, ObtainAmount = 2026,
-            CurrencyId = 11, CurrencyAmount = 1,
-            LimitCount = 1,
-            LimitStart = new DateTime(2026, 5, 27), LimitEnd = new DateTime(2026, 6, 14)
+            bid = "b:can5", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 500,
+            CurrencyId = 99, CurrencyAmount = 50000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:can15", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 1500,
+            CurrencyId = 99, CurrencyAmount = 125000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:can50", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 5000,
+            CurrencyId = 99, CurrencyAmount = 350000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:xp1", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 11, ObtainAmount = 1000000,
+            CurrencyId = 99, CurrencyAmount = 10000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:gt1", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 7, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 10000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:gt10", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 7, ObtainAmount = 10,
+            CurrencyId = 99, CurrencyAmount = 80000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cfs-p", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 26, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 4000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cfs-r", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 27, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 4000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cfs-b", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 28, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 4000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cfs-g", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 29, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 4000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cfs-y", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 30, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 4000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-p", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 34, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 18000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-r", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 35, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 18000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-b", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 36, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 18000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-g", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 37, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 18000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-y", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 38, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 18000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:cf-rb", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 39, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 40000,
         },
         #endregion
         #region Regular

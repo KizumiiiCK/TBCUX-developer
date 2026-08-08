@@ -105,7 +105,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         if (onATK)
         {
             animatedframes += frame_step;
-            if (animatedframes == atkInfos[animateStep].frame)
+            if (ShouldResolveAttackFrame(atkInfos[animateStep].frame))
                 Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects, atkInfos[animateStep].DoNotTriggerAbilities);
             if (animatedframes >= atkDuration)
             {
@@ -123,6 +123,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
             onATK = true;
             animateStep = 0;
             animatedframes = 0;
+            ResetAttackResolveState();
             SetAttackRange(atkInfos[0].ATKRange.x, atkInfos[0].ATKRange.y);
             return;
         }

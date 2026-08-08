@@ -243,6 +243,8 @@ public class LevelRestrictionBoard : MonoBehaviour
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
         if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
+        // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
+        if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 

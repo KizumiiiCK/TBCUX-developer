@@ -292,10 +292,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 112480020454522880
-    m_Localized: "<size=48><color=red>Data Upload Success!</color></size>\n\nYour
-      account was firmly saved at UX server!\nPlease use your <color=red>Player ID</color>\uFF08not
-      user name\uFF09and <color=red>Transfer Code</color> to restore your account
-      data.\nIt's Kiz's pleasure for your support to UX!"
+    m_Localized: "<size=48><color=red>Data Upload Success!</color></size>\nYour User
+      id: <color=#00FFFF>{0}</color>\nYour Transfer Code:  <color=#00FFFF>{1}</color>\n\nYour
+      account was firmly saved at UX server! Please take a screenshot for your account.
+      Please use your <color=red>Player ID</color>\uFF08not user name\uFF09and <color=red>Transfer
+      Code</color> to restore your account data. It's Kiz's pleasure for your support
+      to UX!"
     m_Metadata:
       m_Items: []
   - m_Id: 112682131305873408

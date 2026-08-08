@@ -110,8 +110,7 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
       all damage from them.
 
-      (Only affect enemies with matched traits for
-      cats)'
+      (Only affect enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 7777754103808
@@ -126,8 +125,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , making
       all marked characters suffer the taken damage one more time.
 
-      (Only
-      affect enemies with matched traits for cats)'
+      (Only affect
+      enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 55728509632512
@@ -928,12 +927,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 103440311145283586
-    m_Localized: "Trains itself to gain attack type resistance. While receiving an
-      attack, the character gains {0}\u2030 resistance to normal attacks. While receiving
-      special attacks like wave and surge, gains {0}% resistance to that attack.
-      For any resistance reaches 100%, it blocks all damage and gains 100% <color=#00FFFF>Savage
-      Blow</color>. However, receiving <color=#00FFFF>Critical</color> attacks takes
-      full damage and reduce all resistance by 15%."
+    m_Localized: "Trains itself to gain attack resistance. While receiving an attack,
+      the character gains {0}\u2030 resistance to all the incoming attacks.  For
+      that resistance reaches 100%, it blocks all damage and gains 100% <color=#00FFFF>Savage
+      Blow</color>. However, receiving <color=#00FFFF>Critical</color> attacks reduce
+      the resistance by 20% and take a little more damage."
     m_Metadata:
       m_Items: []
   - m_Id: 106666155854610432

@@ -16,21 +16,23 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: -90
+  - ATK: -268
     frame: 28
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 1
-    ATKRange: {x: -350, y: 300}
+    ATKRange: {x: -450, y: 300}
   areaATK: 1
   atkDuration: 57
-  Health: 1500
+  Health: 2100
   KB: 4
-  Speed: 5
-  Reload: 189
+  Speed: 6
+  Reload: 249
   DetectionRange: 300
   Cost: 148
   Cooldown: 1734
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -42,12 +44,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -63,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -77,7 +73,16 @@ MonoBehaviour:
     probability: 0
     duration: 0
     intensity: 0
+  - name: 39
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 10
+    probability: 5
+    duration: 0
+    intensity: 0
   atkTypeResis:
   - type: 1
-    intensity: 50
+    intensity: 70
   effectResistances: []
+  baseEmotion: 4

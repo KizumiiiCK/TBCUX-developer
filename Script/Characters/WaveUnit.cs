@@ -69,7 +69,7 @@ public class WaveUnit : Character
             currentWave = EM.InstantiateBattleObject(waveEffect, waveX, basePos.y).gameObject;
 
             // 单帧判定：范围(-100,100)，立刻攻击一次
-            int minRange = i == 0 ? -300 : -100;
+            int minRange = -300;
             int maxRange = 100;
             SetAttackRange(minRange, maxRange);
             if (ApplyProjectileAttack(1f)) yield break;

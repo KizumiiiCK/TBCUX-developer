@@ -909,6 +909,11 @@ public class LevelController : MonoBehaviour
             case RewardType.character:
                 CharacterUpgradeSave.UpgradeCharacterByClear(rewardInfo.id.ToString("0000"));
                 break;
+            case RewardType.UnlockTire:
+                if (gainTimes <= 0) break;
+                RewardIconHelper.ParseUnlockTireId(rewardInfo.id, out string characterId, out int tire);
+                CharacterUpgradeSave.UnlockCharacterTire(characterId, tire);
+                break;
             default:
                 break;
         }

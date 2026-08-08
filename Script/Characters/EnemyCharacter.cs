@@ -25,12 +25,19 @@ public class EnemyCharacter : AnimatorCachedCharacter
         if (onATK)
         {
             animatedframes += frame_step;
-            if (animatedframes == atkInfos[animateStep].frame) Attack(
-                realDamage[animateStep],
-                areaATK,
-                atkInfos[animateStep].DoNotTriggerEffects,
-                doNotTriggerAbilities: atkInfos[animateStep].DoNotTriggerAbilities);
-            if (animatedframes == atkDuration) { Passive_OnFinishAttack(); ExitAttack(); }
+            if (ShouldResolveAttackFrame(atkInfos[animateStep].frame))
+            {
+                Attack(
+                    realDamage[animateStep],
+                    areaATK,
+                    atkInfos[animateStep].DoNotTriggerEffects,
+                    doNotTriggerAbilities: atkInfos[animateStep].DoNotTriggerAbilities);
+            }
+            if (animatedframes == atkDuration)
+            {
+                Passive_OnFinishAttack();
+                ExitAttack();
+            }
             return;
         }
         if (onKB) return;
@@ -43,6 +50,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
                 onATK = true; 
                 animateStep = 0;
                 animatedframes = 0;
+                ResetAttackResolveState();
                 CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.attack);
                 if (atkInfos[0].Friendly) Supporter_Target_Switch();
                 SetAttackRange(atkInfos[0].ATKRange.x, atkInfos[0].ATKRange.y); 

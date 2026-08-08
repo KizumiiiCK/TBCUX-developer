@@ -21,6 +21,7 @@ MonoBehaviour:
   BaseImageID: 322
   CombatEffect: []
   Restriction:
+  - U+:1100
   - R+:0
   - R+:1
   - hd:25000
@@ -47,11 +48,11 @@ MonoBehaviour:
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 98a57793d5b7b2746bf8c89d49222581, type: 3}
-    - enemyID: e031
-      ratio: 200
+    - enemyID: e040
+      ratio: 400
       bossShock: 0
       repeat: 1
-      firstAppear: 300
+      firstAppear: 2400
       repeatMin: 0
       repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: bee34a32021046f419c8a6e70e9a92e6, type: 3}
+      previewSprite: {fileID: 21300000, guid: fb4020354f6e282498ae0aa01f21dfa8, type: 3}

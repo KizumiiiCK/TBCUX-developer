@@ -55,8 +55,10 @@ public class LevelDataEditor : Editor
                         rewardPath = $"Reward/{reward.id}";
                         break;
                     case RewardType.character:
-                        string code = reward.id.ToString("0000");
-                        rewardPath = $"Units/Cat Units/{code[0]}/{code.Substring(1, 3)}/0/icon_deploy";
+                        rewardPath = RewardIconHelper.GetCatDeployIconPath(reward.id.ToString("0000"), 0);
+                        break;
+                    case RewardType.UnlockTire:
+                        rewardPath = RewardIconHelper.GetUnlockTireIconPath(reward.id);
                         break;
                     default: break;
                 }

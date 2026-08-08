@@ -484,66 +484,71 @@ public class PressureLearn : PassiveSkill
 {
     private const int MaxPressure = 1000;
     private const int CriticalReducer = 200;
-    private const int SpecMultiplier = 10;
+    //private const int SpecMultiplier = 10;
 
     private int normal_pressure = 0;
-    private int wave_pressure = 0;
-    private int surge_pressure = 0;
-    private int explode_pressure = 0;
+    //private int wave_pressure = 0;
+    //private int surge_pressure = 0;
+    //private int explode_pressure = 0;
 
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         bool hasCritical = false;
-        bool hasNormal = false;
-        bool hasWave = false;
-        bool hasSurge = false;
-        bool hasExplode = false;
+        //bool hasNormal = false;
+        //bool hasWave = false;
+        //bool hasSurge = false;
+        //bool hasExplode = false;
 
         if (atkTypes != null)
         {
-            for (int i = 0; i < atkTypes.Count; i++)
-            {
-                switch (atkTypes[i])
-                {
-                    case AttackType.critical:
-                        hasCritical = true;
-                        break;
-                    case AttackType.none:
-                        hasNormal = true;
-                        break;
-                    case AttackType.wave:
-                        hasWave = true;
-                        break;
-                    case AttackType.surge:
-                        hasSurge = true;
-                        break;
-                    case AttackType.explosion:
-                        hasExplode = true;
-                        break;
-                }
-            }
+            if(atkTypes.Contains(AttackType.critical)) { hasCritical = true; }
+            //for (int i = 0; i < atkTypes.Count; i++)
+            //{
+            //    switch (atkTypes[i])
+            //    {
+            //        case AttackType.critical:
+            //            hasCritical = true;
+            //            break;
+            //        case AttackType.none:
+            //            hasNormal = true;
+            //            break;
+            //        case AttackType.wave:
+            //            hasWave = true;
+            //            break;
+            //        case AttackType.surge:
+            //            hasSurge = true;
+            //            break;
+            //        case AttackType.explosion:
+            //            hasExplode = true;
+            //            break;
+            //    }
+            //}
         }
 
         if (hasCritical)
         {
             ReduceAllPressure(CriticalReducer);
+            DMG *= 1.2f * (MaxPressure - GetMaxPressure()) / (float)MaxPressure;
             return;
         }
-
-        bool hasRecognizedType = hasNormal || hasWave || hasSurge || hasExplode;
-        if (!hasRecognizedType)
+        if (GetMaxPressure() >= MaxPressure)
         {
-            ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+            DMG = 0f;
+            return;
         }
-        else
-        {
-            if (hasNormal) ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
-            if (hasWave) ApplyPressureAndScaleDamage(ref wave_pressure, duration * SpecMultiplier, ref DMG);
-            if (hasSurge) ApplyPressureAndScaleDamage(ref surge_pressure, duration * SpecMultiplier, ref DMG);
-            if (hasExplode) ApplyPressureAndScaleDamage(ref explode_pressure, duration * SpecMultiplier, ref DMG);
-        }
-
-        if (GetMaxPressure() >= MaxPressure) DMG = 0f;
+        ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+        //bool hasRecognizedType = hasNormal || hasWave || hasSurge || hasExplode;
+        //if (!hasRecognizedType)
+        //{
+        //    ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+        //}
+        //else
+        //{
+        //    if (hasWave) ApplyPressureAndScaleDamage(ref wave_pressure, duration * SpecMultiplier, ref DMG);
+        //    else if (hasSurge) ApplyPressureAndScaleDamage(ref surge_pressure, duration * SpecMultiplier, ref DMG);
+        //    else if (hasExplode) ApplyPressureAndScaleDamage(ref explode_pressure, duration * SpecMultiplier, ref DMG);
+        //    else ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
+        //}
     }
 
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
@@ -566,14 +571,15 @@ public class PressureLearn : PassiveSkill
     private void ReduceAllPressure(int reducer)
     {
         normal_pressure = Mathf.Max(0, normal_pressure - reducer);
-        wave_pressure = Mathf.Max(0, wave_pressure - reducer);
-        surge_pressure = Mathf.Max(0, surge_pressure - reducer);
-        explode_pressure = Mathf.Max(0, explode_pressure - reducer);
+        //wave_pressure = Mathf.Max(0, wave_pressure - reducer);
+        //surge_pressure = Mathf.Max(0, surge_pressure - reducer);
+        //explode_pressure = Mathf.Max(0, explode_pressure - reducer);
     }
 
     private int GetMaxPressure()
     {
-        return Mathf.Max(normal_pressure, wave_pressure, surge_pressure, explode_pressure);
+        return normal_pressure;
+        //return Mathf.Max(normal_pressure, wave_pressure, surge_pressure, explode_pressure);
     }
 }
 

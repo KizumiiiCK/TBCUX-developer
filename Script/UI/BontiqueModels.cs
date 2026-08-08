@@ -10,6 +10,7 @@ public enum BontiqueType
     Characters = 4,
     Event = 5,
     Others = 6,
+    Biulda = 7,
     Unknown = -1
 }
 public enum LimitType

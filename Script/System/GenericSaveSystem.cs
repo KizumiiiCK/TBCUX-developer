@@ -462,7 +462,28 @@ public enum RewardType
     item,
     treasure,
     maxlevel,
-    highscore
+    highscore,
+    UnlockTire
+}
+
+public static class RewardIconHelper
+{
+    public static void ParseUnlockTireId(int rewardId, out string characterId, out int tire)
+    {
+        tire = rewardId % 10;
+        characterId = (rewardId / 10).ToString("0000");
+    }
+
+    public static string GetCatDeployIconPath(string characterId4, int tire)
+    {
+        return $"Units/Cat Units/{characterId4[0]}/{characterId4.Substring(1, 3)}/{tire}/icon_deploy";
+    }
+
+    public static string GetUnlockTireIconPath(int rewardId)
+    {
+        ParseUnlockTireId(rewardId, out string characterId, out int tire);
+        return GetCatDeployIconPath(characterId, tire);
+    }
 }
 [System.Serializable]
 public enum RewardName
@@ -483,7 +504,8 @@ public enum RewardName
     UpgradeMax_N=61, UpgradeMax_EX=62, UpgradeMax_R=63, UpgradeMax_SR=64, UpgradeMax_UR=65, UpgradeMax_LR=66, UpgradeMax_G=67,
     DrawMax_N=68, DrawMax_EX=69, DrawMax_R=70, DrawMax_SR=71, DrawMax_UR=72, DrawMax_LR=73, DrawMax_G=74,
     Bottle_Water=75, Bottle_Soul=76,
-    SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80
+    SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80,
+    Builda_Coin=81
 }
 [System.Serializable]
 public class Dialogue
@@ -575,6 +597,7 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
+        {RewardName.Builda_Coin,99},
         {RewardName.Bottle_Water,110},
         {RewardName.Bottle_Soul,111},
         {RewardName.SecMed_Purple,120},

@@ -44,9 +44,14 @@ public class RewardCanvas : UICanvasMain
             case RewardType.character:
                 reward_image.gameObject.SetActive(false);
                 character_image.gameObject.SetActive(true);
-                int rality = rewardcode / 1000;
-                string code=(rewardcode % 1000).ToString("000");
-                character_image.sprite = Resources.Load<Sprite>($"Units/Cat Units/{rality}/{code}/0/icon_deploy");
+                character_image.sprite = Resources.Load<Sprite>(RewardIconHelper.GetCatDeployIconPath(rewardcode.ToString("0000"), 0));
+                reward_count.text = "+1";
+                reward_stack.text = "";
+                break;
+            case RewardType.UnlockTire:
+                reward_image.gameObject.SetActive(false);
+                character_image.gameObject.SetActive(true);
+                character_image.sprite = Resources.Load<Sprite>(RewardIconHelper.GetUnlockTireIconPath(rewardcode));
                 reward_count.text = "+1";
                 reward_stack.text = "";
                 break;

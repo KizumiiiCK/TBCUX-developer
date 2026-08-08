@@ -17,6 +17,8 @@ public abstract partial class Character
     [SerializeField] public GameObject BaseTarget;
     private readonly List<Character> lastAttackHitTargets = new List<Character>(8);
     private KB_Type lastTriggeredKBType = KB_Type.none;
+    private int attackResolvedStep = -1;
+    private bool attackResolvedThisStep;
 
     /* ====== ����ս���ӿ� ====== */
     public void SetSearchTagName(string name) { compareTagName = name; }
@@ -48,6 +50,25 @@ public abstract partial class Character
     }
 
     #region Attack Functions
+    protected void ResetAttackResolveState()
+    {
+        attackResolvedStep = -1;
+        attackResolvedThisStep = false;
+    }
+
+    protected bool ShouldResolveAttackFrame(int attackFrame)
+    {
+        if (attackResolvedStep != animateStep)
+        {
+            attackResolvedStep = animateStep;
+            attackResolvedThisStep = false;
+        }
+        if (attackResolvedThisStep) return false;
+        if (animatedframes != attackFrame) return false;
+        attackResolvedThisStep = true;
+        return true;
+    }
+
     public void Attack(float dmg, bool areaAttack, bool doNotTrigger, bool doNotTriggerAbilities, GameObject specific = null)
     {
         Character GetTarget<T>(GameObject go) where T : Character
@@ -166,6 +187,7 @@ public abstract partial class Character
     {
         if (one_off) { Destroy(gameObject); }
         onATK = false;
+        ResetAttackResolveState();
         animateStep = 0;
         animatedframes = 0;
         //if(animator!=null)animator.SetInteger("state", 0);
@@ -177,6 +199,7 @@ public abstract partial class Character
     {
         if (!onATK) return;
         onATK = false;
+        ResetAttackResolveState();
         animateStep = 0;
         animatedframes = 0;
         realReload = 0;

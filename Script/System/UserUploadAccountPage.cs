@@ -146,7 +146,18 @@ public class UserUploadAccountPage : MonoBehaviour
         }
 
         SetInfo("Upload succeeded. Local save data has been removed.");
-        if (uploadSuccessPage != null) uploadSuccessPage.SetActive(true);
+        if (uploadSuccessPage != null)
+        {
+            uploadSuccessPage.SetActive(true);
+            TMP_Text successText = uploadSuccessPage.transform.GetChild(1).GetComponent<TMP_Text>();
+            if (successText != null)
+            {
+                successText.text = string.Format(
+                    successText.text,
+                    localUser.pid,
+                    transferCode);
+            }
+        }
         isUploading = false;
     }
 

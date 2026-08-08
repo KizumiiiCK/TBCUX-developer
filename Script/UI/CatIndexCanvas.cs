@@ -383,7 +383,7 @@ public class CatIndexCanvas : UICanvasMain
             Upgrade_btn.interactable = false;
         }
         current_level_text.text = $"LEVEL\n{UD.upgraded_level} + {UD.plus_level}";
-        TireUp_btn.interactable = CheckTireUpAvailable($"{rality}{current_code}", current_level);
+        TireUp_btn.interactable = CheckTireUpAvailable($"{rality}{current_code}");
         RefreshUpgradeButtonsVisual();
         //
         // Proficiency
@@ -440,17 +440,17 @@ public class CatIndexCanvas : UICanvasMain
         ShowCertainCharInTire(current_tire + 1);
         GetComponent<AudioSource>().Play();
     }
-    protected bool CheckTireUpAvailable(string code4, int lvl)
+    protected bool CheckTireUpAvailable(string code4)
     {
-        Debug.Log($"Tire Up Check: {code4}, lvl: {lvl}");
-        if(current_tire==3) return false;
+        if (current_tire == 3) return false;
         CharacterUpgradeSave.UpgradeDetails CUD = CharacterUpgradeSave.GetDetails(code4);
         if (CUD == null) { Debug.LogWarning("Insufficient CUD."); return false; }
-        if (lvl < 10) return false;
+        int upgradedLevel = CUD.upgraded_level;
+        if (upgradedLevel < 10) return false;
         if (!CUD.tire_unlocked[current_tire]) { Debug.Log("Current Tire not unlocked."); return false; }
         if (CUD.tire_unlocked[current_tire + 1]) { Debug.Log("Next Tire already unlocked."); return false; }
-        if (current_tire == 1 && lvl < 30) { Debug.Log("Tire Not enough level."); return false; }
-        if(current_tire==2 && lvl<60) return false;
+        if (current_tire == 1 && upgradedLevel < 30) { Debug.Log("Tire Not enough level."); return false; }
+        if (current_tire == 2 && upgradedLevel < 60) return false;
         //
         TotalUpgradeCost TUC = Resources.Load<TotalUpgradeCost>($"Units/Cat Units/{code4[0]}/{code4.Substring(1, 3)}/upgrade");
         if (TUC == null) return false;
