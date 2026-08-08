@@ -74,7 +74,7 @@ public class LevelDataEditor : Editor
         EditorGUILayout.LabelField("通关奖励（自定义编辑）", labelBold);
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField($"总数: {rewardListProp.arraySize}", labelSmall);
-        if (GUILayout.Button("新增奖励", GUILayout.Width(110)))
+        if (GUILayout.Button("新增", GUILayout.Width(110)))
         {
             AddRewardElement(rewardListProp);
         }
@@ -83,7 +83,7 @@ public class LevelDataEditor : Editor
 
         if (rewardListProp.arraySize == 0)
         {
-            EditorGUILayout.HelpBox("当前无奖励，点击“新增奖励”创建。", MessageType.Info);
+            EditorGUILayout.HelpBox("当前无奖励。", MessageType.Info);
             return;
         }
 
@@ -108,7 +108,7 @@ public class LevelDataEditor : Editor
 
         EditorGUILayout.BeginVertical(boxStyle);
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField($"奖励 #{index}", labelBold);
+        EditorGUILayout.LabelField($"#{index}", labelBold);
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("删除", GUILayout.Width(70)))
         {
@@ -162,10 +162,10 @@ public class LevelDataEditor : Editor
     {
         if (enemySummonersProp == null) return;
 
-        EditorGUILayout.LabelField("敌人出现信息（自定义编辑）", labelBold);
+        EditorGUILayout.LabelField("敌人出现信息", labelBold);
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField($"波次组数: {enemySummonersProp.arraySize}", labelSmall);
-        if (GUILayout.Button("新增波次组", GUILayout.Width(110)))
+        if (GUILayout.Button("新增城联动", GUILayout.Width(110)))
         {
             AddEnemySummoner(enemySummonersProp);
         }
@@ -174,7 +174,7 @@ public class LevelDataEditor : Editor
 
         if (enemySummonersProp.arraySize == 0)
         {
-            EditorGUILayout.HelpBox("当前无敌人波次组，点击“新增波次组”创建。", MessageType.Info);
+            EditorGUILayout.HelpBox("当前无敌人和城联动。", MessageType.Info);
             return;
         }
 
@@ -208,7 +208,7 @@ public class LevelDataEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField($"敌人条目: {infosProp.arraySize}", labelSmall);
-        if (GUILayout.Button("新增敌人条目", GUILayout.Width(110)))
+        if (GUILayout.Button("新增敌人", GUILayout.Width(110)))
         {
             AddEnemySummonInfo(infosProp);
         }
@@ -217,7 +217,7 @@ public class LevelDataEditor : Editor
 
         if (infosProp.arraySize == 0)
         {
-            EditorGUILayout.HelpBox("该波次组暂无敌人条目。", MessageType.Info);
+            EditorGUILayout.HelpBox("该组暂无敌人条目。", MessageType.Info);
         }
         else
         {
@@ -248,7 +248,7 @@ public class LevelDataEditor : Editor
 
         EditorGUILayout.BeginVertical(boxStyle);
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField($"敌人 #{infoIndex}", labelBold);
+        EditorGUILayout.LabelField($"#{infoIndex}", labelBold);
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("复制", GUILayout.Width(70)))
         {

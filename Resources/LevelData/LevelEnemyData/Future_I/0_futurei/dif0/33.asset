@@ -54,7 +54,7 @@ MonoBehaviour:
       repeatMax: 300
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
     - enemyID: e013
-      ratio: 1000
+      ratio: 2000
       bossShock: 0
       repeat: 3
       firstAppear: 150
@@ -62,7 +62,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: ecc007087949ca24ca431a23e5fb70b0, type: 3}
     - enemyID: e014
-      ratio: 1000
+      ratio: 2000
       bossShock: 0
       repeat: 5
       firstAppear: 600
@@ -94,7 +94,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 6ac8e8e316147584ca84036b27482c74, type: 3}
     - enemyID: e020
-      ratio: 700
+      ratio: 900
       bossShock: 0
       repeat: 1
       firstAppear: 300

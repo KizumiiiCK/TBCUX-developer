@@ -40,7 +40,7 @@ MonoBehaviour:
     bgm: The_Long_Goodbye
     enemySummonInfos:
     - enemyID: e073
-      ratio: 700
+      ratio: 800
       bossShock: 0
       repeat: 2
       firstAppear: 150
@@ -48,7 +48,7 @@ MonoBehaviour:
       repeatMax: 690
       previewSprite: {fileID: 21300000, guid: 986d5f5a8abdd044b86290cae2c748f3, type: 3}
     - enemyID: e078
-      ratio: 400
+      ratio: 500
       bossShock: 0
       repeat: 3
       firstAppear: 550
@@ -56,7 +56,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: 32d80a9690c79e949a087437f90be2e0, type: 3}
     - enemyID: e078
-      ratio: 400
+      ratio: 500
       bossShock: 0
       repeat: -1
       firstAppear: 1000
@@ -64,7 +64,7 @@ MonoBehaviour:
       repeatMax: 3000
       previewSprite: {fileID: 21300000, guid: 32d80a9690c79e949a087437f90be2e0, type: 3}
     - enemyID: e077
-      ratio: 400
+      ratio: 500
       bossShock: 0
       repeat: 5
       firstAppear: 750
@@ -72,7 +72,7 @@ MonoBehaviour:
       repeatMax: 360
       previewSprite: {fileID: 21300000, guid: 2330b5046993da946b3a4c4c4a89a199, type: 3}
     - enemyID: e077
-      ratio: 400
+      ratio: 500
       bossShock: 0
       repeat: -1
       firstAppear: 1000

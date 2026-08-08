@@ -42,7 +42,7 @@ MonoBehaviour:
     bgm: dct
     enemySummonInfos:
     - enemyID: e103
-      ratio: 3000
+      ratio: 5000
       bossShock: 0
       repeat: -1
       firstAppear: 300
@@ -50,7 +50,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
     - enemyID: e103
-      ratio: 3000
+      ratio: 5000
       bossShock: 0
       repeat: 20
       firstAppear: 360
@@ -58,7 +58,7 @@ MonoBehaviour:
       repeatMax: 600
       previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
     - enemyID: e104
-      ratio: 1000
+      ratio: 1600
       bossShock: 0
       repeat: -1
       firstAppear: 150
@@ -66,7 +66,7 @@ MonoBehaviour:
       repeatMax: 650
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
     - enemyID: e105
-      ratio: 1000
+      ratio: 2000
       bossShock: 0
       repeat: 6
       firstAppear: 420
@@ -74,7 +74,7 @@ MonoBehaviour:
       repeatMax: 450
       previewSprite: {fileID: 21300000, guid: c8263f91b93fc684c95a338a946b54d6, type: 3}
     - enemyID: e105
-      ratio: 1000
+      ratio: 2000
       bossShock: 0
       repeat: -1
       firstAppear: 750
@@ -90,7 +90,7 @@ MonoBehaviour:
       repeatMax: 1600
       previewSprite: {fileID: 21300000, guid: 200e26398f9e3f44cbb00aafba9c092c, type: 3}
     - enemyID: e120
-      ratio: 100
+      ratio: 200
       bossShock: 0
       repeat: -1
       firstAppear: 500
@@ -98,7 +98,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}
     - enemyID: e121
-      ratio: 100
+      ratio: 200
       bossShock: 0
       repeat: -1
       firstAppear: 750
@@ -106,7 +106,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: b8bcf70fce857eb46bc9916eb2b1133c, type: 3}
     - enemyID: e122
-      ratio: 100
+      ratio: 200
       bossShock: 0
       repeat: 4
       firstAppear: 1000

@@ -63,7 +63,7 @@ MonoBehaviour:
       repeatMax: 600
       previewSprite: {fileID: 21300000, guid: ce055df11229a164cb5a96de321230d4, type: 3}
     - enemyID: e008
-      ratio: 3000
+      ratio: 5000
       bossShock: 0
       repeat: 3
       firstAppear: 300
@@ -98,7 +98,7 @@ MonoBehaviour:
     bgm: HazeReverb-Feast
     enemySummonInfos:
     - enemyID: e008
-      ratio: 3000
+      ratio: 5000
       bossShock: 0
       repeat: 3
       firstAppear: 30

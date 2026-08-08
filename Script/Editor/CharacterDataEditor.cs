@@ -15,7 +15,7 @@ public class CharacterDataEditor : Editor
     private const float PortraitEnemySize = 96f;
     private const float PortraitCatWidth = 110f;
     private const float PortraitCatHeight = 85f;
-    private const float SmallIconSize = 24f;
+    private const float SmallIconSize = 48f;
     private const float LargeIconSize = 32f;
     private const float StatKeyWidth = 72f;
     private const float StatValueInnerGap = 6f;
@@ -69,9 +69,6 @@ public class CharacterDataEditor : Editor
         }
 
         DrawSummaryPanels(data);
-        EditorGUILayout.Space(10f);
-        EditorGUILayout.LabelField("Raw Editable Data", sectionTitleStyle);
-        DrawDefaultInspector();
         serializedObject.ApplyModifiedProperties();
     }
 
@@ -81,87 +78,87 @@ public class CharacterDataEditor : Editor
         EditorGUILayout.LabelField("Character Data Overview", titleStyle);
         EditorGUILayout.Space(4f);
 
+        SerializedProperty nameProp = serializedObject.FindProperty("Name");
+        SerializedProperty eliteProp = serializedObject.FindProperty("isEliteUnit");
+        SerializedProperty unityAnimatedProp = serializedObject.FindProperty("UNITYAnimated");
+        SerializedProperty spineAnimatedProp = serializedObject.FindProperty("SPINEAnimated");
+        SerializedProperty healthProp = serializedObject.FindProperty("Health");
+        SerializedProperty kbProp = serializedObject.FindProperty("KB");
+        SerializedProperty speedProp = serializedObject.FindProperty("Speed");
+        SerializedProperty reloadProp = serializedObject.FindProperty("Reload");
+        SerializedProperty detectRangeProp = serializedObject.FindProperty("DetectionRange");
+        SerializedProperty costProp = serializedObject.FindProperty("Cost");
+        SerializedProperty cooldownProp = serializedObject.FindProperty("Cooldown");
+        SerializedProperty areaAtkProp = serializedObject.FindProperty("areaATK");
+        SerializedProperty atkDurationProp = serializedObject.FindProperty("atkDuration");
+        SerializedProperty baseEmotionProp = serializedObject.FindProperty("baseEmotion");
+        SerializedProperty atkTypeProp = serializedObject.FindProperty("ATKType");
+        SerializedProperty atkInfosProp = serializedObject.FindProperty("atkInfos");
+        SerializedProperty dreProp = serializedObject.FindProperty("DRE");
+
         DrawBox("Core Stats", () =>
         {
             DrawPortraitAndMainStats(data);
             EditorGUILayout.Space(6f);
-            DrawTraitRows(data);
-            EditorGUILayout.Space(6f);
-            DrawAttackOverview(data);
+            EditorGUILayout.PropertyField(nameProp, new GUIContent("Name"));
+            EditorGUILayout.PropertyField(eliteProp, new GUIContent("Elite Unit"));
+            EditorGUILayout.PropertyField(unityAnimatedProp, new GUIContent("UNITYAnimated"));
+            EditorGUILayout.PropertyField(spineAnimatedProp, new GUIContent("SPINEAnimated"));
+            DrawEditableCoreStatGrid(
+                healthProp, kbProp,
+                speedProp, reloadProp,
+                detectRangeProp, costProp,
+                cooldownProp, atkDurationProp,
+                areaAtkProp);
+            EditorGUILayout.PropertyField(baseEmotionProp, new GUIContent("Base Emotion"));
+            DrawCatLevel50Preview(data);
+            EditorGUILayout.PropertyField(atkTypeProp, new GUIContent("ATK Types"), true);
+            DrawAtkInfosTable(atkInfosProp);
         });
 
-        DrawBox("Traits & DRE Effects", () =>
+        DrawBox("Traits", () =>
         {
-            List<IconRowData> rows = new List<IconRowData>();
-            if (data.DRE != null)
-            {
-                if (data.DRE.massiveDamage) rows.Add(NewRow("N:dre:m", "D:dre:m"));
-                if (data.DRE.insaneDamage) rows.Add(NewRow("N:dre:i", "D:dre:i"));
-                if (data.DRE.tough) rows.Add(NewRow("N:dre:t", "D:dre:t"));
-                if (data.DRE.aegis) rows.Add(NewRow("N:dre:a", "D:dre:a"));
-                if (data.DRE.strongAgainst) rows.Add(NewRow("N:dre:s", "D:dre:s"));
-            }
+            DrawTraitButtons();
+        });
 
-            if (data.characterEffects != null)
-            {
-                for (int i = 0; i < data.characterEffects.Length; i++)
-                {
-                    CharacterEffect ce = data.characterEffects[i];
-                    if (ce == null) continue;
-                    int id = Convert.ToInt32(ce.name);
-                    rows.Add(NewRow($"N:e:{id}", $"D:e:{id}", ce.probability, ce.duration, ce.intensity));
-                }
-            }
+        DrawBox("SubTraits", () =>
+        {
+            DrawSubTraitButtons();
+        });
 
-            DrawIconRows(rows, "No DRE or CharacterEffect configured.");
+        DrawBox("Career", () =>
+        {
+            DrawCareerButtons();
+        });
+
+        DrawBox("AgainstCareer", () =>
+        {
+            DrawAgainstCareerButtons();
+        });
+
+        DrawBox("DRE", () =>
+        {
+            DrawDreButtons(dreProp);
+        });
+
+        DrawBox("Effects", () =>
+        {
+            DrawCharacterEffectEditor(serializedObject.FindProperty("characterEffects"), "e", "Effect");
         });
 
         DrawBox("Abilities", () =>
         {
-            List<IconRowData> rows = new List<IconRowData>();
-            if (data.abilities != null)
-            {
-                for (int i = 0; i < data.abilities.Length; i++)
-                {
-                    CharacterAbility ability = data.abilities[i];
-                    if (ability == null) continue;
-                    int id = Convert.ToInt32(ability.name);
-                    rows.Add(NewRow($"N:a:{id}", $"D:a:{id}", ability.probability, ability.duration, ability.intensity));
-                }
-            }
-            DrawIconRows(rows, "No Ability configured.");
+            DrawAbilityEditor(serializedObject.FindProperty("abilities"));
         });
 
-        DrawBox("Attack Type Resistance", () =>
+        DrawBox("AtkTypeResis", () =>
         {
-            List<IconRowData> rows = new List<IconRowData>();
-            if (data.atkTypeResis != null)
-            {
-                for (int i = 0; i < data.atkTypeResis.Length; i++)
-                {
-                    AttackTypeResistance res = data.atkTypeResis[i];
-                    if (res == null) continue;
-                    int id = Convert.ToInt32(res.type);
-                    rows.Add(NewRow($"N:ra:{id}", $"D:ra:{id}", res.intensity, 0, 0));
-                }
-            }
-            DrawIconRows(rows, "No AttackType resistance configured.");
+            DrawAtkResistanceEditor(serializedObject.FindProperty("atkTypeResis"));
         });
 
-        DrawBox("Effect Resistance", () =>
+        DrawBox("Effect Resistances", () =>
         {
-            List<IconRowData> rows = new List<IconRowData>();
-            if (data.effectResistances != null)
-            {
-                for (int i = 0; i < data.effectResistances.Length; i++)
-                {
-                    CharacterEffect res = data.effectResistances[i];
-                    if (res == null) continue;
-                    int id = Convert.ToInt32(res.name);
-                    rows.Add(NewRow($"N:re:{id}", $"D:re:{id}", res.probability, 0, 0));
-                }
-            }
-            DrawIconRows(rows, "No Effect resistance configured.");
+            DrawCharacterEffectEditor(serializedObject.FindProperty("effectResistances"), "re", "Resistance");
         });
     }
 
@@ -171,14 +168,12 @@ public class CharacterDataEditor : Editor
         isCat = portraitIsCat;
         float portraitW = isCat ? PortraitCatWidth : PortraitEnemySize;
         float portraitH = isCat ? PortraitCatHeight : PortraitEnemySize;
-        string animSource = data.SPINEAnimated ? "Spine 3.8" : (data.UNITYAnimated ? "Unity" : "BCU");
 
         EditorGUILayout.BeginHorizontal();
         DrawSprite(portrait ?? EAIconResolver.LoadSpriteOrFallback(string.Empty), portraitW, portraitH);
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField($"{data.Name} {(data.isEliteUnit ? "[战术单位]" : string.Empty)}", subtitleStyle);
         EditorGUILayout.LabelField($"{(isCat ? "50 级满宝数据" : "100% 倍率数据")}", subtitleStyle);
-        DrawMainStatGrid(data, animSource);
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
     }
@@ -210,65 +205,90 @@ public class CharacterDataEditor : Editor
         GUI.Label(rightValueRect, rightValue, statValueStyle);
     }
 
-    private void DrawTraitRows(CharacterData data)
+    private void DrawEditableCoreStatGrid(
+        SerializedProperty healthProp,
+        SerializedProperty kbProp,
+        SerializedProperty speedProp,
+        SerializedProperty reloadProp,
+        SerializedProperty detectRangeProp,
+        SerializedProperty costProp,
+        SerializedProperty cooldownProp,
+        SerializedProperty atkDurationProp,
+        SerializedProperty areaAtkProp)
     {
-        DrawIconBooleanRow("Traits", new[]
-        {
-            new IconBoolData("EAIcons/traits/t-0", data.traits != null && data.traits.Red),
-            new IconBoolData("EAIcons/traits/t-1", data.traits != null && data.traits.Flt),
-            new IconBoolData("EAIcons/traits/t-2", data.traits != null && data.traits.Blk),
-            new IconBoolData("EAIcons/traits/t-3", data.traits != null && data.traits.Mtl),
-            new IconBoolData("EAIcons/traits/t-4", data.traits != null && data.traits.Ang),
-            new IconBoolData("EAIcons/traits/t-5", data.traits != null && data.traits.Aln),
-            new IconBoolData("EAIcons/traits/t-6", data.traits != null && data.traits.Z),
-            new IconBoolData("EAIcons/traits/t-7", data.traits != null && data.traits.Re),
-            new IconBoolData("EAIcons/traits/t-8", data.traits != null && data.traits.Aku),
-            new IconBoolData("EAIcons/traits/t-9", data.traits != null && data.traits.None),
-        });
-
-        string subTraitsPrefix = isCat ? "EAIcons/traits/st-" : "EAIcons/traits/st-e-";
-        DrawIconBooleanRow("SubTraits", new[]
-        {
-            new IconBoolData(subTraitsPrefix + "0", data.subtraits != null && data.subtraits.Starred),
-            new IconBoolData(subTraitsPrefix + "1", data.subtraits != null && data.subtraits.Colossus),
-            new IconBoolData(subTraitsPrefix + "2", data.subtraits != null && data.subtraits.Behemoth),
-            new IconBoolData(subTraitsPrefix + "3", data.subtraits != null && data.subtraits.Sage),
-        });
-
-        DrawIconBooleanRow("Career", new[]
-        {
-            new IconBoolData("EAIcons/traits/c-1", data.career != null && data.career.Warrior),
-            new IconBoolData("EAIcons/traits/c-2", data.career != null && data.career.Deffender),
-            new IconBoolData("EAIcons/traits/c-3", data.career != null && data.career.Magician),
-            new IconBoolData("EAIcons/traits/c-4", data.career != null && data.career.Supporter),
-            new IconBoolData("EAIcons/traits/c-5", data.career != null && data.career.Practician),
-        });
-
-        DrawIconBooleanRow("Against", new[]
-        {
-            new IconBoolData("EAIcons/ac-1", data.againstCareer != null && data.againstCareer.AggainstWarrior),
-            new IconBoolData("EAIcons/ac-2", data.againstCareer != null && data.againstCareer.AggainstDeffender),
-            new IconBoolData("EAIcons/ac-3", data.againstCareer != null && data.againstCareer.AggainstMagician),
-            new IconBoolData("EAIcons/ac-4", data.againstCareer != null && data.againstCareer.AggainstSupporter),
-            new IconBoolData("EAIcons/ac-5", data.againstCareer != null && data.againstCareer.AggainstPractician),
-        });
+        EditorGUILayout.Space(3f);
+        DrawCoreStatPair("血量", healthProp, "KB", kbProp);
+        DrawCoreStatPair("速度", speedProp, "攻击恢复", reloadProp);
+        DrawCoreStatPair("索敌距离", detectRangeProp, "金钱", costProp);
+        DrawCoreStatPair("冷却", cooldownProp, "攻击时长", atkDurationProp);
+        DrawCoreStatPair("范围攻击", areaAtkProp, null, null);
     }
 
-    private void DrawAttackOverview(CharacterData data)
+    private void DrawCoreStatPair(string leftLabel, SerializedProperty leftProp, string rightLabel, SerializedProperty rightProp)
     {
-        EditorGUILayout.LabelField("ATK Infos", subtitleStyle);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PropertyField(leftProp, new GUIContent(leftLabel));
+        if (rightProp != null)
+        {
+            EditorGUILayout.PropertyField(rightProp, new GUIContent(rightLabel));
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawCatLevel50Preview(CharacterData data)
+    {
+        if (!isCat || data == null) return;
+
+        const int level50FullTreasureMultiplier = 27;
+        EditorGUILayout.Space(4f);
+        EditorGUILayout.LabelField("猫咪50级预览（满宝）", subtitleStyle);
+        EditorGUILayout.LabelField($"50级血量: {data.Health * level50FullTreasureMultiplier}", bodyStyle);
+
         if (data.atkInfos == null || data.atkInfos.Length == 0)
+        {
+            EditorGUILayout.LabelField("ATKInfo: (none)", bodyStyle);
+            return;
+        }
+
+        for (int i = 0; i < data.atkInfos.Length; i++)
+        {
+            ATKInfo info = data.atkInfos[i];
+            if (info == null) continue;
+            int scaledAtk = Mathf.RoundToInt(info.ATK * level50FullTreasureMultiplier);
+            EditorGUILayout.LabelField(
+                $"ATKInfo[{i}] 伤害:{scaledAtk}  帧:{info.frame}  范围:({info.ATKRange.x}, {info.ATKRange.y})",
+                bodyStyle);
+        }
+    }
+
+    private void DrawAtkInfosTable(SerializedProperty atkInfosProp)
+    {
+        if (atkInfosProp == null)
+        {
+            EditorGUILayout.HelpBox("ATK Infos 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        EditorGUILayout.Space(4f);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("ATK Infos", subtitleStyle);
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("新增ATK", GUILayout.Width(80)))
+        {
+            AddAtkInfoElement(atkInfosProp);
+        }
+        EditorGUILayout.EndHorizontal();
+
+        DrawAtkInfoTableHeader();
+        if (atkInfosProp.arraySize == 0)
         {
             EditorGUILayout.HelpBox("No atkInfos configured.", MessageType.None);
             return;
         }
 
-        DrawAtkInfoTableHeader();
-        for (int i = 0; i < data.atkInfos.Length; i++)
+        for (int i = 0; i < atkInfosProp.arraySize; i++)
         {
-            ATKInfo info = data.atkInfos[i];
-            if (info == null) continue;
-            DrawAtkInfoTableRow(i, info);
+            if (DrawAtkInfoTableRowEditable(atkInfosProp, i)) break;
         }
     }
 
@@ -280,19 +300,62 @@ public class CharacterDataEditor : Editor
         DrawAtkInfoTableCell("Range", AtkColRangeWidth, atkTableHeaderStyle);
         DrawAtkInfoTableCell("Frame", AtkColFrameWidth, atkTableHeaderStyle);
         DrawAtkInfoTableCell("Flags", AtkColFlagsWidth, atkTableHeaderStyle);
+        GUILayout.Label("Ops", atkTableHeaderStyle, GUILayout.Width(45f));
         EditorGUILayout.EndHorizontal();
     }
 
-    private void DrawAtkInfoTableRow(int index, ATKInfo info)
+    private bool DrawAtkInfoTableRowEditable(SerializedProperty atkInfosProp, int index)
     {
+        SerializedProperty infoProp = atkInfosProp.GetArrayElementAtIndex(index);
+        SerializedProperty atkProp = infoProp.FindPropertyRelative("ATK");
+        SerializedProperty rangeProp = infoProp.FindPropertyRelative("ATKRange");
+        SerializedProperty frameProp = infoProp.FindPropertyRelative("frame");
+        SerializedProperty noEffectsProp = infoProp.FindPropertyRelative("DoNotTriggerEffects");
+        SerializedProperty noAbilitiesProp = infoProp.FindPropertyRelative("DoNotTriggerAbilities");
+        SerializedProperty friendlyProp = infoProp.FindPropertyRelative("Friendly");
+
         EditorGUILayout.BeginHorizontal("box");
-        DrawAtkInfoTableCell(index.ToString(), AtkColIndexWidth, atkTableCellStyle);
-        int atk = (int)info.ATK * (isCat ? 27 : 1);
-        DrawAtkInfoTableCell(atk.ToString("0.##"), AtkColAtkWidth, atkTableCellStyle);
-        DrawAtkInfoTableCell($"({info.ATKRange.x}, {info.ATKRange.y})", AtkColRangeWidth, atkTableCellStyle);
-        DrawAtkInfoTableCell(info.frame.ToString(), AtkColFrameWidth, atkTableCellStyle);
-        DrawAtkInfoTableCell(FormatAtkInfoFlags(info), AtkColFlagsWidth, atkTableCellStyle);
+        GUILayout.Label(index.ToString(), atkTableCellStyle, GUILayout.Width(AtkColIndexWidth));
+        atkProp.floatValue = EditorGUILayout.FloatField(atkProp.floatValue, GUILayout.Width(AtkColAtkWidth));
+        EditorGUILayout.PropertyField(rangeProp, GUIContent.none, GUILayout.Width(AtkColRangeWidth));
+        frameProp.intValue = EditorGUILayout.IntField(frameProp.intValue, GUILayout.Width(AtkColFrameWidth));
+
+        EditorGUILayout.BeginHorizontal(GUILayout.Width(AtkColFlagsWidth));
+        DrawAtkFlagButton("E", noEffectsProp, true);
+        GUILayout.Space(4f);
+        DrawAtkFlagButton("A", noAbilitiesProp, true);
+        GUILayout.Space(4f);
+        DrawAtkFlagButton("F", friendlyProp, false);
         EditorGUILayout.EndHorizontal();
+
+        if (GUILayout.Button("删", GUILayout.Width(40f)))
+        {
+            atkInfosProp.DeleteArrayElementAtIndex(index);
+            EditorGUILayout.EndHorizontal();
+            return true;
+        }
+
+        EditorGUILayout.EndHorizontal();
+        return false;
+    }
+
+    private void DrawAtkFlagButton(string letter, SerializedProperty boolProp, bool trueIsRed)
+    {
+        if (boolProp == null)
+        {
+            GUILayout.Label("-", atkTableCellStyle, GUILayout.Width(20f));
+            return;
+        }
+
+        bool value = boolProp.boolValue;
+        bool redState = trueIsRed ? value : !value;
+        Color oldColor = GUI.color;
+        GUI.color = redState ? new Color(0.83f, 0.29f, 0.29f, 1f) : new Color(0.27f, 0.78f, 0.35f, 1f);
+        if (GUILayout.Button(letter, EditorStyles.miniButton, GUILayout.Width(20f), GUILayout.Height(18f)))
+        {
+            boolProp.boolValue = !value;
+        }
+        GUI.color = oldColor;
     }
 
     private void DrawAtkInfoTableCell(string text, float width, GUIStyle style)
@@ -300,64 +363,562 @@ public class CharacterDataEditor : Editor
         GUILayout.Label(text, style ?? bodyStyle, GUILayout.Width(width), GUILayout.MinWidth(width), GUILayout.MaxWidth(width));
     }
 
-    private string FormatAtkInfoFlags(ATKInfo info)
+    private static void AddAtkInfoElement(SerializedProperty atkInfosProp)
     {
-        string green = "#45C75A";
-        string red = "#D34A4A";
-
-        // E-/A-: false = green, true = red
-        string eColor = info.DoNotTriggerEffects ? red : green;
-        string aColor = info.DoNotTriggerAbilities ? red : green;
-        // F-: false = red, true = green
-        string fColor = info.Friendly ? green : red;
-
-        return $"<color={eColor}>E</color>    <color={aColor}>A</color>    <color={fColor}>F</color>";
+        int idx = atkInfosProp.arraySize;
+        atkInfosProp.InsertArrayElementAtIndex(idx);
+        SerializedProperty element = atkInfosProp.GetArrayElementAtIndex(idx);
+        element.FindPropertyRelative("ATK").floatValue = 1f;
+        element.FindPropertyRelative("frame").intValue = 1;
+        element.FindPropertyRelative("ATKRange").vector2Value = new Vector2(-200f, 200f);
+        element.FindPropertyRelative("DoNotTriggerEffects").boolValue = false;
+        element.FindPropertyRelative("DoNotTriggerAbilities").boolValue = false;
+        element.FindPropertyRelative("Friendly").boolValue = false;
     }
 
-    private void DrawIconBooleanRow(string label, IconBoolData[] items)
+    private void DrawTraitButtons()
     {
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.Label(label, GUILayout.Width(70f));
-        for (int i = 0; i < items.Length; i++)
+        SerializedProperty traits = serializedObject.FindProperty("traits");
+        if (traits == null)
         {
-            Sprite icon = EAIconResolver.LoadSpriteOrFallback(items[i].resourcePath);
-            Color old = GUI.color;
-            GUI.color = items[i].enabled ? Color.white : DisabledIconColor;
-            DrawSprite(icon, SmallIconSize, SmallIconSize);
-            GUI.color = old;
-        }
-        EditorGUILayout.EndHorizontal();
-    }
-
-    private void DrawIconRows(List<IconRowData> rows, string emptyHint)
-    {
-        if (rows.Count == 0)
-        {
-            EditorGUILayout.HelpBox(emptyHint, MessageType.None);
+            EditorGUILayout.HelpBox("Traits 数据不存在。", MessageType.Warning);
             return;
         }
 
-        for (int i = 0; i < rows.Count; i++)
+        SerializedProperty[] props =
         {
-            DrawIconRow(rows[i]);
-            if (i < rows.Count - 1) EditorGUILayout.Space(3f);
+            traits.FindPropertyRelative("Red"),
+            traits.FindPropertyRelative("Flt"),
+            traits.FindPropertyRelative("Blk"),
+            traits.FindPropertyRelative("Mtl"),
+            traits.FindPropertyRelative("Ang"),
+            traits.FindPropertyRelative("Aln"),
+            traits.FindPropertyRelative("Z"),
+            traits.FindPropertyRelative("Re"),
+            traits.FindPropertyRelative("Aku"),
+            traits.FindPropertyRelative("None"),
+        };
+        string[] iconPaths =
+        {
+            "EAIcons/traits/t-0","EAIcons/traits/t-1","EAIcons/traits/t-2","EAIcons/traits/t-3","EAIcons/traits/t-4",
+            "EAIcons/traits/t-5","EAIcons/traits/t-6","EAIcons/traits/t-7","EAIcons/traits/t-8","EAIcons/traits/t-9"
+        };
+        DrawCenteredIconToggleRow(props, iconPaths);
+    }
+
+    private void DrawSubTraitButtons()
+    {
+        SerializedProperty subTraits = serializedObject.FindProperty("subtraits");
+        if (subTraits == null)
+        {
+            EditorGUILayout.HelpBox("SubTraits 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        string prefix = isCat ? "EAIcons/traits/st-" : "EAIcons/traits/st-e-";
+        SerializedProperty[] props =
+        {
+            subTraits.FindPropertyRelative("Starred"),
+            subTraits.FindPropertyRelative("Colossus"),
+            subTraits.FindPropertyRelative("Behemoth"),
+            subTraits.FindPropertyRelative("Sage"),
+        };
+        string[] iconPaths =
+        {
+            prefix + "0",
+            prefix + "1",
+            prefix + "2",
+            prefix + "3",
+        };
+        DrawCenteredIconToggleRow(props, iconPaths);
+    }
+
+    private void DrawCareerButtons()
+    {
+        SerializedProperty career = serializedObject.FindProperty("career");
+        if (career == null)
+        {
+            EditorGUILayout.HelpBox("Career 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        SerializedProperty[] props =
+        {
+            career.FindPropertyRelative("Warrior"),
+            career.FindPropertyRelative("Deffender"),
+            career.FindPropertyRelative("Magician"),
+            career.FindPropertyRelative("Supporter"),
+            career.FindPropertyRelative("Practician"),
+        };
+        string[] iconPaths =
+        {
+            "EAIcons/traits/c-1","EAIcons/traits/c-2","EAIcons/traits/c-3","EAIcons/traits/c-4","EAIcons/traits/c-5"
+        };
+        DrawCenteredIconToggleRow(props, iconPaths);
+    }
+
+    private void DrawAgainstCareerButtons()
+    {
+        SerializedProperty against = serializedObject.FindProperty("againstCareer");
+        if (against == null)
+        {
+            EditorGUILayout.HelpBox("AgainstCareer 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        SerializedProperty[] props =
+        {
+            against.FindPropertyRelative("AggainstWarrior"),
+            against.FindPropertyRelative("AggainstDeffender"),
+            against.FindPropertyRelative("AggainstMagician"),
+            against.FindPropertyRelative("AggainstSupporter"),
+            against.FindPropertyRelative("AggainstPractician"),
+        };
+        string[] iconPaths = { "EAIcons/ac-1", "EAIcons/ac-2", "EAIcons/ac-3", "EAIcons/ac-4", "EAIcons/ac-5" };
+        DrawCenteredIconToggleRow(props, iconPaths);
+    }
+
+    private void DrawDreButtons(SerializedProperty dreProp)
+    {
+        if (dreProp == null)
+        {
+            EditorGUILayout.HelpBox("DRE 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        SerializedProperty[] props =
+        {
+            dreProp.FindPropertyRelative("massiveDamage"),
+            dreProp.FindPropertyRelative("insaneDamage"),
+            dreProp.FindPropertyRelative("tough"),
+            dreProp.FindPropertyRelative("aegis"),
+            dreProp.FindPropertyRelative("strongAgainst"),
+        };
+        string[] iconPaths = { "EAIcons/dre-m", "EAIcons/dre-i", "EAIcons/dre-t", "EAIcons/dre-a", "EAIcons/dre-s" };
+        DrawCenteredIconToggleRow(props, iconPaths);
+    }
+
+    private void DrawCenteredIconToggleRow(SerializedProperty[] boolProps, string[] iconPaths)
+    {
+        if (boolProps == null || iconPaths == null || boolProps.Length != iconPaths.Length) return;
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        for (int i = 0; i < boolProps.Length; i++)
+        {
+            SerializedProperty prop = boolProps[i];
+            if (prop == null)
+            {
+                GUILayout.Space(LargeIconSize + 4f);
+                continue;
+            }
+
+            Rect rect = GUILayoutUtility.GetRect(LargeIconSize, LargeIconSize, GUILayout.Width(LargeIconSize), GUILayout.Height(LargeIconSize));
+            if (GUI.Button(rect, GUIContent.none, GUIStyle.none))
+            {
+                prop.boolValue = !prop.boolValue;
+            }
+
+            Color old = GUI.color;
+            GUI.color = prop.boolValue ? Color.white : DisabledIconColor;
+            DrawSpriteAtRect(EAIconResolver.LoadSpriteOrFallback(iconPaths[i]), rect);
+            GUI.color = old;
+
+            GUILayout.Space(4f);
+        }
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawCharacterEffectEditor(SerializedProperty arrayProp, string iconKind, string label)
+    {
+        if (arrayProp == null)
+        {
+            EditorGUILayout.HelpBox($"{label} 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"{label} Count: {arrayProp.arraySize}", bodyStyle);
+        if (GUILayout.Button("新增", GUILayout.Width(70)))
+        {
+            AddCharacterEffectElement(arrayProp);
+        }
+        EditorGUILayout.EndHorizontal();
+        if (arrayProp.arraySize == 0)
+        {
+            EditorGUILayout.HelpBox($"No {label} configured.", MessageType.None);
+            return;
+        }
+
+        for (int i = 0; i < arrayProp.arraySize; i++)
+        {
+            if (DrawCharacterEffectElement(arrayProp, i, iconKind, label)) break;
         }
     }
 
-    private void DrawIconRow(IconRowData row)
+    private bool DrawCharacterEffectElement(SerializedProperty arrayProp, int index, string iconKind, string label)
     {
-        Sprite icon = EAIconResolver.LoadByNameCode(row.nameCode);
-        string displayName = GetLocalizedTextCached(DescTableName, row.nameCode);
-        string description = BuildLocalizedDescription(row.descCode, row.probability, row.duration, row.intensity);
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(index);
+        SerializedProperty nameProp = element.FindPropertyRelative("name");
+        SerializedProperty probabilityProp = element.FindPropertyRelative("probability");
+        SerializedProperty durationProp = element.FindPropertyRelative("duration");
+        SerializedProperty intensityProp = element.FindPropertyRelative("intensity");
 
-        EditorGUILayout.BeginHorizontal("box");
-        DrawSprite(icon, LargeIconSize, LargeIconSize);
+        int id = nameProp.intValue;
+        string nameCode = $"N:{iconKind}:{id}";
+        string descCode = $"D:{iconKind}:{id}";
+        string displayName = GetLocalizedTextCached(DescTableName, nameCode);
+        string description = BuildLocalizedDescription(descCode, probabilityProp.intValue, durationProp.intValue, intensityProp.intValue);
+
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.BeginHorizontal();
+        DrawSprite(EAIconResolver.LoadByNameCode(nameCode), LargeIconSize, LargeIconSize);
+
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField(displayName, subtitleStyle);
-        DrawRichLabel(description, descriptionStyle);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"#{index}  {displayName}", subtitleStyle);
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("删除", GUILayout.Width(70)))
+        {
+            arrayProp.DeleteArrayElementAtIndex(index);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            return true;
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.PropertyField(nameProp, new GUIContent("Type"));
+        EditorGUILayout.PropertyField(probabilityProp, new GUIContent("Probability"));
+        if (iconKind == "e")
+        {
+            EditorGUILayout.PropertyField(durationProp, new GUIContent("Duration"));
+            EditorGUILayout.PropertyField(intensityProp, new GUIContent("Intensity"));
+        }
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
+
+        DrawRichLabel(description, descriptionStyle);
+        EditorGUILayout.EndVertical();
+        return false;
     }
+
+    private void DrawAbilityEditor(SerializedProperty arrayProp)
+    {
+        if (arrayProp == null)
+        {
+            EditorGUILayout.HelpBox("Ability 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"Ability Count: {arrayProp.arraySize}", bodyStyle);
+        if (GUILayout.Button("新增", GUILayout.Width(70)))
+        {
+            AddAbilityElement(arrayProp);
+        }
+        EditorGUILayout.EndHorizontal();
+
+        if (arrayProp.arraySize == 0)
+        {
+            EditorGUILayout.HelpBox("No Ability configured.", MessageType.None);
+            return;
+        }
+
+        for (int i = 0; i < arrayProp.arraySize; i++)
+        {
+            if (DrawAbilityElement(arrayProp, i)) break;
+        }
+    }
+
+    private bool DrawAbilityElement(SerializedProperty arrayProp, int index)
+    {
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(index);
+        SerializedProperty nameProp = element.FindPropertyRelative("name");
+        SerializedProperty probabilityProp = element.FindPropertyRelative("probability");
+        SerializedProperty durationProp = element.FindPropertyRelative("duration");
+        SerializedProperty intensityProp = element.FindPropertyRelative("intensity");
+
+        int id = nameProp.intValue;
+        string nameCode = $"N:a:{id}";
+        string descCode = $"D:a:{id}";
+        string displayName = GetLocalizedTextCached(DescTableName, nameCode);
+        string description = BuildLocalizedDescription(descCode, probabilityProp.intValue, durationProp.intValue, intensityProp.intValue);
+
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.BeginHorizontal();
+        DrawSprite(EAIconResolver.LoadByNameCode(nameCode), LargeIconSize, LargeIconSize);
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"Ability #{index}  {displayName}", subtitleStyle);
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("删除", GUILayout.Width(70)))
+        {
+            arrayProp.DeleteArrayElementAtIndex(index);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            return true;
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.PropertyField(nameProp, new GUIContent("Type"));
+        EditorGUILayout.PropertyField(probabilityProp, new GUIContent("Probability"));
+        EditorGUILayout.PropertyField(durationProp, new GUIContent("Duration"));
+        EditorGUILayout.PropertyField(intensityProp, new GUIContent("Intensity"));
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.EndHorizontal();
+        DrawRichLabel(description, descriptionStyle);
+        EditorGUILayout.EndVertical();
+        return false;
+    }
+
+    private void DrawAtkResistanceEditor(SerializedProperty arrayProp)
+    {
+        if (arrayProp == null)
+        {
+            EditorGUILayout.HelpBox("AtkTypeResis 数据不存在。", MessageType.Warning);
+            return;
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"AtkTypeResis Count: {arrayProp.arraySize}", bodyStyle);
+        if (GUILayout.Button("新增", GUILayout.Width(70)))
+        {
+            AddAtkResElement(arrayProp);
+        }
+        EditorGUILayout.EndHorizontal();
+
+        if (arrayProp.arraySize == 0)
+        {
+            EditorGUILayout.HelpBox("No AttackType resistance configured.", MessageType.None);
+            return;
+        }
+
+        for (int i = 0; i < arrayProp.arraySize; i++)
+        {
+            if (DrawAtkResElement(arrayProp, i)) break;
+        }
+    }
+
+    private bool DrawAtkResElement(SerializedProperty arrayProp, int index)
+    {
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(index);
+        SerializedProperty typeProp = element.FindPropertyRelative("type");
+        SerializedProperty intensityProp = element.FindPropertyRelative("intensity");
+
+        int id = typeProp.intValue;
+        string nameCode = $"N:ra:{id}";
+        string descCode = $"D:ra:{id}";
+        string displayName = GetLocalizedTextCached(DescTableName, nameCode);
+        string description = BuildLocalizedDescription(descCode, intensityProp.intValue, 0, 0);
+
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.BeginHorizontal();
+        DrawSprite(EAIconResolver.LoadByNameCode(nameCode), LargeIconSize, LargeIconSize);
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"#{index}  {displayName}", subtitleStyle);
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("删除", GUILayout.Width(70)))
+        {
+            arrayProp.DeleteArrayElementAtIndex(index);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            return true;
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.PropertyField(typeProp, new GUIContent("Type"));
+        EditorGUILayout.PropertyField(intensityProp, new GUIContent("Intensity"));
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.EndHorizontal();
+        DrawRichLabel(description, descriptionStyle);
+        EditorGUILayout.EndVertical();
+        return false;
+    }
+
+    private static void AddCharacterEffectElement(SerializedProperty arrayProp)
+    {
+        int idx = arrayProp.arraySize;
+        arrayProp.InsertArrayElementAtIndex(idx);
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(idx);
+        element.FindPropertyRelative("name").intValue = 0;
+        element.FindPropertyRelative("probability").intValue = 0;
+        element.FindPropertyRelative("duration").intValue = 0;
+        element.FindPropertyRelative("intensity").intValue = 0;
+    }
+
+    private static void AddAbilityElement(SerializedProperty arrayProp)
+    {
+        int idx = arrayProp.arraySize;
+        arrayProp.InsertArrayElementAtIndex(idx);
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(idx);
+        element.FindPropertyRelative("name").intValue = 0;
+        element.FindPropertyRelative("probability").intValue = 0;
+        element.FindPropertyRelative("duration").intValue = 0;
+        element.FindPropertyRelative("intensity").intValue = 0;
+    }
+
+    private static void AddAtkResElement(SerializedProperty arrayProp)
+    {
+        int idx = arrayProp.arraySize;
+        arrayProp.InsertArrayElementAtIndex(idx);
+        SerializedProperty element = arrayProp.GetArrayElementAtIndex(idx);
+        element.FindPropertyRelative("type").intValue = 0;
+        element.FindPropertyRelative("intensity").intValue = 0;
+    }
+
+    //private void DrawTraitRows(CharacterData data)
+    //{
+    //    DrawIconBooleanRow("Traits", new[]
+    //    {
+    //        new IconBoolData("EAIcons/traits/t-0", data.traits != null && data.traits.Red),
+    //        new IconBoolData("EAIcons/traits/t-1", data.traits != null && data.traits.Flt),
+    //        new IconBoolData("EAIcons/traits/t-2", data.traits != null && data.traits.Blk),
+    //        new IconBoolData("EAIcons/traits/t-3", data.traits != null && data.traits.Mtl),
+    //        new IconBoolData("EAIcons/traits/t-4", data.traits != null && data.traits.Ang),
+    //        new IconBoolData("EAIcons/traits/t-5", data.traits != null && data.traits.Aln),
+    //        new IconBoolData("EAIcons/traits/t-6", data.traits != null && data.traits.Z),
+    //        new IconBoolData("EAIcons/traits/t-7", data.traits != null && data.traits.Re),
+    //        new IconBoolData("EAIcons/traits/t-8", data.traits != null && data.traits.Aku),
+    //        new IconBoolData("EAIcons/traits/t-9", data.traits != null && data.traits.None),
+    //    });
+
+    //    string subTraitsPrefix = isCat ? "EAIcons/traits/st-" : "EAIcons/traits/st-e-";
+    //    DrawIconBooleanRow("SubTraits", new[]
+    //    {
+    //        new IconBoolData(subTraitsPrefix + "0", data.subtraits != null && data.subtraits.Starred),
+    //        new IconBoolData(subTraitsPrefix + "1", data.subtraits != null && data.subtraits.Colossus),
+    //        new IconBoolData(subTraitsPrefix + "2", data.subtraits != null && data.subtraits.Behemoth),
+    //        new IconBoolData(subTraitsPrefix + "3", data.subtraits != null && data.subtraits.Sage),
+    //    });
+
+    //    DrawIconBooleanRow("Career", new[]
+    //    {
+    //        new IconBoolData("EAIcons/traits/c-1", data.career != null && data.career.Warrior),
+    //        new IconBoolData("EAIcons/traits/c-2", data.career != null && data.career.Deffender),
+    //        new IconBoolData("EAIcons/traits/c-3", data.career != null && data.career.Magician),
+    //        new IconBoolData("EAIcons/traits/c-4", data.career != null && data.career.Supporter),
+    //        new IconBoolData("EAIcons/traits/c-5", data.career != null && data.career.Practician),
+    //    });
+
+    //    DrawIconBooleanRow("Against", new[]
+    //    {
+    //        new IconBoolData("EAIcons/ac-1", data.againstCareer != null && data.againstCareer.AggainstWarrior),
+    //        new IconBoolData("EAIcons/ac-2", data.againstCareer != null && data.againstCareer.AggainstDeffender),
+    //        new IconBoolData("EAIcons/ac-3", data.againstCareer != null && data.againstCareer.AggainstMagician),
+    //        new IconBoolData("EAIcons/ac-4", data.againstCareer != null && data.againstCareer.AggainstSupporter),
+    //        new IconBoolData("EAIcons/ac-5", data.againstCareer != null && data.againstCareer.AggainstPractician),
+    //    });
+    //}
+
+    //private void DrawAttackOverview(CharacterData data)
+    //{
+    //    EditorGUILayout.LabelField("ATK Infos", subtitleStyle);
+    //    if (data.atkInfos == null || data.atkInfos.Length == 0)
+    //    {
+    //        EditorGUILayout.HelpBox("No atkInfos configured.", MessageType.None);
+    //        return;
+    //    }
+
+    //    DrawAtkInfoTableHeader();
+    //    for (int i = 0; i < data.atkInfos.Length; i++)
+    //    {
+    //        ATKInfo info = data.atkInfos[i];
+    //        if (info == null) continue;
+    //        DrawAtkInfoTableRow(i, info);
+    //    }
+    //}
+
+    //private void DrawAtkInfoTableHeader()
+    //{
+    //    EditorGUILayout.BeginHorizontal("box");
+    //    DrawAtkInfoTableCell("#", AtkColIndexWidth, atkTableHeaderStyle);
+    //    DrawAtkInfoTableCell("ATK", AtkColAtkWidth, atkTableHeaderStyle);
+    //    DrawAtkInfoTableCell("Range", AtkColRangeWidth, atkTableHeaderStyle);
+    //    DrawAtkInfoTableCell("Frame", AtkColFrameWidth, atkTableHeaderStyle);
+    //    DrawAtkInfoTableCell("Flags", AtkColFlagsWidth, atkTableHeaderStyle);
+    //    EditorGUILayout.EndHorizontal();
+    //}
+
+    //private void DrawAtkInfoTableRow(int index, ATKInfo info)
+    //{
+    //    EditorGUILayout.BeginHorizontal("box");
+    //    DrawAtkInfoTableCell(index.ToString(), AtkColIndexWidth, atkTableCellStyle);
+    //    int atk = (int)info.ATK * (isCat ? 27 : 1);
+    //    DrawAtkInfoTableCell(atk.ToString("0.##"), AtkColAtkWidth, atkTableCellStyle);
+    //    DrawAtkInfoTableCell($"({info.ATKRange.x}, {info.ATKRange.y})", AtkColRangeWidth, atkTableCellStyle);
+    //    DrawAtkInfoTableCell(info.frame.ToString(), AtkColFrameWidth, atkTableCellStyle);
+    //    DrawAtkInfoTableCell(FormatAtkInfoFlags(info), AtkColFlagsWidth, atkTableCellStyle);
+    //    EditorGUILayout.EndHorizontal();
+    //}
+
+    //private void DrawAtkInfoTableCell(string text, float width, GUIStyle style)
+    //{
+    //    GUILayout.Label(text, style ?? bodyStyle, GUILayout.Width(width), GUILayout.MinWidth(width), GUILayout.MaxWidth(width));
+    //}
+
+    //private string FormatAtkInfoFlags(ATKInfo info)
+    //{
+    //    string green = "#45C75A";
+    //    string red = "#D34A4A";
+
+    //    // E-/A-: false = green, true = red
+    //    string eColor = info.DoNotTriggerEffects ? red : green;
+    //    string aColor = info.DoNotTriggerAbilities ? red : green;
+    //    // F-: false = red, true = green
+    //    string fColor = info.Friendly ? green : red;
+
+    //    return $"<color={eColor}>E</color>    <color={aColor}>A</color>    <color={fColor}>F</color>";
+    //}
+
+    //private void DrawIconBooleanRow(string label, IconBoolData[] items)
+    //{
+    //    EditorGUILayout.BeginHorizontal();
+    //    GUILayout.Label(label, GUILayout.Width(70f));
+    //    for (int i = 0; i < items.Length; i++)
+    //    {
+    //        Sprite icon = EAIconResolver.LoadSpriteOrFallback(items[i].resourcePath);
+    //        Color old = GUI.color;
+    //        GUI.color = items[i].enabled ? Color.white : DisabledIconColor;
+    //        DrawSprite(icon, SmallIconSize, SmallIconSize);
+    //        GUI.color = old;
+    //    }
+    //    EditorGUILayout.EndHorizontal();
+    //}
+
+    //private void DrawIconRows(List<IconRowData> rows, string emptyHint)
+    //{
+    //    if (rows.Count == 0)
+    //    {
+    //        EditorGUILayout.HelpBox(emptyHint, MessageType.None);
+    //        return;
+    //    }
+
+    //    for (int i = 0; i < rows.Count; i++)
+    //    {
+    //        DrawIconRow(rows[i]);
+    //        if (i < rows.Count - 1) EditorGUILayout.Space(3f);
+    //    }
+    //}
+
+    //private void DrawIconRow(IconRowData row)
+    //{
+    //    Sprite icon = EAIconResolver.LoadByNameCode(row.nameCode);
+    //    string displayName = GetLocalizedTextCached(DescTableName, row.nameCode);
+    //    string description = BuildLocalizedDescription(row.descCode, row.probability, row.duration, row.intensity);
+
+    //    EditorGUILayout.BeginHorizontal("box");
+    //    DrawSprite(icon, LargeIconSize, LargeIconSize);
+    //    EditorGUILayout.BeginVertical();
+    //    EditorGUILayout.LabelField(displayName, subtitleStyle);
+    //    DrawRichLabel(description, descriptionStyle);
+    //    EditorGUILayout.EndVertical();
+    //    EditorGUILayout.EndHorizontal();
+    //}
 
     private string BuildLocalizedDescription(string descriptionCode, int probability, int duration, int intensity)
     {
@@ -530,6 +1091,11 @@ public class CharacterDataEditor : Editor
     private void DrawSprite(Sprite sprite, float width, float height)
     {
         Rect rect = GUILayoutUtility.GetRect(width, height, GUILayout.Width(width), GUILayout.Height(height));
+        DrawSpriteAtRect(sprite, rect);
+    }
+
+    private void DrawSpriteAtRect(Sprite sprite, Rect rect)
+    {
         if (sprite == null || sprite.texture == null) return;
         Rect uv = new Rect(
             sprite.rect.x / sprite.texture.width,

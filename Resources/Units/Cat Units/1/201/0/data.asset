@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 2
     frame: 32
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 100}
   areaATK: 0
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -70,3 +71,4 @@ MonoBehaviour:
   abilities: []
   atkTypeResis: []
   effectResistances: []
+  baseEmotion: 0

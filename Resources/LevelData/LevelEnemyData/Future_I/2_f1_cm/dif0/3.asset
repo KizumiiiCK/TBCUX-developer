@@ -39,7 +39,7 @@ MonoBehaviour:
     onlyOnce: 1
   - type: 1
     id: 12
-    drawtimes: 1500
+    drawtimes: 500
     droprate: 100
     onlyOnce: 1
   enemySummoners:
@@ -124,7 +124,7 @@ MonoBehaviour:
       repeat: -1
       firstAppear: 4100
       repeatMin: 600
-      repeatMax: 800
+      repeatMax: 1400
       previewSprite: {fileID: 21300000, guid: 67b63d0fee089604da8657017815bcb0, type: 3}
     - enemyID: e048
       ratio: 500
@@ -146,7 +146,7 @@ MonoBehaviour:
       ratio: 500
       bossShock: 0
       repeat: 4
-      firstAppear: 2450
+      firstAppear: 2200
       repeatMin: 60
       repeatMax: 120
       previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
@@ -172,7 +172,7 @@ MonoBehaviour:
       repeat: -1
       firstAppear: 4000
       repeatMin: 600
-      repeatMax: 800
+      repeatMax: 1400
       previewSprite: {fileID: 21300000, guid: c98504c0c4c933b48849763a86ce8b6e, type: 3}
     - enemyID: e136
       ratio: 150
@@ -182,11 +182,19 @@ MonoBehaviour:
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 5fe2e78b9f59046489bdf447880aa1cf, type: 3}
-    - enemyID: e097
-      ratio: 100
+    - enemyID: e136
+      ratio: 150
       bossShock: 0
       repeat: 1
-      firstAppear: 6550
+      firstAppear: 8750
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 21300000, guid: 45b77bc4f8636934c948cf35a73814bb, type: 3}
+    - enemyID: e097
+      ratio: 120
+      bossShock: 0
+      repeat: 1
+      firstAppear: 2250
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 45b77bc4f8636934c948cf35a73814bb, type: 3}

@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: id:japan
   gainXP: 444568
   BaseHealth: 700000
-  mapSize: 3600
+  mapSize: 3300
   maxEmenyCount: 20
   BackgroundID: 129
   BaseImageID: 6
@@ -47,7 +47,7 @@ MonoBehaviour:
     - enemyID: e059
       ratio: 100
       bossShock: 0
-      repeat: 15
+      repeat: 25
       firstAppear: 1000
       repeatMin: 300
       repeatMax: 600
@@ -83,7 +83,7 @@ MonoBehaviour:
       ratio: 100
       bossShock: 0
       repeat: 1
-      firstAppear: 300
+      firstAppear: 350
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 107f8a6ba703bad46a413070a7d4096a, type: 3}
@@ -92,37 +92,37 @@ MonoBehaviour:
       bossShock: 0
       repeat: -1
       firstAppear: 90
-      repeatMin: 1800
-      repeatMax: 1801
+      repeatMin: 2000
+      repeatMax: 2001
       previewSprite: {fileID: 21300000, guid: d474b2992c0d9ab419fb96868d4a7c6a, type: 3}
     - enemyID: c006
       ratio: 100
       bossShock: 0
       repeat: -1
       firstAppear: 120
-      repeatMin: 1800
-      repeatMax: 1801
+      repeatMin: 2000
+      repeatMax: 2001
       previewSprite: {fileID: 21300000, guid: d474b2992c0d9ab419fb96868d4a7c6a, type: 3}
     - enemyID: c006
       ratio: 100
       bossShock: 0
       repeat: -1
       firstAppear: 150
-      repeatMin: 1800
-      repeatMax: 1801
+      repeatMin: 2000
+      repeatMax: 2001
       previewSprite: {fileID: 21300000, guid: d474b2992c0d9ab419fb96868d4a7c6a, type: 3}
     - enemyID: e079
       ratio: 800
       bossShock: 0
       repeat: 3
-      firstAppear: 1200
+      firstAppear: 900
       repeatMin: 2200
       repeatMax: 2400
       previewSprite: {fileID: 21300000, guid: 1ebee35acc7c7ca47abd7de76511eed5, type: 3}
     - enemyID: e059
       ratio: 100
       bossShock: 0
-      repeat: 20
+      repeat: -1
       firstAppear: 0
       repeatMin: 300
       repeatMax: 400

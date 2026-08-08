@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: 1350
+  Name: 14000
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 2407
+  - ATK: 1926
     frame: 20
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 300, y: 600}
   areaATK: 1
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -68,8 +69,8 @@ MonoBehaviour:
     strongAgainst: 0
   characterEffects:
   - name: 3
-    probability: 30
-    duration: 90
+    probability: 50
+    duration: 150
     intensity: 0
   abilities:
   - name: 5

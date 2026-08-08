@@ -16,9 +16,10 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 2407
+  - ATK: 1926
     frame: 20
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 300, y: 600}
   areaATK: 1
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -68,8 +69,8 @@ MonoBehaviour:
     strongAgainst: 0
   characterEffects:
   - name: 3
-    probability: 30
-    duration: 90
+    probability: 50
+    duration: 150
     intensity: 0
   abilities:
   - name: 5
@@ -86,3 +87,4 @@ MonoBehaviour:
     probability: 100
     duration: 1
     intensity: 0
+  baseEmotion: 0

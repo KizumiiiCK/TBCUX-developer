@@ -40,7 +40,7 @@ MonoBehaviour:
     bgm: snwt
     enemySummonInfos:
     - enemyID: e103
-      ratio: 3000
+      ratio: 5000
       bossShock: 0
       repeat: -1
       firstAppear: 250
@@ -64,7 +64,7 @@ MonoBehaviour:
       repeatMax: 450
       previewSprite: {fileID: 21300000, guid: 876359241308a0d43aa0c35b9fb30c6d, type: 3}
     - enemyID: e008
-      ratio: 3000
+      ratio: 4000
       bossShock: 0
       repeat: -1
       firstAppear: 900
@@ -72,7 +72,7 @@ MonoBehaviour:
       repeatMax: 1500
       previewSprite: {fileID: 21300000, guid: 0d9f2e5373c92a64ea9900d13a9ac147, type: 3}
     - enemyID: e033
-      ratio: 500
+      ratio: 600
       bossShock: 0
       repeat: 3
       firstAppear: 1500

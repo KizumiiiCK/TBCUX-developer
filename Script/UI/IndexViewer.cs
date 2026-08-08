@@ -208,7 +208,7 @@ public class IndexViewer : MonoBehaviour
     {
         ApplyTraits(TraitsList, new[]
         {
-            cd.traits.Red, cd.traits.Flt, cd.traits.Blk, cd.traits.Ang, cd.traits.Mtl,
+            cd.traits.Red, cd.traits.Flt, cd.traits.Blk, cd.traits.Mtl, cd.traits.Ang,
             cd.traits.Aln, cd.traits.Z, cd.traits.Re, cd.traits.Aku, cd.traits.None
         });
 

@@ -60,7 +60,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 60beb280315321b4db1a0778581afa08, type: 3}
     - enemyID: e103
-      ratio: 10000
+      ratio: 15000
       bossShock: 0
       repeat: -1
       firstAppear: 300
@@ -68,7 +68,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
     - enemyID: e103
-      ratio: 10000
+      ratio: 15000
       bossShock: 0
       repeat: 10
       firstAppear: 270
@@ -76,7 +76,7 @@ MonoBehaviour:
       repeatMax: 300
       previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
     - enemyID: e104
-      ratio: 1200
+      ratio: 1800
       bossShock: 0
       repeat: 3
       firstAppear: 450
@@ -84,7 +84,7 @@ MonoBehaviour:
       repeatMax: 450
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
     - enemyID: e105
-      ratio: 2000
+      ratio: 2500
       bossShock: 0
       repeat: 2
       firstAppear: 550
@@ -95,7 +95,7 @@ MonoBehaviour:
     bgm: snwt
     enemySummonInfos:
     - enemyID: e103
-      ratio: 10000
+      ratio: 15000
       bossShock: 0
       repeat: 20
       firstAppear: 30
@@ -103,7 +103,7 @@ MonoBehaviour:
       repeatMax: 300
       previewSprite: {fileID: 21300000, guid: 53ab41f332d08ff4988aba7e5f865aff, type: 3}
     - enemyID: e104
-      ratio: 1200
+      ratio: 1800
       bossShock: 0
       repeat: 6
       firstAppear: 150
@@ -111,7 +111,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
     - enemyID: e104
-      ratio: 1200
+      ratio: 1800
       bossShock: 0
       repeat: -1
       firstAppear: 1200
@@ -119,7 +119,7 @@ MonoBehaviour:
       repeatMax: 2400
       previewSprite: {fileID: 21300000, guid: c4d7ba1286afb9c4689f4bbed782d5d3, type: 3}
     - enemyID: e105
-      ratio: 2000
+      ratio: 2500
       bossShock: 0
       repeat: 12
       firstAppear: 550
