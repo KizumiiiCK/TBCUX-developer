@@ -19,7 +19,8 @@ MonoBehaviour:
   maxEmenyCount: 30
   BackgroundID: 502
   BaseImageID: 134
-  CombatEffect: []
+  CombatEffect:
+  - maniac
   Restriction: []
   CombatAura: []
   exstage:

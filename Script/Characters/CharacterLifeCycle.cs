@@ -169,10 +169,11 @@ public abstract partial class Character
     {
         if (UNITYAnimated)
         {
-            animator.speed = spd;
+            if (animator == null) animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+            if (animator != null) animator.speed = spd;
             if (SPINEAnimated)
             {
-                skeletonAnimator.timeScale = spd;
+                ApplySpineAnimationSpeed(spd);
             }
         }
         else animatorDisplayer.SetAnimationSpeed(spd);
@@ -192,6 +193,32 @@ public abstract partial class Character
         {
             animatorDisplayer = GetComponent<AnimationDisplayer>();
         }
+    }
+
+    private void ApplySpineAnimationSpeed(float speed)
+    {
+        if (skeletonAnimator == null) skeletonAnimator = GetComponentInChildren<SkeletonAnimation>(true);
+        if (skeletonAnimator != null)
+        {
+            skeletonAnimator.timeScale = speed;
+            if (skeletonAnimator.AnimationState != null)
+            {
+                skeletonAnimator.AnimationState.TimeScale = speed;
+            }
+        }
+
+        // // 兜底：部分 Spine 结构可能有多个 SkeletonAnimation，统一写入保证立即停住。
+        // SkeletonAnimation[] allSpines = GetComponentsInChildren<SkeletonAnimation>(true);
+        // for (int i = 0; i < allSpines.Length; i++)
+        // {
+        //     SkeletonAnimation spine = allSpines[i];
+        //     if (spine == null) continue;
+        //     spine.timeScale = speed;
+        //     if (spine.AnimationState != null)
+        //     {
+        //         spine.AnimationState.TimeScale = speed;
+        //     }
+        // }
     }
 
     private void RegisterToTargetManager()
