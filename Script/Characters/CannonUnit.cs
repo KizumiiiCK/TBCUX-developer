@@ -7,6 +7,7 @@ public class CannonUnit : Character
 {
     protected override TargetRegistrationKind RegistrationKind => TargetRegistrationKind.Projectile;
     private readonly HashSet<Character> attackedTargets = new HashSet<Character>();
+    private static readonly DamageRelatedEffect NeutralDre = new DamageRelatedEffect();
 
     // Including NULL steps of a cannon effect animation
     [System.Serializable]
@@ -99,15 +100,19 @@ public class CannonUnit : Character
             if (target == null) continue;
             if (attackedTargets.Contains(target)) continue;
             float finalDamage = dmg;
+            DamageRelatedEffect dreToApply = DRE;
             if (cannon_type == 4 && target.traits != null && target.traits.Mtl)
             {
                 finalDamage = target.GetMaxHealth() * 0.7f;
+                dreToApply = NeutralDre;
             }
             if (cannon_type == 5 && target.traits != null && target.traits.Z)
             {
                 finalDamage = target.GetMaxHealth() * 0.15f;
+                // 百分比伤害应保持“固定百分比”，不再叠加 massive/insane 倍率。
+                dreToApply = NeutralDre;
             }
-            target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, dreToApply, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
             hitCount++;
             if (cannon_type == 0) target.StartKBCoroutine(KB_Type.pushBack);
@@ -126,7 +131,8 @@ public class CannonUnit : Character
                 if (!CharacterTargetManager.Instance.IsTargetInCurrentRange(this, target)) continue;
 
                 float damageToUndetectableZombie = target.GetMaxHealth() * 0.30f;
-                target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+                target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, NeutralDre, characterEffects.ToList(), ATKTypes);
+                target.StartKBCoroutine(KB_Type.pushBack);
                 attackedTargets.Add(target);
                 hitCount++;
             }

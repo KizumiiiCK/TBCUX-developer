@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: L8-5
   gainXP: 340000
   BaseHealth: 860000
-  mapSize: 5000
+  mapSize: 4800
   maxEmenyCount: 25
   BackgroundID: 258
   BaseImageID: 301
@@ -93,7 +93,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 0}
     - enemyID: e019
-      ratio: 1500
+      ratio: 1600
       bossShock: 0
       repeat: 3
       firstAppear: 0
@@ -111,10 +111,10 @@ MonoBehaviour:
     - enemyID: e053
       ratio: 150
       bossShock: 0
-      repeat: 6
+      repeat: 11
       firstAppear: 0
-      repeatMin: 1300
-      repeatMax: 1500
+      repeatMin: 800
+      repeatMax: 1200
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
     - enemyID: e028
       ratio: 1000

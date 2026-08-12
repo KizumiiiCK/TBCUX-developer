@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 373cbc5a1c45ee84286cb20306813a8b, type: 3}
+  m_Name: 3
+  m_EditorClassIdentifier: 
+  contentID: bs-4
+  dialogues:
+  - DialoguerName: none
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+    cg: 
+  - DialoguerName: Moneko_3
+    DialoguerImage: Moneko_3_grin
+    faceToRight: 0
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Nerd
+    DialoguerImage: Nerd_0
+    faceToRight: 1
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Sb_blogA
+    DialoguerImage: Sb_0
+    faceToRight: 1
+    clearImage: 1
+    cg: momoka-home
+  - DialoguerName: Moneko_3
+    DialoguerImage: Moneko_3_cry
+    faceToRight: 0
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Sb_blogA
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: none
+    DialoguerImage: Nerd_0
+    faceToRight: 1
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Sb_blogB
+    DialoguerImage: Sb_1
+    faceToRight: 0
+    clearImage: 1
+    cg: momoka-home
+  - DialoguerName: Sb_blogB
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Sb_blogA
+    DialoguerImage: Sb_0
+    faceToRight: 1
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: none
+    DialoguerImage: 
+    faceToRight: 0
+    clearImage: 1
+    cg: momoka-home
+  - DialoguerName: Nerd
+    DialoguerImage: Nerd_0
+    faceToRight: 1
+    clearImage: 0
+    cg: momoka-home
+  - DialoguerName: Nerd
+    DialoguerImage: Nerd_usa
+    faceToRight: 1
+    clearImage: 0
+    cg: nerd-home

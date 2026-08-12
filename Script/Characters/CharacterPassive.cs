@@ -80,7 +80,7 @@ public abstract partial class Character
             passiveSnapshot[i]?.OnStartAttack(this);
         }
     }
-    protected void Passive_OnFinishAttack()
+    protected void Passive_OnExitAttack()
     {
         if (!HasPassiveHook(PassiveHooks.OnFinishAttack)) return;
         for (int i = 0; i < passiveSnapshot.Count; i++)

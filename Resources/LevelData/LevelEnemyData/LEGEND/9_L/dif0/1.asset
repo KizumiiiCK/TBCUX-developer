@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: L9-1
   gainXP: 275000
-  BaseHealth: 698000
+  BaseHealth: 498000
   mapSize: 4400
   maxEmenyCount: 8
   BackgroundID: 72
@@ -56,23 +56,23 @@ MonoBehaviour:
       ratio: 1600
       bossShock: 0
       repeat: 4
-      firstAppear: 1600
-      repeatMin: 1400
-      repeatMax: 1800
+      firstAppear: 1900
+      repeatMin: 2400
+      repeatMax: 2600
       previewSprite: {fileID: 21300000, guid: 9df1214173658a948a82cbcf39c8be62, type: 3}
     - enemyID: e088
       ratio: 200
       bossShock: 0
       repeat: 2
       firstAppear: 2800
-      repeatMin: 2600
-      repeatMax: 2800
+      repeatMin: 3400
+      repeatMax: 3600
       previewSprite: {fileID: 21300000, guid: c5624208b4aee2b42a3de4809b1a1cdc, type: 3}
     - enemyID: e053
       ratio: 150
       bossShock: 0
       repeat: 3
-      firstAppear: 2000
+      firstAppear: 2200
       repeatMin: 1800
       repeatMax: 2400
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
@@ -88,7 +88,7 @@ MonoBehaviour:
       ratio: 120
       bossShock: 0
       repeat: 1
-      firstAppear: 500
+      firstAppear: 600
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 7684dae0b8546844c91754f5e09eaaa7, type: 3}

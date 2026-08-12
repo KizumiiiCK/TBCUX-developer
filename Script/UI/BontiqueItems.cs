@@ -96,7 +96,7 @@ public class BontiqueItems : MonoBehaviour
         if (item == null) return;
         boundItem = item;
         CacheRefs();
-        int currentCurrencyAmount = RewardingSystem.GetAmount(item.CurrencyId);
+        int currentCurrencyAmount = item.IsBuildaIap ? 0 : RewardingSystem.GetAmount(item.CurrencyId);
         UpdateRemainingAndPurchaseUi(item, remaining, interactable, now, currentCurrencyAmount);
     }
 
@@ -114,14 +114,28 @@ public class BontiqueItems : MonoBehaviour
         }
         if (currencyDisplay != null)
         {
-            string costAndOwned = (item.CurrencyId == 11 || item.CurrencyId == 12)
-                ? Mathf.Max(0, item.CurrencyAmount).ToString()
-                : $"{Mathf.Max(0, item.CurrencyAmount)} / {Mathf.Max(0, currentCurrencyAmount)}";
-            currencyDisplay.SetData(item.CurrencyId, currentCurrencyAmount, null, costAndOwned);
+            string costAndOwned;
+            int displayCurrencyId = item.CurrencyId;
+            if (item.IsBuildaIap)
+            {
+                // Platform G-coin balance is owned by the host; show price only.
+                // Icon reuses Builda_Coin (99) until a dedicated G-coin sprite exists.
+                displayCurrencyId = 99;
+                costAndOwned = $"{Mathf.Max(0, item.CurrencyAmount)} G";
+            }
+            else if (item.CurrencyId == 11 || item.CurrencyId == 12)
+            {
+                costAndOwned = Mathf.Max(0, item.CurrencyAmount).ToString();
+            }
+            else
+            {
+                costAndOwned = $"{Mathf.Max(0, item.CurrencyAmount)} / {Mathf.Max(0, currentCurrencyAmount)}";
+            }
+            currencyDisplay.SetData(displayCurrencyId, currentCurrencyAmount, null, costAndOwned);
         }
         if (redeemButton != null)
         {
-            bool currencyEnough = currentCurrencyAmount >= item.CurrencyAmount;
+            bool currencyEnough = item.IsBuildaIap || currentCurrencyAmount >= item.CurrencyAmount;
             bool canRedeem = interactable && currencyEnough;
             Color targetColor = canRedeem ? CanBuyButtonColor : CannotBuyButtonColor;
             redeemButton.SetFrameColorPersistent(targetColor);

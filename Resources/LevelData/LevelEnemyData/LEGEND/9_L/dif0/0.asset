@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: L9-0
   gainXP: 225800
   BaseHealth: 660000
-  mapSize: 4000
+  mapSize: 4100
   maxEmenyCount: 18
   BackgroundID: 4
   BaseImageID: 300
@@ -83,7 +83,7 @@ MonoBehaviour:
       ratio: 150
       bossShock: 0
       repeat: 1
-      firstAppear: 600
+      firstAppear: 450
       repeatMin: 0
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 46c3684f4f461794485778c99782b067, type: 3}
@@ -93,5 +93,5 @@ MonoBehaviour:
       repeat: 3
       firstAppear: 250
       repeatMin: 800
-      repeatMax: 1200
+      repeatMax: 1000
       previewSprite: {fileID: 21300000, guid: f3119e7562f64574f8758a07b339e1d0, type: 3}

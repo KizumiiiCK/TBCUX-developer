@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class BontiqueStaticCatalog
 {
@@ -306,107 +307,144 @@ public static class BontiqueStaticCatalog
         //},
         #endregion
         #region Builda
+        // Platform G-coin IAP (BuildaPayId must match builda.publish.json payPoints).
+        new BontiqueShopItem
+        {
+            bid = "b:iap-10", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 10,
+            CurrencyId = BontiqueShopItem.PlatformGCoinCurrencyId, CurrencyAmount = 10000,
+            BuildaPayId = "builda_coin_10",
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-55", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 55,
+            CurrencyId = BontiqueShopItem.PlatformGCoinCurrencyId, CurrencyAmount = 50000,
+            BuildaPayId = "builda_coin_55",
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-120", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 120,
+            CurrencyId = BontiqueShopItem.PlatformGCoinCurrencyId, CurrencyAmount = 100000,
+            BuildaPayId = "builda_coin_120",
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-400", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 400,
+            CurrencyId = BontiqueShopItem.PlatformGCoinCurrencyId, CurrencyAmount = 300000,
+            BuildaPayId = "builda_coin_400",
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-1000", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 1000,
+            CurrencyId = BontiqueShopItem.PlatformGCoinCurrencyId, CurrencyAmount = 680000,
+            BuildaPayId = "builda_coin_1000",
+        },
+        // Spend Builda_Coin (order 99) for in-game items. CurrencyAmount is coin cost (legacy /1000).
         new BontiqueShopItem
         {
             bid = "b:can5", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 12, ObtainAmount = 500,
-            CurrencyId = 99, CurrencyAmount = 50000,
+            CurrencyId = 99, CurrencyAmount = 50,
         },
         new BontiqueShopItem
         {
             bid = "b:can15", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 12, ObtainAmount = 1500,
-            CurrencyId = 99, CurrencyAmount = 125000,
+            CurrencyId = 99, CurrencyAmount = 125,
         },
         new BontiqueShopItem
         {
             bid = "b:can50", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 12, ObtainAmount = 5000,
-            CurrencyId = 99, CurrencyAmount = 350000,
+            CurrencyId = 99, CurrencyAmount = 350,
         },
         new BontiqueShopItem
         {
             bid = "b:xp1", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 11, ObtainAmount = 1000000,
-            CurrencyId = 99, CurrencyAmount = 10000,
+            CurrencyId = 99, CurrencyAmount = 10,
         },
         new BontiqueShopItem
         {
             bid = "b:gt1", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 7, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 10000,
+            CurrencyId = 99, CurrencyAmount = 10,
         },
         new BontiqueShopItem
         {
             bid = "b:gt10", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 7, ObtainAmount = 10,
-            CurrencyId = 99, CurrencyAmount = 80000,
+            CurrencyId = 99, CurrencyAmount = 80,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-p", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 26, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 4000,
+            CurrencyId = 99, CurrencyAmount = 4,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-r", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 27, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 4000,
+            CurrencyId = 99, CurrencyAmount = 4,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-b", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 28, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 4000,
+            CurrencyId = 99, CurrencyAmount = 4,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-g", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 29, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 4000,
+            CurrencyId = 99, CurrencyAmount = 4,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-y", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 30, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 4000,
+            CurrencyId = 99, CurrencyAmount = 4,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-p", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 34, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-r", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 35, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-b", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 36, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-g", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 37, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-y", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 38, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-rb", Category = BontiqueType.Biulda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 39, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 40000,
+            CurrencyId = 99, CurrencyAmount = 40,
         },
         #endregion
         #region Regular
@@ -594,4 +632,30 @@ public static class BontiqueStaticCatalog
     {
         return ByCategory.TryGetValue(category, out List<BontiqueShopItem> list) ? list : EmptyList;
     }
+
+    /// <summary>Builda payPoints rows derived from catalog IAP entries (for builda.publish.json).</summary>
+    public static List<BontiqueBuildaPayPoint> GetBuildaPayPoints()
+    {
+        var result = new List<BontiqueBuildaPayPoint>();
+        for (int i = 0; i < Catalog.Count; i++)
+        {
+            BontiqueShopItem item = Catalog[i];
+            if (item == null || !item.IsBuildaIap) continue;
+            result.Add(new BontiqueBuildaPayPoint
+            {
+                payId = item.BuildaPayId,
+                payName = $"Builda币×{Mathf.Max(0, item.ObtainAmount)}",
+                price = Mathf.Max(0, item.CurrencyAmount),
+            });
+        }
+        return result;
+    }
+}
+
+[Serializable]
+public class BontiqueBuildaPayPoint
+{
+    public string payId;
+    public string payName;
+    public int price;
 }

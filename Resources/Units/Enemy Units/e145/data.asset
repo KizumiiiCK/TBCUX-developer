@@ -19,16 +19,19 @@ MonoBehaviour:
   - ATK: 9300
     frame: 10
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 1, y: 251}
   - ATK: 9300
     frame: 21
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 1, y: 301}
   - ATK: 9300
     frame: 32
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 1, y: 351}
   areaATK: 1
@@ -68,7 +71,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -79,8 +82,8 @@ MonoBehaviour:
   characterEffects:
   - name: 7
     probability: 5
-    duration: 0
-    intensity: 50
+    duration: 50
+    intensity: 0
   abilities: []
   atkTypeResis:
   - type: 2

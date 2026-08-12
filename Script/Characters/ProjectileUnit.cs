@@ -109,7 +109,6 @@ public class ProjectileUnit : AnimatorCachedCharacter
                 Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects, atkInfos[animateStep].DoNotTriggerAbilities);
             if (animatedframes >= atkDuration)
             {
-                Passive_OnFinishAttack();
                 ExitAttack();
             }
             return;

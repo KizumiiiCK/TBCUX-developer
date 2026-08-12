@@ -79,7 +79,7 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 99
     bgm: 031
     enemySummonInfos:
-    - enemyID: e145
+    - enemyID: e143
       ratio: 100
       bossShock: 1
       repeat: 1
@@ -111,11 +111,3 @@ MonoBehaviour:
       repeatMin: 1200
       repeatMax: 1800
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
-    - enemyID: e142
-      ratio: 200
-      bossShock: 0
-      repeat: 4
-      firstAppear: 150
-      repeatMin: 1400
-      repeatMax: 1800
-      previewSprite: {fileID: 21300000, guid: 040ccf01dc4d0bf4588996bd8a4de6e2, type: 3}

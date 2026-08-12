@@ -152,8 +152,7 @@ public abstract partial class Character
                         }
                     }
                 }
-                //if (!atkInfos[animateStep].DoNotTriggerEffects)
-                if (!doNotTrigger && !doNotTriggerAbilities)
+                if (!doNotTriggerAbilities)
                 {
                     Passive_OnAfterAttack(dmg, decisionEff, types);
                 }
@@ -190,9 +189,8 @@ public abstract partial class Character
         ResetAttackResolveState();
         animateStep = 0;
         animatedframes = 0;
-        //if(animator!=null)animator.SetInteger("state", 0);
-        //SetAttackRange(0, DetectionRange);
         SwitchAnimation(0);
+        Passive_OnExitAttack();
     }
 
     public void AbortCurrentAttackForControl()

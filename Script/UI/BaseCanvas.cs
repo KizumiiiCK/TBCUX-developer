@@ -46,6 +46,7 @@ public class BaseCanvas : UICanvasMain
         Instantiate(Resources.Load<GameObject>("UI/Pages/CheckInCanvas"));
         RewardingSystem.GainReward(RewardName.XP, 0);
         UpdateCurrencies();
+        Builda.BuildaSDK.RuntimeReady(null);
     }
     private void Awake()
     {

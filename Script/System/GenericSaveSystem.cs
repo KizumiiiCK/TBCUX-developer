@@ -1379,4 +1379,58 @@ public static class BontiquePurchaseSave
     }
 }
 
+[System.Serializable]
+public class BuildaIapOrderData
+{
+    public List<string> fulfilledOrderIds = new List<string>();
+}
+
+/// <summary>Idempotent fulfillment ledger for Builda pay.showPayPanel orderId values.</summary>
+public static class BuildaIapOrderSave
+{
+    public static readonly string filename = "B7E2C91A04D84F6BB1A0E5F8C3D29470"; // builda_iap_orders
+
+    private static BuildaIapOrderData LoadOrCreate(bool saveWhenMissing = false)
+    {
+        var data = GenericSaveSystem.LoadData<BuildaIapOrderData>(filename);
+        if (data == null)
+        {
+            data = new BuildaIapOrderData();
+            if (saveWhenMissing) Save(data);
+        }
+        if (data.fulfilledOrderIds == null) data.fulfilledOrderIds = new List<string>();
+        return data;
+    }
+
+    private static void Save(BuildaIapOrderData data) => GenericSaveSystem.SaveData(data, filename);
+
+    public static bool HasFulfilled(string orderId)
+    {
+        if (string.IsNullOrEmpty(orderId)) return false;
+        var data = LoadOrCreate(false);
+        for (int i = 0; i < data.fulfilledOrderIds.Count; i++)
+        {
+            if (string.Equals(data.fulfilledOrderIds[i], orderId, StringComparison.Ordinal)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Returns true if this is the first time the order is marked (caller should grant).</summary>
+    public static bool TryMarkFulfilled(string orderId)
+    {
+        if (string.IsNullOrEmpty(orderId)) return false;
+        var data = LoadOrCreate(true);
+        for (int i = 0; i < data.fulfilledOrderIds.Count; i++)
+        {
+            if (string.Equals(data.fulfilledOrderIds[i], orderId, StringComparison.Ordinal)) return false;
+        }
+        data.fulfilledOrderIds.Add(orderId);
+        // Keep ledger bounded.
+        const int maxKeep = 256;
+        if (data.fulfilledOrderIds.Count > maxKeep)
+            data.fulfilledOrderIds.RemoveRange(0, data.fulfilledOrderIds.Count - maxKeep);
+        Save(data);
+        return true;
+    }
+}
 

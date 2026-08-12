@@ -1212,10 +1212,15 @@ public class ZombieReviveAddon : PassiveSkill
     {
         if (character == null) yield break;
         reviving = true;
+        int originalBaseSpeed = Mathf.Max(0, character.Speed);
+        int originalRealSpeed = Mathf.Max(0, character.GetRealSpeed());
 
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
         SetCharacterRenderersVisible(character, false);
         character.SetExternalAnimControl(true);
+        // 尸体阶段强制不可移动，避免被击退后恢复位移。
+        character.Speed = 0;
+        character.ChangeSpeed(0);
         character.RemoveAllTarget();
 
         AnimationDisplayer corpse = CreateCorpseOnCharacter(character);
@@ -1237,6 +1242,10 @@ public class ZombieReviveAddon : PassiveSkill
 
         SetCharacterRenderersVisible(character, true);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
+        character.Speed = originalBaseSpeed;
+        if (character.GetComponent<Stop>() != null) character.ChangeSpeed(0);
+        else if (character.GetComponent<Slow>() != null) character.ChangeSpeed(1);
+        else character.ChangeSpeed(originalRealSpeed > 0 ? originalRealSpeed : originalBaseSpeed);
         character.SetExternalAnimControl(false);
         character.SwitchAnimation(0);
         reviving = false;

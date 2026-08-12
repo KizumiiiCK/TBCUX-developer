@@ -35,7 +35,6 @@ public class EnemyCharacter : AnimatorCachedCharacter
             }
             if (animatedframes == atkDuration)
             {
-                Passive_OnFinishAttack();
                 ExitAttack();
             }
             return;
@@ -60,7 +59,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         else 
         {
             SwitchAnimation(0);
-            this.transform.Translate(new Vector2(TBCspeedTranslator(realSpeed) * Time.deltaTime, 0));
+            transform.Translate(new Vector2(TBCspeedTranslator(realSpeed) * Time.deltaTime, 0));
         }
     }//Rectify the cat's movement and animation
 
