@@ -25,6 +25,7 @@ public class BaseCanvas : UICanvasMain
 
     private Vector2 canvasSize;
     private bool operating = false;
+    private bool tagInShown;
 
     private const string SectionCanvasPrefab = "SectionCanvas";
     private const string LevelCanvasPrefab = "LevelsCanvas";
@@ -35,23 +36,33 @@ public class BaseCanvas : UICanvasMain
     private const string StorageCanvasPrefab = "StorageCanvas";
     private const string BontiqueCanvasPrefab = "BontiqueCanvas";
 
-    void Start()
+    private void Start()
     {
+        ShowTagInOnce();
+
         Application.targetFrameRate = 30;
         PositionCorners();
         AddButtonListener();
         if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1) DirectToMap();
         //PlayerPrefs.DeleteKey(UXPref.DirectMark);
-        Instantiate(Resources.Load<GameObject>("UI/Tag In"));
         Instantiate(Resources.Load<GameObject>("UI/Pages/CheckInCanvas"));
         RewardingSystem.GainReward(RewardName.XP, 0);
         UpdateCurrencies();
-        Builda.BuildaSDK.RuntimeReady(null);
     }
     private void Awake()
     {
+        ShowTagInOnce();
         Camera.main.backgroundColor = Color.black;
         Input.multiTouchEnabled = false;
+    }
+
+    private void ShowTagInOnce()
+    {
+        if (tagInShown) return;
+        tagInShown = true;
+
+        GameObject prefab = Resources.Load<GameObject>("UI/Tag In");
+        if (prefab != null) Instantiate(prefab);
     }
     void PositionCorners()
     {
@@ -314,6 +325,6 @@ public class BaseCanvas : UICanvasMain
         string chapterName = PlayerPrefs.GetString(UXPref.ChapterName);
         string chapterBgm = BGMTool.ResolveBaseMapBgmName(chapterName);
         if (!string.IsNullOrEmpty(chapterBgm)) return chapterBgm;
-        return base.GetPageBgmName();
+        return BGMTool.NormalizeBgmAddress(base.GetPageBgmName());
     }
 }

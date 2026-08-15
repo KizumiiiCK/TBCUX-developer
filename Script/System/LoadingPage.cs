@@ -45,6 +45,11 @@ public class LoadingPage : MonoBehaviour
         if (task != null) tasks.Add(task);
     }
 
+    public void SetTimeoutSeconds(float seconds)
+    {
+        timeoutSeconds = Mathf.Max(5f, seconds);
+    }
+
     private void StartTasks()
     {
         if (taskRoutine != null) StopCoroutine(taskRoutine);

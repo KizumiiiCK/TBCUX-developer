@@ -504,8 +504,7 @@ public enum RewardName
     UpgradeMax_N=61, UpgradeMax_EX=62, UpgradeMax_R=63, UpgradeMax_SR=64, UpgradeMax_UR=65, UpgradeMax_LR=66, UpgradeMax_G=67,
     DrawMax_N=68, DrawMax_EX=69, DrawMax_R=70, DrawMax_SR=71, DrawMax_UR=72, DrawMax_LR=73, DrawMax_G=74,
     Bottle_Water=75, Bottle_Soul=76,
-    SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80,
-    Builda_Coin=81
+    SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80
 }
 [System.Serializable]
 public class Dialogue
@@ -597,7 +596,6 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
-        {RewardName.Builda_Coin,99},
         {RewardName.Bottle_Water,110},
         {RewardName.Bottle_Soul,111},
         {RewardName.SecMed_Purple,120},
@@ -742,7 +740,7 @@ public static class CharacterUpgradeSave
             for(int code=0;code<1000;code++)
             {
                 string id = $"{r}{code:000}";
-                if (Resources.Load<CharacterData>($"Units/Cat Units/{r}/{code:000}/0/data") == null) continue;
+                if (!BundledAddressables.Exists($"Units/Cat Units/{r}/{code:000}/0/data", typeof(CharacterData))) continue;
                 yield return id;
             }
         }
@@ -788,7 +786,7 @@ public static class CharacterUpgradeSave
         else
         {
             // 只检查默认角色是否存在（单个资源加载，性能影响可忽略）
-            if (Resources.Load<CharacterData>("Units/Cat Units/0/000/0/data") != null)
+            if (BundledAddressables.Exists("Units/Cat Units/0/000/0/data", typeof(CharacterData)))
             {
                 needsUpdate = true;
                 dict["0000"] = new UpgradeDetails
@@ -1376,61 +1374,6 @@ public static class BontiquePurchaseSave
             }
         }
         Save(data);
-    }
-}
-
-[System.Serializable]
-public class BuildaIapOrderData
-{
-    public List<string> fulfilledOrderIds = new List<string>();
-}
-
-/// <summary>Idempotent fulfillment ledger for Builda pay.showPayPanel orderId values.</summary>
-public static class BuildaIapOrderSave
-{
-    public static readonly string filename = "B7E2C91A04D84F6BB1A0E5F8C3D29470"; // builda_iap_orders
-
-    private static BuildaIapOrderData LoadOrCreate(bool saveWhenMissing = false)
-    {
-        var data = GenericSaveSystem.LoadData<BuildaIapOrderData>(filename);
-        if (data == null)
-        {
-            data = new BuildaIapOrderData();
-            if (saveWhenMissing) Save(data);
-        }
-        if (data.fulfilledOrderIds == null) data.fulfilledOrderIds = new List<string>();
-        return data;
-    }
-
-    private static void Save(BuildaIapOrderData data) => GenericSaveSystem.SaveData(data, filename);
-
-    public static bool HasFulfilled(string orderId)
-    {
-        if (string.IsNullOrEmpty(orderId)) return false;
-        var data = LoadOrCreate(false);
-        for (int i = 0; i < data.fulfilledOrderIds.Count; i++)
-        {
-            if (string.Equals(data.fulfilledOrderIds[i], orderId, StringComparison.Ordinal)) return true;
-        }
-        return false;
-    }
-
-    /// <summary>Returns true if this is the first time the order is marked (caller should grant).</summary>
-    public static bool TryMarkFulfilled(string orderId)
-    {
-        if (string.IsNullOrEmpty(orderId)) return false;
-        var data = LoadOrCreate(true);
-        for (int i = 0; i < data.fulfilledOrderIds.Count; i++)
-        {
-            if (string.Equals(data.fulfilledOrderIds[i], orderId, StringComparison.Ordinal)) return false;
-        }
-        data.fulfilledOrderIds.Add(orderId);
-        // Keep ledger bounded.
-        const int maxKeep = 256;
-        if (data.fulfilledOrderIds.Count > maxKeep)
-            data.fulfilledOrderIds.RemoveRange(0, data.fulfilledOrderIds.Count - maxKeep);
-        Save(data);
-        return true;
     }
 }
 

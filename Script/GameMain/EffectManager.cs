@@ -146,7 +146,9 @@ public class EffectManager : MonoBehaviour
         source.Stop();
         source.clip = clip;
         source.time = 0f;
-        source.Play();
+        PlatformAudio.PlaySfx(
+            source,
+            $"{GetEffectResourceFolder(effectName)}/{clip.name}");
     }
 
     private AudioSource GetOrCreateEffectSoundPlayer(string soundKey, string effectName)

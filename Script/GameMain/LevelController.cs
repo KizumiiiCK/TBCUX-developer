@@ -424,7 +424,7 @@ public class LevelController : MonoBehaviour
             CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
 
         // 设置狗基地外�?
-        Sprite baseSprite = Resources.Load<Sprite>($"Units/DogeBases/{LD.BaseImageID}");
+        Sprite baseSprite = BundledAddressables.LoadSync<Sprite>($"Units/DogeBases/{LD.BaseImageID}");
         dogeBase.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().sprite = baseSprite;
     }
 
@@ -453,7 +453,7 @@ public class LevelController : MonoBehaviour
 
         for (int i = 0; i < LD.CombatEffect.Length; i++)
         {
-            GameObject combatEffect = Resources.Load<GameObject>($"Background/CombatEffects/{LD.CombatEffect[i]}");
+            GameObject combatEffect = BundledAddressables.LoadSync<GameObject>($"Background/CombatEffects/{LD.CombatEffect[i]}");
             if (combatEffect != null)
             {
                 Instantiate(combatEffect);
@@ -599,7 +599,7 @@ public class LevelController : MonoBehaviour
 
         currentMoney -= upgradeCost;
         current_money_level++;
-        Upgrade_btn.GetComponent<AudioSource>().Play();
+        PlatformAudio.PlaySfx(Upgrade_btn.GetComponent<AudioSource>());
 
         if (current_money_level == MAX_MONEY_LEVEL)
         {
@@ -778,14 +778,16 @@ public class LevelController : MonoBehaviour
     }
 
     /// <summary>
-    /// 改变BGM
+    /// Change or stop level BGM via Addressables (BGM group addresses).
     /// </summary>
     public void ChangeBGM(string audio_name)
     {
-        if (audio_name == null)
+        if (string.IsNullOrEmpty(audio_name))
         {
-            GameObject.Find("BGM").GetComponent<AudioSource>().clip = null;
+            BGMTool.StopBGM();
+            return;
         }
+        BGMTool.ChangeBGM(audio_name);
     }
 
     #endregion
@@ -1028,7 +1030,7 @@ public class LevelController : MonoBehaviour
         try
         {
             string path = $"Units/Cat Units/6/{characterCode.Substring(1, 3)}/{characterCode[4]}/data";
-            return Resources.Load<CharacterData>(path);
+            return BundledAddressables.LoadSync<CharacterData>(path);
         }
         catch
         {

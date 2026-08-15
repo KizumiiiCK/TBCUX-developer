@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Builda;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +23,6 @@ public class BontiqueCanvas : UICanvasMain
     private BontiqueType currentCategory = BontiqueType.Daily;
     private DateTime currentTime;
     private LoadingPage loadingPage;
-    private bool buildaIapInFlight;
 
     private const string LoadingPagePath = "UI/Pages/loading";
     private const string RewardCanvasPath = "UI/Pages/RewardCanvas";
@@ -219,12 +217,6 @@ public class BontiqueCanvas : UICanvasMain
             return;
         }
 
-        if (item.IsBuildaIap)
-        {
-            TryPurchaseBuildaIap(item);
-            return;
-        }
-
         int have = RewardingSystem.GetAmount(item.CurrencyId);
         if (have < item.CurrencyAmount)
         {
@@ -241,69 +233,6 @@ public class BontiqueCanvas : UICanvasMain
         }
 
         DeliverShopItem(item, recordPurchase: true);
-    }
-
-    private void TryPurchaseBuildaIap(BontiqueShopItem item)
-    {
-        if (buildaIapInFlight)
-        {
-            Debug.Log("Bontique: Builda IAP already in progress.");
-            return;
-        }
-        if (string.IsNullOrEmpty(item.BuildaPayId))
-        {
-            Debug.LogWarning($"Bontique: missing BuildaPayId for bid={item.bid}");
-            return;
-        }
-
-        buildaIapInFlight = true;
-        string payId = item.BuildaPayId;
-        string bid = item.bid;
-        BuildaSDK.PayShowPanel(payId, result =>
-        {
-            buildaIapInFlight = false;
-            if (this == null) return;
-
-            BontiqueShopItem latest = BontiqueStaticCatalog.GetItemByBid(bid) ?? item;
-            if (!TryParseBuildaPaySuccess(result, out string orderId))
-            {
-                string code = result?.Error?.Code ?? "unknown";
-                string message = result?.Error?.Message ?? "";
-                Debug.Log($"Bontique: Builda IAP not completed. payId={payId}, code={code}, message={message}");
-                RefreshSpawnedItemStatesAfterPurchase();
-                return;
-            }
-
-            if (!BuildaIapOrderSave.TryMarkFulfilled(orderId))
-            {
-                Debug.Log($"Bontique: order already fulfilled, skip grant. orderId={orderId}");
-                RefreshSpawnedItemStatesAfterPurchase();
-                return;
-            }
-
-            DeliverShopItem(latest, recordPurchase: true);
-            PlayPurchaseSfx();
-        });
-    }
-
-    private static bool TryParseBuildaPaySuccess(BuildaResult result, out string orderId)
-    {
-        orderId = null;
-        if (result == null || !result.Ok) return false;
-        Dictionary<string, object> map = result.DataMap;
-        if (map == null) return false;
-
-        bool success = false;
-        if (map.TryGetValue("success", out object successObj))
-        {
-            if (successObj is bool successFlag) success = successFlag;
-            else if (successObj != null && bool.TryParse(successObj.ToString(), out bool parsed)) success = parsed;
-        }
-        if (!success) return false;
-
-        if (map.TryGetValue("orderId", out object orderObj) && orderObj != null)
-            orderId = orderObj.ToString();
-        return !string.IsNullOrEmpty(orderId);
     }
 
     private void DeliverShopItem(BontiqueShopItem item, bool recordPurchase)
@@ -327,8 +256,6 @@ public class BontiqueCanvas : UICanvasMain
 
     private void OnRedeemClickedSignal(BontiqueShopItem item)
     {
-        // IAP SFX plays after successful payment callback.
-        if (item != null && item.IsBuildaIap) return;
         PlayPurchaseSfx();
     }
 
@@ -336,11 +263,11 @@ public class BontiqueCanvas : UICanvasMain
     {
         if (purchaseAudioSource != null)
         {
-            if (purchaseAudioClip != null) purchaseAudioSource.PlayOneShot(purchaseAudioClip);
-            else purchaseAudioSource.Play();
+            if (purchaseAudioClip != null) PlatformAudio.PlayOneShot(purchaseAudioSource, purchaseAudioClip);
+            else PlatformAudio.PlaySfx(purchaseAudioSource);
             return;
         }
-        if (purchaseAudioClip != null) AudioSource.PlayClipAtPoint(purchaseAudioClip, Vector3.zero);
+        if (purchaseAudioClip != null) PlatformAudio.PlayClipAtPoint(purchaseAudioClip, Vector3.zero);
     }
 
     private void RefreshCurrencyDisplaysAfterPurchase()
@@ -535,7 +462,7 @@ public class BontiqueCanvas : UICanvasMain
         if (loadingPage != null) loadingPage.SetDetail("Fetching world time (UTC+8)...");
 
         DateTime? serverDate = null;
-        yield return WorldTimeService.FetchUtc8DateTime(
+        yield return PlatformTimeSystem.FetchUtc8DateTime(
             value => serverDate = value,
             detail =>
             {

@@ -259,7 +259,7 @@ public class CheckInSystem : MonoBehaviour
 
     public void CloseBtnEvent() { SwitchAnimation(); UpdateCurrency(); }
     private void SwitchAnimation() => GetComponent<Animator>().SetBool("state", true);
-    public void PlayGetSound() => GetComponent<AudioSource>().Play();
+    public void PlayGetSound() => PlatformAudio.PlaySfx(GetComponent<AudioSource>());
     public void Close() => Destroy(gameObject);
 
     public void SetRewardDisplay()

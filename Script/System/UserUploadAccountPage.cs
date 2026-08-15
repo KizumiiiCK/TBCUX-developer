@@ -38,6 +38,7 @@ public class UserUploadAccountPage : MonoBehaviour
 
     private void Awake()
     {
+
         if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
         if (uploadButton != null) uploadButton.onClick.AddListener(OnUploadClicked);
         if (confirmYesButton != null) confirmYesButton.onClick.AddListener(OnConfirmYesClicked);

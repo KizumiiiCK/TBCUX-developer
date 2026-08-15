@@ -311,7 +311,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
         int rality = fullCode[0] - '0';
         Sprite icon = ResolveIconSprite(fullCode);
-        CharacterData cd = Resources.Load<CharacterData>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/data");
+        CharacterData cd = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/data");
         if (icon != null && cd != null)
         {
             btn.SetOutfit(KiOutfit.Border, rality + 1);
@@ -331,7 +331,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private static Sprite ResolveIconSprite(string fullCode)
     {
         if (string.IsNullOrEmpty(fullCode) || fullCode.Length < 5) return null;
-        return Resources.Load<Sprite>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/icon_deploy");
+        return BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/icon_deploy");
     }
 
     private void HandleSlotClicked(int index)

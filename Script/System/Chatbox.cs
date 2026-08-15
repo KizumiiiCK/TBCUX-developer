@@ -1,7 +1,9 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 public class Chatbox : MonoBehaviour
@@ -32,6 +34,8 @@ public class Chatbox : MonoBehaviour
     private bool waitingForCgContinue = false;
     private bool cgContinueRequested = false;
     private bool isCgTransitioning = false;
+    private AsyncOperationHandle<Sprite> currentCgHandle;
+    private bool hasCgHandle;
     //private Material runtimeCgMaterial;
     //
     private void Start()
@@ -40,14 +44,11 @@ public class Chatbox : MonoBehaviour
         skip_once_btn.onClick.AddListener(ForceFinish);
         skip_ALL_btn.onClick.AddListener(SkipAll);
     }
-    //private void OnDestroy()
-    //{
-    //    if (runtimeCgMaterial != null)
-    //    {
-    //        Destroy(runtimeCgMaterial);
-    //        runtimeCgMaterial = null;
-    //    }
-    //}
+
+    private void OnDestroy()
+    {
+        BundledAddressables.Release(ref currentCgHandle, ref hasCgHandle);
+    }
     public IEnumerator ShowAllDialogue()
     {
         while (!isDialoguePreloadCompleted)
@@ -92,12 +93,12 @@ public class Chatbox : MonoBehaviour
         finish_display = false;
         next_display = false;
         string display_content = string.Empty;
-        se.Play();
+        PlatformAudio.PlaySfx(se);
         for (int i = 0; i < full_content.Length; i++)
         {
             display_content += full_content[i];
             dialogue_text.text = display_content;
-            se.Play();
+            PlatformAudio.PlaySfx(se);
             if (finish_display) break;
             else yield return new WaitForFixedUpdate();
         }
@@ -185,7 +186,7 @@ public class Chatbox : MonoBehaviour
         }
         if (dd.DialoguerImage != string.Empty)
         {
-            Sprite DI= Resources.Load<Sprite>($"DialogueImage/{dd.DialoguerImage}");
+            Sprite DI= BundledAddressables.LoadSync<Sprite>($"DialogueImage/{dd.DialoguerImage}");
             if (dd.faceToRight)//Image on the left
             {
                 character_left.color = colorShow;
@@ -231,13 +232,7 @@ public class Chatbox : MonoBehaviour
             {
                 yield return StartCoroutine(FadeOutAndDisableCg());
             }
-            yield break;
-        }
-
-        Sprite nextCgSprite = Resources.Load<Sprite>($"CG/{nextCgName}");
-        if (nextCgSprite == null)
-        {
-            Debug.LogWarning($"[Chatbox] CG not found at Resources/CG/{nextCgName}");
+            BundledAddressables.Release(ref currentCgHandle, ref hasCgHandle);
             yield break;
         }
 
@@ -245,6 +240,29 @@ public class Chatbox : MonoBehaviour
         {
             yield break;
         }
+
+        string address = nextCgName.StartsWith("CG/", System.StringComparison.Ordinal)
+            ? nextCgName
+            : $"CG/{nextCgName}";
+
+        AsyncOperationHandle<Sprite> pending = default;
+        bool pendingValid = false;
+        yield return BundledAddressables.Load<Sprite>(address, handle =>
+        {
+            pending = handle;
+            pendingValid = handle.IsValid();
+        });
+
+        if (!BundledAddressables.TryGetResult(pending, out Sprite nextCgSprite))
+        {
+            if (pendingValid) Addressables.Release(pending);
+            Debug.LogWarning($"[Chatbox] CG not found in Addressables: '{address}'");
+            yield break;
+        }
+
+        BundledAddressables.Release(ref currentCgHandle, ref hasCgHandle);
+        currentCgHandle = pending;
+        hasCgHandle = true;
 
         SetDialogueVisualsActive(false);
         if (chat_cg.gameObject.activeSelf)

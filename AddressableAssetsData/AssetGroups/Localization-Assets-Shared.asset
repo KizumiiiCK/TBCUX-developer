@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Localization-Assets-Shared
+  m_EditorClassIdentifier: 
+  m_GroupName: Localization-Assets-Shared
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 6a7063f1dde31654bac4d51cd48631a0
+  m_SerializeEntries:
+  - m_GUID: 2834e6236540cd9418d4df88ffb56da2
+    m_Address: Assets/Resources/Localization/UnitNames/UnitNames Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 314033fea01ccc74e8a962bbd9189d1c
+    m_Address: Assets/Resources/Localization/BaseMessages/BaseMessages Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 335fc8b7bef292f45b0dd9a6d6706856
+    m_Address: Assets/Resources/Localization/Dialogues/DialogueNames Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5dde730cde0303e478b528f1fe2b6239
+    m_Address: Assets/Resources/Localization/Dialogues/Dialogues Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9551433d7c886f64e8896d1161ebd6ae
+    m_Address: Assets/Resources/Localization/LevelNames/LevelName/LevelNames Shared
+      Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be148fe85256e4340807a13663824d8e
+    m_Address: Assets/Resources/Localization/BontiqueItems/BontiqueItems Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c7dee7b04726ba849b73e11e5c47ef6f
+    m_Address: Assets/Resources/Localization/Descriptions/Descriptions Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d125a9c4666d07a4c820d89d766bd5f7
+    m_Address: Assets/Resources/Localization/UI Elements/UI Elements Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ffaee174c4f452f48ac0f982aec5606c
+    m_Address: Assets/Resources/Localization/LevelNames/ChapterName/ChapterSections
+      Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 1
+  m_Settings: {fileID: 11400000, guid: 8e56a3777cb2ce24f8eeaefc9ea0f93c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 6ec96a5194db18d4cae4b8c39418f814, type: 2}
+    - {fileID: 11400000, guid: 9ce6271f4db133645bc67cd9188c3cf5, type: 2}

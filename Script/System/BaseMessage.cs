@@ -31,7 +31,7 @@ public class BaseMessage : MonoBehaviour
         IReadOnlyList<Sprite> portraits = DialoguePortraitCatalog.GetVisiblePortraits();
         if (portraits.Count == 0)
         {
-            Debug.LogWarning("BaseMessage: no visible portraits found in Resources/DialogueImage.");
+            Debug.LogWarning("BaseMessage: no visible portraits found in DialogueImage.");
             character_img.sprite = null;
             PlayerPrefs.SetInt("base_character", 0);
             return;
@@ -66,7 +66,7 @@ public class BaseMessage : MonoBehaviour
         string cpt_name = PlayerPrefs.GetString(UXPref.ChapterName);
         if (cpt_name != null)
         {
-            Sprite[] ds = Resources.LoadAll<Sprite>($"Background/Doors/door_{cpt_name}");
+            Sprite[] ds = BundledAddressables.LoadSpriteSheetSync($"Background/Doors/door_{cpt_name}");
             if (ds != null) if(ds.Length>1)
             {
                 if (frameUIAnimations != null)

@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
 
 public class FrameUIDisplayer : MonoBehaviour
@@ -28,13 +31,14 @@ public class FrameUIDisplayer : MonoBehaviour
     private readonly List<int> displayedIds = new List<int>();
     private readonly Stack<UICanvasMain> pageStack = new Stack<UICanvasMain>();
     private readonly Stack<List<int>> extraCurrencyStack = new Stack<List<int>>();
+    private readonly List<AsyncOperationHandle<Sprite>> doorSpriteHandles = new List<AsyncOperationHandle<Sprite>>();
     private List<int> currentExtraIds = new List<int>();
     private Coroutine navigationRoutine;
+    private Coroutine appearanceRoutine;
     private BaseCanvas rootCanvas;
 
     private void Awake()
     {
-        SetAppearance();
         if (backButton != null) backButton.onClick.AddListener(ReturnToPrevious);
         if (rootPage == null) rootPage = gameObject;
         rootCanvas = rootPage.GetComponent<BaseCanvas>();
@@ -46,17 +50,94 @@ public class FrameUIDisplayer : MonoBehaviour
             ApplyPageBgm(rootCanvas);
         }
         if (doorAnimator == null) doorAnimator = GetComponentInChildren<FrameUIAnimations>(true);
+        BeginSetAppearance();
     }
 
     private void Start()
     {
         RefreshCurrencies();
     }
-    private void SetAppearance()
+
+    private void BeginSetAppearance()
     {
+        if (appearanceRoutine != null) StopCoroutine(appearanceRoutine);
+        appearanceRoutine = StartCoroutine(SetAppearanceAsync());
+    }
+
+    private IEnumerator SetAppearanceAsync()
+    {
+        // Keep first frame free so scene transition UI can appear immediately.
+        yield return null;
+
+        if (doorAnimator == null) yield break;
         string cptname = PlayerPrefs.GetString(UXPref.ChapterName);
-        Sprite[] doorsprites = Resources.LoadAll<Sprite>($"Background/Doors/door_{cptname}");
-        if (doorAnimator != null && doorsprites.Length>=2) doorAnimator.SetDoorSprites(doorsprites[0], doorsprites[1]);
+        if (string.IsNullOrWhiteSpace(cptname)) yield break;
+
+        string baseAddress = $"Background/Doors/door_{cptname}";
+        string[] candidateKeys =
+        {
+            baseAddress,
+            baseAddress + ".png",
+            baseAddress + ".PNG",
+            baseAddress + ".jpg",
+            baseAddress + ".jpeg",
+            baseAddress + ".tga"
+        };
+
+        List<Sprite> sprites = null;
+        for (int keyIndex = 0; keyIndex < candidateKeys.Length; keyIndex++)
+        {
+            AsyncOperationHandle<IList<IResourceLocation>> locHandle =
+                Addressables.LoadResourceLocationsAsync(candidateKeys[keyIndex], typeof(Sprite));
+            yield return locHandle;
+
+            if (locHandle.Status != AsyncOperationStatus.Succeeded ||
+                locHandle.Result == null ||
+                locHandle.Result.Count == 0)
+            {
+                if (locHandle.IsValid()) Addressables.Release(locHandle);
+                continue;
+            }
+
+            sprites = new List<Sprite>(locHandle.Result.Count);
+            for (int i = 0; i < locHandle.Result.Count; i++)
+            {
+                AsyncOperationHandle<Sprite> spriteHandle = Addressables.LoadAssetAsync<Sprite>(locHandle.Result[i]);
+                yield return spriteHandle;
+
+                if (spriteHandle.Status == AsyncOperationStatus.Succeeded && spriteHandle.Result != null)
+                {
+                    sprites.Add(spriteHandle.Result);
+                    doorSpriteHandles.Add(spriteHandle);
+                }
+                else if (spriteHandle.IsValid())
+                {
+                    Addressables.Release(spriteHandle);
+                }
+            }
+
+            if (locHandle.IsValid()) Addressables.Release(locHandle);
+            if (sprites.Count > 0) break;
+        }
+
+        if (sprites == null || sprites.Count < 2) yield break;
+        sprites.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        doorAnimator.SetDoorSprites(sprites[0], sprites[1]);
+    }
+
+    private void OnDestroy()
+    {
+        if (appearanceRoutine != null)
+        {
+            StopCoroutine(appearanceRoutine);
+            appearanceRoutine = null;
+        }
+
+        for (int i = 0; i < doorSpriteHandles.Count; i++)
+        {
+            if (doorSpriteHandles[i].IsValid()) Addressables.Release(doorSpriteHandles[i]);
+        }
+        doorSpriteHandles.Clear();
     }
     public void SetBaseCurrencies(List<int> ids)
     {

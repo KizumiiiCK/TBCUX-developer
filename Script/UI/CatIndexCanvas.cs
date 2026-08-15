@@ -170,10 +170,10 @@ public class CatIndexCanvas : UICanvasMain
         if (unlocked[0]) { upgradeLock = false; }
         else { upgradeLock = true; }
         bool enableTireButton = true;
-        TotalUpgradeCost tuc= Resources.Load<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
+        TotalUpgradeCost tuc= BundledAddressables.LoadSync<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
         for (int i = 0; i < 4; i++)
         {
-            head_icons[i]= Resources.Load<Sprite>($"Units/Cat Units/{rality}/{current_code}/{i}/icon_deploy");
+            head_icons[i]= BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{current_code}/{i}/icon_deploy");
             if (i > 0) if (tuc.cost[(i - 1)].method == UpgradeMethod.unavailable)
             {
                 Char_Rarity_Btns[i].gameObject.SetActive(false); continue;
@@ -215,7 +215,7 @@ public class CatIndexCanvas : UICanvasMain
         if (isLoadingRarityCharacters) return;
         current_tire= tire;
         string loadPath = $"Units/Cat Units/{rality}/{current_code}/{tire}/";
-        CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
+        CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
         if (resetAnimation)
         {
             Application.targetFrameRate = 30;
@@ -278,7 +278,7 @@ public class CatIndexCanvas : UICanvasMain
         for (int i = 0; i < 1000; i++)
         {
             string code = i.ToString("000");
-            Sprite icon = Resources.Load<Sprite>($"Units/Cat Units/{rarity}/{code}/0/icon_deploy");
+            Sprite icon = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rarity}/{code}/0/icon_deploy");
             if (icon == null) continue;
             codes.Add(code);
             iconMap[code] = icon;
@@ -438,7 +438,7 @@ public class CatIndexCanvas : UICanvasMain
         //
         Destroy(current_display_character);
         ShowCertainCharInTire(current_tire + 1);
-        GetComponent<AudioSource>().Play();
+        PlatformAudio.PlaySfx(GetComponent<AudioSource>());
     }
     protected bool CheckTireUpAvailable(string code4)
     {
@@ -452,7 +452,7 @@ public class CatIndexCanvas : UICanvasMain
         if (current_tire == 1 && upgradedLevel < 30) { Debug.Log("Tire Not enough level."); return false; }
         if (current_tire == 2 && upgradedLevel < 60) return false;
         //
-        TotalUpgradeCost TUC = Resources.Load<TotalUpgradeCost>($"Units/Cat Units/{code4[0]}/{code4.Substring(1, 3)}/upgrade");
+        TotalUpgradeCost TUC = BundledAddressables.LoadSync<TotalUpgradeCost>($"Units/Cat Units/{code4[0]}/{code4.Substring(1, 3)}/upgrade");
         if (TUC == null) return false;
         if (current_tire >= TUC.cost.Length) return false;
         TireUp_consumeItems = new RewardName[TUC.cost[current_tire].upgrade_consume.Length];
@@ -514,7 +514,7 @@ public class CatIndexCanvas : UICanvasMain
         else
         {
             int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-            if (background != null) background.sprite = Resources.Load<Sprite>($"Background/Maps/{bgn}");
+            if (background != null) background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
         }
     }
 

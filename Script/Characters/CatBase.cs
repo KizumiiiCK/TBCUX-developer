@@ -45,8 +45,8 @@ public class CatBase : CatCharacter
         num_base = PlayerPrefs.GetInt(UXPref.BASE_BaseNum, 0);
         num_deco = PlayerPrefs.GetInt(UXPref.BASE_DecorationNum, 0);
         cannon_type = PlayerPrefs.GetInt(UXPref.BASE_CannonNum, 0);
-        Sprite towerBase=Resources.Load<Sprite>($"Units/CatBases/base/{num_base}");
-        Sprite towerDecoration = Resources.Load<Sprite>($"Units/CatBases/decorations/{num_deco}");
+        Sprite towerBase=BundledAddressables.LoadSync<Sprite>($"Units/CatBases/base/{num_base}");
+        Sprite towerDecoration = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/decorations/{num_deco}");
         audioSource=GetComponent<AudioSource>();
         main = transform.GetChild(0);
         healthInfo=transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
@@ -103,7 +103,7 @@ public class CatBase : CatCharacter
     private void UpdateHealthInfo() {healthInfo.text = $"{realHealth} / {maxHealth}";}
     private IEnumerator ShakeTower(List<AttackType> types, bool permanent=false)
     {
-        audioSource.Play();
+        PlatformAudio.PlaySfx(audioSource);
         HitEffect(types);
         float deviation = 0.05f;
         for(int i = 0; i < 10; i++)
@@ -174,7 +174,8 @@ public class CatBase : CatCharacter
         cannonCharged = 0;
         cannonButton.interactable = false;
         cannonButtonAnimation.enabled = false;
-        Instantiate(Resources.Load(string.Format(CANNON_UNIT_PATH, cannon_type)));
+        GameObject cannonPrefab = BundledAddressables.LoadSync<GameObject>(string.Format(CANNON_UNIT_PATH, cannon_type));
+        if (cannonPrefab != null) Instantiate(cannonPrefab);
     }
 
     private void RefreshCannonUI()
@@ -239,7 +240,7 @@ public class CatBase : CatCharacter
         if (headTransform != null) headTransform.localPosition = Vector2.zero;
 
         ApplyCannonHeadImmediate(nextHead, true);
-        var completeFx = Resources.Load<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
+        var completeFx = BundledAddressables.LoadSync<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
         if (completeFx != null)
         {
             Instantiate(completeFx, transform.position, Quaternion.identity);
@@ -259,7 +260,7 @@ public class CatBase : CatCharacter
         SpriteRenderer renderer_head = main.GetChild(2).GetComponent<SpriteRenderer>();
         if (renderer_head == null) return;
 
-        Sprite towerHead = Resources.Load<Sprite>($"Units/CatBases/head/{clamped}");
+        Sprite towerHead = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/head/{clamped}");
         if (towerHead != null) renderer_head.sprite = towerHead;
     }
 }

@@ -38,7 +38,8 @@ public class CannonUnit : Character
         realDamage = new int[1];
         realDamage[0] = (int)(catBase.Health * 0.005f);
         //ATKTypes = new List<AttackType> { AttackType.baseCannon };
-        cannon_effects = Resources.LoadAll<GameObject>($"Units/CatBases/effectUnits/{cannon_type}/eff");
+        cannon_effects = BundledAddressables.LoadNumberedSync<GameObject>(
+            $"Units/CatBases/effectUnits/{cannon_type}/eff");
         StartCoroutine(SummonCannon());
     }
 

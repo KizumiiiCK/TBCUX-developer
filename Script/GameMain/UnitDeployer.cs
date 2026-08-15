@@ -90,8 +90,8 @@ public class UnitDeployer : MonoBehaviour
             SetProficiencyMark(0);
             return;
         }
-        CD = Resources.Load<CharacterData>(loadPath + "data").Clone();
-        if ( CD == null ) { 
+        CharacterData loaded = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
+        if (loaded == null) { 
             deployEnabled = false; 
             btn.interactable = false; 
             cost_txt.text = string.Empty;
@@ -100,13 +100,14 @@ public class UnitDeployer : MonoBehaviour
         }
         else
         {
+            CD = loaded.Clone();
             deployEnabled = true;
             btn.onClick.RemoveListener(Deploy);
             btn.onClick.AddListener(Deploy);
         }
-        catUnit = Resources.Load<GameObject>("Units/Cat Units/catunit");
+        catUnit = BundledAddressables.LoadSync<GameObject>("Units/Cat Units/catunit");
         Image icon=GetComponent<Image>();
-        icon.sprite = Resources.Load<Sprite>(loadPath+"icon_deploy");
+        icon.sprite = BundledAddressables.LoadSync<Sprite>(loadPath+"icon_deploy");
         //CharacterData C = Resources.Load<CharacterData>(loadPath + "data");
         //
         if (forceLevel >= 1) lvl = forceLevel;

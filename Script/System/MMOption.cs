@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
@@ -24,8 +22,16 @@ public class MMOption : MonoBehaviour
     {
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
-        if (uploadAccountButton != null) uploadAccountButton.onClick.AddListener(OpenUploadAccountPage);
-        if (deleteAccountButton != null) deleteAccountButton.onClick.AddListener(OpenDeleteAccountPage);
+        if (uploadAccountButton != null)
+        {
+            uploadAccountButton.gameObject.SetActive(true);
+            uploadAccountButton.onClick.AddListener(OpenUploadAccountPage);
+        }
+        if (deleteAccountButton != null)
+        {
+            deleteAccountButton.gameObject.SetActive(true);
+            deleteAccountButton.onClick.AddListener(OpenDeleteAccountPage);
+        }
     }
 
     private void OnEnable()

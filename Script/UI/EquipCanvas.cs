@@ -86,7 +86,7 @@ public class EquipCanvas : UICanvasMain
         for(int i=0;i<1000;i++)
         {
             string ucformat = i.ToString("000");
-            Sprite ccd = Resources.Load<Sprite>($"Units/Cat Units/{rality}/{ucformat}/0/icon_deploy");
+            Sprite ccd = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{ucformat}/0/icon_deploy");
             if (ccd == null) { continue; }
             bool[] unlocked = CharacterUpgradeSave.GetDetails($"{rality}{ucformat}").tire_unlocked;
             if (!unlocked[0]) { continue; }
@@ -104,8 +104,8 @@ public class EquipCanvas : UICanvasMain
                 entry.Unlocked[j] = unlocked[j];
                 if (!unlocked[j]) continue;
 
-                Sprite otccd = Resources.Load<Sprite>($"Units/Cat Units/{rality}/{ucformat}/{j}/icon_deploy");
-                CharacterData cdot = Resources.Load<CharacterData>($"Units/Cat Units/{rality}/{ucformat}/{j}/data");
+                Sprite otccd = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{ucformat}/{j}/icon_deploy");
+                CharacterData cdot = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{rality}/{ucformat}/{j}/data");
                 entry.TireIcons[j] = otccd;
                 entry.TireCosts[j] = cdot != null ? cdot.Cost : 0;
                 if (otccd == null || cdot == null) entry.Unlocked[j] = false;
@@ -287,7 +287,7 @@ public class EquipCanvas : UICanvasMain
         Application.targetFrameRate = 30;
         if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
         string loadPath = $"Units/Cat Units/{r}/{code}/{tire}/";
-        CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
+        CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
         current_display_character = CharacterSummoner.CreateACharacter(true, $"{r}{code}{tire}", true);
         CharacterSummoner.SetCharacterPosition(current_display_character,
             mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -4, 10));
@@ -306,7 +306,7 @@ public class EquipCanvas : UICanvasMain
     public void UpdateBackground()
     {
         int bgn=PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-        background.sprite = Resources.Load<Sprite>($"Background/Maps/{bgn}");
+        background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
     }
     private void OnDestroy()
     {

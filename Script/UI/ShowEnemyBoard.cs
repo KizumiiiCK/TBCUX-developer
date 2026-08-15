@@ -31,7 +31,7 @@ public class ShowEnemyBoard : MonoBehaviour
         if (blindAllEnemyIcons)
         {
             if (hatenaSpriteCache == null)
-                hatenaSpriteCache = Resources.Load<Sprite>(EnemyHatenaSpritePath);
+                hatenaSpriteCache = BundledAddressables.LoadSync<Sprite>(EnemyHatenaSpritePath);
         }
 
         for (int i = 0; i < count; i++)
@@ -64,7 +64,7 @@ public class ShowEnemyBoard : MonoBehaviour
 
                 if (!enemyIconCache.TryGetValue(en[i], out Sprite icon))
                 {
-                    icon = Resources.Load<Sprite>($"Units/Enemy Units/{en[i]}/enemy_icon");
+                    icon = BundledAddressables.LoadSync<Sprite>($"Units/Enemy Units/{en[i]}/enemy_icon");
                     enemyIconCache[en[i]] = icon;
                 }
                 image.sprite = icon;

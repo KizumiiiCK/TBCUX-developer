@@ -291,6 +291,7 @@ public class AffectByStrategy : PassiveSkill
             case 1:
                 character.SetSkillFactor(1.2f);
                 character.SetAttackRange(0, character.DetectionRange);
+                if (character.IsExternalAnimControlled() || character.IsOnKB()) break;
                 if (character.Targets.Count > 0) character.StartCoroutine(Retreat(character));
                 else strategy = 0;
                 break;
@@ -303,16 +304,24 @@ public class AffectByStrategy : PassiveSkill
     }
     private IEnumerator Retreat(Character character)
     {
-        float nearestpoint = character.FindNearest().transform.position.x;
+        if (ShouldAbortRetreat(character)) yield break;
+        GameObject nearest = character.FindNearest();
+        if (nearest == null) yield break;
+        float nearestpoint = nearest.transform.position.x;
         yield return new WaitForFixedUpdate();
+        if (ShouldAbortRetreat(character)) yield break;
         character.SwitchAnimation(0);
 
-        while ((nearestpoint + character.DetectionRange / 100f * 0.9f) > character.transform.position.x)
+        while (!ShouldAbortRetreat(character)
+            && (nearestpoint + character.DetectionRange / 100f * 0.9f) > character.transform.position.x)
         {
             character.transform.Translate(new Vector2(character.TBCspeedTranslator(2 * character.GetRealSpeed()) * Time.deltaTime, 0));
             yield return new WaitForFixedUpdate();
         }
-        //strategy = 0;
+    }
+    private static bool ShouldAbortRetreat(Character character)
+    {
+        return character == null || character.IsExternalAnimControlled() || character.IsOnKB();
     }
 }
 public class Supporter : PassiveSkill
@@ -342,7 +351,7 @@ public class Practician : AnimationDrivingPassive
     }
     private void SpecialAttack(Character c)
     {
-        if (c == null || driving) return;
+        if (c == null || driving || c.IsOnKB()) return;
         c.StartCoroutine(RunDrive(c, SpecialAnim));
     }
     protected override IEnumerator DriveRoutine(Character c)
@@ -362,13 +371,11 @@ public class Practician : AnimationDrivingPassive
     }
     protected override void OnDriveEnd(Character c)
     {
-        if (c != null)
-        {
-            c.ExitAttack();
-            c.Supporter_Target_Switch(true);
-        }
         atk = 1;
         stack = 0;
+        if (c == null || c.IsOnKB()) return;
+        c.ExitAttack();
+        c.Supporter_Target_Switch(true);
     }
 }
 public class OneOff : PassiveSkill
@@ -1010,7 +1017,7 @@ public class ProjectileLauncher : PassiveSkill
         bool triggerEffect = !atk.DoNotTriggerEffects;
         if (!ProjectilePrefabCache.TryGetValue(probability, out GameObject prefab) || prefab == null)
         {
-            prefab = Resources.Load<GameObject>($"Units/Projectiles/p{probability:000}/projunit");
+            prefab = BundledAddressables.LoadSync<GameObject>($"Units/Projectiles/p{probability:000}/projunit");
             ProjectilePrefabCache[probability] = prefab;
         }
         if (prefab == null)

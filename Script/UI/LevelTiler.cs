@@ -449,10 +449,14 @@ public class LevelTiler : UICanvasMain
         }
     }
 
+    /// <summary>
+    /// Page BGM address for Addressables BGM group (from MapInfo.BGM).
+    /// </summary>
     public override string GetPageBgmName()
     {
-        if (MI != null && !string.IsNullOrEmpty(MI.BGM)) return MI.BGM;
-        return base.GetPageBgmName();
+        if (MI != null && !string.IsNullOrEmpty(MI.BGM))
+            return BGMTool.NormalizeBgmAddress(MI.BGM);
+        return BGMTool.NormalizeBgmAddress(base.GetPageBgmName());
     }
 
     private void InitializeDragSelector()

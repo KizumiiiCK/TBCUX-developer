@@ -36,11 +36,11 @@ public class LevelRewardBoard : MonoBehaviour
             case RewardType.character:
                 string cid = R.id.ToString("0000");
                 rewardImg.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 75);
-                rewardImg.sprite = Resources.Load<Sprite>(RewardIconHelper.GetCatDeployIconPath(cid, 0));
+                rewardImg.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetCatDeployIconPath(cid, 0));
                 break;
             case RewardType.UnlockTire:
                 rewardImg.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 75);
-                rewardImg.sprite = Resources.Load<Sprite>(RewardIconHelper.GetUnlockTireIconPath(R.id));
+                rewardImg.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetUnlockTireIconPath(R.id));
                 break;
             default: break;
         }

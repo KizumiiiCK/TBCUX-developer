@@ -227,18 +227,20 @@ public abstract partial class Character
     public GameObject FindNearest()
     {
         GameObject baseTarget = GetValidBaseTarget();
-        if (Targets.Count == 0 && baseTarget == null) return null;
-        //bool positive = compareTagName == "Enemy";
-        GameObject target = Targets.Count > 0 ? Targets[0] : baseTarget;
-        //int mindis = int.MaxValue;
+        GameObject target = null;
         foreach (var go in Targets)
         {
+            if (go == null) continue;
+            if (target == null)
+            {
+                target = go;
+                continue;
+            }
             if (target.transform.position.x < go.transform.position.x == IsCat()) target = go;
         }
-        if (baseTarget != null && baseTarget != target)
-        {
-            if (target.transform.position.x < baseTarget.transform.position.x == IsCat()) target = baseTarget;
-        }
+        if (target == null) return baseTarget;
+        if (baseTarget != null && (target.transform.position.x < baseTarget.transform.position.x == IsCat()))
+            return baseTarget;
         return target;
     }//Find the min-distance inside the targets list
     public void SetATKmuiltipier(float ratio) { ATK_muiltipier = ratio; }
@@ -416,17 +418,19 @@ public abstract partial class Character
     public virtual void DMG_SubTraitsEffects(ref float DMG, SubTraits opponentSubtraits) { }
     public void Wave_Attack(int level, bool mini, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
-        string e = IsCat() ? "Cat Units" : "Enemy Units";
-        GameObject wu = Resources.Load<GameObject>($"Units/{e}/waveunit");
-        WaveUnit ww = Instantiate(wu, transform.position, Quaternion.identity).GetComponent<WaveUnit>();
+        GameObject wuPrefab = BundledAddressables.LoadSync<GameObject>(
+            IsCat() ? "Units/Cat Units/waveunit" : "Units/Enemy Units/waveunit");
+        if (wuPrefab == null) return;
+        WaveUnit ww = Instantiate(wuPrefab, transform.position, Quaternion.identity).GetComponent<WaveUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ww);
         ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
     }
     public void Surge_Attack(int level, bool mini, int dis, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
-        string e = IsCat() ? "Cat Units" : "Enemy Units";
-        GameObject su = Resources.Load<GameObject>($"Units/{e}/surgeunit");
-        SurgeUnit ss = Instantiate(su, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
+        GameObject suPrefab = BundledAddressables.LoadSync<GameObject>(
+            IsCat() ? "Units/Cat Units/surgeunit" : "Units/Enemy Units/surgeunit");
+        if (suPrefab == null) return;
+        SurgeUnit ss = Instantiate(suPrefab, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ss);
         ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
     }

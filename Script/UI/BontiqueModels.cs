@@ -10,7 +10,6 @@ public enum BontiqueType
     Characters = 4,
     Event = 5,
     Others = 6,
-    Biulda = 7,
     Unknown = -1
 }
 public enum LimitType
@@ -27,9 +26,6 @@ public enum LimitType
 [Serializable]
 public class BontiqueShopItem
 {
-    /// <summary>Platform G-coin cost display sentinel. Not a RewardingSystem inventory slot.</summary>
-    public const int PlatformGCoinCurrencyId = -100;
-
     public string bid;
     public BontiqueType Category;
     public RewardType RewardKind;
@@ -41,13 +37,6 @@ public class BontiqueShopItem
     public int LimitCount;
     public DateTime? LimitStart;
     public DateTime? LimitEnd;
-    /// <summary>
-    /// Non-empty = Builda platform IAP. Must match builda.publish.json payPoints.payId
-    /// (<c>^[A-Za-z0-9_-]{1,64}$</c>). CurrencyAmount is G-coin price; grant uses gainId/ObtainAmount.
-    /// </summary>
-    public string BuildaPayId;
-
-    public bool IsBuildaIap => !string.IsNullOrEmpty(BuildaPayId);
 
     public bool IsInActiveWindow(DateTime now)
     {
@@ -125,7 +114,7 @@ public class BontiqueShopItem
 
     private static BontiqueType ToBontiqueType(int value)
     {
-        return value >= 0 && value <= 7 ? (BontiqueType)value : BontiqueType.Unknown;
+        return value >= 0 && value <= 6 ? (BontiqueType)value : BontiqueType.Unknown;
     }
 
     private static RewardType ToRewardType(int value)

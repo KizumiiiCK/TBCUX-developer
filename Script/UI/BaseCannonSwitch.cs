@@ -89,7 +89,7 @@ public class BaseCannonSwitch : MonoBehaviour
     private void RefreshCurrentHeadImage(int headIndex)
     {
         if (currentHeadImage == null) return;
-        Sprite head = Resources.Load<Sprite>($"Units/CatBases/head/{Mathf.Max(0, headIndex)}");
+        Sprite head = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/head/{Mathf.Max(0, headIndex)}");
         currentHeadImage.sprite = head;
     }
 }

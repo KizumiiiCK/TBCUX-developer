@@ -11,8 +11,8 @@ public static class DialoguePortraitCatalog
     public static IReadOnlyList<Sprite> GetVisiblePortraits()
     {
         VisiblePortraits.Clear();
-        Sprite[] all = Resources.LoadAll<Sprite>(PortraitFolder);
-        DialoguePortraitSettings settings = Resources.Load<DialoguePortraitSettings>(SettingsPath);
+        Sprite[] all = BundledAddressables.LoadAllInFolderSync<Sprite>(PortraitFolder);
+        DialoguePortraitSettings settings = BundledAddressables.LoadSync<DialoguePortraitSettings>(SettingsPath);
         for (int i = 0; i < all.Length; i++)
         {
             Sprite sprite = all[i];

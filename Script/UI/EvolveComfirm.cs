@@ -26,7 +26,7 @@ public class EvolveComfirm : MonoBehaviour
     }
     public void SetController(CatIndexCanvas cic) => CIC = cic;
     public void SetECAnimator(bool process) => anima.SetBool("transform", process);
-    public void PlaySound()=>AS.Play();
+    public void PlaySound() => PlatformAudio.PlaySfx(AS);
     public void Return()=>gameObject.SetActive(false);
     public void EvolveOnClick()=> SetECAnimator(true);
     public void Evolve()=>CIC.TireUpCurrentCharacter();

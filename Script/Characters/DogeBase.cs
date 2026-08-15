@@ -86,7 +86,7 @@ public class DogeBase : EnemyCharacter
     private void UpdateHealthInfo() { healthInfo.text = $"{realHealth} / {maxHealth}"; }
     private IEnumerator ShakeTower(List<AttackType> types, bool permanent = false)
     {
-        audioSource.Play();
+        PlatformAudio.PlaySfx(audioSource);
         HitEffect(types);
         float deviation = 0.05f;
         for (int i = 0; i < 10; i++)

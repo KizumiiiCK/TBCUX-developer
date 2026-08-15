@@ -38,6 +38,7 @@ public static class SupabaseSaveRemote
 
     public static void Initialize(string url, string key, string playerId)
     {
+
         supabaseUrl = url;
         supabaseKey = key;
         pid = playerId;
@@ -71,6 +72,7 @@ public static class SupabaseSaveRemote
 
     public static void DownloadAll(Action onComplete = null)
     {
+
         if (!IsReady())
         {
             Debug.LogError("[SupabaseSaveRemote] Not initialized.");
@@ -371,6 +373,7 @@ public static class SupabaseSaveRemote
 
     public static IEnumerator GetUserCheckInData(Action<DateTime?, int> onComplete)
     {
+
         if (!IsReady())
         {
             Debug.LogError("[SupabaseSaveRemote] Not initialized.");
@@ -400,6 +403,7 @@ public static class SupabaseSaveRemote
 
     public static IEnumerator UpdateUserCheckInData(DateTime date, int consecutive, Action<bool> onComplete = null)
     {
+
         if (!IsReady())
         {
             Debug.LogError("[SupabaseSaveRemote] Not initialized.");
@@ -445,6 +449,7 @@ public static class SupabaseSaveRemote
 
     private static IEnumerator GetJson(string url, Action<string> onComplete)
     {
+
         float start = Time.realtimeSinceStartup;
         int attempt = 0;
         string lastError = string.Empty;

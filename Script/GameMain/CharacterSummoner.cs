@@ -1,5 +1,4 @@
 using Spine.Unity;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,7 +11,6 @@ public class CharacterSummoner : MonoBehaviour
 
     public static GameObject CreateACharacter(bool cat, string characterCode, bool isIndexUnit)
     {
-        string loadPath = GetCharacterLoadPath(cat, characterCode);
         CharacterData CD = LoadCharacterData(cat, characterCode);
         if (CD == null)
         {
@@ -25,7 +23,13 @@ public class CharacterSummoner : MonoBehaviour
             string caracterLoadPath = cat ?
                 $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/uaunit" :
                 $"Units/Enemy Units/{characterCode}/uaunit";
-            C = Instantiate(Resources.Load<GameObject>(caracterLoadPath));
+            GameObject prefab = LoadPrefab(cat, caracterLoadPath);
+            if (prefab == null)
+            {
+                Debug.LogError($"No uaunit prefab at {caracterLoadPath}");
+                return null;
+            }
+            C = Instantiate(prefab);
             if (CD.SPINEAnimated)
             {
                 ResetSpineOrderLayer(C, "UI", 3);
@@ -40,27 +44,34 @@ public class CharacterSummoner : MonoBehaviour
             if (isIndexUnit) unitLoadPath = IndexUnitPrefabPath;
             else if (cat) unitLoadPath = CatUnitPrefabPath;
             else unitLoadPath = EnemyUnitPrefabPath;
-            C = Instantiate(Resources.Load<GameObject>(unitLoadPath));
+
+            GameObject prefab = isIndexUnit
+                ? Resources.Load<GameObject>(unitLoadPath)
+                : BundledAddressables.LoadSync<GameObject>(unitLoadPath);
+            if (prefab == null)
+            {
+                Debug.LogError($"No unit prefab at {unitLoadPath}");
+                return null;
+            }
+            C = Instantiate(prefab);
             AnimationDisplayer ad = C.GetComponent<AnimationDisplayer>();
             AnimDecryptPack pack = DecryptCharacterFiles(cat, characterCode, CD);
             ad.Initialization(pack);
             ad.OrderLayerStart = 3;
             ad.ResetModelOrderLayer();
         }
-        //IV.ShowCharacterDetails(CD);
-        //LocalizationHelper.GetLocalizedText("UnitNames", current_code, localizedText => name_txt.text = localizedText ?? current_code);
         return C;
     }
+
     public static void ResetAnimationOrderLayer(AnimationDisplayer ad, int order)
     {
-        ad.OrderLayerStart=order;
+        ad.OrderLayerStart = order;
         ad.ResetModelOrderLayer();
     }
+
     public static void ResetSpineOrderLayer(GameObject go, string sortingLayer, int order)
     {
         if (go == null) return;
-        // Spine单位可能包含多个MeshRenderer（含子层/分离层），
-        // 只设置第一个会导致部分单位仍保持0层级。
         SkeletonAnimation[] skeletonAnimations = go.GetComponentsInChildren<SkeletonAnimation>(true);
         for (int i = 0; i < skeletonAnimations.Length; i++)
         {
@@ -72,7 +83,6 @@ public class CharacterSummoner : MonoBehaviour
             mr.sortingOrder = order;
         }
 
-        // 兜底：部分Spine结构在同一对象树中还会有额外MeshRenderer，统一写入避免残留0层级。
         MeshRenderer[] renderers = go.GetComponentsInChildren<MeshRenderer>(true);
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -82,6 +92,7 @@ public class CharacterSummoner : MonoBehaviour
             mr.sortingOrder = order;
         }
     }
+
     public static void ResetAnimationOrderLayer(GameObject go, string sortingLayer, int order)
     {
         if (go == null) return;
@@ -92,12 +103,13 @@ public class CharacterSummoner : MonoBehaviour
         }
         foreach (Transform child in go.transform) ResetAnimationOrderLayer(child.gameObject, sortingLayer, order);
     }
+
     public static void SetCharacterPosition(GameObject C, Vector3 pos) => C.transform.position = pos;
 
     public static CharacterData LoadCharacterData(bool cat, string characterCode)
     {
         string loadPath = GetCharacterLoadPath(cat, characterCode);
-        CharacterData data = Resources.Load<CharacterData>(loadPath + "data");
+        CharacterData data = LoadAsset<CharacterData>(cat, loadPath + "data");
         return data != null ? data.Clone() : null;
     }
 
@@ -106,25 +118,25 @@ public class CharacterSummoner : MonoBehaviour
         if (data == null || data.UNITYAnimated) return null;
 
         string loadPath = GetCharacterLoadPath(cat, characterCode);
-        Texture2D unitTexture = Resources.Load<Texture2D>(loadPath + "sprite");
-        TextAsset imagecut = Resources.Load<TextAsset>(loadPath + "imgcut");
-        TextAsset mamodel = Resources.Load<TextAsset>(loadPath + "mamodel");
-        TextAsset maanim_walk = Resources.Load<TextAsset>(loadPath + "maanim_walk");
-        TextAsset maanim_idle = Resources.Load<TextAsset>(loadPath + "maanim_idle");
-        TextAsset maanim_attack = Resources.Load<TextAsset>(loadPath + "maanim_attack");
-        TextAsset maanim_kb = Resources.Load<TextAsset>(loadPath + "maanim_kb");
+        Texture2D unitTexture = LoadAsset<Texture2D>(cat, loadPath + "sprite");
+        TextAsset imagecut = LoadAsset<TextAsset>(cat, loadPath + "imgcut");
+        TextAsset mamodel = LoadAsset<TextAsset>(cat, loadPath + "mamodel");
+        TextAsset maanim_walk = LoadAsset<TextAsset>(cat, loadPath + "maanim_walk");
+        TextAsset maanim_idle = LoadAsset<TextAsset>(cat, loadPath + "maanim_idle");
+        TextAsset maanim_attack = LoadAsset<TextAsset>(cat, loadPath + "maanim_attack");
+        TextAsset maanim_kb = LoadAsset<TextAsset>(cat, loadPath + "maanim_kb");
 
         List<TextAsset> maanims = new List<TextAsset> { maanim_walk, maanim_idle, maanim_attack, maanim_kb };
         if (cat && data.career != null && data.career.Practician)
         {
-            TextAsset maanim_p = Resources.Load<TextAsset>(loadPath + "maanim_p");
+            TextAsset maanim_p = LoadAsset<TextAsset>(cat, loadPath + "maanim_p");
             if (maanim_p != null) maanims.Add(maanim_p);
         }
         if (!cat && data.abilities.Any(a => a.name == AbilityName.ZombieDive))
         {
-            TextAsset maanim_in = Resources.Load<TextAsset>(loadPath + "maanim_in");
-            TextAsset maanim_dive = Resources.Load<TextAsset>(loadPath + "maanim_dive");
-            TextAsset maanim_out = Resources.Load<TextAsset>(loadPath + "maanim_out");
+            TextAsset maanim_in = LoadAsset<TextAsset>(cat, loadPath + "maanim_in");
+            TextAsset maanim_dive = LoadAsset<TextAsset>(cat, loadPath + "maanim_dive");
+            TextAsset maanim_out = LoadAsset<TextAsset>(cat, loadPath + "maanim_out");
             if (maanim_in != null) maanims.Add(maanim_in);
             if (maanim_dive != null) maanims.Add(maanim_dive);
             if (maanim_out != null) maanims.Add(maanim_out);
@@ -151,7 +163,9 @@ public class CharacterSummoner : MonoBehaviour
             string uaPath = cat
                 ? $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/uaunit"
                 : $"Units/Enemy Units/{characterCode}/uaunit";
-            GameObject uaunit = Instantiate(Resources.Load<GameObject>(uaPath), runtimeCharacter.transform.position, Quaternion.identity);
+            GameObject uaPrefab = LoadPrefab(cat, uaPath);
+            if (uaPrefab == null) return;
+            GameObject uaunit = Instantiate(uaPrefab, runtimeCharacter.transform.position, Quaternion.identity);
             uaunit.transform.SetParent(runtimeCharacter.transform);
             if (data.SPINEAnimated)
             {
@@ -183,7 +197,6 @@ public class CharacterSummoner : MonoBehaviour
         if (C == null) return;
         if (ua)
         {
-            //current_animation_num = (current_animation_num + 1) % 4;
             Debug.Log($"Unity animate: {animationNum}");
             C.GetComponent<Animator>().SetInteger("state", animationNum);
         }
@@ -195,5 +208,15 @@ public class CharacterSummoner : MonoBehaviour
         return cat
             ? $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/"
             : $"Units/Enemy Units/{characterCode}/";
+    }
+
+    private static T LoadAsset<T>(bool cat, string address) where T : UnityEngine.Object
+    {
+        return BundledAddressables.LoadSync<T>(address);
+    }
+
+    private static GameObject LoadPrefab(bool cat, string address)
+    {
+        return LoadAsset<GameObject>(cat, address);
     }
 }

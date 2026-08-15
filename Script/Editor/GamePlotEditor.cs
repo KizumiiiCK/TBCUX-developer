@@ -8,8 +8,8 @@ using UnityEngine;
 public class GamePlotEditor : Editor
 {
     private const float PortraitSize = 96f;
-    private const string DialogueImageFolder = "Assets/Resources/DialogueImage";
-    private const string CgFolder = "Assets/Resources/CG";
+    private const string DialogueImageFolder = "Assets/Bundled/DialogueImage";
+    private const string CgFolder = "Assets/Bundled/CG";
 
     private static readonly Dictionary<string, Sprite> DialogueImageCache = new Dictionary<string, Sprite>();
     private static readonly Dictionary<string, bool> CgExistCache = new Dictionary<string, bool>();
@@ -180,7 +180,11 @@ public class GamePlotEditor : Editor
         if (key.Length == 0) return null;
         if (DialogueImageCache.TryGetValue(key, out Sprite cached)) return cached;
 
-        Sprite sprite = Resources.Load<Sprite>($"DialogueImage/{key}");
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{DialogueImageFolder}/{key}.png");
+        if (sprite == null)
+            sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{DialogueImageFolder}/{key}.PNG");
+        if (sprite == null)
+            sprite = BundledAddressables.LoadSync<Sprite>($"DialogueImage/{key}");
         if (sprite == null)
         {
             string[] guids = AssetDatabase.FindAssets($"{key} t:Sprite", new[] { DialogueImageFolder });

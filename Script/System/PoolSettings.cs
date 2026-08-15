@@ -43,7 +43,7 @@ public class Pool
 public static class PoolSystemTime
 {
     public static readonly DateTime openTime = new DateTime(year: 2026, month: 5, day: 12);
-    public static DateTime Now => DateTime.Now;
+    public static DateTime Now => PlatformTimeSystem.Now;
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
         Math.Abs((d1.Date - d2.Date).Days);
@@ -55,7 +55,7 @@ public static class PoolSystemTime
     {
         if (cycleDays <= 0 || durationDays <= 0) return true;
 
-        DateTime now = DateTime.Now.Date;
+        DateTime now = Now.Date;
         int totalDays = (int)(now - openTime.Date).TotalDays;
 
         if (totalDays < firstDelayDays) return false;
@@ -67,7 +67,7 @@ public static class PoolSystemTime
     }
     public static int ActivityDayLeft(int firstDelayDays, int cycleDays, int durationDays)
     {
-        DateTime now = DateTime.Now.Date;
+        DateTime now = Now.Date;
         int totalDays = (int)(now - openTime.Date).TotalDays;
 
         int daysSinceFirst = totalDays - firstDelayDays;

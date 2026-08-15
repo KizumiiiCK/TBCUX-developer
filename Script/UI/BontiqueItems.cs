@@ -96,7 +96,7 @@ public class BontiqueItems : MonoBehaviour
         if (item == null) return;
         boundItem = item;
         CacheRefs();
-        int currentCurrencyAmount = item.IsBuildaIap ? 0 : RewardingSystem.GetAmount(item.CurrencyId);
+        int currentCurrencyAmount = RewardingSystem.GetAmount(item.CurrencyId);
         UpdateRemainingAndPurchaseUi(item, remaining, interactable, now, currentCurrencyAmount);
     }
 
@@ -116,14 +116,7 @@ public class BontiqueItems : MonoBehaviour
         {
             string costAndOwned;
             int displayCurrencyId = item.CurrencyId;
-            if (item.IsBuildaIap)
-            {
-                // Platform G-coin balance is owned by the host; show price only.
-                // Icon reuses Builda_Coin (99) until a dedicated G-coin sprite exists.
-                displayCurrencyId = 99;
-                costAndOwned = $"{Mathf.Max(0, item.CurrencyAmount)} G";
-            }
-            else if (item.CurrencyId == 11 || item.CurrencyId == 12)
+            if (item.CurrencyId == 11 || item.CurrencyId == 12)
             {
                 costAndOwned = Mathf.Max(0, item.CurrencyAmount).ToString();
             }
@@ -135,7 +128,7 @@ public class BontiqueItems : MonoBehaviour
         }
         if (redeemButton != null)
         {
-            bool currencyEnough = item.IsBuildaIap || currentCurrencyAmount >= item.CurrencyAmount;
+            bool currencyEnough = currentCurrencyAmount >= item.CurrencyAmount;
             bool canRedeem = interactable && currencyEnough;
             Color targetColor = canRedeem ? CanBuyButtonColor : CannotBuyButtonColor;
             redeemButton.SetFrameColorPersistent(targetColor);
@@ -152,7 +145,7 @@ public class BontiqueItems : MonoBehaviour
         if (isCharacterReward)
         {
             string cid = item.gainId.ToString("0000");
-            return Resources.Load<Sprite>($"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy");
+            return BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy");
         }
         if (item.gainId >= 0)
         {

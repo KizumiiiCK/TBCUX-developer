@@ -58,12 +58,17 @@ public class EnemyIndexCanvas : UICanvasMain
     public void LoadEnemies()
     {
         enemyListEntries.Clear();
+        BundledAddressables.EnsureInitialized();
         for (int i = 2; i < 1000; i++)
         {
             string ucformat = "e" + i.ToString("000");
+            string iconAddress = $"Units/Enemy Units/{ucformat}/enemy_icon";
+            if (!BundledAddressables.Exists(iconAddress, typeof(Sprite)))
+                continue;
+
             bool unlocked = indexShowAll ? true : EnemyMeetSave.GetUnlocked(i);
-            Sprite ccd = Resources.Load<Sprite>($"Units/Enemy Units/{ucformat}/enemy_icon");
-            if (ccd == null) { continue; }
+            Sprite ccd = BundledAddressables.LoadSync<Sprite>(iconAddress);
+            if (ccd == null) continue;
             if (!unlocked) ccd = UnknownImage;
             enemyListEntries.Add(new EnemyListEntry
             {
@@ -75,7 +80,6 @@ public class EnemyIndexCanvas : UICanvasMain
 
         if (headIconGrid != null) headIconGrid.SetData(enemyListEntries, true);
         ShowCertainCharacter("e002");
-        //scrollbar_setting.SetMaxY(unit_count+2,-scroll_gap.y);
     }
     public void ShowCertainCharacter(string char_code, bool resetAnimation=true)
     {
@@ -84,8 +88,12 @@ public class EnemyIndexCanvas : UICanvasMain
         {
             Application.targetFrameRate = 30;
             if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-            string loadPath = $"Units/Enemy Units/{current_code}/";
-            CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
+            CharacterData CD = CharacterSummoner.LoadCharacterData(false, current_code);
+            if (CD == null)
+            {
+                Debug.LogWarning($"[EnemyIndexCanvas] Missing enemy data for {current_code}");
+                return;
+            }
             current_display_character = CharacterSummoner.CreateACharacter(false,current_code, true);
             CharacterSummoner.SetCharacterPosition(current_display_character,
                 mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? 2 : 0, -4, 10));
@@ -97,7 +105,6 @@ public class EnemyIndexCanvas : UICanvasMain
             IV.ShowCharacterDetails(CD,false,1);
             LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, current_code, localizedText => name_txt.text = localizedText ?? current_code);
         }
-        //
     }
     public void InitializeButtons()
     {
@@ -130,7 +137,7 @@ public class EnemyIndexCanvas : UICanvasMain
     public void UpdateBackground()
     {
         int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-        background.sprite = Resources.Load<Sprite>($"Background/Maps/{bgn}");
+        background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
         ShowCertainCharacter(current_code);
     }
     private void OnDestroy()

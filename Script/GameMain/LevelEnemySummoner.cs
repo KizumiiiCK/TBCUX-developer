@@ -39,7 +39,12 @@ public class LevelEnemySummoner : MonoBehaviour
         for(int i = 0; i < ESI.Length; i++)
         {
             if (dogeBase.GetHealthPercentage() > deployPercentage) continue;
-            else if (!activated) { activated = true; BGMTool.ChangeBGM(bgmCode); }
+            else if (!activated)
+            {
+                activated = true;
+                if (!string.IsNullOrEmpty(bgmCode))
+                    BGMTool.ChangeBGM(bgmCode);
+            }
             if (dogeBase.GetHealthPercentage() <= 0) Destroy(this);
             if (currentDeployed[i] 
                 == ESI[i].repeat) { continue; }
@@ -81,7 +86,7 @@ public class LevelEnemySummoner : MonoBehaviour
     public void SetChangeBGM(string bgm) => bgmCode = bgm;
     public bool SetupEnemy()
     {
-        enemyUnit = Resources.Load<GameObject>("Units/Enemy Units/enemyunit");
+        enemyUnit = BundledAddressables.LoadSync<GameObject>("Units/Enemy Units/enemyunit");
         LC = GetComponent<LevelController>();
         if (enemyUnit == null || LC == null || dogeBase == null || ESI == null || CD == null || runtimeInitialized == null || characterDecryptedFiles == null)
         {
@@ -92,7 +97,7 @@ public class LevelEnemySummoner : MonoBehaviour
         for(int i = 0; i < ESI.Length; i++)
         {
             string loadPath = $"Units/Enemy Units/{ESI[i].enemyID}/";
-            CharacterData loadedData = Resources.Load<CharacterData>(loadPath + "data");
+            CharacterData loadedData = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
             if (loadedData == null)
             {
                 Debug.LogError($"[LevelEnemySummoner] Enemy data not found at {loadPath}data");

@@ -40,23 +40,35 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
 
     private bool operating = false;
+    private bool tagInShown;
     private readonly List<GameObject> pooledSubChapterButtons = new List<GameObject>();
     private readonly Dictionary<string, Sprite> chapterCoverCache = new Dictionary<string, Sprite>();
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
+        ShowTagInOnce();
+
         Application.targetFrameRate = 30;
-        Instantiate(Resources.Load<GameObject>("UI/Tag In"));
         optionCanvas.SetActive(false);
         ButtonInitializer();
         ResetLanguage();
         SetBGMVolume();
         SetSEVolume();
-        PlayerPrefs.SetString(UXPref.Login_Date, DateTime.Today.ToString());
+        PlayerPrefs.SetString(UXPref.Login_Date, PlatformTimeSystem.Today.ToString());
     }
     private void Awake()
     {
+        ShowTagInOnce();
         Input.multiTouchEnabled = false;
+    }
+
+    private void ShowTagInOnce()
+    {
+        if (tagInShown) return;
+        tagInShown = true;
+
+        GameObject prefab = Resources.Load<GameObject>("UI/Tag In");
+        if (prefab != null) Instantiate(prefab);
     }
     private void ButtonInitializer()
     {

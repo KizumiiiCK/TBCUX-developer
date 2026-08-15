@@ -11,5 +11,10 @@ public class SoundEffects : MonoBehaviour
     {
         se=GetComponent<AudioSource>();
     }
-    public void PlayEffectSound() { se.clip = clips[Random.Range(0, clips.Count)]; se.time = 0; se.Play(); }
+    public void PlayEffectSound()
+    {
+        se.clip = clips[Random.Range(0, clips.Count)];
+        se.time = 0;
+        PlatformAudio.PlaySfx(se);
+    }
 }

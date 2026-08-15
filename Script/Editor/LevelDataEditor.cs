@@ -337,8 +337,15 @@ public class LevelDataEditor : Editor
     private void RefreshLevelPreviewSprites(LevelData levelData)
     {
         if (levelData == null) return;
-        backgroundSprite = Resources.Load<Sprite>($"Background/Maps/{levelData.BackgroundID}");
-        baseImageSprite = Resources.Load<Sprite>($"Units/DogeBases/{levelData.BaseImageID}");
+        backgroundSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+            $"Assets/Bundled/Background/Maps/{levelData.BackgroundID}.png");
+        if (backgroundSprite == null)
+        {
+            backgroundSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                $"Assets/Bundled/Background/Maps/{levelData.BackgroundID}.PNG");
+        }
+        baseImageSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+            $"Assets/Bundled/Units/DogeBases/{levelData.BaseImageID}.png");
     }
 
     private Sprite GetRewardSprite(RewardType type, int rewardId)
@@ -360,10 +367,19 @@ public class LevelDataEditor : Editor
                 break;
         }
 
-        Sprite sprite = string.IsNullOrEmpty(rewardPath) ? null : Resources.Load<Sprite>(rewardPath);
+        Sprite sprite = null;
+        if (!string.IsNullOrEmpty(rewardPath))
+        {
+            if (rewardPath.StartsWith("Units/Cat Units/"))
+                sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Bundled/{rewardPath}.png");
+            else
+                sprite = Resources.Load<Sprite>(rewardPath);
+        }
         rewardSpriteCache[cacheKey] = sprite;
         return sprite;
     }
+
+    private const string EnemyBundledRoot = "Assets/Bundled/Units/Enemy Units";
 
     private Sprite GetEnemyIcon(string enemyID)
     {
@@ -371,7 +387,9 @@ public class LevelDataEditor : Editor
         string id = enemyID.Trim();
         if (enemyIconCache.TryGetValue(id, out Sprite cached)) return cached;
 
-        Sprite icon = Resources.Load<Sprite>($"Units/Enemy Units/{id}/enemy_icon");
+        Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>($"{EnemyBundledRoot}/{id}/enemy_icon.png");
+        if (icon == null)
+            icon = AssetDatabase.LoadAssetAtPath<Sprite>($"{EnemyBundledRoot}/{id}/enemy_icon.PNG");
         enemyIconCache[id] = icon;
         return icon;
     }
@@ -409,7 +427,7 @@ public class LevelDataEditor : Editor
         string id = enemyID.Trim();
         if (enemyDataCache.TryGetValue(id, out CharacterData cached)) return cached;
 
-        CharacterData data = Resources.Load<CharacterData>($"Units/Enemy Units/{id}/data");
+        CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>($"{EnemyBundledRoot}/{id}/data.asset");
         enemyDataCache[id] = data;
         return data;
     }

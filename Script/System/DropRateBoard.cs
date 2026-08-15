@@ -44,7 +44,7 @@ public class DropRateBoard : MonoBehaviour
                 details.localScale = Vector3.one;
                 details.anchoredPosition = new Vector2(blockgap_x * (j % width), blockgap_y * (j / width));
                 string unitcode = P.dropUnits[i][j].ToString("000");
-                Sprite icon = Resources.Load<Sprite>($"Units/Cat Units/{i}/{unitcode}/0/icon_deploy");
+                Sprite icon = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{i}/{unitcode}/0/icon_deploy");
                 if (icon != null) details.GetChild(0).GetComponent<Image>().sprite = icon;
                 details.GetChild(1).GetComponent<TMP_Text>().text = (tire_droprate / tire_count).ToString("F2") + "%";
             }

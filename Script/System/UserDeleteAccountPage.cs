@@ -29,6 +29,7 @@ public class UserDeleteAccountPage : MonoBehaviour
 
     private void Awake()
     {
+
         if (confirmDeleteButton != null) confirmDeleteButton.onClick.AddListener(OnConfirmDeleteClicked);
         if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
 

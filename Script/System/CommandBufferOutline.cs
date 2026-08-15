@@ -18,11 +18,15 @@ public class SimpleCommandBufferOutline : MonoBehaviour
     public float pulseSpeed = 4f;
     [Range(0f, 2f)] public float pulseMin = 0.4f;
     [Range(0f, 2f)] public float pulseMax = 1.2f;
+    [SerializeField] private Shader outlineShader;
 
     private CommandBuffer cb;
     private Material mat;
     private Camera cam;
     private Renderer[] targetRenderers = System.Array.Empty<Renderer>();
+
+    // AfterEverything 在编辑器 Game 视图还能画到屏幕上，但 Win/安卓实机此时已经提交，Blit 不会显示。
+    private const CameraEvent OutlineEvent = CameraEvent.AfterImageEffects;
 
     // RT 名字
     private readonly int _Silhouette = Shader.PropertyToID("_Silhouette");
@@ -30,41 +34,55 @@ public class SimpleCommandBufferOutline : MonoBehaviour
     void OnEnable()
     {
         CollectTargetRenderers();
-        cam = Camera.main;
-        if (cam == null)
-        {
-            Debug.LogWarning("SimpleCommandBufferOutline: Camera.main 为空，无法创建描边命令缓冲。");
-            return;
-        }
+        TryInitCommandBuffer();
+    }
 
-        Shader shader = Shader.Find("Hidden/CharacterOutline");
+    void OnDisable()
+    {
+        if (cam != null && cb != null) cam.RemoveCommandBuffer(OutlineEvent, cb);
+        cb?.Release();
+        cb = null;
+        if (mat != null) Destroy(mat);
+        mat = null;
+        cam = null;
+    }
+
+    void TryInitCommandBuffer()
+    {
+        if (cb != null && mat != null && cam != null) return;
+
+        cam = Camera.main;
+        if (cam == null) return;
+
+        Shader shader = outlineShader != null ? outlineShader : Shader.Find("Hidden/CharacterOutline");
+        if (shader == null)
+        {
+            Material resourceMat = Resources.Load<Material>("Effects/CharacterOutline");
+            if (resourceMat != null) shader = resourceMat.shader;
+        }
         if (shader == null)
         {
             Debug.LogError("找不到 Hidden/CharacterOutline Shader");
             return;
         }
 
-        mat = new Material(shader);
-        cb = new CommandBuffer { name = "SimpleOutline" };
-
-        cam.AddCommandBuffer(CameraEvent.AfterEverything, cb);
-    }
-
-    void OnDisable()
-    {
-        if (cam != null && cb != null) cam.RemoveCommandBuffer(CameraEvent.AfterEverything, cb);
-        cb?.Release();
-        if (mat != null) Destroy(mat);
+        if (mat == null) mat = new Material(shader);
+        if (cb == null) cb = new CommandBuffer { name = "SimpleOutline" };
+        cam.AddCommandBuffer(OutlineEvent, cb);
     }
 
     void Update()
     {
-        if (cb == null || cam == null || mat == null) return;
+        if (cb == null || cam == null || mat == null)
+        {
+            TryInitCommandBuffer();
+            if (cb == null || cam == null || mat == null) return;
+        }
         CollectTargetRenderers();
         if (targetRenderers == null || targetRenderers.Length == 0) return;
 
-        int w = Screen.width;
-        int h = Screen.height;
+        int w = Mathf.Max(1, cam.pixelWidth);
+        int h = Mathf.Max(1, cam.pixelHeight);
 
         cb.Clear();
 
@@ -75,13 +93,16 @@ public class SimpleCommandBufferOutline : MonoBehaviour
         cb.SetRenderTarget(_Silhouette);
         cb.ClearRenderTarget(false, true, Color.clear);
         bool hasAnyRenderable = false;
+        Texture silhouetteTex = null;
         for (int i = 0; i < targetRenderers.Length; i++)
         {
             Renderer renderer = targetRenderers[i];
             if (!IsRendererEligible(renderer)) continue;
+            if (silhouetteTex == null) silhouetteTex = GetRendererMainTexture(renderer);
             cb.DrawRenderer(renderer, mat, 0, 0);
             hasAnyRenderable = true;
         }
+        if (silhouetteTex != null) mat.SetTexture("_MainTex", silhouetteTex);
         if (!hasAnyRenderable)
         {
             cb.ReleaseTemporaryRT(_Silhouette);
@@ -149,6 +170,13 @@ public class SimpleCommandBufferOutline : MonoBehaviour
         }
 
         return true;
+    }
+
+    private static Texture GetRendererMainTexture(Renderer r)
+    {
+        if (r is SpriteRenderer sr && sr.sprite != null) return sr.sprite.texture;
+        Material src = r.sharedMaterial;
+        return src != null ? src.mainTexture : null;
     }
 
     public void SetColor(Color c) => outlineColor = c;

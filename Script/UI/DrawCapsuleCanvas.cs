@@ -199,7 +199,7 @@ public class DrawCapsuleCanvas : UICanvasMain
             SetupInfoBoard(current_charactercode);
             yield return PlayRevealThenResultStageVideo();
             GainBtn.interactable = CharacterUpgradeSave.DrawUpgradeAvailable(DrawCharacters[i].ToString("0000"));
-            getBGM.Play();
+            PlatformAudio.PlaySfx(getBGM);
             ConfirmElements.SetActive(true);
             draw_skip = false;
             DrawSkipBtn.gameObject.SetActive(false);
@@ -237,7 +237,7 @@ public class DrawCapsuleCanvas : UICanvasMain
 
         CharacterSummoner.SetCharacterPosition(current_display_character, new Vector3(0, -3.5f, 10));
         CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "Units", 3);
-        CharacterData CD = Resources.Load<CharacterData>($"Units/Cat Units/{rarity}/{char_code}/0/data");
+        CharacterData CD = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{rarity}/{char_code}/0/data");
         if (CD != null) CharacterSummoner.SwitchAnimation(current_display_character, CD.UNITYAnimated, 0);
     }
     private void CheckSkip(int code)
@@ -269,8 +269,8 @@ public class DrawCapsuleCanvas : UICanvasMain
         int rality = charcode / 1000;
         string code = (charcode % 1000).ToString("000");
         string address = $"Units/Cat Units/{rality}/{code}/0/";
-        IV.ShowCharacterDetails(Resources.Load<CharacterData>(address+"data"),true, 1);
-        result_icon.sprite = Resources.Load<Sprite>(address+ "icon_deploy");
+        IV.ShowCharacterDetails(BundledAddressables.LoadSync<CharacterData>(address+"data"),true, 1);
+        result_icon.sprite = BundledAddressables.LoadSync<Sprite>(address+ "icon_deploy");
         LocalizationHelper.GetLocalizedText("UnitNames", $"{rality}{code}0", localizedText => char_name.text = localizedText ?? $"{rality}{code}0");
         SetParticleColor(rality,15);
         SetParticleRate(25);

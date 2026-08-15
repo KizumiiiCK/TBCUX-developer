@@ -228,12 +228,12 @@ public class IndexViewerPause : MonoBehaviour
         if (isCat && code.Length >= 5)
         {
             string path = string.Format(CatDataPathFormat, code[0], code.Substring(1, 3), code[4]);
-            data = Resources.Load<CharacterData>(path);
+            data = BundledAddressables.LoadSync<CharacterData>(path);
         }
         else if (!isCat)
         {
             string path = string.Format(EnemyDataPathFormat, code);
-            data = Resources.Load<CharacterData>(path);
+            data = BundledAddressables.LoadSync<CharacterData>(path);
         }
 
         characterDataCache[cacheKey] = data;
@@ -252,12 +252,12 @@ public class IndexViewerPause : MonoBehaviour
         if (isCat && code.Length >= 5)
         {
             string path = string.Format(CatIconPathFormat, code[0], code.Substring(1, 3), code[4]);
-            portrait = Resources.Load<Sprite>(path);
+            portrait = BundledAddressables.LoadSync<Sprite>(path);
         }
         else if (!isCat)
         {
             string path = string.Format(EnemyIconPathFormat, code);
-            portrait = Resources.Load<Sprite>(path);
+            portrait = BundledAddressables.LoadSync<Sprite>(path);
         }
 
         portraitCache[cacheKey] = portrait;
