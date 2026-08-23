@@ -251,7 +251,7 @@ public enum AttackType
 {
     none=0, wave=1, surge=2, explosion=3,
     [EditorBrowsable(EditorBrowsableState.Never)] 
-    critical, savage, zombieKiller, barrierBreaker, sheildPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly
+    critical, savage, zombieKiller, barrierBreaker, shieldPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly
 }
 public enum AbilityName
 {
@@ -262,7 +262,7 @@ public enum AbilityName
     shieldProvider=21, maxShield=22,
     practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38, clearDebuffs=39, 
     barrier=40, akuShield=41, barrierProvider = 42,
-    impatience=50, pressureLearn=51,
+    impatience=50, pressureLearn=51, targetHighestHp=52,
     selfSlow =100, selfWeaken=101, selfLacerate=102, selfDeathmark=103,
     BaseCharacter = 500,
     [EditorBrowsable(EditorBrowsableState.Never)]

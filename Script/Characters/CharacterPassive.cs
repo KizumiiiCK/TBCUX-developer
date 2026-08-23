@@ -20,6 +20,15 @@ public abstract partial class Character
         passiveSnapshotDirty = true;
     }
 
+    public T GetPassive<T>() where T : class, PassiveNode
+    {
+        for (int i = 0; i < passiveEffects.Count; i++)
+        {
+            if (passiveEffects[i] is T found) return found;
+        }
+        return null;
+    }
+
     private void BuildPassiveSnapshotIfNeeded()
     {
         if (!passiveSnapshotDirty) return;

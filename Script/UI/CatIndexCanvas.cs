@@ -228,6 +228,7 @@ public class CatIndexCanvas : UICanvasMain
             CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "UI", 3);
             current_display_character.transform.localScale = current_display_character.transform.localScale * 1.3f;
             UnityAnimated = CD.UNITYAnimated;
+            if (UnityAnimated) current_display_character.transform.localScale *= 1.2f;
             current_animation_num = 0;
             CharacterSummoner.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
             LocalizationHelper.GetLocalizedText("UnitNames", $"{rality}{current_code}{tire}", localizedText => name_txt.text = localizedText ?? $"{rality}{current_code}{tire}");

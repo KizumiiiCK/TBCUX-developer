@@ -6,7 +6,7 @@ using UnityEngine;
 public abstract partial class Character : MonoBehaviour
 {
     /* ====== ֻ���������� ====== */
-    public string NameCode { get; private set; }
+    public string NameCode { get; protected set; }
     public bool IsEliteUnit { get; private set; }
     public float Power { get; private set; } = 1f;
     public EmotionUX BaseEmotion { get; private set; } = EmotionUX.none;
@@ -78,6 +78,16 @@ public abstract partial class Character : MonoBehaviour
     public abstract void InitializeCharacter();
     public abstract void UpdateAnimation();
     public abstract float GetFactor();
+
+    /// <summary>
+    /// 与生命/攻击相同的战斗数值倍率：猫咪为 (0.8 + 0.2 * 等级) * Power，敌人为 strengthenRate * Power（关卡百分比）。
+    /// </summary>
+    public float GetCombatStatMultiplier()
+    {
+        if (IsCat()) return (0.8f + 0.2f * level) * Power;
+        float strengthen = this is EnemyCharacter enemy ? enemy.strengthenRate : 1f;
+        return strengthen * Power;
+    }
 
     public void RequestCancelAttackStart() => cancelAttackStartRequested = true;
     public bool ConsumeAttackStartCancelRequest()

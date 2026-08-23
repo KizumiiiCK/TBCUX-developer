@@ -24,6 +24,8 @@ public static class AbilityInstaller
         { AbilityName.miniSurge,  typeof(MiniSurge)},
         { AbilityName.metal,      typeof(Metal)},
         { AbilityName.maxShield,  typeof(MaxShield)},
+        { AbilityName.shieldProvider, typeof(ShieldProvider)},
+        { AbilityName.barrierProvider, typeof(BarrierProvider)},
         { AbilityName.oneoff,     typeof(OneOff)},
         { AbilityName.ATK_Buffer, typeof(ATK_Buffer)},
         { AbilityName.XP_PUNCH,   typeof(XP_PUNCH)},
@@ -35,9 +37,10 @@ public static class AbilityInstaller
         { AbilityName.barrier, typeof(Barrier)},
         { AbilityName.akuShield, typeof(AkuShield)},
         { AbilityName.barrierBreaker, typeof(BarrierBreaker)},
-        { AbilityName.shieldPiercing, typeof(SheildPiercing)},
+        { AbilityName.shieldPiercing, typeof(ShieldPiercing)},
         { AbilityName.impatience, typeof(Impatience)},
         { AbilityName.pressureLearn, typeof(PressureLearn)},
+        { AbilityName.targetHighestHp, typeof(TargetHighestHp)},
         { AbilityName.selfSlow, typeof(SelfSlowDebuff)},
         { AbilityName.selfWeaken, typeof(SelfWeakenDebuff)},
         { AbilityName.selfLacerate, typeof(SelfLacerateDebuff)},
@@ -442,7 +445,7 @@ public class Critical : PassiveSkill
 {
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
-        if (Triggered()) { dmg *= 1.25f; types.Add(AttackType.critical);}
+        if (Triggered()) { dmg *= 1.75f; types.Add(AttackType.critical);}
     }
 }
 public class ZombieKiller : PassiveSkill
@@ -467,11 +470,11 @@ public class BarrierBreaker : PassiveSkill
         if (Triggered()) types.Add(AttackType.barrierBreaker);
     }
 }
-public class SheildPiercing : PassiveSkill
+public class ShieldPiercing : PassiveSkill
 {
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
-        if (Triggered()) types.Add(AttackType.sheildPiercing);
+        if (Triggered()) types.Add(AttackType.shieldPiercing);
     }
 }
 public class Impatience : PassiveSkill
@@ -491,45 +494,20 @@ public class PressureLearn : PassiveSkill
 {
     private const int MaxPressure = 1000;
     private const int CriticalReducer = 200;
-    //private const int SpecMultiplier = 10;
-
     private int normal_pressure = 0;
-    //private int wave_pressure = 0;
-    //private int surge_pressure = 0;
-    //private int explode_pressure = 0;
+
+    public override void OnAddingAbility(Character character)
+    {
+        int start = intensity * 10;
+        normal_pressure = Mathf.Clamp(start, 0, MaxPressure);
+    }
 
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         bool hasCritical = false;
-        //bool hasNormal = false;
-        //bool hasWave = false;
-        //bool hasSurge = false;
-        //bool hasExplode = false;
-
         if (atkTypes != null)
         {
             if(atkTypes.Contains(AttackType.critical)) { hasCritical = true; }
-            //for (int i = 0; i < atkTypes.Count; i++)
-            //{
-            //    switch (atkTypes[i])
-            //    {
-            //        case AttackType.critical:
-            //            hasCritical = true;
-            //            break;
-            //        case AttackType.none:
-            //            hasNormal = true;
-            //            break;
-            //        case AttackType.wave:
-            //            hasWave = true;
-            //            break;
-            //        case AttackType.surge:
-            //            hasSurge = true;
-            //            break;
-            //        case AttackType.explosion:
-            //            hasExplode = true;
-            //            break;
-            //    }
-            //}
         }
 
         if (hasCritical)
@@ -544,18 +522,6 @@ public class PressureLearn : PassiveSkill
             return;
         }
         ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
-        //bool hasRecognizedType = hasNormal || hasWave || hasSurge || hasExplode;
-        //if (!hasRecognizedType)
-        //{
-        //    ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
-        //}
-        //else
-        //{
-        //    if (hasWave) ApplyPressureAndScaleDamage(ref wave_pressure, duration * SpecMultiplier, ref DMG);
-        //    else if (hasSurge) ApplyPressureAndScaleDamage(ref surge_pressure, duration * SpecMultiplier, ref DMG);
-        //    else if (hasExplode) ApplyPressureAndScaleDamage(ref explode_pressure, duration * SpecMultiplier, ref DMG);
-        //    else ApplyPressureAndScaleDamage(ref normal_pressure, probability, ref DMG);
-        //}
     }
 
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
@@ -578,15 +544,41 @@ public class PressureLearn : PassiveSkill
     private void ReduceAllPressure(int reducer)
     {
         normal_pressure = Mathf.Max(0, normal_pressure - reducer);
-        //wave_pressure = Mathf.Max(0, wave_pressure - reducer);
-        //surge_pressure = Mathf.Max(0, surge_pressure - reducer);
-        //explode_pressure = Mathf.Max(0, explode_pressure - reducer);
     }
 
     private int GetMaxPressure()
     {
         return normal_pressure;
-        //return Mathf.Max(normal_pressure, wave_pressure, surge_pressure, explode_pressure);
+    }
+}
+
+public class TargetHighestHp : PassiveSkill
+{
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (character == null) return;
+        List<GameObject> targets = character.Targets;
+        if (targets == null || targets.Count <= 1) return;
+
+        GameObject best = null;
+        float bestHp = float.MinValue;
+        for (int i = 0; i < targets.Count; i++)
+        {
+            GameObject go = targets[i];
+            if (go == null) continue;
+            Character unit = go.GetComponent<Character>();
+            if (unit == null) continue;
+            float hp = unit.GetHealth();
+            if (best != null && hp <= bestHp) continue;
+            best = go;
+            bestHp = hp;
+        }
+        if (best == null) return;
+
+        for (int i = targets.Count - 1; i >= 0; i--)
+        {
+            if (targets[i] != best) targets.RemoveAt(i);
+        }
     }
 }
 
@@ -747,6 +739,15 @@ public class Barrier : PassiveSkill
         shieldEffectName = character != null && character.IsCat() ? "barrier" : "barrier_e";
     }
 
+    public bool TryRestore(Character character, int newIntensity)
+    {
+        if (!broken) return false;
+        hardness = Mathf.Max(0f, newIntensity);
+        broken = false;
+        PlaySpawn(character);
+        return true;
+    }
+
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
         if (character == null || broken) return;
@@ -757,8 +758,6 @@ public class Barrier : PassiveSkill
             PlayShieldAnim(character, 2);
             broken = true;
             DMG *= 1.25f;
-            CleanupShieldAnim(character);
-            character.RemovePassiveEffect(this);
             return;
         }
 
@@ -772,8 +771,6 @@ public class Barrier : PassiveSkill
         PlayShieldAnim(character, 1);
         DMG = 0f;
         broken = true;
-        CleanupShieldAnim(character);
-        character.RemovePassiveEffect(this);
     }
 
     public override void OnDead(Character character)
@@ -784,13 +781,128 @@ public class Barrier : PassiveSkill
     protected void PlayShieldAnim(Character character, int animIndex)
     {
         if (character == null || character.EM == null) return;
+        Vector3 pos = character.transform.position + new Vector3(0f, 0.5f, 0f);
         character.EM.PlayReusableAttachedEffect(
             ref shieldDisplay,
             shieldEffectName,
             character.transform,
-            character.transform.position,
+            pos,
             animIndex,
             worldPositionStays: true);
+        if (shieldDisplay != null)
+            CharacterSummoner.ResetAnimationOrderLayer(shieldDisplay, 20000);
+    }
+
+    private void CleanupShieldAnim(Character character)
+    {
+        if (shieldDisplay == null) return;
+        if (character != null && character.EM != null)
+        {
+            character.EM.ReleaseReusableAttachedEffect(ref shieldDisplay, shieldEffectName);
+        }
+        else
+        {
+            UnityEngine.Object.Destroy(shieldDisplay.gameObject);
+            shieldDisplay = null;
+        }
+    }
+
+    public void PlaySpawn(Character character) => PlayShieldAnim(character, 0);
+}
+
+public class AkuShield : PassiveSkill
+{
+    private string shieldEffectName;
+    private float maxHardness;
+    private float remainingHardness;
+    private bool broken;
+    private bool oneTime;
+    private AnimationDisplayer shieldDisplay;
+
+    public void SetOneTime(bool value) => oneTime = value;
+
+    public override void OnAddingAbility(Character character)
+    {
+        float multiplier = character != null ? character.GetCombatStatMultiplier() : 1f;
+        maxHardness = Mathf.Max(0f, intensity * multiplier);
+        remainingHardness = maxHardness;
+        Debug.Log($"Akus: maxHardness = {maxHardness}");
+        broken = false;
+        shieldEffectName = character != null && character.IsCat() ? "akuShield" : "akuShield_e";
+    }
+
+    public void Reinforce(Character character, int addIntensity)
+    {
+        float add = Mathf.Max(0f, addIntensity * (character != null ? character.GetCombatStatMultiplier() : 1f));
+        maxHardness += add;
+        remainingHardness += add;
+        broken = remainingHardness <= 0f;
+        PlayShieldAnim(character, 0);
+    }
+
+    public void PlaySpawn(Character character) => PlayShieldAnim(character, 0);
+
+    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
+    {
+        if (character == null) return;
+        if (DMG < 0f) return;
+
+        bool isShieldPiercing = atkTypes != null && atkTypes.Contains(AttackType.shieldPiercing);
+        if (isShieldPiercing)
+        {
+            PlayShieldAnim(character, 3);
+            DMG *= 1.25f;
+            remainingHardness = 0f;
+            broken = true;
+            return;
+        }
+
+        if (broken || remainingHardness <= 0f) return;
+
+        float incomingDamage = Mathf.Max(0f, DMG);
+        if (incomingDamage <= 0f) return;
+
+        remainingHardness -= incomingDamage;
+        DMG = 0;
+        if (remainingHardness > 0f)
+        {
+            PlayShieldAnim(character, 1);
+        }
+        else
+        {
+            broken = true;
+            PlayShieldAnim(character, 2);
+        }
+    }
+
+    public override void OnAfterKB(Character character)
+    {
+        if (character == null || oneTime) return;
+        if (!broken) return;
+        if (character.GetLastTriggeredKBType() != KB_Type.none) return;
+        remainingHardness = maxHardness;
+        broken = false;
+        PlayShieldAnim(character, 0);
+    }
+
+    public override void OnDead(Character character)
+    {
+        CleanupShieldAnim(character);
+    }
+
+    private void PlayShieldAnim(Character character, int animIndex)
+    {
+        if (character == null || character.EM == null) return;
+        Vector3 pos = character.transform.position + new Vector3(0f, 0.5f, 0f);
+        character.EM.PlayReusableAttachedEffect(
+            ref shieldDisplay,
+            shieldEffectName,
+            character.transform,
+            pos,
+            animIndex,
+            worldPositionStays: true);
+        if (shieldDisplay != null)
+            CharacterSummoner.ResetAnimationOrderLayer(shieldDisplay, 20000);
     }
 
     private void CleanupShieldAnim(Character character)
@@ -808,93 +920,51 @@ public class Barrier : PassiveSkill
     }
 }
 
-public class AkuShield : PassiveSkill
+public class BarrierProvider : PassiveSkill
 {
-    private string shieldEffectName;
-    private float maxHardness;
-    private float remainingHardness;
-    private bool broken;
-    private AnimationDisplayer shieldDisplay;
-
-    public override void OnAddingAbility(Character character)
+    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
-        maxHardness = Mathf.Max(0f, intensity);
-        remainingHardness = maxHardness;
-        broken = false;
-        shieldEffectName = character != null && character.IsCat() ? "akuShield" : "akuShield_e";
-    }
-
-    public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
-    {
-        if (character == null) return;
-        if (DMG < 0f) return;
-
-        bool isShieldPiercing = atkTypes != null && atkTypes.Contains(AttackType.sheildPiercing);
-        if (isShieldPiercing)
+        if (character == null || !Triggered()) return;
+        IReadOnlyList<Character> hitTargets = character.GetLastAttackHitTargets();
+        for (int i = 0; i < hitTargets.Count; i++)
         {
-            PlayShieldAnim(character, 3);
-            DMG *= 1.25f;
-            remainingHardness = 0f;
-            broken = true;
-            return;
+            Character target = hitTargets[i];
+            if (target == null) continue;
+            Barrier existing = target.GetPassive<Barrier>();
+            if (existing != null)
+            {
+                existing.TryRestore(target, intensity);
+                continue;
+            }
+            var barrier = new Barrier();
+            barrier.SetPassiveValues(AbilityName.barrier, 100, 0, intensity);
+            AbilityInstaller.Install(target, barrier);
+            barrier.PlaySpawn(target);
         }
+    }
+}
 
-        if (broken || remainingHardness <= 0f) return;
-
-        float incomingDamage = Mathf.Max(0f, DMG);
-        if (incomingDamage <= 0f) return;
-
-        remainingHardness -= incomingDamage;
-        if (remainingHardness > 0f)
+public class ShieldProvider : PassiveSkill
+{
+    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
+    {
+        if (character == null || !Triggered()) return;
+        IReadOnlyList<Character> hitTargets = character.GetLastAttackHitTargets();
+        for (int i = 0; i < hitTargets.Count; i++)
         {
-            DMG = 0f;
-            PlayShieldAnim(character, 1);
-            return;
-        }
-
-        broken = true;
-        PlayShieldAnim(character, 2);
-        DMG = Mathf.Max(0f, -remainingHardness);
-    }
-
-    public override void OnAfterKB(Character character)
-    {
-        if (character == null) return;
-        if (!broken) return;
-        if (character.GetLastTriggeredKBType() != KB_Type.none) return;
-        remainingHardness = maxHardness;
-        broken = false;
-        PlayShieldAnim(character, 0);
-    }
-
-    public override void OnDead(Character character)
-    {
-        CleanupShieldAnim(character);
-    }
-
-    private void PlayShieldAnim(Character character, int animIndex)
-    {
-        if (character == null || character.EM == null) return;
-        character.EM.PlayReusableAttachedEffect(
-            ref shieldDisplay,
-            shieldEffectName,
-            character.transform,
-            character.transform.position,
-            animIndex,
-            worldPositionStays: true);
-    }
-
-    private void CleanupShieldAnim(Character character)
-    {
-        if (shieldDisplay == null) return;
-        if (character != null && character.EM != null)
-        {
-            character.EM.ReleaseReusableAttachedEffect(ref shieldDisplay, shieldEffectName);
-        }
-        else
-        {
-            UnityEngine.Object.Destroy(shieldDisplay.gameObject);
-            shieldDisplay = null;
+            Character target = hitTargets[i];
+            if (target == null) continue;
+            AkuShield existing = target.GetPassive<AkuShield>();
+            if (existing != null)
+            {
+                existing.Reinforce(target, intensity);
+                continue;
+            }
+            var shield = new AkuShield();
+            shield.SetPassiveValues(AbilityName.akuShield, 100, 0, intensity);
+            shield.SetOneTime(true);
+            AbilityInstaller.Install(target, shield);
+            shield.PlaySpawn(target);
         }
     }
 }

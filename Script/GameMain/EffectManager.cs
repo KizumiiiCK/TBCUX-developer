@@ -81,7 +81,7 @@ public class EffectManager : MonoBehaviour
         }
         if (cachedDisplay == null) return null;
         cachedDisplay.gameObject.SetActive(true);
-        cachedDisplay.SetMaanimPointer(animIndex);
+        cachedDisplay.PlayAnimation(animIndex);
         PlayEffectSound(effectName, animIndex);
         return cachedDisplay;
     }

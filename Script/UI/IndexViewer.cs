@@ -186,22 +186,32 @@ public class IndexViewer : MonoBehaviour
         if(level<1)level = 1;
         tresureCount = consider_treasure?RewardingSystem.GetAmount(RewardName.WorldTreasures):0;
         float bonus = (1 + 1.5f * (tresureCount / 150f))*(0.8f + 0.2f * level);
+        int atk_length = cd.atkInfos != null ? cd.atkInfos.Length : 0;
         DetailsText.text = 
             $"HP:         <color=#00FFFF>{(int)(cd.Health*bonus)}</color>   " +
             $"(KB  <color=#00AFFF>{cd.KB}</color>)\r\n" +
-            $"RANGE:  <color=yellow>{cd.DetectionRange}</color>\r\n" +
-            $"ATK:       ";
-        int atk_length = cd.atkInfos.Length;
+            $"ATK:   (<color=#FF3030>{(cd.areaATK?"AREA":"SINGLE")}</color>)" +
+            $"    {atk_length} HITs\r\n";
         for (int i = 0; i < atk_length; i++)
         {
-            DetailsText.text += $"<color=#FF3030>{(int)(cd.atkInfos[i].ATK*bonus)}</color>  (<color=yellow>{cd.atkInfos[i].frame}</color>f,  " +
-                $"r=(<color=yellow>{cd.atkInfos[i].ATKRange.x}</color>,  <color=yellow>{cd.atkInfos[i].ATKRange.y}</color>))"+
-                "/\r\n                ";
+            if (atk_length > 5 && i == 3)
+            {
+                DetailsText.text += "                ...\r\n";
+                continue;
+            }
+            if (atk_length > 5 && i > 4) break;
+            DetailsText.text += $"                " +
+                $"<color=#FF3030>{(int)(cd.atkInfos[i].ATK*bonus)}</color>  " +
+                $"r=(<color=yellow>{cd.atkInfos[i].ATKRange.x}</color>,  <color=yellow>{cd.atkInfos[i].ATKRange.y}</color>)"+
+                "/\r\n";
         }
         DetailsText.text+=
-            $" -- (<color=yellow>{cd.atkDuration - cd.atkInfos[atk_length-1].frame}</color>f)\r\n"+
+            $"                -- (<color=yellow>{cd.atkDuration - cd.atkInfos[atk_length-1].frame}</color>f)\r\n"+
+            $"RANGE:  <color=yellow>{cd.DetectionRange}</color>\r\n" +
+            $"RLD:         <color=#75FF85>{cd.Reload}f</color>\r\n" +
+            $"SPD:         <color=#75FF85>{cd.Speed}</color>\r\n" +
             $"COST:    <color=#FCBA01>{cd.Cost}$</color>\r\n" +
-            $"CD:          <color=#75FF85>{cd.Cooldown}</color>";
+            $"CD:          <color=#75FF85>{cd.Cooldown}f</color>";
     }
 
     private void ApplyTraitGroups(CharacterData cd)

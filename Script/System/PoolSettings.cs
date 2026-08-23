@@ -42,7 +42,7 @@ public class Pool
 
 public static class PoolSystemTime
 {
-    public static readonly DateTime openTime = new DateTime(year: 2026, month: 5, day: 12);
+    public static readonly DateTime openTime = new DateTime(year: 2026, month: 8, day: 22);
     public static DateTime Now => PlatformTimeSystem.Now;
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
@@ -365,7 +365,7 @@ public static class PoolInfo
         new Pool()
         {
             pool_name="tsumino",
-            pool_start_delay = 0,
+            pool_start_delay = duration_DEFAULT * 3,
             pool_cycle_period=cycle_DEFAULT-duration_DEFAULT,
             pool_duration=duration_DEFAULT*2,
             gold_capsule=true,
@@ -384,6 +384,29 @@ public static class PoolInfo
                 /* G     */new int[] {100, 101, 102, 103}
             }
         }, // Tsumi no Shyoujio
+
+        new Pool()
+        {
+            pool_name="frontline",
+            pool_start_delay = 0,
+            pool_cycle_period=cycle_DEFAULT,
+            pool_duration=duration_DEFAULT,
+            gold_capsule=true,
+            cost_item=new RewardName[2]{ RewardName.Ticket_Gold, RewardName.CANs},
+            cost_amount=new int[2]{ 1, 1500 },
+            draw_times=new int[2]{ 1, 11},
+            dropRates=new float[7] { 0, 0, 0.70f, 0.255f, 0.035f, 0.005f, 0.005f},
+            dropUnits=new List<int[]>()
+            {
+                /* N     */null,
+                /* EX    */null,
+                /* R     */Regular_Rares,
+                /* SR    */Regular_Superrares,
+                /* UR    */new int[] {200,201,202,203,204,205},
+                /* LR    */new int[] {20},
+                /* G     */new int[] {105}
+            }
+        }, // Cats Frontline
 
         new Pool()
         {

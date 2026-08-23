@@ -110,7 +110,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
       all damage from them.
 
-      (Only affect enemies with matched traits for cats)'
+      (Only affect enemies with matched traits for
+      cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 7777754103808
@@ -125,8 +126,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , making
       all marked characters suffer the taken damage one more time.
 
-      (Only affect
-      enemies with matched traits for cats)'
+      (Only
+      affect enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 55728509632512
@@ -304,7 +305,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 69776097755172
-    m_Localized: Has a {0}% chance to land a critical strike, dealing 125% damage
+    m_Localized: Has a {0}% chance to land a critical strike, dealing 175% damage
       to all enemies including Metal.
     m_Metadata:
       m_Items: []
@@ -927,11 +928,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 103440311145283586
-    m_Localized: "Trains itself to gain attack resistance. While receiving an attack,
-      the character gains {0}\u2030 resistance to all the incoming attacks.  For
-      that resistance reaches 100%, it blocks all damage and gains 100% <color=#00FFFF>Savage
-      Blow</color>. However, receiving <color=#00FFFF>Critical</color> attacks reduce
-      the resistance by 20% and take a little more damage."
+    m_Localized: "Trains itself to gain attack resistance. Starting with {2}% damage
+      resistance. While receiving an attack, the character gains {0}\u2030 resistance
+      to all the incoming attacks.  For that resistance reaches 100%, it blocks all
+      damage and gains 100% <color=#00FFFF>Savage Blow</color>. However, receiving
+      <color=#00FFFF>Critical</color> attacks reduce the resistance by 20% and take
+      a little more damage."
     m_Metadata:
       m_Items: []
   - m_Id: 106666155854610432
@@ -950,6 +952,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 106666155900747778
     m_Localized: '-'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113472934529810432
+    m_Localized: Eagle's Eye
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113472934605307904
+    m_Localized: Dealing damage to the target with the highest HP in the range.
     m_Metadata:
       m_Items: []
   references:

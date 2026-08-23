@@ -239,7 +239,7 @@ public class CharacterDataEditor : Editor
     {
         if (!isCat || data == null) return;
 
-        const int level50FullTreasureMultiplier = 27;
+        const float level50FullTreasureMultiplier = 27f;
         EditorGUILayout.Space(4f);
         EditorGUILayout.LabelField("猫咪50级预览（满宝）", subtitleStyle);
         EditorGUILayout.LabelField($"50级血量: {data.Health * level50FullTreasureMultiplier}", bodyStyle);

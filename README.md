@@ -24,6 +24,7 @@
 - [未纳入版本管理的内容](#未纳入版本管理的内容)
 - [克隆与首次运行](#克隆与首次运行)
 - [Git 工作流约定](#git-工作流约定)
+- [向本仓库提出 Pull Request](#向本仓库提出-pull-request)
 
 ---
 
@@ -337,3 +338,77 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 - 提交前确保 Unity 已完成导入。
 - Addressables Build 产物不要提交；`addressables_content_state.bin` 要提交。
 - 单位 / 关卡 / 脚本改动与「结构迁移」不要混在同一笔提交里。
+
+---
+
+## 向本仓库提出 Pull Request
+
+目标分支永远是 **`main`**。不要直接在 `main` 上改。
+
+### 1. 准备仓库
+
+没有写入权限时（默认），先 Fork `KizumiiiCK/TBCUX-developer`，再 clone **你的 Fork**：
+
+```bash
+git clone https://github.com/<你的GitHub用户名>/TBCUX-developer.git
+cd TBCUX-developer
+git remote add upstream https://github.com/KizumiiiCK/TBCUX-developer.git
+```
+
+已被加为 Collaborator 时，可以直接 clone 本仓库。
+
+本目录就是 Unity 工程的 `Assets/`，不是完整工程。要在编辑器里改东西，请按 [克隆与首次运行](#克隆与首次运行) 接到 `2022.3.60f1c1` 工程里。
+
+### 2. 开功能分支
+
+从最新 `main` 开分支，名称用 `谁/做什么`，例如 `alice/fix-kb-text`、`bob/add-unit-003`：
+
+```bash
+git fetch upstream          # Collaborator 则用 origin
+git checkout main
+git merge upstream/main     # 或 git pull origin main
+git checkout -b <谁>/<做什么>
+```
+
+### 3. 改完后只暂存白名单
+
+```bash
+git add Script Resources Bundled AddressableAssetsData
+git add .gitignore README.md Script.meta Resources.meta Bundled.meta AddressableAssetsData.meta
+```
+
+不要 `git add -A`。提交前自检：
+
+```bash
+git diff --cached --name-only | grep -iE '\.(ogg|mp3|mp4)$' || true
+git status
+```
+
+有音频 / 视频被暂存就停下来。`.meta` 必须和对应资源一起提交。一笔 PR 只做一件事（修 bug、改关卡、加单位……不要和无关重构混在一起）。
+
+### 4. 推分支并开 PR
+
+Fork 流程：
+
+```bash
+git push -u origin <谁>/<做什么>
+```
+
+然后打开 GitHub 上你的 Fork，Compare & pull request：
+
+- **base**：`KizumiiiCK/TBCUX-developer` 的 `main`
+- **compare**：你 Fork 上的功能分支
+
+Collaborator 同样 `git push -u origin <谁>/<做什么>`，在本仓库开 PR，base 仍是 `main`。
+
+PR 说明请写清：改了什么、为什么、Unity 里怎么验证。涉及 Addressables（新单位、新地址、改组）时，注明改了哪个组，以及是否需要在 Windows / Android 上重建 Addressables。
+
+### 5. 评审期间同步 main
+
+```bash
+git fetch upstream
+git merge upstream/main
+git push
+```
+
+有冲突时在功能分支上解决后再推。不要 force-push 到 `main`。

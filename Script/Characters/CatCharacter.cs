@@ -8,13 +8,14 @@ public class CatCharacter : AnimatorCachedCharacter
     public override void InitializeCharacter()
     {
         SetPower(1);
-        maxHealth = Health * (0.8f + 0.2f * level)*Power;
+        float real_power=(0.8f + 0.2f * level)*Power;
+        maxHealth = Health * real_power;
         realHealth = maxHealth;
         hardness = maxHealth / KB;
         //realDamage = new int[atkInfos.Length];
         for (int i = 0; i < atkInfos.Length; i++)
         {
-            realDamage[i] = (int)(realDamage[i] * (0.8f + 0.2f * level) * Power);
+            realDamage[i] = (int)(realDamage[i] * real_power);
         }
         realSpeed = Speed;
         realKBtimes = 0;
