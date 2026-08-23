@@ -5,7 +5,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Android;
 using UnityEngine.Audio;
-using UnityEngine.EventSystems;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
@@ -133,6 +132,7 @@ public class LevelController : MonoBehaviour
     [SerializeField] protected GameObject pause_black_shade;
     [SerializeField] protected GameObject pause_table;
     [SerializeField] private GameObject pauseCharacterStatementRoot;
+    [SerializeField] private PauseCharacterInspector pauseInspector;
 
     [Header("Level Info UI")]
     [SerializeField] protected TMP_Text levelName_txt;
@@ -164,13 +164,7 @@ public class LevelController : MonoBehaviour
     private int cachedUpgradeLevel = -1;
     private bool cachedUpgradeButtonState = true;
     private bool upgradeUiDirty = true;
-    private Character pausedSelectedCharacter;
-    private SimpleCommandBufferOutline pausedOutline;
-    private bool pausedOutlineOwned;
-    private bool pausedOutlinePreviousEnabled;
-    private IndexViewerPause pauseCharacterStatement;
-    public Character PausedSelectedCharacter => pausedSelectedCharacter;
-    public event System.Action<Character> PausedSelectedCharacterChanged;
+    public Character PausedSelectedCharacter => pauseInspector != null ? pauseInspector.SelectedCharacter : null;
 
     #endregion
 
@@ -200,11 +194,12 @@ public class LevelController : MonoBehaviour
     private void Awake()
     {
         Input.multiTouchEnabled = true;
+        EnsurePauseInspector();
     }
 
     private void OnDisable()
     {
-        ClearPausedCharacterSelection();
+        pauseInspector?.ClearSelection();
     }
 
     private void Start()
@@ -259,15 +254,7 @@ public class LevelController : MonoBehaviour
     {
         if (!game_paused || isPloting || disable_controll) return;
 
-        if (pausedSelectedCharacter != null && (!pausedSelectedCharacter.gameObject || !pausedSelectedCharacter.gameObject.activeInHierarchy))
-        {
-            ClearPausedCharacterSelection();
-        }
-
-        if (!TryGetPausePointerDown(out Vector2 screenPos, out int pointerId)) return;
-        if (IsPointerOnInteractiveUI(screenPos, pointerId)) return;
-
-        HandlePausedSelectionClick(screenPos);
+        pauseInspector?.Tick();
     }
 
     #endregion
@@ -677,7 +664,7 @@ public class LevelController : MonoBehaviour
             Pause_btn.GetComponent<Image>().color = Color.white;
             Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
             speed_up = false;
-            ClearPausedCharacterSelection();
+            pauseInspector?.ClearSelection();
         }
 
         game_paused = pause;
@@ -696,7 +683,7 @@ public class LevelController : MonoBehaviour
             Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 1);
             Pause_btn.GetComponent<Image>().color = Color.white;
             game_paused = false;
-            ClearPausedCharacterSelection();
+            pauseInspector?.ClearSelection();
         }
         else
         {
@@ -706,7 +693,7 @@ public class LevelController : MonoBehaviour
             Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
             Pause_btn.GetComponent<Image>().color = Color.white;
             game_paused = false;
-            ClearPausedCharacterSelection();
+            pauseInspector?.ClearSelection();
         }
 
         speed_up = speedUp;
@@ -1148,248 +1135,16 @@ public class LevelController : MonoBehaviour
         GameObject.Find("UI Canvas").GetComponent<Animator>().enabled = true;
     }
 
-    private bool TryGetPausePointerDown(out Vector2 screenPos, out int pointerId)
+    private void EnsurePauseInspector()
     {
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch touch = Input.GetTouch(i);
-                if (touch.phase != TouchPhase.Began) continue;
-                screenPos = touch.position;
-                pointerId = touch.fingerId;
-                return true;
-            }
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            screenPos = Input.mousePosition;
-            pointerId = -1;
-            return true;
-        }
-
-        screenPos = default;
-        pointerId = -1;
-        return false;
-    }
-
-    private bool IsPointerOnInteractiveUI(Vector2 screenPos, int pointerId)
-    {
-        EventSystem eventSystem = EventSystem.current;
-        if (eventSystem == null) return false;
-
-        PointerEventData pointerData = new PointerEventData(eventSystem)
-        {
-            position = screenPos,
-            pointerId = pointerId
-        };
-
-        List<RaycastResult> raycasts = new List<RaycastResult>();
-        eventSystem.RaycastAll(pointerData, raycasts);
-        for (int i = 0; i < raycasts.Count; i++)
-        {
-            GameObject hit = raycasts[i].gameObject;
-            if (hit == null) continue;
-            if (hit.GetComponentInParent<Selectable>() != null) return true;
-            if (hit.GetComponentInParent<ScrollRect>() != null) return true;
-        }
-
-        return false;
-    }
-
-    private void HandlePausedSelectionClick(Vector2 screenPos)
-    {
-        if (pausedSelectedCharacter != null)
-        {
-            ClearPausedCharacterSelection();
-            return;
-        }
-
-        Character target = FindClosestCharacterNearPointer(screenPos, 2f, 5f);
-        if (target == null) return;
-
-        SetPausedCharacterSelection(target);
-    }
-
-    private Character FindClosestCharacterNearPointer(Vector2 screenPos, float maxXDistance, float maxYDistance)
-    {
-        Camera cam = Camera.main;
-        if (cam == null) return null;
-
-        Vector3 world = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, Mathf.Abs(cam.transform.position.z)));
-        world.z = 0f;
-
-        Character best = null;
-        float bestDx = float.MaxValue;
-        float bestDy = float.MaxValue;
-
-        CatCharacter[] cats = FindObjectsOfType<CatCharacter>();
-        for (int i = 0; i < cats.Length; i++)
-        {
-            TryPickClosestCharacter(cats[i], world, maxXDistance, maxYDistance, ref best, ref bestDx, ref bestDy);
-        }
-
-        EnemyCharacter[] enemies = FindObjectsOfType<EnemyCharacter>();
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            TryPickClosestCharacter(enemies[i], world, maxXDistance, maxYDistance, ref best, ref bestDx, ref bestDy);
-        }
-
-        return best;
-    }
-
-    private void SetPausedCharacterSelection(Character target)
-    {
-        if (target == null) return;
-        SimpleCommandBufferOutline outline = target.GetComponent<SimpleCommandBufferOutline>();
-        bool outlineCreatedBySelection = false;
-        if (outline == null)
-        {
-            outline = target.gameObject.AddComponent<SimpleCommandBufferOutline>();
-            outlineCreatedBySelection = true;
-            pausedOutlinePreviousEnabled = false;
-        }
-        else pausedOutlinePreviousEnabled = outline.enabled;
-
-        outline.RefreshTargets();
-        outline.SetColor(new Color(1f, 0.92f, 0.1f, 1f));
-        outline.SetHighlightColor(Color.white);
-        outline.SetActive(true);
-
-        pausedOutline = outline;
-        pausedOutlineOwned = outlineCreatedBySelection;
-        UpdatePausedSelectedCharacter(target);
-        ShowPauseCharacterStatement(target);
-    }
-
-    private void TryPickClosestCharacter(
-        Character candidate,
-        Vector3 clickWorld,
-        float maxXDistance,
-        float maxYDistance,
-        ref Character best,
-        ref float bestDx,
-        ref float bestDy)
-    {
-        if (candidate == null || candidate.gameObject == null || !candidate.gameObject.activeInHierarchy) return;
-
-        Vector3 pos = candidate.transform.position;
-        float dx = Mathf.Abs(pos.x - clickWorld.x);
-        if (dx > maxXDistance) return;
-
-        float dy = Mathf.Abs(pos.y - clickWorld.y);
-        if (dy > maxYDistance) return;
-
-        if (dx < bestDx || (Mathf.Approximately(dx, bestDx) && dy < bestDy))
-        {
-            best = candidate;
-            bestDx = dx;
-            bestDy = dy;
-        }
+        if (pauseInspector == null) pauseInspector = GetComponent<PauseCharacterInspector>();
+        if (pauseInspector == null) pauseInspector = gameObject.AddComponent<PauseCharacterInspector>();
+        pauseInspector.Initialize(pauseCharacterStatementRoot);
     }
 
     public void ClearPausedCharacterSelection()
     {
-        if (pausedOutline != null)
-        {
-            if (pausedOutlineOwned) Destroy(pausedOutline);
-            else pausedOutline.SetActive(pausedOutlinePreviousEnabled);
-        }
-
-        if (pauseCharacterStatement != null)
-        {
-            pauseCharacterStatement.HidePanel();
-        }
-
-        pausedOutline = null;
-        pausedOutlineOwned = false;
-        pausedOutlinePreviousEnabled = false;
-        UpdatePausedSelectedCharacter(null);
-    }
-
-    private void ShowPauseCharacterStatement(Character target)
-    {
-        if (target == null) return;
-        EnsurePauseCharacterStatementLoaded();
-        if (pauseCharacterStatement == null) return;
-        UpdatePauseCharacterStatementPosition(target);
-        pauseCharacterStatement.ShowCharacter(target);
-    }
-
-    private void EnsurePauseCharacterStatementLoaded()
-    {
-        if (pauseCharacterStatement != null && pauseCharacterStatementRoot != null) return;
-
-        const string prefabPath = "UI/FunctionalPanels/PauseCharacterStatement";
-        GameObject prefab = Resources.Load<GameObject>(prefabPath);
-        Transform parent = GameObject.Find("UI Canvas")?.transform;
-
-        if (pauseCharacterStatementRoot == null)
-        {
-            if (prefab != null)
-            {
-                pauseCharacterStatementRoot = Instantiate(prefab, parent, false);
-            }
-            else
-            {
-                pauseCharacterStatementRoot = new GameObject("PauseCharacterStatement(Runtime)");
-                RectTransform rt = pauseCharacterStatementRoot.AddComponent<RectTransform>();
-                rt.SetParent(parent, false);
-                rt.anchorMin = new Vector2(0.5f, 0.5f);
-                rt.anchorMax = new Vector2(0.5f, 0.5f);
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta = new Vector2(640f, 360f);
-                rt.anchoredPosition = Vector2.zero;
-            }
-
-            pauseCharacterStatementRoot.SetActive(false);
-        }
-
-        pauseCharacterStatement = pauseCharacterStatementRoot.GetComponent<IndexViewerPause>();
-        if (pauseCharacterStatement == null)
-        {
-            pauseCharacterStatement = pauseCharacterStatementRoot.AddComponent<IndexViewerPause>();
-        }
-    }
-
-    private void UpdatePauseCharacterStatementPosition(Character target)
-    {
-        if (pauseCharacterStatementRoot == null || target == null) return;
-        RectTransform panelRect = pauseCharacterStatementRoot.GetComponent<RectTransform>();
-        if (panelRect == null) return;
-
-        Camera cam = Camera.main;
-        if (cam == null)
-        {
-            panelRect.anchoredPosition = new Vector2(800f, 0f);
-            return;
-        }
-
-        float viewportX = cam.WorldToViewportPoint(target.transform.position).x;
-        bool isCat = target is CatCharacter;
-
-        float panelX;
-        float matchScreenX=(viewportX-0.5f) * Screen.width;
-        if (isCat)
-        {
-            bool inRightTwoThirds = viewportX >= (1f / 3f);
-            panelX = inRightTwoThirds ? matchScreenX-800f : 800f;
-        }
-        else
-        {
-            bool inLeftTwoThirds = viewportX <= (2f / 3f);
-            panelX = inLeftTwoThirds ? matchScreenX+800f : -800f;
-        }
-
-        panelRect.anchoredPosition = new Vector2(panelX, 0f);
-    }
-
-    private void UpdatePausedSelectedCharacter(Character target)
-    {
-        if (pausedSelectedCharacter == target) return;
-        pausedSelectedCharacter = target;
-        PausedSelectedCharacterChanged?.Invoke(pausedSelectedCharacter);
+        pauseInspector?.ClearSelection();
     }
 
     /// <summary>
