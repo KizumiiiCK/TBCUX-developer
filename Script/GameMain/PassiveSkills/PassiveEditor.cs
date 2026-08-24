@@ -332,7 +332,6 @@ public class Supporter : PassiveSkill
 }
 public class Practician : AnimationDrivingPassive
 {
-    private const int SpecialAnim = 4;
     private float atk = 1;
     private int stack = 0;
     private static int maxStack = 6;
@@ -355,7 +354,9 @@ public class Practician : AnimationDrivingPassive
     private void SpecialAttack(Character c)
     {
         if (c == null || driving || c.IsOnKB()) return;
-        c.StartCoroutine(RunDrive(c, SpecialAnim));
+        int specialAnim = c.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.P);
+        if (specialAnim < 0) return;
+        c.StartCoroutine(RunDrive(c, specialAnim));
     }
     protected override IEnumerator DriveRoutine(Character c)
     {
@@ -644,9 +645,10 @@ public class Metal : PassiveSkill
 {
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
     {
+        if (DMG == 0) return;
         bool crit = false;
         if (atkTypes.Contains(AttackType.critical)) crit = true;
-        if (!crit) DMG = 1;
+        if (!crit) DMG = DMG > 0 ? 1 : -1;
     }
 }
 public class Wave : PassiveSkill
@@ -790,7 +792,7 @@ public class Barrier : PassiveSkill
             animIndex,
             worldPositionStays: true);
         if (shieldDisplay != null)
-            CharacterSummoner.ResetAnimationOrderLayer(shieldDisplay, 20000);
+            CharacterVisualLoader.ResetAnimationOrderLayer(shieldDisplay, 20000);
     }
 
     private void CleanupShieldAnim(Character character)
@@ -902,7 +904,7 @@ public class AkuShield : PassiveSkill
             animIndex,
             worldPositionStays: true);
         if (shieldDisplay != null)
-            CharacterSummoner.ResetAnimationOrderLayer(shieldDisplay, 20000);
+            CharacterVisualLoader.ResetAnimationOrderLayer(shieldDisplay, 20000);
     }
 
     private void CleanupShieldAnim(Character character)
@@ -1097,7 +1099,7 @@ public class ProjectileLauncher : PassiveSkill
         }
 
         GameObject go = GameObject.Instantiate(prefab, character.transform.position+new Vector3(0, intensity/100f,0), Quaternion.identity);
-        CharacterSummoner.ResetAnimationOrderLayer(go, "Units", 20000);
+        CharacterVisualLoader.ResetAnimationOrderLayer(go, "Units", 20000);
         ProjectileUnit pu = go.GetComponent<ProjectileUnit>();
         if (pu == null) pu = go.AddComponent<ProjectileUnit>();
 
@@ -1134,9 +1136,6 @@ public class ProjectileLauncher : PassiveSkill
 
 public class ZombieDiveAddon : AnimationDrivingPassive
 {
-    private const int InAnim = 4;
-    private const int DiveAnim = 5;
-    private const int OutAnim = 6;
     private const int TransitionFrames = 30;
 
     private int remainingDiveTimes;
@@ -1153,11 +1152,12 @@ public class ZombieDiveAddon : AnimationDrivingPassive
     {
         if (character == null || driving) return;
         if (remainingDiveTimes == 0) return;
+        if (character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.In) < 0) return;
         if (CanAttackBaseNow(character)) return;
 
         if (remainingDiveTimes > 0) remainingDiveTimes--;
         character.RequestCancelAttackStart();
-        character.StartCoroutine(RunDrive(character, InAnim));
+        character.StartCoroutine(RunDrive(character, character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.In)));
     }
 
     public override void OnAfterKB(Character character)
@@ -1186,7 +1186,8 @@ public class ZombieDiveAddon : AnimationDrivingPassive
         // Diving：潜地推进，不可被检测。
         character.ChangeSpeed(speedBeforeIn);
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, true);
-        SetPhaseAnim(character, DiveAnim);
+        int diveAnim = character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.Dive);
+        SetPhaseAnim(character, diveAnim >= 0 ? diveAnim : character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.In));
         int moveDir = character.IsCat() ? -1 : 1;
         int moveFrames = Mathf.Max(0, duration) * 2;
         for (int i = 0; i < moveFrames; i++)
@@ -1200,7 +1201,8 @@ public class ZombieDiveAddon : AnimationDrivingPassive
         // Out：钻出后摇，恢复可检测。
         CharacterTargetManager.Instance.SetCharacterUndetectable(character, false);
         character.ChangeSpeed(0);
-        SetPhaseAnim(character, OutAnim);
+        int outAnim = character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.Out);
+        SetPhaseAnim(character, outAnim >= 0 ? outAnim : character.GetExtraAnimIndex(CharacterVisualLoader.ExtraAnim.In));
         t = 0;
         while (t < TransitionFrames)
         {
@@ -1250,12 +1252,14 @@ public class ZombieReviveAddon : PassiveSkill
     private bool reviving;
     private int remainingRevives;
     private bool purified = false;
+    private float reviveHealthBase;
 
     public override void OnAddingAbility(Character character)
     {
         if (initialized) return;
         initialized = true;
         remainingRevives = probability;
+        if (character != null) reviveHealthBase = character.GetMaxHealth();
     }
 
     public override void OnBeforeTakeDamage(Character character, ref float DMG, List<AttackType> atkTypes)
@@ -1278,8 +1282,10 @@ public class ZombieReviveAddon : PassiveSkill
 
         if (remainingRevives > 0) remainingRevives--;
 
-        int hpPercent = Mathf.Clamp(intensity, 1, 100);
-        int revivedHp = Mathf.Max(1, Mathf.RoundToInt(character.GetMaxHealth() * hpPercent / 100f));
+        int hpPercent = Mathf.Max(1, intensity);
+        float baseHp = reviveHealthBase > 0f ? reviveHealthBase : character.GetMaxHealth();
+        int revivedHp = Mathf.Max(1, Mathf.RoundToInt(baseHp * hpPercent / 100f));
+        if (revivedHp > character.GetMaxHealth()) character.SetMaxHealth(revivedHp);
         character.SetHealth(revivedHp);
         character.SyncKBStateToHealth();
         character.StartCoroutine(ReviveRoutine(character));
@@ -1540,14 +1546,14 @@ public class BaseCharacter : PassiveSkill
         if (character.UNITYAnimated)
         {
             if (character.SPINEAnimated)
-                CharacterSummoner.ResetSpineOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+                CharacterVisualLoader.ResetSpineOrderLayer(character.gameObject, "Units", FixedSortingOrder);
             else
-                CharacterSummoner.ResetAnimationOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+                CharacterVisualLoader.ResetAnimationOrderLayer(character.gameObject, "Units", FixedSortingOrder);
             return;
         }
 
         AnimationDisplayer ad = character.GetComponent<AnimationDisplayer>();
-        if (ad != null) CharacterSummoner.ResetAnimationOrderLayer(ad, FixedSortingOrder);
+        if (ad != null) CharacterVisualLoader.ResetAnimationOrderLayer(ad, FixedSortingOrder);
     }
 }
 

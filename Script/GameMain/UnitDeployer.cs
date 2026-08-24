@@ -179,7 +179,7 @@ public class UnitDeployer : MonoBehaviour
         float deviationY = -sortingOrder / 10f;
         GameObject cat=Instantiate(catUnit,catBasePosition+new Vector2(0.5f,deviationY),Quaternion.identity);
         cat.GetComponent<Character>().LoadCharacterData(LI, CD, lvl, treasure_count);
-        CharacterSummoner.InitializeRuntimeCharacterVisual(
+        CharacterVisualLoader.InitializeRuntimeCharacterVisual(
             cat,
             true,
             unitCode,
@@ -202,7 +202,7 @@ public class UnitDeployer : MonoBehaviour
 
         if (!CD.UNITYAnimated)
         {
-            characterDecryptedFiles = CharacterSummoner.DecryptCharacterFiles(true, unitCode, CD);
+            characterDecryptedFiles = CharacterVisualLoader.DecryptCharacterFiles(true, unitCode, CD);
 
             if (characterDecryptedFiles == null) return false;
         }

@@ -62,6 +62,7 @@ public class CatIndexCanvas : UICanvasMain
     //
     private bool UnityAnimated = false;
     private int current_animation_num = 0;
+    private int playableAnimCount = 4;
     int upgrade_cost = 0;
     private bool upgradeLock = true;
     private CharacterProficiency proficiency;
@@ -225,12 +226,14 @@ public class CatIndexCanvas : UICanvasMain
             current_display_character = CharacterSummoner.CreateACharacter(true, $"{rality}{current_code}{tire}", true);
             CharacterSummoner.SetCharacterPosition(current_display_character,
                 mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -6, 10));
-            CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+            CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
             current_display_character.transform.localScale = current_display_character.transform.localScale * 1.3f;
             UnityAnimated = CD.UNITYAnimated;
             if (UnityAnimated) current_display_character.transform.localScale *= 1.2f;
             current_animation_num = 0;
-            CharacterSummoner.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
+            playableAnimCount = CharacterVisualLoader.GetPlayableAnimCount(
+                current_display_character, UnityAnimated, true, $"{rality}{current_code}{tire}", CD);
+            CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
             LocalizationHelper.GetLocalizedText("UnitNames", $"{rality}{current_code}{tire}", localizedText => name_txt.text = localizedText ?? $"{rality}{current_code}{tire}");
         }
         //
@@ -336,13 +339,9 @@ public class CatIndexCanvas : UICanvasMain
     private void SwitchAnimation()
     {
         if (current_display_character == null) return;
-        current_animation_num = (current_animation_num + 1) % 4;
-        if (UnityAnimated)
-        {
-            Debug.Log($"Unity animate: {current_animation_num}");
-            current_display_character.GetComponent<Animator>().SetInteger("state", current_animation_num);
-        }
-        else current_display_character.GetComponent<AnimationDisplayer>().PlayAnimation(current_animation_num);
+        int count = playableAnimCount > 0 ? playableAnimCount : 4;
+        current_animation_num = (current_animation_num + 1) % count;
+        CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
     }
     private void UpgradeCharacter()
     {
@@ -421,12 +420,15 @@ public class CatIndexCanvas : UICanvasMain
     }
     public void TireUpCurrentCharacter()
     {
+        bool lockHere = EvolveComfirmCanvas == null || !EvolveComfirmCanvas.gameObject.activeInHierarchy;
+        if (lockHere) SetPageInProgress(true);
         for (int i = 0; i < TireUp_consumeItems.Length; i++) 
         {
             int ca=RewardingSystem.GetAmount(TireUp_consumeItems[i]);
             if (TireUp_consumeAmount[i] > ca)
             {
                 Debug.LogWarning("Not enouth evolve items!");
+                if (lockHere) SetPageInProgress(false);
                 return;
             }
         }
@@ -440,6 +442,7 @@ public class CatIndexCanvas : UICanvasMain
         Destroy(current_display_character);
         ShowCertainCharInTire(current_tire + 1);
         PlatformAudio.PlaySfx(GetComponent<AudioSource>());
+        if (lockHere) SetPageInProgress(false);
     }
     protected bool CheckTireUpAvailable(string code4)
     {
@@ -495,11 +498,12 @@ public class CatIndexCanvas : UICanvasMain
     }
     #endregion
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         if (loadRarityRoutine != null) StopCoroutine(loadRarityRoutine);
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
+        base.OnDestroy();
     }
 
     public void ShowChangeBGPage()

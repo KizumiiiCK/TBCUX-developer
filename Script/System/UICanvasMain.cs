@@ -11,6 +11,7 @@ public abstract class UICanvasMain : MonoBehaviour
 
     public FrameUIDisplayer FrameUI { get; private set; }
     public IReadOnlyList<int> ExtraCurrencyIds => extraCurrencyIds;
+    public bool IsPageInProgress { get; private set; }
 
     public virtual void Initialize(FrameUIDisplayer frameUI)
     {
@@ -20,6 +21,17 @@ public abstract class UICanvasMain : MonoBehaviour
     public virtual string GetPageBgmName()
     {
         return pageBgmClip != null ? pageBgmClip.name : string.Empty;
+    }
+
+    public void SetPageInProgress(bool inProgress)
+    {
+        IsPageInProgress = inProgress;
+        FrameUI?.RefreshBackButtonState();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (IsPageInProgress) SetPageInProgress(false);
     }
 
     public abstract IEnumerator OnEnter();

@@ -162,8 +162,16 @@ public abstract partial class Character
         index = Passive_OnAfterSwitchingAnim(index);
         if (current_animation_index == index) return;
         current_animation_index = index;
-        if (UNITYAnimated){ animator.SetInteger("state", index);}
-        else { animatorDisplayer.SetMaanimPointer(index); }
+        if (UNITYAnimated)
+        {
+            if (animator == null) animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+            if (animator != null) animator.SetInteger("state", index);
+        }
+        else
+        {
+            if (animatorDisplayer == null) animatorDisplayer = GetComponent<AnimationDisplayer>();
+            if (animatorDisplayer != null) animatorDisplayer.SetMaanimPointer(index);
+        }
     }
     public void SetAnimationSpeed(int spd)
     {
@@ -176,7 +184,11 @@ public abstract partial class Character
                 ApplySpineAnimationSpeed(spd);
             }
         }
-        else animatorDisplayer.SetAnimationSpeed(spd);
+        else
+        {
+            if (animatorDisplayer == null) animatorDisplayer = GetComponent<AnimationDisplayer>();
+            if (animatorDisplayer != null) animatorDisplayer.SetAnimationSpeed(spd);
+        }
     }
     public void SetFrameStep(int step)=>frame_step = step;
     public int GetFrameStep()=>frame_step;

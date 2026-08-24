@@ -28,8 +28,16 @@ public class EvolveComfirm : MonoBehaviour
     public void SetECAnimator(bool process) => anima.SetBool("transform", process);
     public void PlaySound() => PlatformAudio.PlaySfx(AS);
     public void Return()=>gameObject.SetActive(false);
-    public void EvolveOnClick()=> SetECAnimator(true);
+    public void EvolveOnClick()
+    {
+        CIC?.SetPageInProgress(true);
+        SetECAnimator(true);
+    }
     public void Evolve()=>CIC.TireUpCurrentCharacter();
+    private void OnDisable()
+    {
+        CIC?.SetPageInProgress(false);
+    }
     public void SetConsumeItems(RewardName[] rn, int[] amount)
     {
         int a = rn.Length;

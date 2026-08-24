@@ -178,6 +178,9 @@ public class DrawCapsuleCanvas : UICanvasMain
     }
     private IEnumerator DisplayDrawedCharacters(int drawtimes)
     {
+        SetPageInProgress(true);
+        try
+        {
         draw_skip = false;
         SetDrawStageVideoState(DrawStageVideoState.Rolling);
         yield return MovePinnedElementsRoutine(true);
@@ -224,6 +227,11 @@ public class DrawCapsuleCanvas : UICanvasMain
         SetParticleRate(0);
         DrawSkipBtn.gameObject.SetActive(false);
         yield return MovePinnedElementsRoutine(false);
+        }
+        finally
+        {
+            SetPageInProgress(false);
+        }
     }
     public void ShowCertainCharacter(int code)
     {
@@ -236,11 +244,11 @@ public class DrawCapsuleCanvas : UICanvasMain
         if (current_display_character == null) return;
 
         CharacterSummoner.SetCharacterPosition(current_display_character, new Vector3(0, -3.5f, 10));
-        CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "Units", 3);
+        CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "Units", 3);
         CharacterData CD = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{rarity}/{char_code}/0/data");
         if (CD != null)
         {
-            CharacterSummoner.SwitchAnimation(current_display_character, CD.UNITYAnimated, 0);
+            CharacterVisualLoader.SwitchAnimation(current_display_character, CD.UNITYAnimated, 0);
             if (CD.UNITYAnimated) current_display_character.transform.localScale *= 1.2f;
         }
     }

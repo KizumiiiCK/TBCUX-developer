@@ -276,6 +276,7 @@ public class AnimDecryptPack
     public float[,] ModelTree_Fixed { get => modelTree_Fixed; }
     public int[] AnimationTotalFrame { get => animationTotalFrame; }
     public int MaxOrderLayer { get => maxOrderLayer; }
+    public Dictionary<string, int> ExtraAnimIndices { get; set; }
     public AnimDecryptPack(string[,] imgcutData_, Sprite[] spritesList_, int[,] modelData_, string[] modelNameData_, RegulateRateData rateData_, int[,] modelPositionFixedData_, MaanimNode[][] maanimData_)
     {
         imgcutData = imgcutData_;

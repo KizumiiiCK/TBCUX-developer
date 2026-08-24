@@ -36,6 +36,7 @@ public class EnemyIndexCanvas : UICanvasMain
     [SerializeField] private IndexViewer IV;
     private bool UnityAnimated = false;
     private int current_animation_num = 0;
+    private int playableAnimCount = 4;
     [Header("Main Controllers")]
     private BaseCanvas baseCanvas;
     //
@@ -88,7 +89,7 @@ public class EnemyIndexCanvas : UICanvasMain
         {
             Application.targetFrameRate = 30;
             if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-            CharacterData CD = CharacterSummoner.LoadCharacterData(false, current_code);
+            CharacterData CD = CharacterVisualLoader.LoadCharacterData(false, current_code);
             if (CD == null)
             {
                 Debug.LogWarning($"[EnemyIndexCanvas] Missing enemy data for {current_code}");
@@ -97,10 +98,12 @@ public class EnemyIndexCanvas : UICanvasMain
             current_display_character = CharacterSummoner.CreateACharacter(false,current_code, true);
             CharacterSummoner.SetCharacterPosition(current_display_character,
                 mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? 2 : 0, -4, 10));
-            CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+            CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
             UnityAnimated = CD.UNITYAnimated;
             current_animation_num = 0;
-            CharacterSummoner.SwitchAnimation(current_display_character,UnityAnimated,current_animation_num);
+            playableAnimCount = CharacterVisualLoader.GetPlayableAnimCount(
+                current_display_character, UnityAnimated, false, current_code, CD);
+            CharacterVisualLoader.SwitchAnimation(current_display_character,UnityAnimated,current_animation_num);
             if (UnityAnimated) current_display_character.transform.localScale *= 1.25f;
             IV.ShowCharacterDetails(CD,false,1);
             LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, current_code, localizedText => name_txt.text = localizedText ?? current_code);
@@ -113,13 +116,9 @@ public class EnemyIndexCanvas : UICanvasMain
     private void SwitchAnimation()
     {
         if (current_display_character == null) return;
-        current_animation_num = (current_animation_num + 1) % 4;
-        if (UnityAnimated)
-        {
-            Debug.Log($"Unity animate: {current_animation_num}");
-            current_display_character.GetComponent<Animator>().SetInteger("state", current_animation_num);
-        }
-        else current_display_character.GetComponent<AnimationDisplayer>().PlayAnimation(current_animation_num);
+        int count = playableAnimCount > 0 ? playableAnimCount : 4;
+        current_animation_num = (current_animation_num + 1) % count;
+        CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
     }
     private void BackToBase()
     {

@@ -116,7 +116,7 @@ public class EffectManager : MonoBehaviour
         if (ad == null) return null;
         if (string.Equals(effectName, "corpse", StringComparison.OrdinalIgnoreCase))
         {
-            CharacterSummoner.ResetAnimationOrderLayer(ad, 0);
+            CharacterVisualLoader.ResetAnimationOrderLayer(ad, 0);
         }
         if (lifetimeFrames > 0)
         {
@@ -352,7 +352,7 @@ public class EffectManager : MonoBehaviour
         ad.transform.position = worldPosition;
 
         int resetlayer = ResolveEffectOrderLayer(parent, sortY);
-        CharacterSummoner.ResetAnimationOrderLayer(ad, resetlayer);
+        CharacterVisualLoader.ResetAnimationOrderLayer(ad, resetlayer);
         return ad;
     }
 

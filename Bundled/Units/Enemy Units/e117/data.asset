@@ -12,31 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: 40671
+  Name: e117
   isEliteUnit: 0
-  ATKType: 00000000
+  ATKType: 
   atkInfos:
-  - ATK: 670
-    frame: 60
-    DoNotTriggerEffects: 1
-    DoNotTriggerAbilities: 0
-    Friendly: 0
-    ATKRange: {x: 0, y: 330}
-  - ATK: 1340
-    frame: 92
+  - ATK: 655
+    frame: 4
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 330}
+    ATKRange: {x: 0, y: 280}
+  - ATK: 16550
+    frame: 42
+    DoNotTriggerEffects: 1
+    DoNotTriggerAbilities: 0
+    Friendly: 0
+    ATKRange: {x: 0, y: 280}
   areaATK: 1
-  atkDuration: 141
-  Health: 2400
-  KB: 4
-  Speed: 10
-  Reload: 150
-  DetectionRange: 330
-  Cost: 4260
-  Cooldown: 2736
+  atkDuration: 9000
+  Health: 174400
+  KB: 2
+  Speed: 68
+  Reload: 0
+  DetectionRange: 80
+  Cost: 2668
+  Cooldown: 0
   UNITYAnimated: 0
   SPINEAnimated: 0
   traits:
@@ -51,21 +51,21 @@ MonoBehaviour:
     Aku: 0
     None: 1
   subtraits:
-    Starred: 0
+    Starred: 1
     Colossus: 0
     Behemoth: 0
     Sage: 0
   career:
     Warrior: 0
-    Deffender: 1
-    Magician: 0
+    Deffender: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSupporter: 0
+    AggainstSupporter: 1
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -73,16 +73,20 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects: []
-  abilities:
-  - name: 14
+  characterEffects:
+  - name: 4
     probability: 100
-    duration: 2
-    intensity: 0
-  - name: 38
-    probability: 30
-    duration: 60
+    duration: 3
+    intensity: 3
+  abilities:
+  - name: 15
+    probability: 0
+    duration: 0
     intensity: 0
   atkTypeResis: []
-  effectResistances: []
+  effectResistances:
+  - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
   baseEmotion: 0

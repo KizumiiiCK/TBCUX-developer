@@ -291,8 +291,8 @@ public class EquipCanvas : UICanvasMain
         current_display_character = CharacterSummoner.CreateACharacter(true, $"{r}{code}{tire}", true);
         CharacterSummoner.SetCharacterPosition(current_display_character,
             mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -4, 10));
-        CharacterSummoner.ResetAnimationOrderLayer(current_display_character, "UI", 3);
-        CharacterSummoner.SwitchAnimation(current_display_character, CD.UNITYAnimated, 2);
+        CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+        CharacterVisualLoader.SwitchAnimation(current_display_character, CD.UNITYAnimated, 2);
 
         current_display_character.transform.localScale *= 1.5f;
     }

@@ -459,6 +459,7 @@ public abstract partial class Character
     public void SetCurseStatus(bool curse) => onCurse = curse;
     public float GetHealth() => realHealth;
     public float GetMaxHealth()=>maxHealth;
+    public void SetMaxHealth(float mh) => maxHealth = mh;
     public void SetHealth(int rh)=>realHealth = rh;
     public void ResetKBtimes()=>realKBtimes--;
     public void SyncKBStateToHealth()

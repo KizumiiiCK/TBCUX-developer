@@ -32,7 +32,10 @@ public static class LevelRestrictionHelper
             { "s-", ParseSurgeRestrictionValue },
             { "hd", ParseRestrictionValue },
             { "hD", ParseRestrictionValue },
-            { "ht", ParseRestrictionValue }
+            { "ht", ParseRestrictionValue },
+            { "sd", ParseRestrictionValue },
+            { "sD", ParseRestrictionValue },
+            { "zr", ParseZombieReviveRestrictionValue }
         };
 
     public class RestrictionRules
@@ -256,6 +259,15 @@ public static class LevelRestrictionHelper
                 case "ht":
                     if (isCatTeam) ApplyHealBuffRestriction(data, entry.Value);
                     break;
+                case "sd":
+                    if (isCatTeam) ApplyEffectDurationRestriction(data, entry.Value);
+                    break;
+                case "sD":
+                    if (!isCatTeam) ApplyEffectDurationRestriction(data, entry.Value);
+                    break;
+                case "zr":
+                    if (!isCatTeam) ApplyZombieReviveRestriction(data, entry.Value);
+                    break;
             }
         }
     }
@@ -443,6 +455,63 @@ public static class LevelRestrictionHelper
         }
     }
 
+    /// <summary>
+    /// sd / sD：将该阵营角色 data.characterEffects 的 duration 乘以 n%。击退不改。
+    /// </summary>
+    private static void ApplyEffectDurationRestriction(CharacterData data, List<string> values)
+    {
+        int? percent = GetExtremeParsedValue(values, true);
+        if (!percent.HasValue || percent.Value < 0) return;
+        if (data.characterEffects == null || data.characterEffects.Length == 0) return;
+
+        for (int i = 0; i < data.characterEffects.Length; i++)
+        {
+            CharacterEffect effect = data.characterEffects[i];
+            if (effect == null) continue;
+            if (effect.name == EffectName.knockback) continue;
+            effect.duration = Mathf.Max(0, Mathf.RoundToInt(effect.duration * percent.Value / 100f));
+        }
+    }
+
+    /// <summary>
+    /// zr：全体敌方获得 ZombieRevive。probability=复活次数，intensity=复活生命%，duration=间隔帧。
+    /// </summary>
+    private static void ApplyZombieReviveRestriction(CharacterData data, List<string> values)
+    {
+        if (data == null || values == null) return;
+
+        int times = 0;
+        int hpPercent = 0;
+        int intervalFrames = 0;
+        bool found = false;
+        for (int i = 0; i < values.Count; i++)
+        {
+            if (!TryParseZombieReviveRestrictionValue(values[i], out int parsedTimes, out int parsedHp, out int parsedInterval))
+                continue;
+            times = parsedTimes;
+            hpPercent = parsedHp;
+            intervalFrames = parsedInterval;
+            found = true;
+        }
+        if (!found) return;
+
+        if (TryGetAbility(data, AbilityName.ZombieRevive, out CharacterAbility existing))
+        {
+            existing.probability = times;
+            existing.intensity = hpPercent;
+            existing.duration = intervalFrames;
+            return;
+        }
+
+        AddAbilityToData(data, new CharacterAbility
+        {
+            name = AbilityName.ZombieRevive,
+            probability = times,
+            duration = intervalFrames,
+            intensity = hpPercent
+        });
+    }
+
     /// <summary>Returns true when CharacterData already contains the given ability.</summary>
     private static bool HasAbility(CharacterData data, AbilityName abilityName)
     {
@@ -591,6 +660,30 @@ public static class LevelRestrictionHelper
         if (!TryParseSurgeRestrictionValue(value, out _, out _)) return;
     }
 
+    public static void ParseZombieReviveRestrictionValue(RestrictionRules rules, string value)
+    {
+        if (!TryParseZombieReviveRestrictionValue(value, out _, out _, out _)) return;
+    }
+
+    /// <summary>
+    /// zr:{times}{hp3}{interval}。times=1-9，hp 为三位数生命百分比（000 无效），interval 为复活间隔帧。
+    /// </summary>
+    public static bool TryParseZombieReviveRestrictionValue(string value, out int times, out int hpPercent, out int intervalFrames)
+    {
+        times = 0;
+        hpPercent = 0;
+        intervalFrames = 0;
+        if (string.IsNullOrEmpty(value) || value.Length < 4) return false;
+        if (!char.IsDigit(value[0])) return false;
+        times = value[0] - '0';
+        if (times < 1 || times > 9) return false;
+        if (!int.TryParse(value.Substring(1, 3), out hpPercent)) return false;
+        if (hpPercent < 1) return false;
+        string rest = value.Length > 4 ? value.Substring(4) : "0";
+        if (!int.TryParse(rest, out intervalFrames) || intervalFrames < 0) return false;
+        return true;
+    }
+
     #region Cost Restriction Helpers
 
     /// <summary>
@@ -725,6 +818,8 @@ public static class LevelRestrictionHelper
         if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
         // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
         if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
+        // 效果时长 / 敌方复活：sd（我方）、sD（敌方）、zr 保持原样。
+        if (trimmed == "sd" || trimmed == "sD" || trimmed == "zr") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 }

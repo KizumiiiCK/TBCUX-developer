@@ -40,6 +40,7 @@ public class LevelRestrictionBoard : MonoBehaviour
             { "S-", HandleSurgeDisplay },
             { "s+", HandleSurgeDisplay },
             { "s-", HandleSurgeDisplay },
+            { "zr", HandleZombieReviveDisplay },
         };
 
     #endregion
@@ -106,6 +107,13 @@ public class LevelRestrictionBoard : MonoBehaviour
 
             if (LevelRestrictionHelper.IsSurgeRestrictionKey(key) &&
                 !LevelRestrictionHelper.TryParseSurgeRestrictionValue(value, out _, out _))
+            {
+                RecycleLatestRow(row);
+                continue;
+            }
+
+            if (key == "zr" &&
+                !LevelRestrictionHelper.TryParseZombieReviveRestrictionValue(value, out _, out _, out _))
             {
                 RecycleLatestRow(row);
                 continue;
@@ -212,6 +220,21 @@ public class LevelRestrictionBoard : MonoBehaviour
     }
 
     /// <summary>
+    /// zr 展开为次数、复活生命百分比、间隔帧。
+    /// </summary>
+    private static void HandleZombieReviveDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
+    {
+        if (!isStillValid() || text == null) return;
+        if (!LevelRestrictionHelper.TryParseZombieReviveRestrictionValue(value, out int times, out int hpPercent, out int intervalFrames))
+        {
+            ApplyFormatSafe(text, format, value);
+            return;
+        }
+
+        ApplyFormatSafe(text, format, times, hpPercent, intervalFrames);
+    }
+
+    /// <summary>
     /// Default handler for numeric restrictions that only need a single placeholder.
     /// </summary>
     private static void HandleDirectValueDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
@@ -245,6 +268,7 @@ public class LevelRestrictionBoard : MonoBehaviour
         if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
         // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
         if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
+        if (trimmed == "sd" || trimmed == "sD" || trimmed == "zr") return trimmed;
         return trimmed.ToUpperInvariant();
     }
 
@@ -280,6 +304,19 @@ public class LevelRestrictionBoard : MonoBehaviour
         catch (FormatException)
         {
             lineText.text = format + " " + arg0 + " " + arg1;
+        }
+    }
+
+    private static void ApplyFormatSafe(TMP_Text lineText, string format, object arg0, object arg1, object arg2)
+    {
+        if (lineText == null) return;
+        try
+        {
+            lineText.text = string.Format(format, arg0, arg1, arg2);
+        }
+        catch (FormatException)
+        {
+            lineText.text = format + " " + arg0 + " " + arg1 + " " + arg2;
         }
     }
 

@@ -110,8 +110,7 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
       all damage from them.
 
-      (Only affect enemies with matched traits for
-      cats)'
+      (Only affect enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 7777754103808
@@ -126,8 +125,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , making
       all marked characters suffer the taken damage one more time.
 
-      (Only
-      affect enemies with matched traits for cats)'
+      (Only affect
+      enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 55728509632512
@@ -296,8 +295,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 69776097755170
-    m_Localized: This unit's attack will be buffed by {1}% when its hp reaches below
-      {2}%.
+    m_Localized: This unit's attack will be buffed by {2}% when its hp drops below
+      {0}%.
     m_Metadata:
       m_Items: []
   - m_Id: 69776097755171
@@ -960,6 +959,20 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 113472934605307904
     m_Localized: Dealing damage to the target with the highest HP in the range.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113939134422532096
+    m_Localized: All cats suffer<color=#FF6060> {0} </color>duration of the debuffs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113939134502223872
+    m_Localized: All enemies suffer<color=#00FFFF> {0} </color>duration of the debuffs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113939134502223873
+    m_Localized: All enemies gain<color=#FF6060> {0} </color>revive time(s). They
+      will revive for<color=#FF6060> {1}% </color>MAX health after dead for<color=#FF6060>
+      {2}f </color>.
     m_Metadata:
       m_Items: []
   references:

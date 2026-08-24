@@ -36,6 +36,7 @@ public class FrameUIDisplayer : MonoBehaviour
     private Coroutine navigationRoutine;
     private Coroutine appearanceRoutine;
     private BaseCanvas rootCanvas;
+    private bool navigationBusy;
 
     private void Awake()
     {
@@ -218,7 +219,7 @@ public class FrameUIDisplayer : MonoBehaviour
 
     public void ReturnToPrevious(DoorAction doorAction)
     {
-        if (navigationRoutine != null) return;
+        if (navigationRoutine != null || IsCurrentPageInProgress()) return;
         if (pageStack.Count <= 1)
         {
             if (rootPage != null) rootPage.SetActive(true);
@@ -231,8 +232,13 @@ public class FrameUIDisplayer : MonoBehaviour
 
     public void ReturnToRoot()
     {
-        if (navigationRoutine != null) return;
+        if (navigationRoutine != null || IsCurrentPageInProgress()) return;
         StartNavigation(ReturnToRootRoutine());
+    }
+
+    public void RefreshBackButtonState()
+    {
+        if (backButton != null) backButton.interactable = !IsCurrentPageInProgress() && !navigationBusy;
     }
 
     private void StartNavigation(IEnumerator routine)
@@ -250,7 +256,15 @@ public class FrameUIDisplayer : MonoBehaviour
 
     private void SetNavigationBusy(bool busy)
     {
-        if (backButton != null) backButton.interactable = !busy;
+        navigationBusy = busy;
+        RefreshBackButtonState();
+    }
+
+    private bool IsCurrentPageInProgress()
+    {
+        if (pageStack.Count == 0) return false;
+        UICanvasMain page = pageStack.Peek();
+        return page != null && page.IsPageInProgress;
     }
 
     private IEnumerator OpenPageRoutine(string prefabName, System.Action<UICanvasMain> onCreated, List<int> extraIds, DoorAction doorAction)

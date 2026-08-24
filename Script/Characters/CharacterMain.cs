@@ -68,6 +68,7 @@ public abstract partial class Character : MonoBehaviour
     private bool canTargetUndetectable = false;
     private bool skipTargetRegistration = false;
     public bool[] effectMarkedSlots = new bool[5];
+    private Dictionary<string, int> extraAnimIndices;
     protected float startingY = 1;
     protected Coroutine coroutineKB = null;
     public EffectManager EM;
@@ -87,6 +88,17 @@ public abstract partial class Character : MonoBehaviour
         if (IsCat()) return (0.8f + 0.2f * level) * Power;
         float strengthen = this is EnemyCharacter enemy ? enemy.strengthenRate : 1f;
         return strengthen * Power;
+    }
+
+    public void SetExtraAnimIndices(Dictionary<string, int> map)
+    {
+        extraAnimIndices = map;
+    }
+
+    public int GetExtraAnimIndex(string key)
+    {
+        if (extraAnimIndices != null && extraAnimIndices.TryGetValue(key, out int index)) return index;
+        return -1;
     }
 
     public void RequestCancelAttackStart() => cancelAttackStartRequested = true;

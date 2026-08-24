@@ -125,7 +125,7 @@ public class LevelEnemySummoner : MonoBehaviour
         ec.SetPower(ESI[i].ratio / 100f);
         ec.LoadCharacterData(LC, CD[i]);
         ec.levelController = LC;
-        CharacterSummoner.InitializeRuntimeCharacterVisual(
+        CharacterVisualLoader.InitializeRuntimeCharacterVisual(
             enemy,
             false,
             ESI[i].enemyID,
@@ -151,7 +151,7 @@ public class LevelEnemySummoner : MonoBehaviour
 
         if (!CD[index].UNITYAnimated)
         {
-            characterDecryptedFiles[index] = CharacterSummoner.DecryptCharacterFiles(false, ESI[index].enemyID, CD[index]);
+            characterDecryptedFiles[index] = CharacterVisualLoader.DecryptCharacterFiles(false, ESI[index].enemyID, CD[index]);
             if (characterDecryptedFiles[index] == null) return false;
         }
 
