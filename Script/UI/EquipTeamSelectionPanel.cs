@@ -187,6 +187,14 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             }
 
             string code = cachedCharCodes[i];
+            if (LevelRestrictionHelper.IsSlotForced(activeRestrictionRules, i))
+            {
+                if (LevelRestrictionHelper.IsForcedSlotSatisfied(activeRestrictionRules, i, code))
+                    ReleaseRestrictionWarning(i);
+                else
+                    EnsureRestrictionWarning(i, btn);
+                continue;
+            }
             if (string.IsNullOrEmpty(code) || code.Length < 5)
             {
                 ReleaseRestrictionWarning(i);
@@ -309,12 +317,31 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             return;
         }
 
-        int rality = fullCode[0] - '0';
-        Sprite icon = ResolveIconSprite(fullCode);
-        CharacterData cd = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/data");
+        if (!CharacterPlacer.TryParse(fullCode, true, out UnitIdentity identity) || !identity.IsValid)
+        {
+            btn.SetCover(null);
+            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
+            btn.SetText(string.Empty);
+            return;
+        }
+
+        int rality = 0;
+        int outfitType = 10;
+        if (identity.AssetIsCat && identity.CharacterCode.Length > 0 && char.IsDigit(identity.CharacterCode[0]))
+        {
+            rality = Mathf.Clamp(identity.CharacterCode[0] - '0', 0, 6);
+            outfitType = rality + 1;
+        }
+        else
+        {
+            rality = 10;
+        }
+        Sprite icon = CharacterPlacer.LoadIcon(identity);
+        CharacterData cd = CharacterPlacer.LoadData(identity);
         if (icon != null && cd != null)
         {
-            btn.SetOutfit(KiOutfit.Border, rality + 1);
+            btn.SetOutfit(KiOutfit.Border, outfitType);
             btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
             btn.SetCover(icon);
             btn.SetText(cd.Cost + " $");
@@ -330,8 +357,8 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private static Sprite ResolveIconSprite(string fullCode)
     {
-        if (string.IsNullOrEmpty(fullCode) || fullCode.Length < 5) return null;
-        return BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{fullCode[0]}/{fullCode.Substring(1, 3)}/{fullCode[4]}/icon_deploy");
+        if (!CharacterPlacer.TryParse(fullCode, true, out UnitIdentity identity) || !identity.IsValid) return null;
+        return CharacterPlacer.LoadIcon(identity);
     }
 
     private void HandleSlotClicked(int index)

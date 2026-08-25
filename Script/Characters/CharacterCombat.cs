@@ -104,7 +104,7 @@ public abstract partial class Character
                         types.Add(AttackType.friendly);
                     Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                     TryRecordHitTarget(Target);
-                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                    if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                 }
             }
             else
@@ -124,13 +124,13 @@ public abstract partial class Character
                             types.Add(AttackType.friendly);
                         Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
                         TryRecordHitTarget(Target);
-                        if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
+                        if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                     }
                 }
                 else
                 {
                     int allTargetCount = Targets.Count + (baseTarget != null && !Targets.Contains(baseTarget) ? 1 : 0);
-                    if (IsCat()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg * allTargetCount);//simple count for area atk
+                    if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg * allTargetCount);//simple count for area atk
                     for (int i = Targets.Count - 1; i >= 0; i--)
                     {
                         Character ec = GetTarget<Character>(Targets[i]);
@@ -322,7 +322,7 @@ public abstract partial class Character
             float damageRatio = Mathf.Clamp01(DMG / maxHealth);
             CharacterTargetManager.Instance.NotifyCharacterDamaged(this, damageRatio);
         }
-        if (IsCat()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Max(DMG,0));
+        if (ShouldRecordProficiency()) levelController.RecordProficency_DamageTaken(NameCode, (int)Mathf.Max(DMG,0));
     }
     protected float CounterT(int duration) { return (100 - duration) / 100f; }
     public virtual void StartKBCoroutine(KB_Type kbt = KB_Type.none, float DX = 400)

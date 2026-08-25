@@ -39,6 +39,7 @@ public class EquipCanvas : UICanvasMain
     private string currentTeamName;
     private GameObject current_display_character;
     private string[] currentRestrictions;
+    private LevelRestrictionHelper.RestrictionRules activeRestrictionRules;
     private readonly List<EquipListEntry> equipListEntries = new List<EquipListEntry>();
     private readonly Dictionary<string, int> displayTireByCharacter = new Dictionary<string, int>();
     private VirtualizedScrollGrid<EquipListEntry> headIconGrid;
@@ -61,8 +62,7 @@ public class EquipCanvas : UICanvasMain
         ShowSelectionList();
         MarkCharacters();
         ApplyRestrictionContext(currentRestrictions);
-        if (char_codes[0] != null || char_codes[0] == string.Empty)
-            ShowCertainCharacter(char_codes[0][0]-'0', char_codes[0].Substring(1, 3), char_codes[0][4]-'0');
+        ShowFirstSlotCharacter();
     }
     private void OnDisable()
     {
@@ -167,6 +167,13 @@ public class EquipCanvas : UICanvasMain
     {
         if (teamSelectionPanel != null) teamSelectionPanel.RefreshSlots(char_codes);
     }
+    private void ShowFirstSlotCharacter()
+    {
+        if (char_codes == null || char_codes.Length == 0) return;
+        if (!CharacterPlacer.TryParse(char_codes[0], true, out UnitIdentity identity) || !identity.IsValid) return;
+        if (!identity.AssetIsCat || identity.CharacterCode.Length < 5) return;
+        ShowCertainCharacter(identity.CharacterCode[0] - '0', identity.CharacterCode.Substring(1, 3), identity.CharacterCode[4] - '0');
+    }
     private void MarkCharacters(bool selecting=true)
     {
         MarkSelectedCharacter(null, selecting);
@@ -175,12 +182,28 @@ public class EquipCanvas : UICanvasMain
     {
         string cc = rality.ToString() + code;
         string fullcc = cc + tire.ToString();
-        bool has_empty_slot = false;
+        if (LevelRestrictionHelper.TryAssignMatchingForcedSlots(activeRestrictionRules, cc, char_codes))
+        {
+            for (int i = 0; i < LevelRestrictionHelper.ForcedSlotCount; i++)
+            {
+                if (!LevelRestrictionHelper.ForcedSlotMatchesUnit(activeRestrictionRules, i, cc)) continue;
+                teamSelectionPanel?.PlaySlotChangeFeedback(i);
+            }
+            ShowSelectionList();
+            SaveCurrentTeamState();
+            MarkSelectedCharacter($"{rality}{code}{tire}");
+            ShowCertainCharacter(rality, code, tire);
+            return;
+        }
+
         int upperbound = 10;
         int lowerbound = 0;
         if (rality == 6) { upperbound = 13; lowerbound = 10; }
+
+        bool has_empty_slot = false;
         for (int i = lowerbound; i < upperbound; i++)
         {
+            if (LevelRestrictionHelper.IsSlotForced(activeRestrictionRules, i)) continue;
             if (char_codes[i] == string.Empty || char_codes[i] == null) {has_empty_slot = true; continue; }
             if (char_codes[i].Substring(0, 4) == cc)
             {
@@ -198,6 +221,7 @@ public class EquipCanvas : UICanvasMain
         {
             for(int i = lowerbound; i < upperbound; i++)
             {
+                if (LevelRestrictionHelper.IsSlotForced(activeRestrictionRules, i)) continue;
                 if(char_codes[i] == string.Empty || char_codes[i] == null) 
                 { 
                     char_codes[i] = fullcc;
@@ -267,8 +291,7 @@ public class EquipCanvas : UICanvasMain
         teamSelectionPanel?.SetTeamDisplay(team_num, currentTeamName);
         ShowSelectionList();
         MarkCharacters();
-        if (char_codes[0]!=null || char_codes[0]==string.Empty)
-            ShowCertainCharacter(char_codes[0][0] - '0', char_codes[0].Substring(1, 3), char_codes[0][4] - '0');
+        ShowFirstSlotCharacter();
     }
 
     private void OnTeamNameChanged(string inputName)
@@ -323,8 +346,8 @@ public class EquipCanvas : UICanvasMain
 
     private void ApplyRestrictionContext(string[] restrictions)
     {
-        LevelRestrictionHelper.RestrictionRules rules = LevelRestrictionHelper.Parse(restrictions);
-        teamSelectionPanel?.ApplyLevelRestrictions(rules);
+        activeRestrictionRules = LevelRestrictionHelper.Parse(restrictions);
+        teamSelectionPanel?.ApplyLevelRestrictions(activeRestrictionRules);
 
         if (levelRestrictionBoard == null) return;
 
@@ -412,9 +435,10 @@ public class EquipCanvas : UICanvasMain
         for (int i = 0; i < char_codes.Length; i++)
         {
             string cc = char_codes[i];
-            if (string.IsNullOrEmpty(cc) || cc.Length < 5) continue;
-            string key = cc.Substring(0, 4);
-            int tire = cc[4] - '0';
+            if (!CharacterPlacer.TryParse(cc, true, out UnitIdentity identity) || !identity.IsValid) continue;
+            if (identity.IsOpposite || !identity.AssetIsCat || identity.CharacterCode.Length < 5) continue;
+            string key = identity.CharacterCode.Substring(0, 4);
+            int tire = identity.CharacterCode[4] - '0';
             displayTireByCharacter[key] = tire;
         }
     }
@@ -426,8 +450,9 @@ public class EquipCanvas : UICanvasMain
         for (int i = 0; i < char_codes.Length; i++)
         {
             string cc = char_codes[i];
-            if (string.IsNullOrEmpty(cc) || cc.Length < 4) continue;
-            if (cc.Substring(0, 4) == key) return true;
+            if (!CharacterPlacer.TryParse(cc, true, out UnitIdentity identity) || !identity.IsValid) continue;
+            if (identity.IsOpposite || !identity.AssetIsCat || identity.CharacterCode.Length < 4) continue;
+            if (identity.CharacterCode.Substring(0, 4) == key) return true;
         }
         return false;
     }

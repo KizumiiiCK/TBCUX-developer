@@ -10,17 +10,15 @@ public class UnitDeployer : MonoBehaviour
     [SerializeField] private Image Proficiency_Mark;
     //
     public string unitCode = "00000";
+    private UnitIdentity identity;
     private int unitCost = 0;
     private int cd = 1;
     private int t = 0;
     private bool deployEnabled = false;
     private int treasure_count = 0;
     private bool isGuest = false;
-    //
-    private GameObject catUnit;
     private int lvl = 1;
     private Vector2 catBasePosition=Vector2.zero;
-    private string loadPath;
     //
     private Button btn;
     [SerializeField] private KiPanel deployPanel;
@@ -82,15 +80,14 @@ public class UnitDeployer : MonoBehaviour
         unitCode = code;
         isRuntimeInitialized = false;
         characterDecryptedFiles = null;
-        try { loadPath = $"Units/Cat Units/{code[0]}/{code.Substring(1,3)}/{code[4]}/"; }
-        catch
+        if (!CharacterPlacer.TryParse(code, true, out identity) || !identity.IsValid)
         {
             Debug.LogWarning($"No such code for deploy: {code}");
             deployEnabled = false; btn.interactable = false; cost_txt.text = string.Empty;
             SetProficiencyMark(0);
             return;
         }
-        CharacterData loaded = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
+        CharacterData loaded = CharacterPlacer.LoadData(identity);
         if (loaded == null) { 
             deployEnabled = false; 
             btn.interactable = false; 
@@ -100,18 +97,16 @@ public class UnitDeployer : MonoBehaviour
         }
         else
         {
-            CD = loaded.Clone();
+            CD = loaded;
             deployEnabled = true;
             btn.onClick.RemoveListener(Deploy);
             btn.onClick.AddListener(Deploy);
         }
-        catUnit = BundledAddressables.LoadSync<GameObject>("Units/Cat Units/catunit");
         Image icon=GetComponent<Image>();
-        icon.sprite = BundledAddressables.LoadSync<Sprite>(loadPath+"icon_deploy");
-        //CharacterData C = Resources.Load<CharacterData>(loadPath + "data");
-        //
+        icon.sprite = CharacterPlacer.LoadIcon(identity);
         if (forceLevel >= 1) lvl = forceLevel;
-        else try { lvl = CharacterUpgradeSave.GetDetails(code.Substring(0,4)).TotalLevel(); if (lvl < 1) lvl = 1; }
+        else if (identity.IsOpposite) lvl = 1;
+        else try { lvl = CharacterUpgradeSave.GetDetails(identity.CharacterCode.Substring(0,4)).TotalLevel(); if (lvl < 1) lvl = 1; }
         catch { lvl = 1; }
         //treasure_bonus = 1 + 1.5f * (RewardingSystem.GetAmount(RewardName.WorldTreasures) / 150f);
         treasure_count = treasureCount;
@@ -119,11 +114,11 @@ public class UnitDeployer : MonoBehaviour
         cd = (int)(CD.Cooldown * (2.5f - 1.5f*treasure_count / 150f));
         t = cd;
         cachedShadeFill = -1f;
-        //Proficiency
-        SetProficiencyMark(proficency);
-        if (proficency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
-        if (proficency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
-        if (proficency > 2) { CD.Cost = CD.Cost * 93 / 100; unitCost = CD.Cost; }
+        int appliedProficiency = identity.IsOpposite ? 0 : proficency;
+        SetProficiencyMark(appliedProficiency);
+        if (appliedProficiency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
+        if (appliedProficiency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
+        if (appliedProficiency > 2) { CD.Cost = CD.Cost * 93 / 100; unitCost = CD.Cost; }
         CD.Cost = unitCost;
         cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
         cachedDeployAvailable = t >= cd && cachedEnoughMoney;
@@ -177,22 +172,20 @@ public class UnitDeployer : MonoBehaviour
         int sortingOrder = Random.Range(0, 11);
         int sr_samelayer = Random.Range(0, 6);
         float deviationY = -sortingOrder / 10f;
-        GameObject cat=Instantiate(catUnit,catBasePosition+new Vector2(0.5f,deviationY),Quaternion.identity);
-        cat.GetComponent<Character>().LoadCharacterData(LI, CD, lvl, treasure_count);
-        CharacterVisualLoader.InitializeRuntimeCharacterVisual(
-            cat,
-            true,
-            unitCode,
+        CharacterPlacer.Place(
+            identity,
             CD,
             characterDecryptedFiles,
-            "Units",
+            catBasePosition + new Vector2(0.5f, deviationY),
+            LI,
+            lvl,
+            treasure_count,
+            1f,
             sortingOrder * 1000 + sr_samelayer * 100,
-            sortingOrder * 1000 + sr_samelayer * 50
-        );
+            sortingOrder * 1000 + sr_samelayer * 50);
         DeployAvailable(false);
         if (isGuest) { gameObject.SetActive(false); }
-        // Proficiency
-        LI.RecordProficency_Deploy(unitCode);
+        if (!identity.IsOpposite) LI.RecordProficency_Deploy(identity.CharacterCode);
     }
 
     private bool EnsureRuntimeInitialized()
@@ -202,7 +195,7 @@ public class UnitDeployer : MonoBehaviour
 
         if (!CD.UNITYAnimated)
         {
-            characterDecryptedFiles = CharacterVisualLoader.DecryptCharacterFiles(true, unitCode, CD);
+            characterDecryptedFiles = CharacterPlacer.Decrypt(identity, CD);
 
             if (characterDecryptedFiles == null) return false;
         }
@@ -235,11 +228,17 @@ public class UnitDeployer : MonoBehaviour
         if (deployPanel == null) return;
 
         int rarity = 0;
-        if (!string.IsNullOrEmpty(unitCode) && unitCode.Length > 0)
+        int outfitType = 10;
+        if (identity.AssetIsCat && !string.IsNullOrEmpty(identity.CharacterCode) && identity.CharacterCode.Length > 0)
         {
-            rarity = Mathf.Clamp(unitCode[0] - '0', 0, 6);
+            rarity = Mathf.Clamp(identity.CharacterCode[0] - '0', 0, 6);
+            outfitType = rarity + 1;
         }
-        deployPanel.SetOutfit(KiOutfit.Border, rarity + 1);
+        else
+        {
+            rarity = 10;
+        }
+        deployPanel.SetOutfit(KiOutfit.Border, outfitType);
         deployPanel.ApplyFrameColor(UXPref.GetRarityFrameColor(rarity));
     }
     public CharacterData GetCharacterData() => CD;

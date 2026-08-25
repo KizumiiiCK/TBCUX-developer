@@ -25,6 +25,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         triggerEffectThisAttack = notTriggerEffect;
         levelController = source.levelController;
         NameCode = source.NameCode;
+        SetOppositeUnit(source.IsOppositeUnit);
 
         // IsCat() is CompareTag("Cat"); prefab tag must match source or RegisterProjectile picks wrong pool/base.
         gameObject.tag = source.IsCat() ? "Cat" : "Enemy";

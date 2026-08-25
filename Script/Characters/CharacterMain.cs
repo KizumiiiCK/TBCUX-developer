@@ -8,6 +8,7 @@ public abstract partial class Character : MonoBehaviour
     /* ====== ֻ���������� ====== */
     public string NameCode { get; protected set; }
     public bool IsEliteUnit { get; private set; }
+    public bool IsOppositeUnit { get; private set; }
     public float Power { get; private set; } = 1f;
     public EmotionUX BaseEmotion { get; private set; } = EmotionUX.none;
     public float topPositionY { get; private set; } = 0f;
@@ -126,6 +127,8 @@ public abstract partial class Character : MonoBehaviour
         return false;
     }
     public bool IsOnAttack() => onATK;
+    public void SetOppositeUnit(bool opposite) => IsOppositeUnit = opposite;
+    public bool ShouldRecordProficiency() => IsCat() && !IsOppositeUnit;
 
     public void CacheTopPositionY()
     {

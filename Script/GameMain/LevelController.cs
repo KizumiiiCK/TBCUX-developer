@@ -285,7 +285,8 @@ public class LevelController : MonoBehaviour
 
     protected virtual void RefreshTeamRestrictionState()
     {
-        requiredUnitsSatisfied = LevelRestrictionHelper.AreRequiredUnitsSelected(levelRestrictions, characters_code);
+        requiredUnitsSatisfied = LevelRestrictionHelper.AreRequiredUnitsSelected(levelRestrictions, characters_code)
+            && LevelRestrictionHelper.AreForcedSlotsSatisfied(levelRestrictions, characters_code);
     }
 
     protected virtual bool ShouldLockAllCatsByRestriction()
@@ -299,18 +300,32 @@ public class LevelController : MonoBehaviour
         if (resolvedLevel < 1)
         {
             resolvedLevel = 1;
-            try
+            if (CharacterPlacer.TryParse(code, true, out UnitIdentity identity)
+                && identity.IsValid
+                && identity.AssetIsCat
+                && !identity.IsOpposite
+                && identity.CharacterCode.Length >= 4)
             {
-                resolvedLevel = CharacterUpgradeSave.GetDetails(code.Substring(0, 4)).TotalLevel();
-                if (resolvedLevel < 1) resolvedLevel = 1;
-            }
-            catch
-            {
-                resolvedLevel = 1;
+                try
+                {
+                    resolvedLevel = CharacterUpgradeSave.GetDetails(identity.CharacterCode.Substring(0, 4)).TotalLevel();
+                    if (resolvedLevel < 1) resolvedLevel = 1;
+                }
+                catch
+                {
+                    resolvedLevel = 1;
+                }
             }
         }
 
         return LevelRestrictionHelper.ApplyUnitLevelCap(levelRestrictions, resolvedLevel);
+    }
+
+    protected virtual int GetSlotDeploymentLevel(int slotIndex, string characterCode, int configuredLevel = -1)
+    {
+        if (LevelRestrictionHelper.TryGetForcedSlotLevel(levelRestrictions, slotIndex, out int forcedLevel))
+            return forcedLevel;
+        return GetDeploymentLevel(characterCode, configuredLevel);
     }
 
     protected virtual float GetDeploymentCostMultiplier(string code)
@@ -960,6 +975,7 @@ public class LevelController : MonoBehaviour
     protected void SetupCatDeployersNormal()
     {
         characters_code = SelectionsSave.GetRow(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0));
+        LevelRestrictionHelper.TryApplyForcedSlots(levelRestrictions, ref characters_code);
         int[] proficiencyLevels = LPU.SetUp(characters_code);
         int teamProficiencyBonus = CalculateTeamProficiencyBonus(proficiencyLevels);
         RefreshTeamRestrictionState();
@@ -974,7 +990,7 @@ public class LevelController : MonoBehaviour
                 treasureCount,
                 proficiencyLevels[i],
                 teamProficiencyBonus,
-                GetDeploymentLevel(code),
+                GetSlotDeploymentLevel(i, code),
                 GetDeploymentCostMultiplier(code));
             LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, false, ShouldLockAllCatsByRestriction());
         }
@@ -989,7 +1005,7 @@ public class LevelController : MonoBehaviour
     {
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
         {
-            CharacterData characterData = LoadGuestCharacterData(characters_code[i]);
+            CharacterData characterData = LoadSlotCharacterData(characters_code[i], true);
             if (characterData == null)
             {
                 GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(false);
@@ -997,13 +1013,14 @@ public class LevelController : MonoBehaviour
             }
 
             UnitDeployer deployer = GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).GetComponent<UnitDeployer>();
+            GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(true);
             string code = characters_code[i];
             deployer.SetupDeployer(
                 code,
                 treasureCount,
                 proficiencyLevels[i],
                 teamProficiencyBonus,
-                GetDeploymentLevel(code),
+                GetSlotDeploymentLevel(i, code),
                 GetDeploymentCostMultiplier(code));
             LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, true, ShouldLockAllCatsByRestriction());
         }
@@ -1014,16 +1031,24 @@ public class LevelController : MonoBehaviour
     /// </summary>
     protected CharacterData LoadGuestCharacterData(string characterCode)
     {
-        try
-        {
-            string path = $"Units/Cat Units/6/{characterCode.Substring(1, 3)}/{characterCode[4]}/data";
-            return BundledAddressables.LoadSync<CharacterData>(path);
-        }
-        catch
-        {
-            Debug.LogWarning($"No such character way path: {characterCode}");
+        return LoadSlotCharacterData(characterCode, true);
+    }
+
+    protected CharacterData LoadSlotCharacterData(string characterCode, bool guestSlot)
+    {
+        if (string.IsNullOrEmpty(characterCode)) return null;
+        if (!CharacterPlacer.TryParse(characterCode, true, out UnitIdentity identity) || !identity.IsValid)
             return null;
+
+        if (guestSlot && !LevelRestrictionHelper.HasForcedGuestSlots(levelRestrictions))
+        {
+            if (identity.IsOpposite || !identity.AssetIsCat) return null;
+            if (identity.CharacterCode.Length < 1 || identity.CharacterCode[0] != '6') return null;
         }
+
+        CharacterData data = CharacterPlacer.LoadData(identity);
+        if (data == null) Debug.LogWarning($"No such character way path: {characterCode}");
+        return data;
     }
 
     /// <summary>
@@ -1158,7 +1183,10 @@ public class LevelController : MonoBehaviour
             for (int j = 0; j < LD.enemySummoners[i].enemySummonInfos.Length; j++)
             {
                 string enemyID = LD.enemySummoners[i].enemySummonInfos[j].enemyID;
-                int code = int.Parse(enemyID.Substring(1, 3));
+                if (!CharacterPlacer.TryParse(enemyID, false, out UnitIdentity identity) || !identity.IsValid) continue;
+                if (identity.AssetIsCat) continue;
+                if (identity.CharacterCode.Length < 4) continue;
+                if (!int.TryParse(identity.CharacterCode.Substring(1, 3), out int code)) continue;
                 EnemyMeetSave.SetMetEnemyCode(code);
             }
         }

@@ -36,6 +36,8 @@ public class LevelRestrictionBoard : MonoBehaviour
             { "IV", HandleNoneValueDisplay },
             { "OH", HandleNoneValueDisplay },
             { "oh", HandleNoneValueDisplay },
+            { "FS", HandleNoneValueDisplay },
+            { "fs", HandleNoneValueDisplay },
             { "S+", HandleSurgeDisplay },
             { "S-", HandleSurgeDisplay },
             { "s+", HandleSurgeDisplay },
@@ -99,7 +101,7 @@ public class LevelRestrictionBoard : MonoBehaviour
                 continue;
             }
 
-            if (!TrySplitRestriction(raw, out string key, out string value))
+            if (!LevelRestrictionHelper.TrySplitRestriction(raw, out string key, out string value))
             {
                 lineText.text = raw.Trim();
                 continue;
@@ -246,31 +248,6 @@ public class LevelRestrictionBoard : MonoBehaviour
     #endregion
 
     #region Utilities
-
-    private static bool TrySplitRestriction(string raw, out string key, out string value)
-    {
-        key = string.Empty;
-        value = string.Empty;
-        if (string.IsNullOrWhiteSpace(raw)) return false;
-
-        string[] parts = raw.Trim().Split(new[] { ':' }, 2);
-        if (parts.Length != 2) return false;
-
-        key = NormalizeRestrictionKey(parts[0]);
-        value = parts[1].Trim();
-        return !string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value);
-    }
-
-    private static string NormalizeRestrictionKey(string rawKey)
-    {
-        if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
-        string trimmed = rawKey.Trim();
-        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
-        // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
-        if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
-        if (trimmed == "sd" || trimmed == "sD" || trimmed == "zr") return trimmed;
-        return trimmed.ToUpperInvariant();
-    }
 
     private static bool IsAllDigits(string str)
     {

@@ -12,6 +12,7 @@ public class LevelEnemySummoner : MonoBehaviour
     [SerializeField]private DogeBase dogeBase;
     private LevelController LC;
     private CharacterData[] CD;
+    private UnitIdentity[] identities;
     private float deployPercentage;
     private string bgmCode;
     private int[] timepassed;
@@ -79,6 +80,7 @@ public class LevelEnemySummoner : MonoBehaviour
             }
         }
         CD=new CharacterData[ESI.Length];
+        identities = new UnitIdentity[ESI.Length];
         characterDecryptedFiles = new AnimDecryptPack[ESI.Length];
         runtimeInitialized = new bool[ESI.Length];
     }
@@ -88,7 +90,7 @@ public class LevelEnemySummoner : MonoBehaviour
     {
         enemyUnit = BundledAddressables.LoadSync<GameObject>("Units/Enemy Units/enemyunit");
         LC = GetComponent<LevelController>();
-        if (enemyUnit == null || LC == null || dogeBase == null || ESI == null || CD == null || runtimeInitialized == null || characterDecryptedFiles == null)
+        if (enemyUnit == null || LC == null || dogeBase == null || ESI == null || CD == null || identities == null || runtimeInitialized == null || characterDecryptedFiles == null)
         {
             Debug.LogError("[LevelEnemySummoner] Summoner is not fully configured.");
             isConfigured = false;
@@ -96,15 +98,20 @@ public class LevelEnemySummoner : MonoBehaviour
         }
         for(int i = 0; i < ESI.Length; i++)
         {
-            string loadPath = $"Units/Enemy Units/{ESI[i].enemyID}/";
-            CharacterData loadedData = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
-            if (loadedData == null)
+            if (!CharacterPlacer.TryParse(ESI[i].enemyID, false, out identities[i]) || !identities[i].IsValid)
             {
-                Debug.LogError($"[LevelEnemySummoner] Enemy data not found at {loadPath}data");
+                Debug.LogError($"[LevelEnemySummoner] Invalid unit id: {ESI[i].enemyID}");
                 isConfigured = false;
                 return false;
             }
-            CD[i] = loadedData.Clone();
+            CharacterData loadedData = CharacterPlacer.LoadData(identities[i]);
+            if (loadedData == null)
+            {
+                Debug.LogError($"[LevelEnemySummoner] Unit data not found for {ESI[i].enemyID}");
+                isConfigured = false;
+                return false;
+            }
+            CD[i] = loadedData;
             LevelRestrictionHelper.ApplyEnemyCharacterDataRestrictions(levelRestrictions, CD[i]);
             runtimeInitialized[i] = false;
             characterDecryptedFiles[i] = null;
@@ -119,22 +126,19 @@ public class LevelEnemySummoner : MonoBehaviour
         int sortingOrder = Random.Range(0, 11);
         int sr_samelayer = Random.Range(0, 6);
         float deviationY = sortingOrder / 10f;
-        GameObject enemy = Instantiate(enemyUnit, dogeBase.transform.position - new Vector3(ESI[i].bossShock?-0.1f:0.5f, deviationY,0), Quaternion.identity);
-        if (ESI[i].bossShock) enemy.AddComponent<BossPositionLimit>();
-        Character ec= enemy.GetComponent<Character>();
-        ec.SetPower(ESI[i].ratio / 100f);
-        ec.LoadCharacterData(LC, CD[i]);
-        ec.levelController = LC;
-        CharacterVisualLoader.InitializeRuntimeCharacterVisual(
-            enemy,
-            false,
-            ESI[i].enemyID,
+        GameObject enemy = CharacterPlacer.Place(
+            identities[i],
             CD[i],
             characterDecryptedFiles[i],
-            "Units",
+            dogeBase.transform.position - new Vector3(ESI[i].bossShock ? -0.1f : 0.5f, deviationY, 0),
+            LC,
+            1,
+            0f,
+            ESI[i].ratio / 100f,
             sortingOrder * 1000 + sr_samelayer * 100,
-            sortingOrder * 1000 + sr_samelayer * 50
-        );
+            sortingOrder * 1000 + sr_samelayer * 50);
+        if (enemy == null) return false;
+        if (ESI[i].bossShock) enemy.AddComponent<BossPositionLimit>();
         //WaveShock
         if (ESI[i].bossShock)
         {
@@ -151,7 +155,7 @@ public class LevelEnemySummoner : MonoBehaviour
 
         if (!CD[index].UNITYAnimated)
         {
-            characterDecryptedFiles[index] = CharacterVisualLoader.DecryptCharacterFiles(false, ESI[index].enemyID, CD[index]);
+            characterDecryptedFiles[index] = CharacterPlacer.Decrypt(identities[index], CD[index]);
             if (characterDecryptedFiles[index] == null) return false;
         }
 

@@ -53,6 +53,7 @@ public class LevelController_Testificate : LevelController
     public override void SetupCatDeployers()
     {
         characters_code = cats;
+        LevelRestrictionHelper.TryApplyForcedSlots(levelRestrictions, ref characters_code);
         RefreshTeamRestrictionState();
 
         for (int i = 0; i < MAIN_DEPLOYER_COUNT; i++)
@@ -63,7 +64,7 @@ public class LevelController_Testificate : LevelController
                 treasureCount,
                 0,
                 0,
-                GetDeploymentLevel(characters_code[i], catLevels[i]),
+                GetSlotDeploymentLevel(i, characters_code[i], catLevels[i]),
                 GetDeploymentCostMultiplier(characters_code[i]));
             LevelRestrictionHelper.ApplyToDeployer(
                 deployer,
@@ -75,7 +76,7 @@ public class LevelController_Testificate : LevelController
 
         for (int i = MAIN_DEPLOYER_COUNT; i < TOTAL_DEPLOYER_COUNT; i++)
         {
-            CharacterData characterData = LoadGuestCharacterData(characters_code[i]);
+            CharacterData characterData = LoadSlotCharacterData(characters_code[i], true);
             if (characterData == null)
             {
                 GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(false);
@@ -83,12 +84,13 @@ public class LevelController_Testificate : LevelController
             }
 
             UnitDeployer deployer = GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).GetComponent<UnitDeployer>();
+            GuestDeployers.GetChild(i - MAIN_DEPLOYER_COUNT).gameObject.SetActive(true);
             deployer.SetupDeployer(
                 characters_code[i],
                 treasureCount,
                 0,
                 0,
-                GetDeploymentLevel(characters_code[i], catLevels[i]),
+                GetSlotDeploymentLevel(i, characters_code[i], catLevels[i]),
                 GetDeploymentCostMultiplier(characters_code[i]));
             LevelRestrictionHelper.ApplyToDeployer(
                 deployer,

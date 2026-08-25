@@ -57,6 +57,7 @@ public static class UXPref
     public static readonly Color FrameColorRarity4 = new Color(1.00f, 0.85f, 0.35f); // gold
     public static readonly Color FrameColorRarity5 = new Color(1.000f, 0.40f, 0.75f); // pink
     public static readonly Color FrameColorRarity6 = new Color(1.000f, 0.20f, 0.20f); // red
+    public static readonly Color FrameColorRarity10 = new Color(0.302f, 0.000f, 0.490f, 1.000f); // dark purple
 
     public static Color GetRarityFrameColor(int rarity)
     {
@@ -68,6 +69,7 @@ public static class UXPref
             case 4: return FrameColorRarity4;
             case 5: return FrameColorRarity5;
             case 6: return FrameColorRarity6;
+            case 10: return FrameColorRarity10;
             default: return FrameColorDefault;
         }
     }

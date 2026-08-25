@@ -7,6 +7,14 @@ public static class LevelRestrictionHelper
     public delegate void RestrictionParser(RestrictionRules rules, string value);
 
     private const int NoLimit = -1;
+    public const int ForcedSlotCount = 13;
+    public const int GuestSlotStart = 10;
+    public const int GuestSlotCount = 3;
+    private static readonly HashSet<string> CaseSensitiveRestrictionKeys =
+        new HashSet<string>(StringComparer.Ordinal)
+        {
+            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs"
+        };
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
         new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
         {
@@ -35,7 +43,9 @@ public static class LevelRestrictionHelper
             { "ht", ParseRestrictionValue },
             { "sd", ParseRestrictionValue },
             { "sD", ParseRestrictionValue },
-            { "zr", ParseZombieReviveRestrictionValue }
+            { "zr", ParseZombieReviveRestrictionValue },
+            { "FS", ParseForcedAllSlots },
+            { "fs", ParseForcedGuestSlots }
         };
 
     public class RestrictionRules
@@ -48,6 +58,10 @@ public static class LevelRestrictionHelper
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
         public bool hasAllowRarity;
+        public bool hasForcedSlots;
+        public readonly bool[] forcedSlotActive = new bool[ForcedSlotCount];
+        public readonly string[] forcedSlotCodes = CreateEmptyForcedSlots();
+        public readonly int[] forcedSlotLevels = CreateEmptyForcedLevels();
         public int maxCatCount = NoLimit;
         public int maxCatLevel = NoLimit;
         public int initialMoneyLevel = NoLimit;
@@ -78,7 +92,7 @@ public static class LevelRestrictionHelper
 
         for (int i = 0; i < restrictions.Length; i++)
         {
-            if (!TrySplitRule(restrictions[i], out string key, out string value)) continue;
+            if (!TrySplitRestriction(restrictions[i], out string key, out string value)) continue;
 
             rules.AddRawValue(key, value);
             if (ParserMap.TryGetValue(key, out RestrictionParser parser))
@@ -103,8 +117,11 @@ public static class LevelRestrictionHelper
     /// </summary>
     public static bool IsUnitAllowed(RestrictionRules rules, string code, CharacterData data = null)
     {
-        if (rules == null || string.IsNullOrEmpty(code) || code.Length < 4) return true;
-        string code4 = code.Substring(0, 4);
+        if (rules == null || string.IsNullOrEmpty(code)) return true;
+        if (IsForcedLineupCode(rules, code)) return true;
+        if (!CharacterPlacer.TryParse(code, true, out UnitIdentity identity) || !identity.IsValid) return true;
+        if (identity.IsOpposite || !identity.AssetIsCat || identity.CharacterCode.Length < 4) return true;
+        string code4 = identity.CharacterCode.Substring(0, 4);
         if (!int.TryParse(code4.Substring(0, 1), out int rarity)) return true;
 
         if (rules.hasAllowRarity && !rules.allowRarities.Contains(rarity)) return false;
@@ -127,8 +144,9 @@ public static class LevelRestrictionHelper
         for (int i = 0; i < selectedCodes.Length; i++)
         {
             string code = selectedCodes[i];
-            if (string.IsNullOrEmpty(code) || code.Length < 4) continue;
-            selectedUnits.Add(code.Substring(0, 4));
+            if (!CharacterPlacer.TryParse(code, true, out UnitIdentity identity) || !identity.IsValid) continue;
+            if (identity.IsOpposite || !identity.AssetIsCat || identity.CharacterCode.Length < 4) continue;
+            selectedUnits.Add(identity.CharacterCode.Substring(0, 4));
         }
 
         foreach (string requiredUnit in rules.requiredUnits)
@@ -137,6 +155,95 @@ public static class LevelRestrictionHelper
         }
 
         return true;
+    }
+
+    public static bool HasForcedSlots(RestrictionRules rules)
+    {
+        return rules != null && rules.hasForcedSlots;
+    }
+
+    public static bool HasForcedGuestSlots(RestrictionRules rules)
+    {
+        if (!HasForcedSlots(rules)) return false;
+        for (int i = 0; i < GuestSlotCount; i++)
+        {
+            if (IsSlotForced(rules, GuestSlotStart + i)) return true;
+        }
+        return false;
+    }
+
+    public static bool IsSlotForced(RestrictionRules rules, int slotIndex)
+    {
+        if (rules == null || rules.forcedSlotActive == null) return false;
+        if (slotIndex < 0 || slotIndex >= ForcedSlotCount) return false;
+        return rules.forcedSlotActive[slotIndex];
+    }
+
+    public static bool TryApplyForcedSlots(RestrictionRules rules, ref string[] selectedCodes)
+    {
+        if (!HasForcedSlots(rules) || rules.forcedSlotCodes == null) return false;
+        selectedCodes = EnsureForcedSlotArray(selectedCodes);
+        for (int i = 0; i < ForcedSlotCount; i++)
+        {
+            if (!IsSlotForced(rules, i)) continue;
+            selectedCodes[i] = rules.forcedSlotCodes[i] ?? string.Empty;
+        }
+        return true;
+    }
+
+    public static bool TryAssignMatchingForcedSlots(RestrictionRules rules, string unit4, string[] selectedCodes)
+    {
+        if (!HasForcedSlots(rules) || selectedCodes == null || string.IsNullOrEmpty(unit4)) return false;
+        bool placed = false;
+        int limit = selectedCodes.Length < ForcedSlotCount ? selectedCodes.Length : ForcedSlotCount;
+        for (int i = 0; i < limit; i++)
+        {
+            if (!ForcedSlotMatchesUnit(rules, i, unit4)) continue;
+            selectedCodes[i] = rules.forcedSlotCodes[i] ?? string.Empty;
+            placed = true;
+        }
+        return placed;
+    }
+
+    public static bool AreForcedSlotsSatisfied(RestrictionRules rules, string[] selectedCodes)
+    {
+        if (!HasForcedSlots(rules)) return true;
+        for (int i = 0; i < ForcedSlotCount; i++)
+        {
+            string selected = selectedCodes != null && i < selectedCodes.Length ? selectedCodes[i] : null;
+            if (!IsForcedSlotSatisfied(rules, i, selected)) return false;
+        }
+        return true;
+    }
+
+    public static bool IsForcedSlotSatisfied(RestrictionRules rules, int slotIndex, string selectedCode)
+    {
+        if (!IsSlotForced(rules, slotIndex)) return true;
+        string forced = rules.forcedSlotCodes[slotIndex];
+        bool forcedEmpty = string.IsNullOrEmpty(forced);
+        bool selectedEmpty = string.IsNullOrEmpty(selectedCode);
+        if (forcedEmpty) return selectedEmpty;
+        if (selectedEmpty) return false;
+        return selectedCode == forced;
+    }
+
+    public static bool ForcedSlotMatchesUnit(RestrictionRules rules, int slotIndex, string unit4)
+    {
+        if (!IsSlotForced(rules, slotIndex) || string.IsNullOrEmpty(unit4) || unit4.Length < 4) return false;
+        string forced = rules.forcedSlotCodes[slotIndex];
+        if (string.IsNullOrEmpty(forced)) return false;
+        if (!CharacterPlacer.TryParse(forced, true, out UnitIdentity identity) || !identity.IsValid) return false;
+        if (!identity.AssetIsCat || identity.CharacterCode.Length < 4) return false;
+        return identity.CharacterCode.Substring(0, 4) == unit4.Substring(0, 4);
+    }
+
+    public static bool TryGetForcedSlotLevel(RestrictionRules rules, int slotIndex, out int level)
+    {
+        level = 0;
+        if (!IsSlotForced(rules, slotIndex) || rules.forcedSlotCodes == null || rules.forcedSlotLevels == null) return false;
+        if (string.IsNullOrEmpty(rules.forcedSlotCodes[slotIndex])) return false;
+        level = rules.forcedSlotLevels[slotIndex];
+        return level >= 1;
     }
 
     public static int GetMaxCatDeploy(RestrictionRules rules, int fallback)
@@ -560,14 +667,14 @@ public static class LevelRestrictionHelper
 
     #endregion
 
-    private static bool TrySplitRule(string raw, out string key, out string value)
+    public static bool TrySplitRestriction(string raw, out string key, out string value)
     {
         key = string.Empty;
         value = string.Empty;
         if (string.IsNullOrWhiteSpace(raw)) return false;
 
         string rule = raw.Trim();
-        string[] parts = rule.Split(':');
+        string[] parts = rule.Split(new[] { ':' }, 2);
         if (parts.Length != 2) return false;
 
         key = NormalizeRestrictionKey(parts[0]);
@@ -663,6 +770,113 @@ public static class LevelRestrictionHelper
     public static void ParseZombieReviveRestrictionValue(RestrictionRules rules, string value)
     {
         if (!TryParseZombieReviveRestrictionValue(value, out _, out _, out _)) return;
+    }
+
+    /// <summary>
+    /// FS 覆盖全部 13 槽；fs 只覆盖 3 个嘉宾槽。槽位格式均为 角色码/等级，用 + 分隔，非法槽视为空。
+    /// 例：FS:00000/25++-e117/40++00031+678
+    /// 例：fs:60000/30++-e117/40
+    /// </summary>
+    private static void ParseForcedAllSlots(RestrictionRules rules, string value)
+    {
+        ParseForcedSlotRange(rules, value, 0, ForcedSlotCount);
+    }
+
+    private static void ParseForcedGuestSlots(RestrictionRules rules, string value)
+    {
+        ParseForcedSlotRange(rules, value, GuestSlotStart, GuestSlotCount);
+    }
+
+    private static void ParseForcedSlotRange(RestrictionRules rules, string value, int startIndex, int count)
+    {
+        if (rules == null || count < 1) return;
+        string[] parts = string.IsNullOrEmpty(value) ? new string[0] : value.Split('+');
+        rules.hasForcedSlots = true;
+        for (int i = 0; i < count; i++)
+        {
+            int slot = startIndex + i;
+            if (slot < 0 || slot >= ForcedSlotCount) break;
+            rules.forcedSlotActive[slot] = true;
+            string raw = i < parts.Length ? parts[i].Trim() : string.Empty;
+            if (TryParseForcedSlotToken(raw, out string code, out int level))
+            {
+                rules.forcedSlotCodes[slot] = code;
+                rules.forcedSlotLevels[slot] = level;
+            }
+            else
+            {
+                rules.forcedSlotCodes[slot] = string.Empty;
+                rules.forcedSlotLevels[slot] = 0;
+            }
+        }
+    }
+
+    private static string[] EnsureForcedSlotArray(string[] selectedCodes)
+    {
+        if (selectedCodes != null && selectedCodes.Length >= ForcedSlotCount) return selectedCodes;
+
+        string[] expanded = new string[ForcedSlotCount];
+        int copyCount = selectedCodes == null ? 0 : selectedCodes.Length;
+        for (int i = 0; i < ForcedSlotCount; i++)
+        {
+            expanded[i] = i < copyCount ? (selectedCodes[i] ?? string.Empty) : string.Empty;
+        }
+        return expanded;
+    }
+
+    private static string[] CreateEmptyForcedSlots()
+    {
+        string[] slots = new string[ForcedSlotCount];
+        for (int i = 0; i < slots.Length; i++) slots[i] = string.Empty;
+        return slots;
+    }
+
+    private static int[] CreateEmptyForcedLevels()
+    {
+        return new int[ForcedSlotCount];
+    }
+
+    private static bool TryParseForcedSlotToken(string raw, out string code, out int level)
+    {
+        code = string.Empty;
+        level = 0;
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+
+        int slash = raw.IndexOf('/');
+        if (slash <= 0 || slash >= raw.Length - 1) return false;
+
+        string idPart = raw.Substring(0, slash).Trim();
+        string levelPart = raw.Substring(slash + 1).Trim();
+        if (string.IsNullOrEmpty(idPart) || !int.TryParse(levelPart, out level) || level < 1) return false;
+        if (!IsValidForcedCharacterCode(idPart)) return false;
+
+        code = idPart;
+        return true;
+    }
+
+    private static bool IsForcedLineupCode(RestrictionRules rules, string code)
+    {
+        if (!HasForcedSlots(rules) || string.IsNullOrEmpty(code)) return false;
+        if (!CharacterPlacer.TryParse(code, true, out UnitIdentity selected) || !selected.IsValid) return false;
+        if (!selected.AssetIsCat || selected.CharacterCode.Length < 4) return false;
+        string unit4 = selected.CharacterCode.Substring(0, 4);
+        for (int i = 0; i < ForcedSlotCount; i++)
+        {
+            if (!IsSlotForced(rules, i)) continue;
+            string forced = rules.forcedSlotCodes[i];
+            if (string.IsNullOrEmpty(forced)) continue;
+            if (!CharacterPlacer.TryParse(forced, true, out UnitIdentity identity) || !identity.IsValid) continue;
+            if (!identity.AssetIsCat || identity.CharacterCode.Length < 4) continue;
+            if (identity.CharacterCode.Substring(0, 4) == unit4) return true;
+        }
+        return false;
+    }
+
+    private static bool IsValidForcedCharacterCode(string raw)
+    {
+        if (string.IsNullOrEmpty(raw)) return false;
+        if (!CharacterPlacer.TryParse(raw, true, out UnitIdentity identity) || !identity.IsValid) return false;
+        return CharacterPlacer.LoadData(identity) != null;
     }
 
     /// <summary>
@@ -769,10 +983,9 @@ public static class LevelRestrictionHelper
 
     private static CharacterData TryLoadCharacterDataByCode(string code)
     {
-        if (string.IsNullOrEmpty(code) || code.Length < 5) return null;
-        if (!char.IsDigit(code[0]) || !char.IsDigit(code[4])) return null;
-        if (!char.IsDigit(code[1]) || !char.IsDigit(code[2]) || !char.IsDigit(code[3])) return null;
-        return BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{code[0]}/{code.Substring(1, 3)}/{code[4]}/data");
+        if (string.IsNullOrEmpty(code)) return null;
+        if (!CharacterPlacer.TryParse(code, true, out UnitIdentity identity) || !identity.IsValid) return null;
+        return CharacterPlacer.LoadData(identity);
     }
 
     private static bool TryParsePositiveInt(string value, out int result)
@@ -811,15 +1024,11 @@ public static class LevelRestrictionHelper
         }
     }
 
-    private static string NormalizeRestrictionKey(string rawKey)
+    public static string NormalizeRestrictionKey(string rawKey)
     {
         if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
         string trimmed = rawKey.Trim();
-        if (trimmed == "s+" || trimmed == "s-" || trimmed == "mm" || trimmed == "oh") return trimmed;
-        // 治愈类关卡限制大小写敏感：hd（单体）、hD（群体）、ht（治愈增益），保持原样不转大写。
-        if (trimmed == "hd" || trimmed == "hD" || trimmed == "ht") return trimmed;
-        // 效果时长 / 敌方复活：sd（我方）、sD（敌方）、zr 保持原样。
-        if (trimmed == "sd" || trimmed == "sD" || trimmed == "zr") return trimmed;
+        if (CaseSensitiveRestrictionKeys.Contains(trimmed)) return trimmed;
         return trimmed.ToUpperInvariant();
     }
 }

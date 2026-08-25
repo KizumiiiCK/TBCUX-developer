@@ -26,19 +26,14 @@ public class Level_ProficencyUpdator : MonoBehaviour
         for (int i = 0; i < codes.Length; i++)
         {
             if (i >= count) break;
-            try
-            {
-                character_codes[i] = codes[i].Substring(0, 4);
-            }
-            catch
-            {
-                continue;
-            }
+            if (!CharacterPlacer.TryParse(codes[i], true, out UnitIdentity identity) || !identity.IsValid) continue;
+            if (identity.IsOpposite || !identity.AssetIsCat || identity.CharacterCode.Length < 4) continue;
+
+            character_codes[i] = identity.CharacterCode.Substring(0, 4);
 
             // Get proficiency from save
             var details = CharacterUpgradeSave.GetDetails(character_codes[i]);
             proficiencies[i] = details.proficiency;
-            //proficiencies[i] = new CharacterProficiency();
 
             if (proficiencies[i] != null)
                 levels[i] = proficiencies[i].level;
@@ -52,9 +47,8 @@ public class Level_ProficencyUpdator : MonoBehaviour
     // ============================================================
     private int FindIndex(string code)
     {
-        if (string.IsNullOrEmpty(code)) return -1;
+        if (string.IsNullOrEmpty(code) || code[0] == CharacterPlacer.OppositePrefix) return -1;
 
-        // Extract xxxx
         string sub;
         try
         {

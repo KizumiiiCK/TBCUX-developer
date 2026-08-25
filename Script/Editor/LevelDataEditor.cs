@@ -274,7 +274,7 @@ public class LevelDataEditor : Editor
             GUILayout.Box("(无头像)", GUILayout.Width(64), GUILayout.Height(64));
 
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.PropertyField(enemyIdProp, new GUIContent("敌人 ID"));
+        EditorGUILayout.PropertyField(enemyIdProp, new GUIContent("单位 ID（-开头为对方）"));
         EditorGUILayout.PropertyField(ratioProp, new GUIContent("倍率(%)"));
         EditorGUILayout.LabelField($"HP: {scaledHealth}", labelSmall);
         EditorGUILayout.LabelField($"ATK: {scaledAtkText}", labelSmall);
@@ -379,19 +379,30 @@ public class LevelDataEditor : Editor
         return sprite;
     }
 
-    private const string EnemyBundledRoot = "Assets/Bundled/Units/Enemy Units";
-
     private Sprite GetEnemyIcon(string enemyID)
     {
         if (string.IsNullOrWhiteSpace(enemyID)) return null;
         string id = enemyID.Trim();
         if (enemyIconCache.TryGetValue(id, out Sprite cached)) return cached;
 
-        Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>($"{EnemyBundledRoot}/{id}/enemy_icon.png");
-        if (icon == null)
-            icon = AssetDatabase.LoadAssetAtPath<Sprite>($"{EnemyBundledRoot}/{id}/enemy_icon.PNG");
+        Sprite icon = null;
+        if (CharacterPlacer.TryParse(id, false, out UnitIdentity identity) && identity.IsValid)
+        {
+            string folder = CharacterPlacer.GetBundledFolderPath(identity);
+            icon = LoadUnitSprite(folder, "enemy_icon");
+            if (icon == null) icon = LoadUnitSprite(folder, "icon_deploy");
+        }
+
         enemyIconCache[id] = icon;
         return icon;
+    }
+
+    private static Sprite LoadUnitSprite(string folder, string fileName)
+    {
+        if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(fileName)) return null;
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}/{fileName}.png");
+        if (sprite == null) sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}/{fileName}.PNG");
+        return sprite;
     }
 
     private void InitStyles()
@@ -427,7 +438,11 @@ public class LevelDataEditor : Editor
         string id = enemyID.Trim();
         if (enemyDataCache.TryGetValue(id, out CharacterData cached)) return cached;
 
-        CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>($"{EnemyBundledRoot}/{id}/data.asset");
+        CharacterData data = null;
+        if (CharacterPlacer.TryParse(id, false, out UnitIdentity identity) && identity.IsValid)
+        {
+            data = AssetDatabase.LoadAssetAtPath<CharacterData>($"{CharacterPlacer.GetBundledFolderPath(identity)}/data.asset");
+        }
         enemyDataCache[id] = data;
         return data;
     }

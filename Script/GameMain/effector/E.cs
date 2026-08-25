@@ -19,13 +19,13 @@ public abstract class E : MonoBehaviour
     private int activeDurationFrames = 0;
     private LevelController cachedLevelController;
     private string cachedNameCode = string.Empty;
-    private bool cachedIsCat;
+    private bool cachedTracksProficiency;
     private void Start()
     {
         etarget=GetComponent<Character>();
         cachedLevelController = etarget != null ? etarget.levelController : null;
         cachedNameCode = etarget != null ? etarget.NameCode : string.Empty;
-        cachedIsCat = etarget != null && etarget.IsCat();
+        cachedTracksProficiency = etarget != null && etarget.ShouldRecordProficiency();
         cachedEffectManager = etarget != null ? etarget.EM : null;
         for(int i = 0; i < etarget.effectMarkedSlots.Length; i++)
         {
@@ -111,7 +111,7 @@ public abstract class E : MonoBehaviour
 
     protected virtual void ReportEffectDuration()
     {
-        if (!cachedIsCat || cachedLevelController == null || activeDurationFrames <= 0) return;
+        if (!cachedTracksProficiency || cachedLevelController == null || activeDurationFrames <= 0) return;
         cachedLevelController.RecordProficency_DebuffSuffered(cachedNameCode, activeDurationFrames);
         //cachedLevelController.RecordProficency_EffectDuration(cachedNameCode, effectName, activeDurationFrames);
     }
