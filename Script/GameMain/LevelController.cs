@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Android;
 using UnityEngine.Audio;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -155,6 +156,8 @@ public class LevelController : MonoBehaviour
     protected bool game_paused = false;
     protected bool speed_up = false;
     protected bool disable_controll = false;
+    /// <summary>关卡因数据缺失等原因中止，所有初始化与逐帧逻辑都应停止。</summary>
+    protected bool levelAborted = false;
     public bool isPloting = false;
     protected int level_score = INITIAL_LEVEL_SCORE;
     protected int gain_XP = 0;
@@ -216,6 +219,8 @@ public class LevelController : MonoBehaviour
         InitializeButtons();
         SetUpgradeActive(false);
         InitializeLevelData();
+        // 关卡数据缺失时 InitializeLevelData 会中止关卡，此时不能继续初始化
+        if (levelAborted) return;
         ApplyInitialMoneyRestrictions();
         BindCannonToBase();
         LoadPlot();
@@ -228,9 +233,26 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 关卡无法启动时的统一出口。WebGL 下 Application.Quit() 无效，必须主动退回上一场景，
+    /// 否则会带着空数据继续运行并抛出连锁空引用。
+    /// </summary>
+    protected void AbortLevel(string reason)
+    {
+        if (levelAborted) return;
+        levelAborted = true;
+        disable_controll = true;
+
+        Debug.LogError($"[LevelController] Aborting level: {reason}");
+
+        SceneSwitcher switcher = GetComponent<SceneSwitcher>();
+        if (switcher != null) switcher.TagOutToDirectly("BaseScene");
+        else SceneManager.LoadScene("BaseScene");
+    }
+
     protected void FixedUpdate()
     {
-        if (isPloting || disable_controll) return;
+        if (levelAborted || isPloting || disable_controll) return;
 
         // 更新金钱
         float moneyGain = (moneyCharching_speed + (current_money_level - 1) * moneyCharching_bonus) * multiplier * Time.deltaTime;
@@ -357,13 +379,18 @@ public class LevelController : MonoBehaviour
     {
         treasureCount = RewardingSystem.GetAmount(RewardName.WorldTreasures);
         LoadLevelInfoFromPref();
+        // 章节/小节信息缺失时已在上面中止，不能继续拼接加载路径
+        if (levelAborted) return;
         string levelLoadPath = $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/{levelNum}";
         LD = Resources.Load<LevelData>(levelLoadPath);
 
         if (LD == null)
         {
+            // Application.Quit() is a no-op in a browser, so bailing out here is not enough:
+            // Start() would carry on with a null LD and throw in SetupMapAndBases. Abort the whole
+            // level instead and send the player back.
             Debug.LogError($"Level not found in \"{levelLoadPath}\"!");
-            Application.Quit();
+            AbortLevel("Level data missing.");
             return;
         }
         int mapSize = LD.mapSize;
@@ -494,13 +521,14 @@ public class LevelController : MonoBehaviour
         if (chapterName == string.Empty)
         {
             Debug.LogError("Chapter name not found!");
-            Application.Quit();
+            AbortLevel("Chapter name missing.");
+            return;
         }
 
         if (sectionName == string.Empty)
         {
             Debug.LogError("Section name not found!");
-            Application.Quit();
+            AbortLevel("Section name missing.");
         }
     }
 
