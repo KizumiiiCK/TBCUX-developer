@@ -186,17 +186,11 @@ public class Chatbox : MonoBehaviour
         }
         if (dd.DialoguerImage != string.Empty)
         {
-            Sprite DI= BundledAddressables.LoadSync<Sprite>($"DialogueImage/{dd.DialoguerImage}");
-            if (dd.faceToRight)//Image on the left
-            {
-                character_left.color = colorShow;
-                character_left.sprite = DI;
-            }
-            else
-            {
-                character_right.color = colorShow;
-                character_right.sprite = DI;
-            }
+            // 立绘按需异步加载；以对应 Image 为 owner，切换对话时旧请求自动作废
+            Image target = dd.faceToRight ? character_left : character_right;
+            target.color = colorShow;
+            AsyncIconLoader.Instance.Load(target.gameObject, $"DialogueImage/{dd.DialoguerImage}",
+                sprite => { if (target != null) target.sprite = sprite; });
         }
         
     }

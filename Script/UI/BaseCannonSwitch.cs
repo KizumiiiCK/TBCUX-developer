@@ -89,7 +89,9 @@ public class BaseCannonSwitch : MonoBehaviour
     private void RefreshCurrentHeadImage(int headIndex)
     {
         if (currentHeadImage == null) return;
-        Sprite head = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/head/{Mathf.Max(0, headIndex)}");
-        currentHeadImage.sprite = head;
+        // 炮头图标按需异步加载
+        AsyncIconLoader.Instance.Load(currentHeadImage.gameObject,
+            $"Units/CatBases/head/{Mathf.Max(0, headIndex)}",
+            sprite => { if (currentHeadImage != null) currentHeadImage.sprite = sprite; });
     }
 }

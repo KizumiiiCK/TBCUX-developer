@@ -11,11 +11,12 @@ public class EquipCanvas : UICanvasMain
         public string Code;
         public int Rality;
         public bool[] Unlocked;
-        public Sprite[] TireIcons;
         public int[] TireCosts;
     }
 
     private GameObject mainCamera;
+    private Coroutine loadRalityRoutine;
+    private Coroutine showCharacterRoutine;
     public int rality = 0;
     public int team_num = 0;
     private string[] char_codes = new string[13];
@@ -79,23 +80,58 @@ public class EquipCanvas : UICanvasMain
     //}
     public void LoadCharatersFromRality(int R)
     {
+        if (loadRalityRoutine != null) StopCoroutine(loadRalityRoutine);
+        loadRalityRoutine = StartCoroutine(LoadCharatersFromRalityRoutine(R));
+    }
+
+    /// <summary>
+    /// 装备页只列出"已解锁"的角色，数量远小于全图鉴，因此可以把这批角色的 data 一次性异步拉好
+    /// （格子绑定时需要 Cost，不能只懒加载图标）。图标仍按需异步加载。
+    /// </summary>
+    private IEnumerator LoadCharatersFromRalityRoutine(int R)
+    {
         rality = R;
         displayTireByCharacter.Clear();
         BuildDisplayTireCacheFromTeam();
         equipListEntries.Clear();
-        for(int i=0;i<1000;i++)
+
+        // 第一步：用 catalog 查询 + 存档判断筛出本档已解锁角色，零下载
+        var owned = new List<string>();
+        var ownedUnlocked = new List<bool[]>();
+        for (int i = 0; i < 1000; i++)
         {
             string ucformat = i.ToString("000");
-            Sprite ccd = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{ucformat}/0/icon_deploy");
-            if (ccd == null) { continue; }
+            if (!BundledAddressables.Exists($"Units/Cat Units/{rality}/{ucformat}/0/icon_deploy", typeof(Sprite)))
+                continue;
             bool[] unlocked = CharacterUpgradeSave.GetDetails($"{rality}{ucformat}").tire_unlocked;
-            if (!unlocked[0]) { continue; }
+            if (!unlocked[0]) continue;
+            owned.Add(ucformat);
+            ownedUnlocked.Add(unlocked);
+            if ((i + 1) % 200 == 0) yield return null;
+        }
+
+        // 第二步：批量预热这批角色各已解锁 tire 的 data（Cost 来源）
+        var prewarm = new BundledAddressables.PrewarmList();
+        for (int i = 0; i < owned.Count; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if (!ownedUnlocked[i][j]) continue;
+                prewarm.Add<CharacterData>($"Units/Cat Units/{rality}/{owned[i]}/{j}/data");
+            }
+        }
+        yield return BundledAddressables.PrewarmRoutine(prewarm);
+
+        // 第三步：组装列表条目。图标不在此加载，交给格子按需拉取。
+        for (int i = 0; i < owned.Count; i++)
+        {
+            string ucformat = owned[i];
+            bool[] unlocked = ownedUnlocked[i];
             var entry = new EquipListEntry
             {
                 Code = ucformat,
                 Rality = rality,
                 Unlocked = new bool[4],
-                TireIcons = new Sprite[4],
                 TireCosts = new int[4]
             };
 
@@ -104,17 +140,19 @@ public class EquipCanvas : UICanvasMain
                 entry.Unlocked[j] = unlocked[j];
                 if (!unlocked[j]) continue;
 
-                Sprite otccd = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{ucformat}/{j}/icon_deploy");
                 CharacterData cdot = BundledAddressables.LoadSync<CharacterData>($"Units/Cat Units/{rality}/{ucformat}/{j}/data");
-                entry.TireIcons[j] = otccd;
                 entry.TireCosts[j] = cdot != null ? cdot.Cost : 0;
-                if (otccd == null || cdot == null) entry.Unlocked[j] = false;
+                // 图标只要在 catalog 里就认为可用；实际像素按需加载
+                bool iconExists = BundledAddressables.Exists($"Units/Cat Units/{rality}/{ucformat}/{j}/icon_deploy", typeof(Sprite));
+                if (!iconExists || cdot == null) entry.Unlocked[j] = false;
             }
 
             equipListEntries.Add(entry);
         }
+
         if (headIconGrid != null) headIconGrid.SetData(equipListEntries, true);
         MarkCharacters();
+        loadRalityRoutine = null;
     }
     public void InitializeButtons()
     {
@@ -305,19 +343,45 @@ public class EquipCanvas : UICanvasMain
         SelectionsSave.SetRow(team_num, char_codes);
         TeamNameSave.SetTeamName(team_num, currentTeamName);
     }
+    /// <summary>
+    /// 显示某个角色。资源按需异步拉取，对外入口只启动协程。
+    /// </summary>
     public void ShowCertainCharacter(int r, string code, int tire)
     {
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
+        showCharacterRoutine = StartCoroutine(ShowCertainCharacterRoutine(r, code, tire));
+    }
+
+    private IEnumerator ShowCertainCharacterRoutine(int r, string code, int tire)
+    {
+        string unitCode = $"{r}{code}{tire}";
+        string loadPath = $"Units/Cat Units/{r}/{code}/{tire}/";
+
+        var list = new BundledAddressables.PrewarmList();
+        BattlePrewarm.AddUnit(list, true, unitCode);
+        list.Add<GameObject>("Units/Cat Units/catunit");
+        yield return BundledAddressables.PrewarmRoutine(list);
+
+        CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
+        if (CD == null)
+        {
+            Debug.LogWarning($"[EquipCanvas] Missing character data for {unitCode}");
+            showCharacterRoutine = null;
+            yield break;
+        }
+
         Application.targetFrameRate = 30;
         if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-        string loadPath = $"Units/Cat Units/{r}/{code}/{tire}/";
-        CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
-        current_display_character = CharacterSummoner.CreateACharacter(true, $"{r}{code}{tire}", true);
-        CharacterSummoner.SetCharacterPosition(current_display_character,
-            mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -4, 10));
-        CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
-        CharacterVisualLoader.SwitchAnimation(current_display_character, CD.UNITYAnimated, 2);
-
-        current_display_character.transform.localScale *= 1.5f;
+        current_display_character = CharacterSummoner.CreateACharacter(true, unitCode, true);
+        if (current_display_character != null)
+        {
+            CharacterSummoner.SetCharacterPosition(current_display_character,
+                mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -4, 10));
+            CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+            CharacterVisualLoader.SwitchAnimation(current_display_character, CD.UNITYAnimated, 2);
+            current_display_character.transform.localScale *= 1.5f;
+        }
+        showCharacterRoutine = null;
     }
     public void ShowChangeBGPage()
     {
@@ -328,11 +392,22 @@ public class EquipCanvas : UICanvasMain
     }
     public void UpdateBackground()
     {
-        int bgn=PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-        background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
+        StartCoroutine(UpdateBackgroundRoutine());
+    }
+
+    private IEnumerator UpdateBackgroundRoutine()
+    {
+        int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
+        string address = $"Background/Maps/{bgn}";
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<Sprite>(address);
+        yield return BundledAddressables.PrewarmRoutine(list);
+        if (background != null) background.sprite = BundledAddressables.LoadSync<Sprite>(address);
     }
     private void OnDestroy()
     {
+        if (loadRalityRoutine != null) StopCoroutine(loadRalityRoutine);
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
         SaveCurrentTeamState();
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
@@ -414,7 +489,6 @@ public class EquipCanvas : UICanvasMain
             entry.Rality,
             entry.Code,
             entry.Unlocked,
-            entry.TireIcons,
             entry.TireCosts,
             OnEquipSetRequestedSelection,
             preferredTire,

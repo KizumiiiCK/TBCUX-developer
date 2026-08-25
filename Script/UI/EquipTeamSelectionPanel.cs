@@ -218,8 +218,17 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             if (img == null) continue;
             if (i == selectedSlot && selectedSlot >= 0 && selectedSlot < currentSelectedButtons.Length && currentSelectedButtons[selectedSlot] != null)
             {
-                Sprite selectedIcon = ResolveIconSprite(cachedCharCodes[selectedSlot]);
-                img.sprite = selectedIcon != null ? selectedIcon : emptySlotSprite;
+                // 该槽位的图标此时通常已由 RefreshSlotButton 拉取过，命中缓存即同步显示；
+                // 未命中时先用空位图，到位后替换。
+                img.sprite = emptySlotSprite;
+                if (CharacterPlacer.TryParse(cachedCharCodes[selectedSlot], true, out UnitIdentity slotIdentity)
+                    && slotIdentity.IsValid)
+                {
+                    Image target = img;
+                    AsyncIconLoader.Instance.Load(target.gameObject,
+                        CharacterPlacer.GetLoadPath(slotIdentity) + "icon_deploy",
+                        sprite => { if (target != null && sprite != null) target.sprite = sprite; });
+                }
             }
             else
             {
@@ -337,14 +346,23 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         {
             rality = 10;
         }
-        Sprite icon = CharacterPlacer.LoadIcon(identity);
         CharacterData cd = CharacterPlacer.LoadData(identity);
-        if (icon != null && cd != null)
+        if (cd != null)
         {
             btn.SetOutfit(KiOutfit.Border, outfitType);
             btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
-            btn.SetCover(icon);
             btn.SetText(cd.Cost + " $");
+            // 图标按需异步加载：先留空，到位后填充
+            string path = CharacterPlacer.GetLoadPath(identity);
+            AsyncIconLoader.Instance.Load(btn.gameObject, path + "icon_deploy",
+                sprite =>
+                {
+                    if (btn == null) return;
+                    if (sprite != null) { btn.SetCover(sprite); return; }
+                    // 敌方单位用 enemy_icon 作为回退
+                    AsyncIconLoader.Instance.Load(btn.gameObject, path + "enemy_icon",
+                        fallback => { if (btn != null) btn.SetCover(fallback); });
+                });
         }
         else
         {
@@ -353,12 +371,6 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
             btn.SetText(string.Empty);
         }
-    }
-
-    private static Sprite ResolveIconSprite(string fullCode)
-    {
-        if (!CharacterPlacer.TryParse(fullCode, true, out UnitIdentity identity) || !identity.IsValid) return null;
-        return CharacterPlacer.LoadIcon(identity);
     }
 
     private void HandleSlotClicked(int index)

@@ -19,6 +19,9 @@ public static class BattlePrewarm
     private static readonly string[] BaseMaanims = { "walk", "idle", "attack", "kb" };
     private static readonly string[] ExtraMaanims = { "p", "in", "dive", "out" };
 
+    /// <summary>Upper bound for the Units/Projectiles/pNNN scan. Raise if new ids are added.</summary>
+    private const int MaxProjectileId = 100;
+
     /// <summary>Address of the LevelData asset for the pref-selected level.</summary>
     public static string GetLevelDataAddress(string chapterName, string sectionName, int diff, int levelNum)
         => $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/{levelNum}";
@@ -100,6 +103,9 @@ public static class BattlePrewarm
     {
         if (ld == null) return;
 
+        // LevelController.cs:406 -> BackgroundInitializer.UpdateMaterialProperties
+        list.Add<Sprite>($"Background/Maps/{ld.BackgroundID}");
+
         // LevelController.cs:429
         list.Add<Sprite>($"Units/DogeBases/{ld.BaseImageID}");
 
@@ -157,6 +163,50 @@ public static class BattlePrewarm
     {
         // CharacterSummoner.cs:41-46 - the cat unit shell prefab.
         list.Add<GameObject>("Units/Cat Units/catunit");
+
+        // Wave / surge attacks spawn these from combat callbacks (CharacterCombat.cs:421,430).
+        // They fire mid-frame from attack logic and cannot be coroutines, so they must be resident.
+        list.Add<GameObject>("Units/Cat Units/waveunit");
+        list.Add<GameObject>("Units/Enemy Units/waveunit");
+        list.Add<GameObject>("Units/Cat Units/surgeunit");
+        list.Add<GameObject>("Units/Enemy Units/surgeunit");
+
+        AddPlayerBaseAssets(list);
+        AddProjectileAssets(list);
+    }
+
+    /// <summary>
+    /// The player's cat base: skin, decoration and cannon are chosen in the base menu and read from
+    /// PlayerPrefs by CatBase.InitializeCharacter, so they are known before the battle starts.
+    /// </summary>
+    private static void AddPlayerBaseAssets(BundledAddressables.PrewarmList list)
+    {
+        int numBase = PlayerPrefs.GetInt(UXPref.BASE_BaseNum, 0);
+        int numDeco = PlayerPrefs.GetInt(UXPref.BASE_DecorationNum, 0);
+        int cannonType = PlayerPrefs.GetInt(UXPref.BASE_CannonNum, 0);
+
+        list.Add<Sprite>($"Units/CatBases/base/{numBase}");
+        list.Add<Sprite>($"Units/CatBases/decorations/{numDeco}");
+        list.Add<Sprite>($"Units/CatBases/head/{cannonType}");
+
+        // CatBase.cs:177 / CannonUnit.cs:41 - the cannon and its effect units.
+        list.Add<GameObject>($"Units/CatBases/effectUnits/{cannonType}/cannonUnit");
+        list.AddNumbered<GameObject>($"Units/CatBases/effectUnits/{cannonType}/eff", 16);
+        // CatBase.cs:243 - install-complete effect, hard-coded to set 5.
+        list.Add<GameObject>("Units/CatBases/effectUnits/5/eff/1");
+    }
+
+    /// <summary>
+    /// Projectile prefabs (PassiveEditor.cs:1092). The id comes from per-unit passive data and is
+    /// only known at fire time, so the whole catalogued range is queued; absent ids are skipped.
+    /// </summary>
+    private static void AddProjectileAssets(BundledAddressables.PrewarmList list)
+    {
+        for (int i = 0; i <= MaxProjectileId; i++)
+        {
+            string address = $"Units/Projectiles/p{i:000}/projunit";
+            if (BundledAddressables.Exists(address, typeof(GameObject))) list.Add<GameObject>(address);
+        }
     }
 
     /// <summary>

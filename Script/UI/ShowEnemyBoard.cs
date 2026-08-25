@@ -12,8 +12,6 @@ public class ShowEnemyBoard : MonoBehaviour
     [SerializeField] private Transform EnemyList;
     [SerializeField] private KiPanel panel;
     private readonly List<GameObject> enemyIconPool = new List<GameObject>();
-    private readonly Dictionary<string, Sprite> enemyIconCache = new Dictionary<string, Sprite>();
-    private Sprite hatenaSpriteCache;
 
     /// <param name="blindAllEnemyIcons">IV 且未通关时：所有槽位使用问号图标，不暴露真实敌人头像。</param>
     public void ShowEnemies(string[] en, int[] enemyMultipliers = null, bool blindAllEnemyIcons = false)
@@ -27,12 +25,6 @@ public class ShowEnemyBoard : MonoBehaviour
         }
 
         if (en == null || count == 0) return;
-
-        if (blindAllEnemyIcons)
-        {
-            if (hatenaSpriteCache == null)
-                hatenaSpriteCache = BundledAddressables.LoadSync<Sprite>(EnemyHatenaSpritePath);
-        }
 
         for (int i = 0; i < count; i++)
         {
@@ -55,19 +47,18 @@ public class ShowEnemyBoard : MonoBehaviour
                 multiText = iconObj.transform.GetChild(0).GetComponent<TMP_Text>();
             if (image != null)
             {
-                if (blindAllEnemyIcons && hatenaSpriteCache != null)
+                // 图标按需异步加载；槽位复用时以 iconObj 为 owner，旧请求自动作废
+                string iconAddress = blindAllEnemyIcons
+                    ? EnemyHatenaSpritePath
+                    : $"Units/Enemy Units/{en[i]}/enemy_icon";
+                AsyncIconLoader.Instance.Load(iconObj, iconAddress,
+                    sprite => { if (image != null) image.sprite = sprite; });
+
+                if (blindAllEnemyIcons)
                 {
-                    image.sprite = hatenaSpriteCache;
                     if (multiText != null) multiText.text = string.Empty;
                     continue;
                 }
-
-                if (!enemyIconCache.TryGetValue(en[i], out Sprite icon))
-                {
-                    icon = BundledAddressables.LoadSync<Sprite>($"Units/Enemy Units/{en[i]}/enemy_icon");
-                    enemyIconCache[en[i]] = icon;
-                }
-                image.sprite = icon;
             }
             if (multiText != null)
             {

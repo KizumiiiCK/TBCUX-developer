@@ -44,14 +44,19 @@ public class RewardCanvas : UICanvasMain
             case RewardType.character:
                 reward_image.gameObject.SetActive(false);
                 character_image.gameObject.SetActive(true);
-                character_image.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetCatDeployIconPath(rewardcode.ToString("0000"), 0));
+                // 奖励图标按需异步加载
+                AsyncIconLoader.Instance.Load(gameObject,
+                    RewardIconHelper.GetCatDeployIconPath(rewardcode.ToString("0000"), 0),
+                    sprite => { if (character_image != null) character_image.sprite = sprite; });
                 reward_count.text = "+1";
                 reward_stack.text = "";
                 break;
             case RewardType.UnlockTire:
                 reward_image.gameObject.SetActive(false);
                 character_image.gameObject.SetActive(true);
-                character_image.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetUnlockTireIconPath(rewardcode));
+                AsyncIconLoader.Instance.Load(gameObject,
+                    RewardIconHelper.GetUnlockTireIconPath(rewardcode),
+                    sprite => { if (character_image != null) character_image.sprite = sprite; });
                 reward_count.text = "+1";
                 reward_stack.text = "";
                 break;

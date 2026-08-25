@@ -63,12 +63,32 @@ public class BontiqueItems : MonoBehaviour
         CacheRefs();
 
         bool isCharacterReward = item.RewardKind == RewardType.character;
-        Sprite rewardSprite = ResolveRewardSprite(item, isCharacterReward);
         if (rewardImage != null)
         {
-            rewardImage.sprite = rewardSprite;
-            rewardImage.enabled = rewardSprite != null;
             rewardImage.rectTransform.sizeDelta = isCharacterReward ? CharacterImageSize : ItemImageSize;
+            if (isCharacterReward)
+            {
+                // 角色图标走 Addressables，按需异步加载
+                string cid = item.gainId.ToString("0000");
+                rewardImage.enabled = false;
+                AsyncIconLoader.Instance.Load(gameObject,
+                    $"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy",
+                    sprite =>
+                    {
+                        if (rewardImage == null) return;
+                        rewardImage.sprite = sprite;
+                        rewardImage.enabled = sprite != null;
+                    });
+            }
+            else
+            {
+                // 道具图标在 Resources 中，随包内置，可同步取
+                Sprite rewardSprite = item.gainId >= 0
+                    ? StorageImageHelper.GetItemImageByOrder(item.gainId)
+                    : null;
+                rewardImage.sprite = rewardSprite;
+                rewardImage.enabled = rewardSprite != null;
+            }
         }
         if (obtainAmountText != null) obtainAmountText.text = $"x{item.ObtainAmount}";
 
@@ -137,21 +157,6 @@ public class BontiqueItems : MonoBehaviour
             redeemButton.interactable = canRedeem;
             redeemButton.onClick.AddListener(OnRedeemClicked);
         }
-    }
-
-    private static Sprite ResolveRewardSprite(BontiqueShopItem item, bool isCharacterReward)
-    {
-        if (item == null) return null;
-        if (isCharacterReward)
-        {
-            string cid = item.gainId.ToString("0000");
-            return BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{cid[0]}/{cid.Substring(1, 3)}/0/icon_deploy");
-        }
-        if (item.gainId >= 0)
-        {
-            return StorageImageHelper.GetItemImageByOrder(item.gainId);
-        }
-        return null;
     }
 
     private static int GetEventDaysLeft(BontiqueShopItem item, DateTime now)

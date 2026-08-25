@@ -12,7 +12,6 @@ public class EquipCatSetController : MonoBehaviour
     private int rality;
     private string code = "000";
     private bool[] unlocked = Array.Empty<bool>();
-    private Sprite[] tireIcons = Array.Empty<Sprite>();
     private int[] tireCosts = Array.Empty<int>();
     private int currentTire;
     private int maxUnlockedTire;
@@ -31,7 +30,6 @@ public class EquipCatSetController : MonoBehaviour
         int rality,
         string code,
         bool[] unlocked,
-        Sprite[] tireIcons,
         int[] tireCosts,
         Action<int, string, int> onSelect,
         int initialTire = -1,
@@ -40,7 +38,6 @@ public class EquipCatSetController : MonoBehaviour
         this.rality = rality;
         this.code = code ?? "000";
         this.unlocked = unlocked ?? Array.Empty<bool>();
-        this.tireIcons = tireIcons ?? Array.Empty<Sprite>();
         this.tireCosts = tireCosts ?? Array.Empty<int>();
         this.onSelect = onSelect;
         this.isSelected = isSelected;
@@ -77,8 +74,8 @@ public class EquipCatSetController : MonoBehaviour
         if (characterButton != null)
         {
             characterButton.SetOutfit(KiOutfit.Border, rality + 1);
-            Sprite icon = GetCurrentIcon();
-            characterButton.SetCover(icon);
+            // 图标按需异步加载：先留空，到位后由回调填充
+            RequestCurrentIcon();
             characterButton.SetText($"{GetCurrentCost()} $");
             UpdateSelectionFrameEffect();
         }
@@ -127,10 +124,23 @@ public class EquipCatSetController : MonoBehaviour
         if (characterButton != null) characterButton.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
     }
 
-    private Sprite GetCurrentIcon()
+    /// <summary>
+    /// 当前 tire 的图标地址。图标按需异步加载，切换 tire 时重新请求。
+    /// </summary>
+    private string GetCurrentIconAddress()
     {
-        if (currentTire >= 0 && currentTire < tireIcons.Length) return tireIcons[currentTire];
-        return null;
+        if (currentTire < 0) return null;
+        return $"Units/Cat Units/{rality}/{code}/{currentTire}/icon_deploy";
+    }
+
+    /// <summary>
+    /// 异步拉取当前 tire 图标。以本组件为 owner，格子被回收或切换 tire 时旧请求自动作废。
+    /// </summary>
+    private void RequestCurrentIcon()
+    {
+        if (characterButton == null) return;
+        AsyncIconLoader.Instance.Load(this, GetCurrentIconAddress(),
+            sprite => { if (characterButton != null) characterButton.SetCover(sprite); });
     }
 
     private int GetCurrentCost()

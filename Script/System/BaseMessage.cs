@@ -21,10 +21,19 @@ public class BaseMessage : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        StartCoroutine(StartRoutine());
+        SwitchMessage_Btn.onClick.AddListener(LoadRandomMessage);
+    }
+
+    /// <summary>
+    /// 立绘目录与章节门图需要先异步拉取，之后再读取显示。
+    /// </summary>
+    private IEnumerator StartRoutine()
+    {
+        yield return DialoguePortraitCatalog.EnsureLoadedRoutine();
         LoadRandomCharacter();
         LoadRandomMessage();
-        ChangeDoors();
-        SwitchMessage_Btn.onClick.AddListener(LoadRandomMessage);
+        yield return ChangeDoorsRoutine();
     }
     private void LoadRandomCharacter()
     {
@@ -61,25 +70,31 @@ public class BaseMessage : MonoBehaviour
         yield return new WaitForFixedUpdate();
         onChanging = false;
     }
-    private void ChangeDoors()
+    private IEnumerator ChangeDoorsRoutine()
     {
         string cpt_name = PlayerPrefs.GetString(UXPref.ChapterName);
-        if (cpt_name != null)
+        if (string.IsNullOrEmpty(cpt_name)) yield break;
+
+        string address = $"Background/Doors/door_{cpt_name}";
+        var list = new BundledAddressables.PrewarmList();
+        list.AddSpriteSheet(address);
+        yield return BundledAddressables.PrewarmRoutine(list);
+
+        Sprite[] ds = BundledAddressables.LoadSpriteSheetSync(address);
+        if (ds == null || ds.Length <= 1)
         {
-            Sprite[] ds = BundledAddressables.LoadSpriteSheetSync($"Background/Doors/door_{cpt_name}");
-            if (ds != null) if(ds.Length>1)
-            {
-                if (frameUIAnimations != null)
-                {
-                    frameUIAnimations.SetDoorSprites(ds[0], ds[1]);
-                }
-                else if (Doors != null && Doors.childCount > 1)
-                {
-                    Doors.GetChild(0).GetComponent<Image>().sprite = ds[0];
-                    Doors.GetChild(1).GetComponent<Image>().sprite = ds[1];
-                }
-            }
-            else Debug.Log("No Image");
+            Debug.Log("No Image");
+            yield break;
+        }
+
+        if (frameUIAnimations != null)
+        {
+            frameUIAnimations.SetDoorSprites(ds[0], ds[1]);
+        }
+        else if (Doors != null && Doors.childCount > 1)
+        {
+            Doors.GetChild(0).GetComponent<Image>().sprite = ds[0];
+            Doors.GetChild(1).GetComponent<Image>().sprite = ds[1];
         }
     }
 }

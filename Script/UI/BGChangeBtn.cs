@@ -10,8 +10,10 @@ public class BGChangeBtn : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        Sprite s = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{background_num}");
-        GetComponent<Image>().sprite = s;
+        // 背景缩略图按需异步加载
+        Image image = GetComponent<Image>();
+        AsyncIconLoader.Instance.Load(gameObject, $"Background/Maps/{background_num}",
+            sprite => { if (image != null) image.sprite = sprite; });
     }
     public void SendBGNum()
     {

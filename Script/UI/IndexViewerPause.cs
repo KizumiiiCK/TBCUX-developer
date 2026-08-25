@@ -99,8 +99,18 @@ public class IndexViewerPause : MonoBehaviour
     {
         if (portraitImage == null) return;
 
+        // 被检视的单位已在场上，资源由 BattlePrewarm 预热过，同步读取通常命中缓存；
+        // 未命中时（例如敌人图标未随单位一起预热）走异步补拉，避免出现空图。
         Sprite portrait = LoadPortrait(code, isCat);
         if (portrait != null) portraitImage.sprite = portrait;
+        else
+        {
+            string address = isCat && code.Length >= 5
+                ? string.Format(CatIconPathFormat, code[0], code.Substring(1, 3), code[4])
+                : string.Format(EnemyIconPathFormat, code);
+            AsyncIconLoader.Instance.Load(portraitImage.gameObject, address,
+                sprite => { if (portraitImage != null && sprite != null) portraitImage.sprite = sprite; });
+        }
 
         RectTransform rt = portraitImage.rectTransform;
         if (rt != null)

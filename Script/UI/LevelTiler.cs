@@ -245,15 +245,24 @@ public class LevelTiler : UICanvasMain
     }
     private void LaunchAttack()
     {
-        Image bc=Instantiate(Resources.Load<GameObject>("UI/ZDKS")).transform.GetChild(1).GetComponent<Image>();
+        // 出击横幅的立绘可能尚未下载，异步确保后再显示
+        StartCoroutine(LaunchAttackRoutine());
+    }
+
+    private IEnumerator LaunchAttackRoutine()
+    {
+        PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
+        this.enabled = false;
+
+        Image bc = Instantiate(Resources.Load<GameObject>("UI/ZDKS")).transform.GetChild(1).GetComponent<Image>();
+        yield return DialoguePortraitCatalog.EnsureLoadedRoutine();
+
         IReadOnlyList<Sprite> portraits = DialoguePortraitCatalog.GetVisiblePortraits();
-        if (portraits.Count > 0)
+        if (portraits.Count > 0 && bc != null)
         {
             int index = Mathf.Clamp(PlayerPrefs.GetInt("base_character", 0), 0, portraits.Count - 1);
             bc.sprite = portraits[index];
         }
-        PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
-        this.enabled = false;
     }
     private void ToggleSelectionsPanel()
     {

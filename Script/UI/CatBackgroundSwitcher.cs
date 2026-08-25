@@ -177,7 +177,9 @@ public class CatBackgroundSwitcher : MonoBehaviour
         PlayerPrefs.SetInt(UXPref.Localized_BGnum, bgNum);
         if (backgroundImage != null)
         {
-            backgroundImage.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgNum}");
+            // 背景按需异步加载
+            AsyncIconLoader.Instance.Load(backgroundImage.gameObject, $"Background/Maps/{bgNum}",
+                sprite => { if (backgroundImage != null) backgroundImage.sprite = sprite; });
         }
         onBackgroundApplied?.Invoke();
     }
