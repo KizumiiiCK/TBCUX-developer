@@ -12,7 +12,7 @@ public class EnemyIndexCanvas : UICanvasMain
     private struct EnemyListEntry
     {
         public string Code;
-        public Sprite Icon;
+        public string IconAddress;
         public bool Unlocked;
     }
 
@@ -44,6 +44,7 @@ public class EnemyIndexCanvas : UICanvasMain
     private static bool indexShowAll = false;
     private readonly List<EnemyListEntry> enemyListEntries = new List<EnemyListEntry>();
     private VirtualizedScrollGrid<EnemyListEntry> headIconGrid;
+    private Coroutine showCharacterRoutine;
 
     // Start is called before the first frame update
     void Start()
@@ -59,22 +60,19 @@ public class EnemyIndexCanvas : UICanvasMain
     public void LoadEnemies()
     {
         enemyListEntries.Clear();
-        BundledAddressables.EnsureInitialized();
         for (int i = 2; i < 1000; i++)
         {
             string ucformat = "e" + i.ToString("000");
             string iconAddress = $"Units/Enemy Units/{ucformat}/enemy_icon";
+            // Catalog lookup only - no download, so the list structure is available instantly.
             if (!BundledAddressables.Exists(iconAddress, typeof(Sprite)))
                 continue;
 
             bool unlocked = indexShowAll ? true : EnemyMeetSave.GetUnlocked(i);
-            Sprite ccd = BundledAddressables.LoadSync<Sprite>(iconAddress);
-            if (ccd == null) continue;
-            if (!unlocked) ccd = UnknownImage;
             enemyListEntries.Add(new EnemyListEntry
             {
                 Code = ucformat,
-                Icon = ccd,
+                IconAddress = iconAddress,
                 Unlocked = unlocked
             });
         }
@@ -82,20 +80,43 @@ public class EnemyIndexCanvas : UICanvasMain
         if (headIconGrid != null) headIconGrid.SetData(enemyListEntries, true);
         ShowCertainCharacter("e002");
     }
-    public void ShowCertainCharacter(string char_code, bool resetAnimation=true)
+
+    /// <summary>
+    /// 显示某个敌人。资源改为异步按需拉取，对外入口只启动协程。
+    /// </summary>
+    public void ShowCertainCharacter(string char_code, bool resetAnimation = true)
+    {
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
+        showCharacterRoutine = StartCoroutine(ShowCertainCharacterRoutine(char_code, resetAnimation));
+    }
+
+    private IEnumerator ShowCertainCharacterRoutine(string char_code, bool resetAnimation)
     {
         current_code = char_code;
-        if (resetAnimation)
+        if (!resetAnimation)
         {
-            Application.targetFrameRate = 30;
-            if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-            CharacterData CD = CharacterVisualLoader.LoadCharacterData(false, current_code);
-            if (CD == null)
-            {
-                Debug.LogWarning($"[EnemyIndexCanvas] Missing enemy data for {current_code}");
-                return;
-            }
-            current_display_character = CharacterSummoner.CreateACharacter(false,current_code, true);
+            showCharacterRoutine = null;
+            yield break;
+        }
+
+        // 展示一个敌人需要 data + 动画资源全套，按需拉取
+        var list = new BundledAddressables.PrewarmList();
+        BattlePrewarm.AddUnit(list, false, current_code);
+        list.Add<GameObject>("Units/Enemy Units/enemyunit");
+        yield return BundledAddressables.PrewarmRoutine(list);
+
+        Application.targetFrameRate = 30;
+        if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
+        CharacterData CD = CharacterVisualLoader.LoadCharacterData(false, current_code);
+        if (CD == null)
+        {
+            Debug.LogWarning($"[EnemyIndexCanvas] Missing enemy data for {current_code}");
+            showCharacterRoutine = null;
+            yield break;
+        }
+        current_display_character = CharacterSummoner.CreateACharacter(false, current_code, true);
+        if (current_display_character != null)
+        {
             CharacterSummoner.SetCharacterPosition(current_display_character,
                 mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? 2 : 0, -4, 10));
             CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
@@ -103,11 +124,12 @@ public class EnemyIndexCanvas : UICanvasMain
             current_animation_num = 0;
             playableAnimCount = CharacterVisualLoader.GetPlayableAnimCount(
                 current_display_character, UnityAnimated, false, current_code, CD);
-            CharacterVisualLoader.SwitchAnimation(current_display_character,UnityAnimated,current_animation_num);
+            CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
             if (UnityAnimated) current_display_character.transform.localScale *= 1.25f;
-            IV.ShowCharacterDetails(CD,false,1);
-            LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, current_code, localizedText => name_txt.text = localizedText ?? current_code);
         }
+        IV.ShowCharacterDetails(CD, false, 1);
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, current_code, localizedText => name_txt.text = localizedText ?? current_code);
+        showCharacterRoutine = null;
     }
     public void InitializeButtons()
     {
@@ -135,12 +157,22 @@ public class EnemyIndexCanvas : UICanvasMain
     }
     public void UpdateBackground()
     {
+        StartCoroutine(UpdateBackgroundRoutine());
+    }
+
+    private IEnumerator UpdateBackgroundRoutine()
+    {
         int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-        background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
+        string address = $"Background/Maps/{bgn}";
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<Sprite>(address);
+        yield return BundledAddressables.PrewarmRoutine(list);
+        if (background != null) background.sprite = BundledAddressables.LoadSync<Sprite>(address);
         ShowCertainCharacter(current_code);
     }
     private void OnDestroy()
     {
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
     }
@@ -173,14 +205,32 @@ public class EnemyIndexCanvas : UICanvasMain
         if (iconGO == null) return;
 
         var image = iconGO.GetComponent<Image>();
-        if (image != null) image.sprite = data.Icon;
+        if (image != null)
+        {
+            if (!data.Unlocked)
+            {
+                // 未解锁的敌人显示为未知图标，不需要下载真实图标
+                AsyncIconLoader.Instance.Cancel(iconGO);
+                image.sprite = UnknownImage;
+            }
+            else
+            {
+                // 缩略图按需异步加载：格子先留空，图标到位后填充
+                AsyncIconLoader.Instance.Load(iconGO, data.IconAddress,
+                    sprite => { if (image != null) image.sprite = sprite; });
+            }
+        }
 
         var button = iconGO.GetComponent<Button>();
         if (button != null)
         {
             button.interactable = data.Unlocked;
             button.onClick.RemoveAllListeners();
-            if (data.Unlocked) button.onClick.AddListener(() => ShowCertainCharacter(data.Code));
+            if (data.Unlocked)
+            {
+                string code = data.Code;
+                button.onClick.AddListener(() => ShowCertainCharacter(code));
+            }
         }
     }
     public override IEnumerator OnEnter()

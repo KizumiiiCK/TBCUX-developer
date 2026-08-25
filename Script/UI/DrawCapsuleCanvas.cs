@@ -185,21 +185,27 @@ public class DrawCapsuleCanvas : UICanvasMain
         SetDrawStageVideoState(DrawStageVideoState.Rolling);
         yield return MovePinnedElementsRoutine(true);
         //AllDrawElements.SetActive(false);
-        yield return new WaitForSeconds(3.5f);
         List<int> DrawCharacters = DrawSave.GetPreviouslyDrawed();
+
+        // 抽卡结果是运行时随机的，无法提前预热。转场动画的这几秒正好是天然的下载窗口：
+        // 在动画播放的同时把本次全部中奖角色的资源拉下来，玩家感知不到等待。
+        Coroutine preload = StartCoroutine(PreloadDrawedCharacters(DrawCharacters));
+        yield return new WaitForSeconds(3.5f);
         SetParticleColor(FindMostRare(DrawCharacters),25);
         SetParticleRate(25);
         yield return new WaitForSeconds(2);
         SetParticleRate(0);
         yield return new WaitForSeconds(1);
+        // 万一网络慢于动画，这里补等，保证首个角色一定能显示出来
+        if (preload != null) yield return preload;
         for (int i = DrawCharacters.Count - 1; i >= 0; i--)
         {
             ConfirmElements.SetActive(false);
             allow_continue = false;
-            ShowCertainCharacter(DrawCharacters[i]);
+            yield return ShowCertainCharacterRoutine(DrawCharacters[i]);
             current_charactercode = DrawCharacters[i];
             CheckSkip(DrawCharacters[i]);
-            SetupInfoBoard(current_charactercode);
+            yield return SetupInfoBoardRoutine(current_charactercode);
             yield return PlayRevealThenResultStageVideo();
             GainBtn.interactable = CharacterUpgradeSave.DrawUpgradeAvailable(DrawCharacters[i].ToString("0000"));
             PlatformAudio.PlaySfx(getBGM);
@@ -233,15 +239,55 @@ public class DrawCapsuleCanvas : UICanvasMain
             SetPageInProgress(false);
         }
     }
-    public void ShowCertainCharacter(int code)
+    /// <summary>
+    /// 预加载本次抽到的全部角色资源。抽卡结果随机，只能在结果产生之后拉取，
+    /// 因此放在转场动画期间并行进行。
+    /// </summary>
+    private IEnumerator PreloadDrawedCharacters(List<int> codes)
+    {
+        if (codes == null || codes.Count == 0) yield break;
+
+        var list = new BundledAddressables.PrewarmList();
+        var seen = new HashSet<int>();
+        for (int i = 0; i < codes.Count; i++)
+        {
+            int code = codes[i];
+            if (!seen.Add(code)) continue;
+
+            int rarity = code / 1000;
+            string charCode = (code % 1000).ToString("000");
+            string root = $"Units/Cat Units/{rarity}/{charCode}/0/";
+
+            // 展示用的完整单位资源 + 结果面板的图标
+            BattlePrewarm.AddUnit(list, true, $"{code}0");
+            list.Add<CharacterData>(root + "data");
+            list.Add<Sprite>(root + "icon_deploy");
+        }
+        list.Add<GameObject>("Units/Cat Units/catunit");
+        yield return BundledAddressables.PrewarmRoutine(list);
+    }
+
+    /// <summary>
+    /// 显示中奖角色。资源已由 PreloadDrawedCharacters 拉好，这里补一次预热兜底。
+    /// </summary>
+    public void ShowCertainCharacter(int code) => StartCoroutine(ShowCertainCharacterRoutine(code));
+
+    private IEnumerator ShowCertainCharacterRoutine(int code)
     {
         int rarity = code / 1000;
         string char_code = (code % 1000).ToString("000");
+        string characterCode = $"{code}0";
+
+        // 兜底：若转场期间的预加载未覆盖（例如网络失败重试），此处补齐
+        var list = new BundledAddressables.PrewarmList();
+        BattlePrewarm.AddUnit(list, true, characterCode);
+        list.Add<GameObject>("Units/Cat Units/catunit");
+        yield return BundledAddressables.PrewarmRoutine(list);
+
         Application.targetFrameRate = 30;
         if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-        string characterCode = $"{code}0";
         current_display_character = CharacterSummoner.CreateACharacter(true, characterCode, true);
-        if (current_display_character == null) return;
+        if (current_display_character == null) yield break;
 
         CharacterSummoner.SetCharacterPosition(current_display_character, new Vector3(0, -3.5f, 10));
         CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "Units", 3);
@@ -276,15 +322,21 @@ public class DrawCapsuleCanvas : UICanvasMain
         current_charactercode = 99999;
         allow_continue = true;
     }
-    private void SetupInfoBoard(int charcode)
+    private IEnumerator SetupInfoBoardRoutine(int charcode)
     {
         int rality = charcode / 1000;
         string code = (charcode % 1000).ToString("000");
         string address = $"Units/Cat Units/{rality}/{code}/0/";
-        IV.ShowCharacterDetails(BundledAddressables.LoadSync<CharacterData>(address+"data"),true, 1);
-        result_icon.sprite = BundledAddressables.LoadSync<Sprite>(address+ "icon_deploy");
+
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<CharacterData>(address + "data");
+        list.Add<Sprite>(address + "icon_deploy");
+        yield return BundledAddressables.PrewarmRoutine(list);
+
+        IV.ShowCharacterDetails(BundledAddressables.LoadSync<CharacterData>(address + "data"), true, 1);
+        result_icon.sprite = BundledAddressables.LoadSync<Sprite>(address + "icon_deploy");
         LocalizationHelper.GetLocalizedText("UnitNames", $"{rality}{code}0", localizedText => char_name.text = localizedText ?? $"{rality}{code}0");
-        SetParticleColor(rality,15);
+        SetParticleColor(rality, 15);
         SetParticleRate(25);
         NP_valueTxt.text = $"+{ralityNPMap[rality]}";
     }

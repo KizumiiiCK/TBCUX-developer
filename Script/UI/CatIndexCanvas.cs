@@ -69,9 +69,7 @@ public class CatIndexCanvas : UICanvasMain
     private readonly List<int> runtimeExtraCurrencyIds = new List<int>();
     private RectTransform headIconViewport;
     private readonly List<string> currentRarityCodes = new List<string>();
-    private readonly Dictionary<string, Sprite> currentRarityIconCache = new Dictionary<string, Sprite>();
     private readonly Dictionary<int, List<string>> rarityCodesCache = new Dictionary<int, List<string>>();
-    private readonly Dictionary<int, Dictionary<string, Sprite>> rarityIconsCache = new Dictionary<int, Dictionary<string, Sprite>>();
     private readonly Dictionary<string, bool> unlockedBaseTireCache = new Dictionary<string, bool>();
     private readonly Dictionary<int, GameObject> activeHeadIcons = new Dictionary<int, GameObject>();
     private readonly Stack<GameObject> pooledHeadIcons = new Stack<GameObject>();
@@ -88,6 +86,8 @@ public class CatIndexCanvas : UICanvasMain
     private bool showUnownedCharacters = true;
     private bool isLoadingRarityCharacters = false;
     private Coroutine loadRarityRoutine;
+    private Coroutine showCharacterRoutine;
+    private Coroutine showTireRoutine;
     private const string EquipCanvasPrefab = "EquipCanvas";
 
     private static Dictionary<int, RewardName> CateyeConsume_rality = new Dictionary<int, RewardName>
@@ -130,15 +130,10 @@ public class CatIndexCanvas : UICanvasMain
         RefreshFrameUICurrenciesForRarity();
         yield return EnsureRarityCacheBuilt(rality);
         currentRarityCodes.Clear();
-        currentRarityIconCache.Clear();
         List<string> sourceCodes = GetVisibleCodesForCurrentRarity();
-        Dictionary<string, Sprite> iconMap = rarityIconsCache[rality];
         for (int i = 0; i < sourceCodes.Count; i++)
         {
-            string code = sourceCodes[i];
-            currentRarityCodes.Add(code);
-            if (iconMap.TryGetValue(code, out var icon)) currentRarityIconCache[code] = icon;
-            if ((i + 1) % 80 == 0) yield return null;
+            currentRarityCodes.Add(sourceCodes[i]);
         }
 
         if (virtualListReady)
@@ -155,45 +150,64 @@ public class CatIndexCanvas : UICanvasMain
         SetRarityLoadingState(false);
         if (currentRarityCodes.Count > 0)
         {
-            ShowCertainCharacter(currentRarityCodes[0]);
-            ShowCertainCharInTire(current_tire);
+            // 详情页需要该角色的完整资源，先异步拉好再显示，避免同步读缓存未命中
+            yield return ShowCertainCharacterRoutine(currentRarityCodes[0]);
         }
     }
+    /// <summary>
+    /// 显示某个角色的详情。资源改为异步按需拉取，因此对外入口只负责启动协程。
+    /// </summary>
     public void ShowCertainCharacter(string char_code)
     {
         if (isLoadingRarityCharacters) return;
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
+        showCharacterRoutine = StartCoroutine(ShowCertainCharacterRoutine(char_code));
+    }
+
+    private IEnumerator ShowCertainCharacterRoutine(string char_code)
+    {
         current_code = char_code;
-        Sprite[] head_icons=new Sprite[4];
+
+        // 该角色的详情资源（升级表、4 个 tire 图标、以及展示用的完整单位资源）在这里一次性预热，
+        // 之后 ShowCertainCharInTire 里的同步读取才能命中缓存。
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
+        for (int t = 0; t < 4; t++) list.Add<Sprite>(GetDeployIconAddress(rality, current_code, t));
+        yield return BundledAddressables.PrewarmRoutine(list);
+
         CharacterUpgradeSave.UpgradeDetails UD = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
         bool[] unlocked = UD.tire_unlocked;
         current_level = UD.TotalLevel();
         current_tire = GetDefaultDisplayTire(unlocked);
-        if (unlocked[0]) { upgradeLock = false; }
-        else { upgradeLock = true; }
+        upgradeLock = !unlocked[0];
+
         bool enableTireButton = true;
-        TotalUpgradeCost tuc= BundledAddressables.LoadSync<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
+        TotalUpgradeCost tuc = BundledAddressables.LoadSync<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
         for (int i = 0; i < 4; i++)
         {
-            head_icons[i]= BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{current_code}/{i}/icon_deploy");
-            if (i > 0) if (tuc.cost[(i - 1)].method == UpgradeMethod.unavailable)
+            Sprite headIcon = BundledAddressables.LoadSync<Sprite>(GetDeployIconAddress(rality, current_code, i));
+            if (i > 0 && tuc != null && tuc.cost[i - 1].method == UpgradeMethod.unavailable)
             {
-                Char_Rarity_Btns[i].gameObject.SetActive(false); continue;
+                Char_Rarity_Btns[i].gameObject.SetActive(false);
+                continue;
             }
-            if (head_icons[i] == null)
+            if (headIcon == null)
             {
                 Char_Rarity_Btns[i].gameObject.SetActive(false);
             }
             else
             {
                 Char_Rarity_Btns[i].gameObject.SetActive(true);
-                Char_Rarity_Btns[i].sprite= head_icons[i];
+                Char_Rarity_Btns[i].sprite = headIcon;
                 Button b = Char_Rarity_Btns[i].GetComponent<Button>();
-                if (enableTireButton) b.interactable = true;
-                else b.interactable = false;
-                if(unlocked[i]) b.transform.GetChild(0).gameObject.SetActive(false);
+                b.interactable = enableTireButton;
+                if (unlocked[i]) b.transform.GetChild(0).gameObject.SetActive(false);
                 else { enableTireButton = false; b.transform.GetChild(0).gameObject.SetActive(true); }
             }
         }
+
+        yield return ShowCertainCharInTireRoutine(current_tire, true);
+        showCharacterRoutine = null;
     }
 
     private int GetDefaultDisplayTire(bool[] unlocked)
@@ -211,34 +225,59 @@ public class CatIndexCanvas : UICanvasMain
         CharacterUpgradeSave.UpgradeDetails ud = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
         return GetDefaultDisplayTire(ud.tire_unlocked);
     }
-    public void ShowCertainCharInTire(int tire, bool resetAnimation=true)
+    /// <summary>
+    /// 切换到某个 tire 的展示。单位资源需异步拉取，对外入口只启动协程。
+    /// </summary>
+    public void ShowCertainCharInTire(int tire, bool resetAnimation = true)
     {
         if (isLoadingRarityCharacters) return;
-        current_tire= tire;
+        if (showTireRoutine != null) StopCoroutine(showTireRoutine);
+        showTireRoutine = StartCoroutine(ShowCertainCharInTireRoutine(tire, resetAnimation));
+    }
+
+    private IEnumerator ShowCertainCharInTireRoutine(int tire, bool resetAnimation = true)
+    {
+        current_tire = tire;
+        string unitCode = $"{rality}{current_code}{tire}";
         string loadPath = $"Units/Cat Units/{rality}/{current_code}/{tire}/";
+
+        // 展示一个单位需要 data + 动画资源全套，这里按需拉取（图鉴不预热全部角色）
+        var list = new BundledAddressables.PrewarmList();
+        BattlePrewarm.AddUnit(list, true, unitCode);
+        yield return BundledAddressables.PrewarmRoutine(list);
+
         CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");
+        if (CD == null)
+        {
+            Debug.LogWarning($"[CatIndexCanvas] Missing character data for {unitCode}");
+            showTireRoutine = null;
+            yield break;
+        }
+
         if (resetAnimation)
         {
             Application.targetFrameRate = 30;
             if (current_display_character != null) DestroyImmediate(current_display_character.gameObject);
-            //string loadPath = $"Units/Cat Units/{rarity}/{current_code}/{tire}/";
-            //CharacterData CD = Resources.Load<CharacterData>(loadPath + "data");
-            current_display_character = CharacterSummoner.CreateACharacter(true, $"{rality}{current_code}{tire}", true);
-            CharacterSummoner.SetCharacterPosition(current_display_character,
-                mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -6, 10));
-            CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
-            current_display_character.transform.localScale = current_display_character.transform.localScale * 1.3f;
-            UnityAnimated = CD.UNITYAnimated;
-            if (UnityAnimated) current_display_character.transform.localScale *= 1.2f;
-            current_animation_num = 0;
-            playableAnimCount = CharacterVisualLoader.GetPlayableAnimCount(
-                current_display_character, UnityAnimated, true, $"{rality}{current_code}{tire}", CD);
-            CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
-            LocalizationHelper.GetLocalizedText("UnitNames", $"{rality}{current_code}{tire}", localizedText => name_txt.text = localizedText ?? $"{rality}{current_code}{tire}");
+            current_display_character = CharacterSummoner.CreateACharacter(true, unitCode, true);
+            if (current_display_character != null)
+            {
+                CharacterSummoner.SetCharacterPosition(current_display_character,
+                    mainCamera.transform.position + new Vector3(CD.UNITYAnimated ? -2 : 0, -6, 10));
+                CharacterVisualLoader.ResetAnimationOrderLayer(current_display_character, "UI", 3);
+                current_display_character.transform.localScale = current_display_character.transform.localScale * 1.3f;
+                UnityAnimated = CD.UNITYAnimated;
+                if (UnityAnimated) current_display_character.transform.localScale *= 1.2f;
+                current_animation_num = 0;
+                playableAnimCount = CharacterVisualLoader.GetPlayableAnimCount(
+                    current_display_character, UnityAnimated, true, unitCode, CD);
+                CharacterVisualLoader.SwitchAnimation(current_display_character, UnityAnimated, current_animation_num);
+            }
+            LocalizationHelper.GetLocalizedText("UnitNames", unitCode, localizedText => name_txt.text = localizedText ?? unitCode);
         }
         //
         IV.ShowCharacterDetails(CD, true, current_level);
         CheckUpgradeAvailable();
+        showTireRoutine = null;
     }
     public void InitializeButtons()
     {
@@ -278,19 +317,20 @@ public class CatIndexCanvas : UICanvasMain
     {
         if (rarityCodesCache.ContainsKey(rarity)) yield break;
         List<string> codes = new List<string>();
-        Dictionary<string, Sprite> iconMap = new Dictionary<string, Sprite>();
         for (int i = 0; i < 1000; i++)
         {
             string code = i.ToString("000");
-            Sprite icon = BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rarity}/{code}/0/icon_deploy");
-            if (icon == null) continue;
+            // Catalog lookup only - no download. This is what lets the list be structured instantly;
+            // the icon pixels are fetched per-cell by AsyncIconLoader once a row is on screen.
+            if (!BundledAddressables.Exists(GetDeployIconAddress(rarity, code, 0), typeof(Sprite))) continue;
             codes.Add(code);
-            iconMap[code] = icon;
-            if ((i + 1) % 80 == 0) yield return null;
+            if ((i + 1) % 200 == 0) yield return null;
         }
         rarityCodesCache[rarity] = codes;
-        rarityIconsCache[rarity] = iconMap;
     }
+
+    private static string GetDeployIconAddress(int rarity, string code, int tire)
+        => $"Units/Cat Units/{rarity}/{code}/{tire}/icon_deploy";
 
     private List<string> GetVisibleCodesForCurrentRarity()
     {
@@ -501,6 +541,8 @@ public class CatIndexCanvas : UICanvasMain
     protected override void OnDestroy()
     {
         if (loadRarityRoutine != null) StopCoroutine(loadRarityRoutine);
+        if (showCharacterRoutine != null) StopCoroutine(showCharacterRoutine);
+        if (showTireRoutine != null) StopCoroutine(showTireRoutine);
         Destroy(current_display_character);
         if (headIconGrid != null) headIconGrid.Dispose();
         base.OnDestroy();
@@ -516,11 +558,17 @@ public class CatIndexCanvas : UICanvasMain
     public void UpdateBackground()
     {
         if (backgroundSwitcher != null) backgroundSwitcher.ApplyCurrentBackgroundImmediate();
-        else
-        {
-            int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
-            if (background != null) background.sprite = BundledAddressables.LoadSync<Sprite>($"Background/Maps/{bgn}");
-        }
+        else StartCoroutine(UpdateBackgroundRoutine());
+    }
+
+    private IEnumerator UpdateBackgroundRoutine()
+    {
+        int bgn = PlayerPrefs.GetInt(UXPref.Localized_BGnum, 0);
+        string address = $"Background/Maps/{bgn}";
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<Sprite>(address);
+        yield return BundledAddressables.PrewarmRoutine(list);
+        if (background != null) background.sprite = BundledAddressables.LoadSync<Sprite>(address);
     }
 
     private void ShowProfTable()
@@ -598,10 +646,11 @@ public class CatIndexCanvas : UICanvasMain
         {
             icb.SetCharacterCode(rality, code);
             icb.CIC = this;
-            if (currentRarityIconCache.TryGetValue(code, out var sprite))
-            {
-                icb.SetCatHead(sprite);
-            }
+
+            // 缩略图按需异步加载：格子先留空，图标到位后再填充。
+            // 传 iconGO 作为 owner，格子被回收复用时旧请求会自动作废。
+            AsyncIconLoader.Instance.Load(iconGO, GetDeployIconAddress(rality, code, 0),
+                sprite => { if (icb != null) icb.SetCatHead(sprite); });
 
             bool unlocked = CharacterUpgradeSave.GetDetails($"{rality}{code}").tire_unlocked[0];
             icb.SetUnlocked(unlocked);
@@ -743,10 +792,8 @@ public class CatIndexCanvas : UICanvasMain
         {
             icb.SetCharacterCode(rality, code);
             icb.CIC = this;
-            if (currentRarityIconCache.TryGetValue(code, out var sprite))
-            {
-                icb.SetCatHead(sprite);
-            }
+            AsyncIconLoader.Instance.Load(iconGO, GetDeployIconAddress(rality, code, 0),
+                sprite => { if (icb != null) icb.SetCatHead(sprite); });
 
             bool unlocked = CharacterUpgradeSave.GetDetails($"{rality}{code}").tire_unlocked[0];
             icb.SetUnlocked(unlocked);
@@ -774,10 +821,8 @@ public class CatIndexCanvas : UICanvasMain
             {
                 icb.SetCharacterCode(rality, code);
                 icb.CIC = this;
-                if (currentRarityIconCache.TryGetValue(code, out var sprite))
-                {
-                    icb.SetCatHead(sprite);
-                }
+                AsyncIconLoader.Instance.Load(uicon, GetDeployIconAddress(rality, code, 0),
+                    sprite => { if (icb != null) icb.SetCatHead(sprite); });
 
                 bool unlocked = CharacterUpgradeSave.GetDetails($"{rality}{code}").tire_unlocked[0];
                 icb.SetUnlocked(unlocked);
