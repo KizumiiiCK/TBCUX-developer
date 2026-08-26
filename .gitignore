@@ -97,5 +97,27 @@
 *.tmp
 *.bak
 *.swp
+*.origin
+*.psd
+*.psd.meta
 Thumbs.db
 Desktop.ini
+
+# Dev leftovers (kept on disk, not versioned)
+/Script/System/AnimationDisplayer.cs.origin
+/Resources/Units/testers/
+/Resources/Units/testers.meta
+/Resources/Units/Forbiden/
+/Resources/Units/Forbiden.meta
+/Resources/Units/AnimationTestUnit.prefab
+/Resources/Units/AnimationTestUnit.prefab.meta
+/Bundled/Units/charAnimTemp/
+/Bundled/Units/charAnimTemp.meta
+/Resources/LevelData/LevelEnemyData/world1.zip
+/Resources/LevelData/LevelEnemyData/world1.zip.meta
+/Resources/LevelData/LevelEnemyData/tests/
+/Resources/LevelData/LevelEnemyData/tests.meta
+/Resources/LevelData/LevelEnemyData/111/
+/Resources/LevelData/LevelEnemyData/111.meta
+/Resources/LevelData/Chapters/CPImages/cpimg.psd
+/Resources/LevelData/Chapters/CPImages/cpimg.psd.meta
