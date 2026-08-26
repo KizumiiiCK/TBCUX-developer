@@ -14,6 +14,8 @@ public class LoadingPage : MonoBehaviour
     [SerializeField] private Button abandonButton;
 
     [Header("Timing")]
+    [Tooltip("Fail a task after this many seconds with no progress at all. This is a stall timeout, " +
+             "not a total time limit - a task that keeps reporting progress may run indefinitely.")]
     [SerializeField] private float timeoutSeconds = 30f;
 
     private readonly List<LoadingTask> tasks = new List<LoadingTask>();
@@ -21,6 +23,7 @@ public class LoadingPage : MonoBehaviour
     private Coroutine taskRoutine;
     private Coroutine timeoutRoutine;
     private bool waitingChoice = false;
+    private float stallSeconds;
     private Action<bool> onAllComplete;
 
     private void Awake()
@@ -69,6 +72,9 @@ public class LoadingPage : MonoBehaviour
 
             UpdateStatus(task.Message);
             task.Reset();
+            // Let the routine restart its own stall countdown as it advances, without needing a
+            // reference back to this page.
+            task.ReportProgress = NotifyProgress;
 
             StartTimeout();
             yield return StartCoroutine(task.Routine(task));
@@ -103,13 +109,24 @@ public class LoadingPage : MonoBehaviour
 
     private IEnumerator TimeoutRoutine()
     {
-        float t = 0f;
-        while (t < timeoutSeconds)
+        stallSeconds = 0f;
+        while (stallSeconds < timeoutSeconds)
         {
-            t += Time.unscaledDeltaTime;
+            stallSeconds += Time.unscaledDeltaTime;
             yield return null;
         }
         FailCurrent("Connection Failed...");
+    }
+
+    /// <summary>
+    /// Reports that the current task is still making progress, restarting its stall countdown.
+    /// A battle prewarm downloads hundreds of assets under one task, so the watchdog has to measure
+    /// "nothing happened for N seconds" rather than total elapsed time - otherwise a slow but
+    /// perfectly healthy download fails and the player is asked to restart it from scratch.
+    /// </summary>
+    public void NotifyProgress()
+    {
+        stallSeconds = 0f;
     }
 
     private void RetryCurrent()
@@ -188,6 +205,13 @@ public class LoadingTask
 
     [NonSerialized] public bool Success;
     [NonSerialized] public object Result;
+
+    /// <summary>
+    /// Assigned by <see cref="LoadingPage"/> before the routine runs. Long tasks should call this
+    /// each time a unit of work finishes so the stall watchdog knows the task is alive.
+    /// Safe to invoke via <c>?.</c> - it is null if the task is run outside a LoadingPage.
+    /// </summary>
+    [NonSerialized] public Action ReportProgress;
 
     public LoadingTask(string message, Func<LoadingTask, IEnumerator> routine, Action<bool, object> onComplete = null)
     {

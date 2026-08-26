@@ -86,6 +86,9 @@ public class PrewarmGate : MonoBehaviour
             yield break;
         }
 
+        // No heartbeat here on purpose. This is one opaque round-trip for a small catalog file with
+        // no sub-steps to report, so the plain timeout is the correct watchdog: pumping it every
+        // frame would mean a hung connection never fails.
         bool ok = false;
         yield return BundledAddressables.InitializeRoutine(result => ok = result);
         task.Success = ok;
@@ -99,6 +102,11 @@ public class PrewarmGate : MonoBehaviour
         yield return BattlePrewarm.PrewarmCurrentBattleRoutine(
             (progress, label) =>
             {
+                // Every completed asset is proof the download is alive, so the stall watchdog is
+                // reset here. A big battle can legitimately take much longer than one asset's
+                // timeout budget; only a genuine stall should fail it.
+                task.ReportProgress?.Invoke();
+
                 if (page == null) page = pageAccessor?.Invoke();
                 if (page == null) return;
                 page.SetDetail(string.IsNullOrEmpty(label)

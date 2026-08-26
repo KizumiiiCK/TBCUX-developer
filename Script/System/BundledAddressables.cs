@@ -175,7 +175,9 @@ public static class BundledAddressables
         internal struct Entry
         {
             public string Label;
-            public Func<IEnumerator> Run;
+            // The heartbeat is threaded in explicitly (rather than kept in a static) so that
+            // concurrent prewarms cannot clobber each other's progress reporting.
+            public Func<Action, IEnumerator> Run;
         }
 
         public int Count => Entries.Count;
@@ -186,7 +188,7 @@ public static class BundledAddressables
             if (string.IsNullOrEmpty(address)) return this;
             string key = CacheKey(address, typeof(T));
             if (!seen.Add(key)) return this;
-            Entries.Add(new Entry { Label = address, Run = () => PrewarmSingle<T>(address) });
+            Entries.Add(new Entry { Label = address, Run = hb => PrewarmSingle<T>(address, hb) });
             return this;
         }
 
@@ -195,7 +197,7 @@ public static class BundledAddressables
         {
             if (string.IsNullOrEmpty(address)) return this;
             if (!seen.Add("sheet|" + address)) return this;
-            Entries.Add(new Entry { Label = address, Run = () => PrewarmSpriteSheet(address) });
+            Entries.Add(new Entry { Label = address, Run = hb => PrewarmSpriteSheet(address, hb) });
             return this;
         }
 
@@ -236,13 +238,45 @@ public static class BundledAddressables
         for (int i = 0; i < total; i++)
         {
             PrewarmList.Entry entry = list.Entries[i];
-            onProgress?.Invoke(i / (float)total, entry.Label);
-            yield return entry.Run();
+            float baseProgress = i / (float)total;
+            onProgress?.Invoke(baseProgress, entry.Label);
+            // Heartbeat during the download too, not just between entries: one entry can pull a
+            // whole bundle, which on a slow connection outlasts any single stall budget.
+            yield return entry.Run(() => onProgress?.Invoke(baseProgress, entry.Label));
         }
         onProgress?.Invoke(1f, string.Empty);
     }
 
-    private static IEnumerator PrewarmSingle<T>(string address) where T : UnityEngine.Object
+    /// <summary>
+    /// Yields until <paramref name="handle"/> finishes, invoking <paramref name="heartbeat"/> only
+    /// when the byte count actually advances.
+    ///
+    /// Firing every frame instead would defeat the caller's stall watchdog entirely: a connection
+    /// that opens and then hangs would look healthy forever. Tying the heartbeat to received bytes
+    /// keeps a slow-but-progressing download alive while still letting a dead one time out.
+    /// </summary>
+    private static IEnumerator AwaitWithHeartbeat(AsyncOperationHandle handle, Action heartbeat)
+    {
+        if (heartbeat == null)
+        {
+            yield return handle;
+            yield break;
+        }
+
+        long lastBytes = -1;
+        while (handle.IsValid() && !handle.IsDone)
+        {
+            long bytes = handle.GetDownloadStatus().DownloadedBytes;
+            if (bytes != lastBytes)
+            {
+                lastBytes = bytes;
+                heartbeat();
+            }
+            yield return null;
+        }
+    }
+
+    private static IEnumerator PrewarmSingle<T>(string address, Action heartbeat = null) where T : UnityEngine.Object
     {
         string key = CacheKey(address, typeof(T));
         if (handleCache.TryGetValue(key, out AsyncOperationHandle existing)
@@ -270,7 +304,7 @@ public static class BundledAddressables
             yield break;
         }
 
-        yield return handle;
+        yield return AwaitWithHeartbeat(handle, heartbeat);
 
         if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
         {
@@ -285,7 +319,7 @@ public static class BundledAddressables
         }
     }
 
-    private static IEnumerator PrewarmSpriteSheet(string address)
+    private static IEnumerator PrewarmSpriteSheet(string address, Action heartbeat = null)
     {
         if (spriteSheetCache.ContainsKey(address)) yield break;
 
@@ -296,7 +330,7 @@ public static class BundledAddressables
 
         AsyncOperationHandle<IList<IResourceLocation>> locHandle =
             Addressables.LoadResourceLocationsAsync(resolved, typeof(Sprite));
-        yield return locHandle;
+        yield return AwaitWithHeartbeat(locHandle, heartbeat);
 
         var sprites = new List<Sprite>(4);
         if (locHandle.Status == AsyncOperationStatus.Succeeded && locHandle.Result != null)
@@ -305,7 +339,7 @@ public static class BundledAddressables
             for (int i = 0; i < locations.Count; i++)
             {
                 AsyncOperationHandle<Sprite> h = Addressables.LoadAssetAsync<Sprite>(locations[i]);
-                yield return h;
+                yield return AwaitWithHeartbeat(h, heartbeat);
                 if (h.Status == AsyncOperationStatus.Succeeded && h.Result != null) sprites.Add(h.Result);
                 else if (h.IsValid()) Addressables.Release(h);
             }
