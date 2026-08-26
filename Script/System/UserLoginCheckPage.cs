@@ -33,7 +33,17 @@ public class UserLoginCheckPage : MonoBehaviour
     private void Start()
     {
         ShowChoice(false);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // On the Builda platform the player is already authenticated by the host: BuildaSDK.Whoami()
+        // is the identity, saves are per-player in the host's privateKV, and the skill doc states the
+        // game "does not perceive login". So there is nothing for this gate to decide - creating a
+        // local pid or inheriting via a transfer code would only compete with the platform identity.
+        // The prefab still lives in the MainMenu scene (and is needed by the Windows/Android builds),
+        // so it removes itself here rather than being deleted from the scene.
+        Destroy(gameObject);
+#else
         StartCoroutine(BootstrapCheck());
+#endif
     }
 
     private IEnumerator BootstrapCheck()

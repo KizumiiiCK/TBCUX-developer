@@ -22,16 +22,15 @@ public class MMOption : MonoBehaviour
     {
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
-        if (uploadAccountButton != null)
-        {
-            uploadAccountButton.gameObject.SetActive(true);
-            uploadAccountButton.onClick.AddListener(OpenUploadAccountPage);
-        }
-        if (deleteAccountButton != null)
-        {
-            deleteAccountButton.gameObject.SetActive(true);
-            deleteAccountButton.onClick.AddListener(OpenDeleteAccountPage);
-        }
+
+        // Account transfer and account deletion are hidden on the Builda platform: identity comes
+        // from the host (whoami) and saves live in the host's privateKV, so "move my account to
+        // another device" is just logging into the same platform account, and wiping progress is
+        // offered by the platform's own settings page. Both pages also depended on an external
+        // backend the platform blocks. The buttons are deactivated rather than deleted so the
+        // prefabs stay intact for the Windows/Android builds.
+        if (uploadAccountButton != null) uploadAccountButton.gameObject.SetActive(false);
+        if (deleteAccountButton != null) deleteAccountButton.gameObject.SetActive(false);
     }
 
     private void OnEnable()

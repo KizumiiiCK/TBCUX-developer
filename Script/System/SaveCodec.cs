@@ -413,8 +413,7 @@ public static class SaveCodec
         });
     }
 
-    public static byte[] EncodeIntList(List<int> list)
-    {
+    public static byte[] EncodeIntList(List<int> list)    {
         return ToBytes(w =>
         {
             WriteHeader(w);
@@ -435,6 +434,43 @@ public static class SaveCodec
             for (int i = 0; i < n; i++) list.Add(r.ReadInt32());
             return list;
         });
+    }
+
+    // ---- check-in streak ----
+
+    /// <summary>
+    /// The daily check-in record: last claimed date plus the running streak. Previously a row in a
+    /// Supabase table; the platform blocks that network path, and the host enforces clock integrity,
+    /// so it lives in privateKV alongside the rest of the player's progression.
+    /// </summary>
+    public static byte[] EncodeCheckIn(DateTime lastCheckIn, int consecutiveDays)
+    {
+        return ToBytes(w =>
+        {
+            WriteHeader(w);
+            w.Write(lastCheckIn.Ticks);
+            w.Write(consecutiveDays);
+        });
+    }
+
+    /// <summary>
+    /// Reads the check-in record. Returns false when no record exists, which the caller treats as a
+    /// first-time check-in rather than a broken save.
+    /// </summary>
+    public static bool TryDecodeCheckIn(byte[] bytes, out DateTime lastCheckIn, out int consecutiveDays)
+    {
+        lastCheckIn = DateTime.MinValue;
+        consecutiveDays = 0;
+        if (bytes == null || bytes.Length == 0) return false;
+
+        using (var ms = new MemoryStream(bytes, writable: false))
+        using (var r = new BinaryReader(ms, new UTF8Encoding(false)))
+        {
+            ReadHeader(r, "check-in");
+            lastCheckIn = new DateTime(r.ReadInt64());
+            consecutiveDays = r.ReadInt32();
+            return true;
+        }
     }
 
     public static byte[] EncodeBontiquePurchases(BontiquePurchaseData data)

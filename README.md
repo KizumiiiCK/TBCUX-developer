@@ -274,9 +274,17 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 采用**本地 + 云端**双轨：
 
 - **本地**：`SaveSystem`（JSON 序列化到 `streamingAssetsPath`）、`GenericSaveSystem`、`UserInfoLocalStore`。
-- **云端**：`SupabaseSaveRemote` / `SupabaseSaveUploader` 通过 `UnityWebRequest` 直连 Supabase REST API，带重试机制，支持账户创建 / 登录 / 恢复 / 删除，以及转移码（`TransferCodeRules`）。
+- **云端**：`SupabaseSaveRemote` 通过 `UnityWebRequest` 直连 Supabase REST API，带重试机制，支持账户创建 / 登录 / 恢复 / 删除，以及转移码（`TransferCodeRules`）。
 
-> Supabase 的 URL / Key 在运行时通过 `SupabaseSaveRemote.Initialize(...)` 注入，不硬编码在数据中。
+> **WebGL / Builda 平台分支例外**：平台禁止访问非平台网络，且 `BinaryFormatter` 在 IL2CPP 下不可用。
+> 因此 WebGL 下存档改走平台私域 KV：`BuildaSaveBackend`（传输 + 内存缓存）、`SaveCodec`（自写紧凑二进制，
+> 处理 `JsonUtility` 无法序列化的 `int[,]` / `string[,]`）、`SaveKeys`（key 命名表，**一旦上线不可改名**，
+> 改名等于玩家丢档）。进度按章节分 7 片、角色升级按稀有度分 7 片，以绕开单值 32KB 上限。
+> 身份由 `BuildaSDK.Whoami()` 提供，账户页在 WebGL 下已停用（`MMOption` 按钮隐藏、`UserLoginCheckPage` 自毁）。
+>
+> Supabase 的 URL / Key 已从源码**清空**（`UXPref.SupabaseUrl` / `SupabaseKey` 为空串）——WebGL 构建里的
+> 字符串在浏览器中可读，不能把后端凭据打进包。如 Windows / Android 需要，请在运行时注入。
+> `SupabaseSaveUploader.cs` 已删除（896 行全注释死代码，且内含凭据字面量）。
 
 ---
 

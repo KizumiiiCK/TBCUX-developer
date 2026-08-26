@@ -38,8 +38,9 @@ public class CheckInSystem : MonoBehaviour
             Close();
             return;
         }
-        string pid = PlayerPrefs.GetString(UXPref.UserPrefKey, "KIZUMIII");
-        SupabaseSaveRemote.Initialize(UXPref.SupabaseUrl, UXPref.SupabaseKey, pid);
+        // No SupabaseSaveRemote.Initialize here any more: the platform blocks non-platform network
+        // access, so the check-in streak lives in privateKV and the clock comes from the device
+        // (the host runs its own tamper checks).
 
         if (rewardAnimator == null) rewardAnimator = GetComponent<Animator>();
         if (rewardAnimator != null) rewardAnimator.speed = 0f;
@@ -98,14 +99,13 @@ public class CheckInSystem : MonoBehaviour
 
     private IEnumerator ExecuteFetchTimeTask(LoadingTask task)
     {
-        if (!EnsureNetworkAndRemoteReady(task))
-        {
-            yield break;
-        }
-        if (loadingPage != null) loadingPage.SetDetail("Fetching time utc+8...");
+        if (loadingPage != null) loadingPage.SetDetail("Reading date...");
 
         DateTime? serverDate = null;
-        yield return WorldTimeService.FetchUtc8DateTime(
+        // PlatformTimeSystem now reads the device clock rather than a time server (the platform
+        // blocks external network access and polices clock tampering host-side), so this cannot
+        // fail - but the null branch stays as a guard against a future source that can.
+        yield return PlatformTimeSystem.FetchUtc8DateTime(
             value => serverDate = value,
             detail =>
             {
@@ -116,14 +116,14 @@ public class CheckInSystem : MonoBehaviour
         {
             task.Success = false;
             task.Result = null;
-            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: unable to get Beijing time.");
+            if (loadingPage != null) loadingPage.SetDetail("Failed to determine the date.");
             yield break;
         }
 
         currentServerDate = serverDate.Value.Date;
         task.Success = true;
         task.Result = currentServerDate;
-        if (loadingPage != null) loadingPage.SetDetail($"Time OK: {currentServerDate:yyyy-MM-dd}");
+        if (loadingPage != null) loadingPage.SetDetail($"Date OK: {currentServerDate:yyyy-MM-dd}");
     }
 
     private bool ShouldSkipByLocalDate()
@@ -139,38 +139,32 @@ public class CheckInSystem : MonoBehaviour
 
     private IEnumerator ExecuteFetchCheckInDataTask(LoadingTask task)
     {
-        if (!EnsureNetworkAndRemoteReady(task))
-        {
-            yield break;
-        }
-        if (loadingPage != null) loadingPage.SetDetail("Pulling check-in data...");
+        if (loadingPage != null) loadingPage.SetDetail("Reading check-in data...");
+        yield return null;
 
-        DateTime? remoteLastDate = null;
-        int remoteConsecutive = 0;
-        yield return SupabaseSaveRemote.GetUserCheckInData((lastDate, consecutive) =>
-        {
-            remoteLastDate = lastDate;
-            remoteConsecutive = consecutive;
-        });
+        SaveCodec.TryDecodeCheckIn(
+            BuildaSaveBackend.Get(SaveKeys.CheckIn),
+            out DateTime storedLastDate,
+            out int storedConsecutive);
 
-        lastCheckInDate = remoteLastDate?.Date ?? DateTime.MinValue;
-        consecutiveDays = remoteConsecutive;
+        lastCheckInDate = storedLastDate.Date;
+        consecutiveDays = storedConsecutive;
         hasRewardToShow = false;
         task.Success = true;
         task.Result = new Vector2Int(lastCheckInDate == DateTime.MinValue ? -1 : lastCheckInDate.DayOfYear, consecutiveDays);
-        if (loadingPage != null) loadingPage.SetDetail("Check-in data pulled.");
+        if (loadingPage != null) loadingPage.SetDetail("Check-in data loaded.");
     }
 
     private IEnumerator ExecuteUploadCheckInDataTask(LoadingTask task)
     {
-        if (!EnsureNetworkAndRemoteReady(task) || currentServerDate == DateTime.MinValue)
+        if (currentServerDate == DateTime.MinValue)
         {
             task.Success = false;
             task.Result = null;
-            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: invalid upload state.");
+            if (loadingPage != null) loadingPage.SetDetail("Check-in failed: invalid date state.");
             yield break;
         }
-        if (loadingPage != null) loadingPage.SetDetail("Uploading check-in update...");
+        if (loadingPage != null) loadingPage.SetDetail("Saving check-in...");
 
         DateTime today = currentServerDate;
         if (lastCheckInDate == today)
@@ -203,21 +197,13 @@ public class CheckInSystem : MonoBehaviour
         for (int i = 0; i < typeCount; i++) RewardingSystem.GainReward(rewardNames[i], bonusCount[i]);
 
         lastCheckInDate = today;
-        bool uploadOk = false;
-        yield return SupabaseSaveRemote.UpdateUserCheckInData(today, consecutiveDays, ok => uploadOk = ok);
-        if (!uploadOk)
-        {
-            task.Success = false;
-            task.Result = null;
-            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: upload check-in data failed.");
-            yield break;
-        }
+        BuildaSaveBackend.Set(SaveKeys.CheckIn, SaveCodec.EncodeCheckIn(today, consecutiveDays));
 
         hasRewardToShow = true;
         SaveCachedWorldDate();
         task.Success = true;
         task.Result = true;
-        if (loadingPage != null) loadingPage.SetDetail("Check-in upload success.");
+        if (loadingPage != null) loadingPage.SetDetail("Check-in saved.");
         Debug.Log($"Check in successful for {consecutiveDays} day(s)! You have gained {bonusRate} reward bonus.");
     }
 
@@ -236,25 +222,6 @@ public class CheckInSystem : MonoBehaviour
         DateTime date = currentServerDate != DateTime.MinValue ? currentServerDate.Date : DateTime.UtcNow.Add(Utc8Offset).Date;
         PlayerPrefs.SetString(LastWorldDateCacheKey, date.ToString("yyyy-MM-dd"));
         PlayerPrefs.Save();
-    }
-
-    private bool EnsureNetworkAndRemoteReady(LoadingTask task)
-    {
-        if (Application.internetReachability == NetworkReachability.NotReachable)
-        {
-            task.Success = false;
-            task.Result = null;
-            if (loadingPage != null) loadingPage.NotifyFailure("No network connection.");
-            return false;
-        }
-        if (!SupabaseSaveRemote.IsReady())
-        {
-            task.Success = false;
-            task.Result = null;
-            if (loadingPage != null) loadingPage.NotifyFailure("Supabase not ready.");
-            return false;
-        }
-        return true;
     }
 
     public void CloseBtnEvent() { SwitchAnimation(); UpdateCurrency(); }

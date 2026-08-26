@@ -45,9 +45,19 @@ public static class UXPref
     // Specials
     public const string RewardPenalty = "reward-p";
 
-    // Supabase (global fixed values)
-    public const string SupabaseUrl = "https://udnacihdrcqwjbnavyau.supabase.co";
-    public const string SupabaseKey = "sb_publishable_icguQw1JHoIlGDk8TBxECw_Mj_-ABem";
+    // Supabase credentials are intentionally BLANK, not merely unused.
+    //
+    // Every string literal in a WebGL build is readable from the browser, so shipping the real URL
+    // and anon key would publish this project's backend to anyone who opens devtools - for a
+    // backend the Builda platform blocks the game from reaching anyway. Persistence now goes
+    // through BuildaSaveBackend (privateKV) and identity through BuildaSDK.Whoami().
+    //
+    // The names survive only so the account-transfer pages still compile; those pages are
+    // unreachable on WebGL (their entry points are disabled in MMOption and UserLoginCheckPage).
+    // Do not restore real values here - inject them at runtime if the Windows/Android builds ever
+    // need them again.
+    public const string SupabaseUrl = "";
+    public const string SupabaseKey = "";
 
     // UI rarity frame colors
     public static readonly Color FrameColorDefault = Color.white;
