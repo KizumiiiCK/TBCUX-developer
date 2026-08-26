@@ -299,8 +299,13 @@ public class LevelController : MonoBehaviour
         // Dev only
         Skip_btn.onClick.AddListener(() => { Pause(false); SkipGame(); });
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        if (bgmSlider != null) bgmSlider.gameObject.SetActive(false);
+        if (seSlider != null) seSlider.gameObject.SetActive(false);
+#else
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
+#endif
 
         pause_table.SetActive(false);
     }
@@ -781,10 +786,14 @@ public class LevelController : MonoBehaviour
     /// </summary>
     private void RefreshPauseTable()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return;
+#else
         bgmSlider.value = PlayerPrefs.GetFloat(UXPref.BGM_PARAM, 1);
         seSlider.value = PlayerPrefs.GetFloat(UXPref.SE_PARAM, 1);
         SetBGMVolume(bgmSlider.value);
         SetSEVolume(seSlider.value);
+#endif
     }
 
     /// <summary>

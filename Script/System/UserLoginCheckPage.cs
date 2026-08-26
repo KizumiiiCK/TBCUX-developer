@@ -34,20 +34,40 @@ public class UserLoginCheckPage : MonoBehaviour
     {
         ShowChoice(false);
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // On the Builda platform the player is already authenticated by the host: BuildaSDK.Whoami()
-        // is the identity, saves are per-player in the host's privateKV, and the skill doc states the
-        // game "does not perceive login". So there is nothing for this gate to decide - creating a
-        // local pid or inheriting via a transfer code would only compete with the platform identity.
-        // The prefab still lives in the MainMenu scene (and is needed by the Windows/Android builds),
-        // so it removes itself here rather than being deleted from the scene.
-        Destroy(gameObject);
+        // Host identity + cloud save hydrate. This overlay stays up (it has a full-screen coverer)
+        // until the boot gate finishes, so the player cannot tap into a chapter with an empty cache.
+        PrewarmGate.RunBoot(OnPlatformBootSuccess);
 #else
         StartCoroutine(BootstrapCheck());
 #endif
     }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private void OnPlatformBootSuccess()
+    {
+        if (mainMenu != null)
+        {
+            mainMenu.NotifyPlatformBootComplete();
+            string name = PrewarmGate.PlayerDisplayName;
+            mainMenu.SetWelcomeBackMessage(string.IsNullOrEmpty(name)
+                ? "Welcome back!"
+                : $"Welcome back, {name}!");
+        }
+        Destroy(gameObject);
+    }
+#endif
+
     private IEnumerator BootstrapCheck()
     {
+        // Editor Play Mode: mark the save cache ready (empty) so synchronous reads do not look
+        // like a missing cloud pull. There is no host KV in the editor.
+        bool pulled = false;
+        yield return BuildaSaveBackend.PullAllRoutine(SaveKeys.AllKeys(), ok => pulled = ok);
+        if (!pulled)
+        {
+            Debug.LogError("[UserLoginCheckPage] Editor save cache failed to initialize.");
+        }
+
         // If a local user file exists and contains pid, user_name and device_code,
         // accept it immediately and skip network verification for a lightweight offline-first flow.
         if (!UserInfoLocalStore.TryLoad(out localInfo))

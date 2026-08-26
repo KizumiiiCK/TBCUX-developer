@@ -51,11 +51,72 @@ public class MainMenu : MonoBehaviour
         Application.targetFrameRate = 30;
         optionCanvas.SetActive(false);
         ButtonInitializer();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // Language comes from the host after the boot gate; volume is owned by the platform
+        // settings page. Keep the start button locked until UserLoginCheckPage finishes boot,
+        // otherwise a fast tap can enter a chapter against an empty save cache.
+        operating = true;
+#else
         ResetLanguage();
         SetBGMVolume();
         SetSEVolume();
+#endif
         PlayerPrefs.SetString(UXPref.Login_Date, PlatformTimeSystem.Today.ToString());
     }
+
+    /// <summary>
+    /// Called once the boot gate has hydrated saves and read <c>whoami</c>. Applies the host
+    /// language and unlocks the main menu.
+    /// </summary>
+    public void NotifyPlatformBootComplete()
+    {
+        ApplyHostLanguage();
+        operating = false;
+    }
+
+    /// <summary>
+    /// Maps the host language onto the two project locales (zh-CN / en-US)
+    /// using exact match, then language-prefix, then English.
+    /// </summary>
+    public void ApplyHostLanguage()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        string host = Builda.BuildaSDK.RuntimeLanguage();
+        var locales = LocalizationSettings.AvailableLocales;
+        if (locales == null || locales.Locales == null || locales.Locales.Count == 0) return;
+
+        UnityEngine.Localization.Locale chosen = FindLocale(host);
+        if (chosen == null)
+        {
+            int dash = host.IndexOf('-');
+            string prefix = dash > 0 ? host.Substring(0, dash) : host;
+            if (!string.Equals(prefix, host, StringComparison.OrdinalIgnoreCase))
+                chosen = FindLocale(prefix);
+        }
+        if (chosen == null) chosen = FindLocale("en");
+        if (chosen != null) LocalizationSettings.SelectedLocale = chosen;
+#endif
+    }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private static UnityEngine.Localization.Locale FindLocale(string code)
+    {
+        if (string.IsNullOrEmpty(code)) return null;
+        var locales = LocalizationSettings.AvailableLocales.Locales;
+        if (locales == null) return null;
+        for (int i = 0; i < locales.Count; i++)
+        {
+            var locale = locales[i];
+            if (locale == null) continue;
+            string id = locale.Identifier.Code;
+            if (string.IsNullOrEmpty(id)) continue;
+            if (id.Equals(code, StringComparison.OrdinalIgnoreCase)) return locale;
+            if (id.StartsWith(code + "-", StringComparison.OrdinalIgnoreCase)) return locale;
+        }
+        return null;
+    }
+#endif
+
     private void Awake()
     {
         ShowTagInOnce();

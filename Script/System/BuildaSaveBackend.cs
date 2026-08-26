@@ -71,14 +71,20 @@ public static class BuildaSaveBackend
         dirty.Clear();
         loaded = false;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
+        // This branch ships WebGL only. Editor Play Mode has no host KV, so the cache stays
+        // empty and reads look like a new player. Persistence is verified with `builda dev`.
+        loaded = true;
+        onDone?.Invoke(true);
+        yield break;
+#endif
+
         if (keys == null || keys.Count == 0)
         {
             loaded = true;
             onDone?.Invoke(true);
             yield break;
         }
-
-        bool allOk = true;
 
         for (int start = 0; start < keys.Count; start += MaxBatchKeys)
         {
@@ -98,17 +104,19 @@ public static class BuildaSaveBackend
             if (!ok)
             {
                 Debug.LogError($"[BuildaSaveBackend] getMany failed: {Describe(response)}");
-                allOk = false;
-                continue;
+                loaded = false;
+                onDone?.Invoke(false);
+                yield break;
             }
 
-            // data is a key -> base64 map; a key that exists with a null value means "not set".
-            var map = response.DataMap;
+            // data is { entries: { key: base64|null } }. A null value means the key is unset.
+            var map = ExtractEntries(response);
             if (map == null)
             {
-                Debug.LogError("[BuildaSaveBackend] getMany returned no map.");
-                allOk = false;
-                continue;
+                Debug.LogError("[BuildaSaveBackend] getMany returned no entries map.");
+                loaded = false;
+                onDone?.Invoke(false);
+                yield break;
             }
 
             foreach (var kv in map)
@@ -118,8 +126,8 @@ public static class BuildaSaveBackend
             }
         }
 
-        loaded = allOk;
-        onDone?.Invoke(allOk);
+        loaded = true;
+        onDone?.Invoke(true);
     }
 
     // ---- synchronous cache access ----
@@ -227,6 +235,20 @@ public static class BuildaSaveBackend
     }
 
     // ---- internals ----
+
+    private static Dictionary<string, object> ExtractEntries(BuildaResult r)
+    {
+        var data = r != null ? r.DataMap : null;
+        if (data == null) return null;
+        if (data.TryGetValue("entries", out object nested))
+        {
+            // `entries: null` means none of the requested keys exist - a valid empty save.
+            if (nested == null) return new Dictionary<string, object>();
+            return nested as Dictionary<string, object>;
+        }
+        // Tolerate a flat key map if a future SDK drop unwraps `entries`.
+        return data;
+    }
 
     private static bool CheckSize(string key, byte[] value)
     {

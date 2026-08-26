@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using Builda;
+#endif
 
 /// <summary>
 /// Owns the "download before you show" gate for WebGL.
@@ -22,6 +25,12 @@ public class PrewarmGate : MonoBehaviour
 
     /// <summary>True while a gate is running, so callers can avoid double-triggering.</summary>
     public static bool IsRunning => instance != null;
+
+    /// <summary>
+    /// Platform display name from the last boot <c>whoami</c>. Empty when the host did not
+    /// return one; never null.
+    /// </summary>
+    public static string PlayerDisplayName { get; private set; } = string.Empty;
 
     private static PrewarmGate EnsureInstance()
     {
@@ -44,16 +53,24 @@ public class PrewarmGate : MonoBehaviour
     }
 
     /// <summary>
-    /// Boot gate: initializes the Addressables catalog before any content is touched.
-    /// Call this from the first scene; everything else assumes the catalog exists.
+    /// First-scene gate for the Builda WebGL player: Addressables catalog, privateKV hydrate,
+    /// then <c>whoami</c>. The host <c>runtime.ready</c> call is fired on success, before
+    /// <paramref name="onSuccess"/>, so the menu is not interactive until the host is told.
     /// </summary>
     public static void RunBoot(Action onSuccess, Action onAbandon = null)
     {
+        PlayerDisplayName = string.Empty;
         var tasks = new List<LoadingTask>
         {
             new LoadingTask("Connecting to content...", task => InitCatalogTask(task)),
+            new LoadingTask("Loading save data...", PullSaveTask),
+            new LoadingTask("Signing in...", WhoamiTask),
         };
-        Run(tasks, onSuccess, onAbandon);
+        Run(tasks, () =>
+        {
+            NotifyHostReady();
+            onSuccess?.Invoke();
+        }, onAbandon);
     }
 
     /// <summary>
@@ -93,6 +110,72 @@ public class PrewarmGate : MonoBehaviour
         yield return BundledAddressables.InitializeRoutine(result => ok = result);
         task.Success = ok;
     }
+
+    private static IEnumerator PullSaveTask(LoadingTask task)
+    {
+        if (BuildaSaveBackend.IsLoaded)
+        {
+            task.Success = true;
+            yield break;
+        }
+
+        bool ok = false;
+        yield return BuildaSaveBackend.PullAllRoutine(
+            SaveKeys.AllKeys(),
+            result => ok = result,
+            () => task.ReportProgress?.Invoke());
+        task.Success = ok;
+    }
+
+    private static IEnumerator WhoamiTask(LoadingTask task)
+    {
+        PlayerDisplayName = string.Empty;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        bool done = false;
+        BuildaResult response = null;
+        BuildaSDK.Whoami(r => { response = r; done = true; });
+        while (!done) yield return null;
+
+        if (response != null && response.Ok)
+        {
+            var map = response.DataMap;
+            if (map != null && map.TryGetValue("name", out object raw) && raw is string name)
+                PlayerDisplayName = name.Trim();
+            task.Success = true;
+            yield break;
+        }
+
+        // A missing display name is not worth blocking entry: identity is already the host
+        // session, and the save pull has succeeded. The welcome line just falls back.
+        Debug.LogWarning($"[PrewarmGate] whoami failed: {Describe(response)}");
+        task.Success = true;
+        yield break;
+#else
+        task.Success = true;
+        yield break;
+#endif
+    }
+
+    private static void NotifyHostReady()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        BuildaSDK.RuntimeReady(r =>
+        {
+            if (r != null && r.Ok) return;
+            Debug.LogWarning($"[PrewarmGate] RuntimeReady failed: {Describe(r)}");
+        });
+#endif
+    }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private static string Describe(BuildaResult r)
+    {
+        if (r == null) return "no result";
+        if (r.Error == null) return "unknown error";
+        return $"{r.Error.Code} {r.Error.Message}";
+    }
+#endif
 
     private static IEnumerator PrewarmBattleTask(LoadingTask task, Func<LoadingPage> pageAccessor)
     {

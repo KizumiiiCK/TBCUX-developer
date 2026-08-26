@@ -20,24 +20,36 @@ public class MMOption : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Platform settings page owns music/SFX mute and language. Hiding the in-game controls
+        // avoids a mixer slider that cannot reach host-played BGM, and a language toggle that
+        // fights RuntimeLanguage(). Prefab references stay so Editor Play Mode still has them.
+#if UNITY_WEBGL && !UNITY_EDITOR
+        if (bgmSlider != null) bgmSlider.gameObject.SetActive(false);
+        if (seSlider != null) seSlider.gameObject.SetActive(false);
+        if (languageToggles != null)
+        {
+            for (int i = 0; i < languageToggles.Length; i++)
+            {
+                if (languageToggles[i] != null) languageToggles[i].gameObject.SetActive(false);
+            }
+        }
+#else
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
-
-        // Account transfer and account deletion are hidden on the Builda platform: identity comes
-        // from the host (whoami) and saves live in the host's privateKV, so "move my account to
-        // another device" is just logging into the same platform account, and wiping progress is
-        // offered by the platform's own settings page. Both pages also depended on an external
-        // backend the platform blocks. The buttons are deactivated rather than deleted so the
-        // prefabs stay intact for the Windows/Android builds.
+#endif
         if (uploadAccountButton != null) uploadAccountButton.gameObject.SetActive(false);
         if (deleteAccountButton != null) deleteAccountButton.gameObject.SetActive(false);
     }
 
     private void OnEnable()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return;
+#else
         lang = PlayerPrefs.GetInt(UXPref.LANG, 0);
         ResetLanguage(lang);
         RefreshTable();
+#endif
     }
 
     public void SetBGMVolume(float linear)
