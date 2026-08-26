@@ -163,11 +163,11 @@ public static class DailyMapChallengeSave
     {
         if (string.IsNullOrEmpty(currentDateToken)) return;
 
-        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        DailyMapClearRecord save = Load();
         if (save == null) return;
         if (save.dateToken == currentDateToken) return;
 
-        GenericSaveSystem.DeleteData(filename);
+        BuildaSaveBackend.Remove(SaveKeys.DailyMapClear);
     }
 
     public static bool HasSectionClearRecordToday(string currentDateToken, string sectionName)
@@ -175,7 +175,7 @@ public static class DailyMapChallengeSave
         if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return false;
 
         ResetIfNewDay(currentDateToken);
-        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        DailyMapClearRecord save = Load();
         if (save == null) return false;
         if (save.dateToken != currentDateToken) return false;
         return save.clearedSectionNames != null && save.clearedSectionNames.Contains(sectionName);
@@ -185,7 +185,7 @@ public static class DailyMapChallengeSave
     {
         if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return;
 
-        DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
+        DailyMapClearRecord save = Load();
         if (save == null || save.dateToken != currentDateToken)
         {
             save = new DailyMapClearRecord
@@ -204,8 +204,11 @@ public static class DailyMapChallengeSave
             save.clearedSectionNames.Add(sectionName);
         }
 
-        GenericSaveSystem.SaveData(save, filename);
+        BuildaSaveBackend.Set(SaveKeys.DailyMapClear, SaveCodec.EncodeDailyMapClear(save));
     }
+
+    private static DailyMapClearRecord Load() =>
+        SaveCodec.DecodeDailyMapClear(BuildaSaveBackend.Get(SaveKeys.DailyMapClear));
 }
 
 [System.Serializable]
@@ -235,20 +238,18 @@ public class GameProgressSave
     // Reader and Writer
     public static ChapterClearList LoadChapterProgress(string chapterName)
     {
-        ChapterClearList[] CCL = GenericSaveSystem.LoadData<ChapterClearList[]>(filename) ?? Array.Empty<ChapterClearList>();
-        var exist = CCL.FirstOrDefault(c => c.ChapterName == chapterName);
+        ChapterClearList exist = LoadChapter(chapterName);
         if (exist != null) return UpdateCCL(exist);
 
         // First Save
-        MapInfo[] mapInfos = Resources.LoadAll<MapInfo>($"/Chapters/{chapterName}");
+        MapInfo[] mapInfos = LoadChapterMapInfos(chapterName);
         if (mapInfos == null || mapInfos.Length == 0)
         {
             Debug.LogError($"No Such Chapter: {chapterName}");
             return null;
         }
         var newChapter = BuildNewChapter(chapterName, mapInfos);
-        var newCCL = CCL.Append(newChapter).ToArray();
-        GenericSaveSystem.SaveData(newCCL, filename);
+        SaveChapter(newChapter);
         return newChapter;
     }
     //public static SectionClearList LoadSectionProgress(string chapterName, int sectionNum)
@@ -271,25 +272,95 @@ public class GameProgressSave
     //}
     public static SectionClearList LoadSectionProgress(string chapterName, string sectionName)
     {
-        ChapterClearList[] CCL = GenericSaveSystem.LoadData<ChapterClearList[]>(filename) ?? Array.Empty<ChapterClearList>();
-        var exist = CCL.FirstOrDefault(c => c.ChapterName == chapterName);
+        ChapterClearList exist = LoadChapter(chapterName);
         if (exist != null)
         {
-            var section = exist.SectionList.FirstOrDefault(s => s.SectionName == sectionName);
+            var section = exist.SectionList?.FirstOrDefault(s => s.SectionName == sectionName);
             if (section != null) return UpdateCCL(exist).SectionList.FirstOrDefault(s => s.SectionName == sectionName);
         }
 
         // First Save
-        MapInfo[] mapInfos = Resources.LoadAll<MapInfo>($"LevelData/Chapters/{chapterName}");
+        MapInfo[] mapInfos = LoadChapterMapInfos(chapterName);
         if (mapInfos == null || mapInfos.Length == 0)
         {
             Debug.LogError($"No Such Chapter: {chapterName}");
             return null;
         }
         var newChapter = BuildNewChapter(chapterName, mapInfos);
-        var newCCL = CCL.Append(newChapter).ToArray();
-        GenericSaveSystem.SaveData(newCCL, filename);
+        SaveChapter(newChapter);
         return newChapter.SectionList.FirstOrDefault(s => s.SectionName == sectionName);
+    }
+
+    /*========== 分片存取（每章节一个 privateKV key） ==========*/
+
+    /// <summary>
+    /// Loads one chapter's shard. Returns null when the player has no save for it yet, which the
+    /// callers above turn into a freshly built chapter.
+    /// </summary>
+    public static ChapterClearList LoadChapter(string chapterName)
+    {
+        if (string.IsNullOrEmpty(chapterName)) return null;
+        byte[] bytes = BuildaSaveBackend.Get(SaveKeys.Progress(chapterName));
+        if (bytes == null) return null;
+        try
+        {
+            return SaveCodec.DecodeChapter(bytes);
+        }
+        catch (Exception e)
+        {
+            // A corrupt shard must not be silently treated as "no progress": that would rebuild an
+            // empty chapter and the next write would overwrite the player's real save.
+            Debug.LogError($"[GameProgressSave] Chapter '{chapterName}' failed to decode: {e.Message}");
+            return null;
+        }
+    }
+
+    public static void SaveChapter(ChapterClearList chapter)
+    {
+        if (chapter == null || string.IsNullOrEmpty(chapter.ChapterName)) return;
+        BuildaSaveBackend.Set(SaveKeys.Progress(chapter.ChapterName), SaveCodec.EncodeChapter(chapter));
+    }
+
+    /// <summary>
+    /// Every chapter the player has a save for. Used by account transfer, which needs the whole
+    /// picture rather than one chapter.
+    /// </summary>
+    public static ChapterClearList[] LoadAllChapters()
+    {
+        var list = new List<ChapterClearList>(SaveKeys.Chapters.Length);
+        for (int i = 0; i < SaveKeys.Chapters.Length; i++)
+        {
+            var chapter = LoadChapter(SaveKeys.Chapters[i]);
+            if (chapter != null) list.Add(chapter);
+        }
+        return list.ToArray();
+    }
+
+    /// <summary>
+    /// Writes several chapters at once. Batched through setMany so a restore cannot leave the
+    /// player with only some chapters written.
+    /// </summary>
+    public static void SaveAllChapters(ChapterClearList[] chapters)
+    {
+        if (chapters == null || chapters.Length == 0) return;
+        var entries = new Dictionary<string, byte[]>(chapters.Length);
+        for (int i = 0; i < chapters.Length; i++)
+        {
+            var c = chapters[i];
+            if (c == null || string.IsNullOrEmpty(c.ChapterName)) continue;
+            entries[SaveKeys.Progress(c.ChapterName)] = SaveCodec.EncodeChapter(c);
+        }
+        BuildaSaveBackend.SetMany(entries);
+    }
+
+    /// <summary>
+    /// Resolves a chapter's MapInfo assets. Centralized because the same Resources path was
+    /// written three different ways, one of which ("/Chapters/{name}") is wrong and silently
+    /// returns nothing - it is missing the "LevelData" segment and has a leading slash.
+    /// </summary>
+    private static MapInfo[] LoadChapterMapInfos(string chapterName)
+    {
+        return Resources.LoadAll<MapInfo>($"LevelData/Chapters/{chapterName}");
     }
 
     public static ChapterClearList BuildNewChapter(string chapterName, MapInfo[] mapInfos)
@@ -355,12 +426,10 @@ public class GameProgressSave
             }
         }
 
-        var all = GenericSaveSystem.LoadData<ChapterClearList[]>(filename) ?? Array.Empty<ChapterClearList>();
-        for (int i = 0; i < all.Length; i++)
-            if (all[i].ChapterName == old.ChapterName)
-                all[i] = fresh;
-
-        GenericSaveSystem.SaveData(all, filename);
+        // Only this chapter's shard is rewritten. The pre-shard version loaded the whole
+        // ChapterClearList[] and wrote it back, which under privateKV would mean 9 writes per
+        // level clear instead of 1.
+        SaveChapter(fresh);
         return fresh;
     }
 
@@ -391,11 +460,7 @@ public class GameProgressSave
             RewardingSystem.GainReward(RewardName.XP, 10000);
         }
         Debug.Log($"cleared: {sec.cleared}");
-        var all = GenericSaveSystem.LoadData<ChapterClearList[]>(filename) ?? Array.Empty<ChapterClearList>();
-        for (int i = 0; i < all.Length; i++)
-            if (all[i].ChapterName == chapterName)
-                all[i] = ccl;
-        GenericSaveSystem.SaveData(all, filename);
+        SaveChapter(ccl);
     }
 }
 public static class LocalizationHelper
@@ -650,17 +715,22 @@ public static class RewardingSystem
     /// </summary>
     private static int[] LoadOrResize()
     {
-        int[] old = GenericSaveSystem.LoadData<int[]>(filename);
+        int[] old = SaveCodec.DecodeIntArray(BuildaSaveBackend.Get(SaveKeys.Inventory));
         int expectedLength = ExpectedInventoryLength;
 
         if (old == null || old.Length != expectedLength)
         {
             int[] neo = new int[expectedLength];
             if (old != null) Array.Copy(old, 0, neo, 0, Math.Min(old.Length, expectedLength));
-            GenericSaveSystem.SaveData(neo, filename);
+            SaveInventory(neo);
             return neo;
         }
         return old;
+    }
+
+    private static void SaveInventory(int[] items)
+    {
+        BuildaSaveBackend.Set(SaveKeys.Inventory, SaveCodec.EncodeIntArray(items));
     }
     public static int GetAmount(RewardName reward_name)
     {
@@ -679,7 +749,7 @@ public static class RewardingSystem
         int[] items = LoadOrResize();
         int idx = RewardNumMap[reward_name];
         items[idx] = Mathf.Clamp(items[idx] + count, 0, 99999999);
-        GenericSaveSystem.SaveData(items, filename);
+        SaveInventory(items);
         Debug.Log($"Gained {reward_name} x {count}");
     }
     public static void GainRewardByOrder(int reward_num, int count)
@@ -688,7 +758,7 @@ public static class RewardingSystem
 
         int[] items = LoadOrResize();
         items[reward_num] = Mathf.Clamp(items[reward_num] + count, 0, 99999999);
-        GenericSaveSystem.SaveData(items, filename);
+        SaveInventory(items);
         Debug.Log($"Gained {reward_num} x {count}");
     }
     public static bool ConsumeItem(RewardName RN, int count)
@@ -700,7 +770,7 @@ public static class RewardingSystem
         if (items[idx] < count) return false;
 
         items[idx] -= count;
-        GenericSaveSystem.SaveData(items, filename);
+        SaveInventory(items);
         return true;
     }
     public static bool CheckItemIsEnough(RewardName reward_name, int count)
@@ -750,7 +820,7 @@ public static class CharacterUpgradeSave
     }
     private static Dictionary<string, UpgradeDetails> Load()
     {
-        var dict = GenericSaveSystem.LoadData<Dictionary<string, UpgradeDetails>>(filename);
+        var dict = LoadSharded();
         if (dict == null) return Rebuild();
 
         bool needsUpdate = false;
@@ -806,8 +876,7 @@ public static class CharacterUpgradeSave
     }
     private static Dictionary<string, UpgradeDetails> Rebuild()
     {
-        var oldDict = GenericSaveSystem.LoadData<Dictionary<string, UpgradeDetails>>(filename)
-                      ?? new Dictionary<string, UpgradeDetails>();
+        var oldDict = LoadSharded() ?? new Dictionary<string, UpgradeDetails>();
 
         var allIds = EnumerateAllIds().ToHashSet();
         var newDict = new Dictionary<string, UpgradeDetails>(oldDict);
@@ -819,14 +888,95 @@ public static class CharacterUpgradeSave
                 Debug.Log($"new ID: {id}");
             }
         }
-        newDict["0000"].tire_unlocked[0] = true;
-        if(newDict["0000"].upgraded_level<1) newDict["0000"].upgraded_level = 1;
-        GenericSaveSystem.SaveData(newDict, filename);
+        // The default cat may legitimately be absent when its asset is missing from the catalog;
+        // indexing it unconditionally would throw during Rebuild and take the whole boot with it.
+        if (newDict.TryGetValue("0000", out var starter))
+        {
+            starter.tire_unlocked[0] = true;
+            if (starter.upgraded_level < 1) starter.upgraded_level = 1;
+        }
+        Save(newDict);
         return newDict;
     }
 
+    /*========== 分片存取（按稀有度首位数字，7 个 key） ==========*/
+
+    /// <summary>
+    /// Reassembles the upgrade dictionary from its per-rarity shards. Returns null only when no
+    /// shard exists at all, so a returning player is never mistaken for a new one.
+    /// </summary>
+    private static Dictionary<string, UpgradeDetails> LoadSharded()
+    {
+        Dictionary<string, UpgradeDetails> merged = null;
+
+        for (int r = 0; r < SaveKeys.RarityCount; r++)
+        {
+            byte[] bytes = BuildaSaveBackend.Get(SaveKeys.Upgrades(r));
+            if (bytes == null) continue;
+
+            Dictionary<string, UpgradeDetails> shard;
+            try
+            {
+                shard = SaveCodec.DecodeUpgrades(bytes);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CharacterUpgradeSave] Rarity {r} shard failed to decode: {e.Message}");
+                continue;
+            }
+            if (shard == null) continue;
+
+            if (merged == null) merged = new Dictionary<string, UpgradeDetails>(shard.Count * SaveKeys.RarityCount);
+            foreach (var kv in shard) merged[kv.Key] = kv.Value;
+        }
+
+        return merged;
+    }
+
+    /// <summary>
+    /// Splits the dictionary by the leading rarity digit of each unit ID and writes all shards as
+    /// one batch, so a partial write cannot leave two rarities disagreeing about the same player.
+    /// </summary>
+    private static void SaveSharded(Dictionary<string, UpgradeDetails> dict)
+    {
+        if (dict == null) return;
+
+        var buckets = new Dictionary<string, UpgradeDetails>[SaveKeys.RarityCount];
+        for (int r = 0; r < SaveKeys.RarityCount; r++)
+            buckets[r] = new Dictionary<string, UpgradeDetails>();
+
+        foreach (var kv in dict)
+        {
+            int rarity = RarityOf(kv.Key);
+            if (rarity < 0)
+            {
+                Debug.LogWarning($"[CharacterUpgradeSave] Unit ID '{kv.Key}' has no valid rarity digit; not saved.");
+                continue;
+            }
+            buckets[rarity][kv.Key] = kv.Value;
+        }
+
+        var entries = new Dictionary<string, byte[]>(SaveKeys.RarityCount);
+        for (int r = 0; r < SaveKeys.RarityCount; r++)
+            entries[SaveKeys.Upgrades(r)] = SaveCodec.EncodeUpgrades(buckets[r]);
+
+        BuildaSaveBackend.SetMany(entries);
+    }
+
+    /// <summary>
+    /// Rarity is the first character of the ID, which is generated as <c>$"{r}{code:000}"</c>.
+    /// Returns -1 for anything outside 0..<see cref="SaveKeys.RarityCount"/>-1 so a malformed ID is
+    /// reported rather than silently landing in the wrong bucket.
+    /// </summary>
+    private static int RarityOf(string unitId)
+    {
+        if (string.IsNullOrEmpty(unitId)) return -1;
+        int r = unitId[0] - '0';
+        return (r >= 0 && r < SaveKeys.RarityCount) ? r : -1;
+    }
+
     /// <summary>统一保存</summary>
-    private static void Save(Dictionary<string, UpgradeDetails> dict) => GenericSaveSystem.SaveData(dict, filename);
+    private static void Save(Dictionary<string, UpgradeDetails> dict) => SaveSharded(dict);
     #endregion
 
     #region API
@@ -1108,7 +1258,7 @@ public static class SelectionsSave
     /// </summary>
     private static string[,] LoadOrCreate()
     {
-        var data = GenericSaveSystem.LoadData<string[,]>(filename);
+        var data = SaveCodec.DecodeStringArray2D(BuildaSaveBackend.Get(SaveKeys.TeamSelections));
         if (data == null || data.GetLength(0) != TeamNum || data.GetLength(1) != SIZE)
         {
             data = new string[TeamNum, SIZE];
@@ -1119,7 +1269,8 @@ public static class SelectionsSave
     }
 
     /// <summary>保存整个数组</summary>
-    private static void Save(string[,] data) => GenericSaveSystem.SaveData(data, filename);
+    private static void Save(string[,] data) =>
+        BuildaSaveBackend.Set(SaveKeys.TeamSelections, SaveCodec.EncodeStringArray2D(data));
     #endregion
 
     #region === 对外 API ===
@@ -1163,7 +1314,7 @@ public static class TeamNameSave
 
     private static string[] LoadOrCreate()
     {
-        var data = GenericSaveSystem.LoadData<string[]>(filename);
+        var data = SaveCodec.DecodeStringArray(BuildaSaveBackend.Get(SaveKeys.TeamNames));
         if (data == null || data.Length != SelectionsSave.TeamNum)
         {
             data = new string[SelectionsSave.TeamNum];
@@ -1173,7 +1324,8 @@ public static class TeamNameSave
         return data;
     }
 
-    private static void Save(string[] data) => GenericSaveSystem.SaveData(data, filename);
+    private static void Save(string[] data) =>
+        BuildaSaveBackend.Set(SaveKeys.TeamNames, SaveCodec.EncodeStringArray(data));
 
     public static string NormalizeTeamName(int teamIndex, string value)
     {
@@ -1204,7 +1356,7 @@ public static class EnemyMeetSave
     public const int SIZE = 1000;
     private static bool[] LoadOrCreate()
     {
-        var data = GenericSaveSystem.LoadData<bool[]>(filename);
+        var data = SaveCodec.DecodeBoolArray(BuildaSaveBackend.Get(SaveKeys.EnemyMeet));
         if (data == null || data.Length != SIZE)
         {
             data = new bool[SIZE];
@@ -1213,7 +1365,8 @@ public static class EnemyMeetSave
         }
         return data;
     }
-    private static void Save(bool[] data) => GenericSaveSystem.SaveData(data, filename);
+    private static void Save(bool[] data) =>
+        BuildaSaveBackend.Set(SaveKeys.EnemyMeet, SaveCodec.EncodeBoolArray(data));
     public static bool[] GetData()
     {
         var data = LoadOrCreate();
@@ -1260,7 +1413,7 @@ public static class BontiquePurchaseSave
 
     private static BontiquePurchaseData LoadOrCreate(bool saveWhenMissing = false)
     {
-        var data = GenericSaveSystem.LoadData<BontiquePurchaseData>(filename);
+        var data = SaveCodec.DecodeBontiquePurchases(BuildaSaveBackend.Get(SaveKeys.BontiquePurchases));
         if (data == null)
         {
             data = new BontiquePurchaseData();
@@ -1270,7 +1423,8 @@ public static class BontiquePurchaseSave
         return data;
     }
 
-    private static void Save(BontiquePurchaseData data) => GenericSaveSystem.SaveData(data, filename);
+    private static void Save(BontiquePurchaseData data) =>
+        BuildaSaveBackend.Set(SaveKeys.BontiquePurchases, SaveCodec.EncodeBontiquePurchases(data));
 
     public static List<BontiquePurchaseEntry> GetAll()
     {

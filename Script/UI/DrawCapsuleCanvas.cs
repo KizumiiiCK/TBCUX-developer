@@ -636,33 +636,37 @@ public static class DrawSave
     public static readonly string filename = "8FFA527B4C49DD6A4477B477830CA71D"; // drawsave
     private static List<int> LoadOrCreate()
     {
-        var data = GenericSaveSystem.LoadData<List<int>>(filename);
+        var data = SaveCodec.DecodeIntList(BuildaSaveBackend.Get(SaveKeys.DrawPending));
         if (data == null)
         {
             data = new List<int>();
-            GenericSaveSystem.SaveData(data, filename);
+            Save(data);
         }
         return data;
     }
+
+    private static void Save(List<int> data) =>
+        BuildaSaveBackend.Set(SaveKeys.DrawPending, SaveCodec.EncodeIntList(data));
+
     public static void SaveDrawed(List<int> codes)
     {
         List<int> drawed = LoadOrCreate();
-        for (int i = 0; i < codes.Count; i++) { 
+        for (int i = 0; i < codes.Count; i++) {
             drawed.Add(codes[i]);
         }
-        GenericSaveSystem.SaveData(drawed, filename);
+        Save(drawed);
     }
     public static void SaveDrawed(int code)
     {
         List<int> drawed = LoadOrCreate();
         drawed.Add(code);
-        GenericSaveSystem.SaveData(drawed, filename);
+        Save(drawed);
     }
     public static List<int> GetPreviouslyDrawed()=> LoadOrCreate();
     public static void Used()
     {
         List<int> drawed = LoadOrCreate();
         drawed.RemoveAt(drawed.Count-1);
-        GenericSaveSystem.SaveData(drawed, filename);
+        Save(drawed);
     }
 }
