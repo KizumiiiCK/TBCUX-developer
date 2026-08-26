@@ -46,6 +46,7 @@ public class DrawCapsuleCanvas : UICanvasMain
     [SerializeField] private TMP_Text NP_valueTxt;
     [SerializeField] private AudioSource getBGM;
     [SerializeField] private VideoPlayer drawStageVideoPlayer;
+    // Editor fallback only. WebGL cannot play VideoClip; playback uses StreamingAssets URLs.
     [SerializeField] private VideoClip drawStageIdleClip;
     [SerializeField] private VideoClip drawStageRollingClip;
     [SerializeField] private VideoClip drawStageRevealClip;
@@ -68,6 +69,11 @@ public class DrawCapsuleCanvas : UICanvasMain
     //private Coroutine poolVideoSwitchRoutine;
     //private float poolVideoDefaultAlpha = 0.7f;
     private enum DrawStageVideoState { Idle, Rolling, Reveal, Result }
+    private const string DrawStageVideoFolder = "video/draw/";
+    private const string DrawStageIdleFile = "draw_wait.mp4";
+    private const string DrawStageRollingFile = "draw_fin.mp4";
+    private const string DrawStageRevealFile = "draw_shine.mp4";
+    private const string DrawStageResultFile = "draw_show.mp4";
     private bool pinnedBaseCached;
     private Vector2 leftPinnedBasePos;
     private Vector2 rightPinnedBasePos;
@@ -506,32 +512,76 @@ public class DrawCapsuleCanvas : UICanvasMain
         SetDrawStageVideoState(DrawStageVideoState.Idle);
     }
 
+    private static string DrawStageVideoUrl(string fileName)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return Application.streamingAssetsPath + "/" + DrawStageVideoFolder + fileName;
+#else
+        string path = System.IO.Path.Combine(Application.streamingAssetsPath, "video", "draw", fileName);
+        return new System.Uri(path).AbsoluteUri;
+#endif
+    }
+
     private void SetDrawStageVideoState(DrawStageVideoState state)
     {
         if (drawStageVideoPlayer == null) return;
         VideoClip clip = null;
+        string fileName;
         bool loop = true;
         switch (state)
         {
             case DrawStageVideoState.Rolling:
                 clip = drawStageRollingClip;
+                fileName = DrawStageRollingFile;
                 loop = false;
                 break;
             case DrawStageVideoState.Reveal:
                 clip = drawStageRevealClip;
+                fileName = DrawStageRevealFile;
                 loop = false;
                 break;
             case DrawStageVideoState.Result:
                 clip = drawStageResultClip;
+                fileName = DrawStageResultFile;
                 loop = true;
                 break;
             default:
                 clip = drawStageIdleClip;
+                fileName = DrawStageIdleFile;
                 loop = true;
                 break;
         }
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayDrawStageFromUrl(DrawStageVideoUrl(fileName), loop);
+#else
+        if (clip != null)
+            PlayDrawStageFromClip(clip, loop);
+        else
+            PlayDrawStageFromUrl(DrawStageVideoUrl(fileName), loop);
+#endif
+    }
+
+    private void PlayDrawStageFromUrl(string url, bool loop)
+    {
+        if (string.IsNullOrEmpty(url)) return;
+        if (drawStageVideoPlayer.source == VideoSource.Url
+            && drawStageVideoPlayer.url == url
+            && drawStageVideoPlayer.isPlaying)
+            return;
+        drawStageVideoPlayer.source = VideoSource.Url;
+        drawStageVideoPlayer.url = url;
+        drawStageVideoPlayer.isLooping = loop;
+        drawStageVideoPlayer.Play();
+    }
+
+    private void PlayDrawStageFromClip(VideoClip clip, bool loop)
+    {
         if (clip == null) return;
-        if (drawStageVideoPlayer.clip == clip && drawStageVideoPlayer.isPlaying) return;
+        if (drawStageVideoPlayer.source == VideoSource.VideoClip
+            && drawStageVideoPlayer.clip == clip
+            && drawStageVideoPlayer.isPlaying)
+            return;
+        drawStageVideoPlayer.source = VideoSource.VideoClip;
         drawStageVideoPlayer.clip = clip;
         drawStageVideoPlayer.isLooping = loop;
         drawStageVideoPlayer.Play();
@@ -539,7 +589,7 @@ public class DrawCapsuleCanvas : UICanvasMain
 
     private IEnumerator PlayRevealThenResultStageVideo()
     {
-        if (drawStageVideoPlayer != null && drawStageRevealClip != null)
+        if (drawStageVideoPlayer != null)
         {
             SetDrawStageVideoState(DrawStageVideoState.Reveal);
             float elapsed = 0f;

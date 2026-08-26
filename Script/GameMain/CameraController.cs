@@ -37,15 +37,11 @@ public class CameraController : MonoBehaviour
     {
         rightLimit = limitation * (limitation - currentSize) / (maxSize - minSize);
         leftLimit = -rightLimit;
-        // 检测平台
-        if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
-        {
+        // WebGL 既可能是触屏也可能是鼠标；按当前输入类型分流，不要按平台硬编码。
+        if (Input.touchCount > 0)
             HandleAndroidInput();
-        }
-        else if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
-        {
+        else
             HandleWindowsInput();
-        }
         // 不做平滑，直接应用目标size
         cam.orthographicSize = currentSize;
         // 更新相机位置

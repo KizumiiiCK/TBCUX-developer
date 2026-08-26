@@ -1228,10 +1228,10 @@ MonoBehaviour:
   NP_valueTxt: {fileID: 8330462655577536398}
   getBGM: {fileID: 4202982658643745875}
   drawStageVideoPlayer: {fileID: 2308710182202496187}
-  drawStageIdleClip: {fileID: 32900000, guid: 777df2fbf895bed46b1198dc6bb25222, type: 3}
-  drawStageRollingClip: {fileID: 32900000, guid: 247f81e8d70d4f94cbc6aba0d0fee4d1, type: 3}
-  drawStageRevealClip: {fileID: 32900000, guid: 4f15be6f7df18e849baa35443e7866ee, type: 3}
-  drawStageResultClip: {fileID: 32900000, guid: 172a40ed4cf1ef04f810dbadbcc00524, type: 3}
+  drawStageIdleClip: {fileID: 0}
+  drawStageRollingClip: {fileID: 0}
+  drawStageRevealClip: {fileID: 0}
+  drawStageResultClip: {fileID: 0}
   IV: {fileID: 5015919041285701299}
   DRB: {fileID: 7171418367550738143}
   baseCanvas: {fileID: 0}
@@ -3731,7 +3731,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3508901388852604920}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 777df2fbf895bed46b1198dc6bb25222, type: 3}
+  m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -3741,7 +3741,7 @@ VideoPlayer:
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
   m_AspectRatio: 2
-  m_DataSource: 0
+  m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
@@ -3753,7 +3753,7 @@ VideoPlayer:
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_SkipOnDrop: 1
   m_Looping: 1
   m_WaitForFirstFrame: 1

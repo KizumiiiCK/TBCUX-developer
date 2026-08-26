@@ -7,7 +7,8 @@ using UnityEngine;
 
 /// <summary>
 /// Rebuilds Background / DialogueImage / Fonts Addressable entries with Resources-style
-/// addresses (no Assets/Bundled prefix, no file extension), while keeping CG/video entries.
+/// addresses (no Assets/Bundled prefix, no file extension), while keeping CG entries.
+/// Draw videos are not Addressables: WebGL plays them from StreamingAssets/video/draw/.
 /// </summary>
 public static class VisualsAddressablesRegistrar
 {
@@ -51,7 +52,7 @@ public static class VisualsAddressablesRegistrar
             return;
         }
 
-        // Remove previous folder / rebuilt entries for these roots only (keep CG + video).
+        // Remove previous folder / rebuilt entries for these roots only (keep CG).
         List<AddressableAssetEntry> existing = new List<AddressableAssetEntry>(group.entries);
         for (int i = 0; i < existing.Count; i++)
         {
@@ -70,7 +71,7 @@ public static class VisualsAddressablesRegistrar
         Debug.Log(
             $"Rebuilt Visuals bundled entries: {registered} " +
             "(Background Maps/Doors/CombatEffects + DialogueImage + System/fonts). " +
-            "CG/video entries preserved. Addresses match old Resources paths.");
+            "CG entries preserved. Addresses match old Resources paths.");
     }
 
     private static bool ShouldReplaceEntry(AddressableAssetEntry entry)
