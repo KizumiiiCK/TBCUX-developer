@@ -1,7 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+using UnityEngine.Localization.Tables;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 [CustomEditor(typeof(LevelData))]
 public class LevelDataEditor : Editor
@@ -9,6 +14,13 @@ public class LevelDataEditor : Editor
     private GUIStyle boxStyle;
     private GUIStyle labelBold;
     private GUIStyle labelSmall;
+    private GUIStyle labelHint;
+
+    private const string InvalidRestrictionHint = "无效限制";
+    private static readonly HashSet<string> NoneValueRestrictionKeys =
+        new HashSet<string>(StringComparer.Ordinal) { "IV", "OH", "oh", "FS", "fs" };
+    private static readonly Dictionary<string, string> LocalizedCache = new Dictionary<string, string>();
+    private static readonly Dictionary<string, StringTable> EditorTableCache = new Dictionary<string, StringTable>();
 
     private Sprite backgroundSprite;
     private Sprite baseImageSprite;
@@ -33,7 +45,7 @@ public class LevelDataEditor : Editor
         RefreshLevelPreviewSprites(levelData);
 
         // 隐藏原生 rewardlist / enemySummoners，完全改为自定义展示与编辑。
-        DrawPropertiesExcluding(serializedObject, "m_Script", "rewardlist", "enemySummoners");
+        DrawPropertiesExcluding(serializedObject, "m_Script", "rewardlist", "enemySummoners", "Restriction");
 
         DrawBasicPreviewSection();
         EditorGUILayout.Space(8);
@@ -65,6 +77,259 @@ public class LevelDataEditor : Editor
         else
             GUILayout.Box("(无基地图)", GUILayout.Width(160), GUILayout.Height(90));
         EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(8);
+        DrawRestrictionSection(serializedObject.FindProperty("Restriction"));
+    }
+
+    private void DrawRestrictionSection(SerializedProperty restrictionProp)
+    {
+        if (restrictionProp == null) return;
+
+        EditorGUILayout.LabelField("限制条件", labelBold);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"总数: {restrictionProp.arraySize}", labelSmall);
+        if (GUILayout.Button("新增", GUILayout.Width(110)))
+        {
+            int index = restrictionProp.arraySize;
+            restrictionProp.InsertArrayElementAtIndex(index);
+            restrictionProp.GetArrayElementAtIndex(index).stringValue = string.Empty;
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.Space(4);
+
+        if (restrictionProp.arraySize == 0)
+        {
+            EditorGUILayout.HelpBox("当前无限制条件。", MessageType.Info);
+            return;
+        }
+
+        for (int i = 0; i < restrictionProp.arraySize; i++)
+        {
+            if (DrawRestrictionElement(restrictionProp, i)) break;
+        }
+    }
+
+    private bool DrawRestrictionElement(SerializedProperty restrictionProp, int index)
+    {
+        SerializedProperty element = restrictionProp.GetArrayElementAtIndex(index);
+
+        EditorGUILayout.BeginVertical(boxStyle);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"#{index}", labelBold);
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("删除", GUILayout.Width(70)))
+        {
+            restrictionProp.DeleteArrayElementAtIndex(index);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            return true;
+        }
+        GUI.enabled = index > 0;
+        if (GUILayout.Button("↑", GUILayout.Width(28)))
+        {
+            restrictionProp.MoveArrayElement(index, index - 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = index < restrictionProp.arraySize - 1;
+        if (GUILayout.Button("↓", GUILayout.Width(28)))
+        {
+            restrictionProp.MoveArrayElement(index, index + 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = true;
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.PropertyField(element, new GUIContent("限制"));
+        EditorGUILayout.LabelField(FormatRestrictionExplanation(element.stringValue), labelHint);
+        EditorGUILayout.EndVertical();
+        return false;
+    }
+
+    private string FormatRestrictionExplanation(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return InvalidRestrictionHint;
+        if (!LevelRestrictionHelper.TrySplitRestriction(raw, out string key, out string value))
+            return InvalidRestrictionHint;
+
+        string format = GetLocalizedTextCached(UXPref.Localized_Descriptions, key);
+        if (!HasLocalizedField(format, key)) return InvalidRestrictionHint;
+
+        if (NoneValueRestrictionKeys.Contains(key))
+            return format.Contains("{0}") ? format.Replace("{0}", string.Empty).Trim() : format;
+
+        if (key == "R+" || key == "R-")
+        {
+            string detail = value;
+            if (int.TryParse(value, out int rarity) && rarity >= 0 && rarity <= 9)
+            {
+                string rarityName = GetLocalizedTextCached(UXPref.Localized_UI, $"id:t{rarity}");
+                if (HasLocalizedField(rarityName, $"id:t{rarity}")) detail = rarityName;
+            }
+            return FormatSafe(format, detail);
+        }
+
+        if (key == "U+" || key == "U-")
+        {
+            string detail = value;
+            if (value.Length == 4 && IsAllDigits(value))
+            {
+                string unitKey = value + "0";
+                string unitName = GetLocalizedTextCached(UXPref.Localized_UnitNames, unitKey);
+                if (HasLocalizedField(unitName, unitKey)) detail = unitName;
+            }
+            return FormatSafe(format, detail);
+        }
+
+        if (LevelRestrictionHelper.IsSurgeRestrictionKey(key) &&
+            LevelRestrictionHelper.TryParseSurgeRestrictionValue(value, out int probability, out int duration))
+        {
+            return FormatSafe(format, probability, duration);
+        }
+
+        if (key == "zr" &&
+            LevelRestrictionHelper.TryParseZombieReviveRestrictionValue(value, out int times, out int hpPercent, out int intervalFrames))
+        {
+            return FormatSafe(format, times, hpPercent, intervalFrames);
+        }
+
+        return FormatSafe(format, value);
+    }
+
+    private static bool HasLocalizedField(string localized, string key)
+    {
+        return !string.IsNullOrEmpty(localized) && localized != key;
+    }
+
+    private static bool IsAllDigits(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (!char.IsDigit(value[i])) return false;
+        }
+        return true;
+    }
+
+    private static string FormatSafe(string format, object arg0)
+    {
+        try { return string.Format(format, arg0); }
+        catch (FormatException) { return format + " " + arg0; }
+    }
+
+    private static string FormatSafe(string format, object arg0, object arg1)
+    {
+        try { return string.Format(format, arg0, arg1); }
+        catch (FormatException) { return format + " " + arg0 + " " + arg1; }
+    }
+
+    private static string FormatSafe(string format, object arg0, object arg1, object arg2)
+    {
+        try { return string.Format(format, arg0, arg1, arg2); }
+        catch (FormatException) { return format + " " + arg0 + " " + arg1 + " " + arg2; }
+    }
+
+    private string GetLocalizedTextCached(string tableName, string key)
+    {
+        if (string.IsNullOrEmpty(key)) return string.Empty;
+        string localeCode = GetCurrentLocaleCode();
+        string cacheKey = tableName + "|" + localeCode + "|" + key;
+        if (LocalizedCache.TryGetValue(cacheKey, out string cached)) return cached;
+
+        string result = TryGetLocalizedTextFromEditorTable(tableName, key);
+        if (HasLocalizedField(result, key))
+        {
+            LocalizedCache[cacheKey] = result;
+            return result;
+        }
+
+        result = key;
+        try
+        {
+            AsyncOperationHandle init = LocalizationSettings.InitializationOperation;
+            if (!init.IsDone) init.WaitForCompletion();
+            var handle = LocalizationSettings.StringDatabase.GetLocalizedStringAsync(tableName, key);
+            if (!handle.IsDone) handle.WaitForCompletion();
+            if (handle.Status == AsyncOperationStatus.Succeeded && !string.IsNullOrEmpty(handle.Result))
+                result = handle.Result;
+        }
+        catch
+        {
+            result = key;
+        }
+
+        LocalizedCache[cacheKey] = result;
+        return result;
+    }
+
+    private string TryGetLocalizedTextFromEditorTable(string tableName, string key)
+    {
+        if (string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(key)) return key;
+        StringTable table = GetBestEditorStringTable(tableName);
+        if (table == null) return key;
+        StringTableEntry entry = table.GetEntry(key);
+        if (entry == null) return key;
+        return string.IsNullOrEmpty(entry.LocalizedValue) ? key : entry.LocalizedValue;
+    }
+
+    private StringTable GetBestEditorStringTable(string tableName)
+    {
+        string localeCode = GetCurrentLocaleCode();
+        string cacheKey = tableName + "|" + localeCode;
+        if (EditorTableCache.TryGetValue(cacheKey, out StringTable cached) && cached != null)
+            return cached;
+
+        string folder = $"Assets/Resources/Localization/{tableName}";
+        string[] guids = AssetDatabase.FindAssets("t:StringTable", new[] { folder });
+        if (guids == null || guids.Length == 0)
+        {
+            EditorTableCache[cacheKey] = null;
+            return null;
+        }
+
+        StringTable localeMatched = null;
+        StringTable zhTable = null;
+        StringTable defaultTable = null;
+        StringTable firstTable = null;
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            StringTable table = AssetDatabase.LoadAssetAtPath<StringTable>(path);
+            if (table == null) continue;
+            if (firstTable == null) firstTable = table;
+
+            string tableLocale = table.LocaleIdentifier.Code;
+            if (!string.IsNullOrEmpty(localeCode) && tableLocale == localeCode)
+            {
+                localeMatched = table;
+                break;
+            }
+            if (tableLocale == "zh-CN") zhTable = table;
+            if (path.EndsWith("/" + tableName + ".asset", StringComparison.OrdinalIgnoreCase))
+                defaultTable = table;
+        }
+
+        StringTable selected = localeMatched ?? zhTable ?? defaultTable ?? firstTable;
+        EditorTableCache[cacheKey] = selected;
+        return selected;
+    }
+
+    private static string GetCurrentLocaleCode()
+    {
+        try
+        {
+            Locale locale = LocalizationSettings.SelectedLocale;
+            if (locale != null && !string.IsNullOrEmpty(locale.Identifier.Code))
+                return locale.Identifier.Code;
+        }
+        catch { }
+        return "zh-CN";
     }
 
     private void DrawRewardSection(SerializedProperty rewardListProp)
@@ -264,6 +529,25 @@ public class LevelDataEditor : Editor
             EditorGUILayout.EndVertical();
             return true;
         }
+        GUI.enabled = infoIndex > 0;
+        if (GUILayout.Button("↑", GUILayout.Width(28)))
+        {
+            infosProp.MoveArrayElement(infoIndex, infoIndex - 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = infoIndex < infosProp.arraySize - 1;
+        if (GUILayout.Button("↓", GUILayout.Width(28)))
+        {
+            infosProp.MoveArrayElement(infoIndex, infoIndex + 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = true;
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
@@ -274,7 +558,7 @@ public class LevelDataEditor : Editor
             GUILayout.Box("(无头像)", GUILayout.Width(64), GUILayout.Height(64));
 
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.PropertyField(enemyIdProp, new GUIContent("单位 ID（-开头为对方）"));
+        EditorGUILayout.PropertyField(enemyIdProp, new GUIContent("单位 ID"));
         EditorGUILayout.PropertyField(ratioProp, new GUIContent("倍率(%)"));
         EditorGUILayout.LabelField($"HP: {scaledHealth}", labelSmall);
         EditorGUILayout.LabelField($"ATK: {scaledAtkText}", labelSmall);
@@ -428,6 +712,15 @@ public class LevelDataEditor : Editor
             {
                 fontSize = 12,
                 richText = true
+            };
+        }
+        if (labelHint == null)
+        {
+            labelHint = new GUIStyle(EditorStyles.wordWrappedLabel)
+            {
+                fontSize = 12,
+                richText = true,
+                fontStyle = FontStyle.Italic
             };
         }
     }

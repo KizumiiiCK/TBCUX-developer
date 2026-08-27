@@ -233,7 +233,10 @@ public class LevelController : MonoBehaviour
         if (isPloting || disable_controll) return;
 
         // 更新金钱
-        float moneyGain = (moneyCharching_speed + (current_money_level - 1) * moneyCharching_bonus) * multiplier * Time.deltaTime;
+        float moneyGain = (moneyCharching_speed + (current_money_level - 1) * moneyCharching_bonus)
+            * multiplier
+            * Time.deltaTime
+            * LevelRestrictionHelper.GetMoneyProductionMultiplier(levelRestrictions);
         AddMoney(moneyGain);
 
         // 更新分数

@@ -13,7 +13,7 @@ public static class LevelRestrictionHelper
     private static readonly HashSet<string> CaseSensitiveRestrictionKeys =
         new HashSet<string>(StringComparer.Ordinal)
         {
-            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs"
+            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap"
         };
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
         new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
@@ -45,7 +45,8 @@ public static class LevelRestrictionHelper
             { "sD", ParseRestrictionValue },
             { "zr", ParseZombieReviveRestrictionValue },
             { "FS", ParseForcedAllSlots },
-            { "fs", ParseForcedGuestSlots }
+            { "fs", ParseForcedGuestSlots },
+            { "ap", ParseMoneyProductionPercent }
         };
 
     public class RestrictionRules
@@ -67,6 +68,7 @@ public static class LevelRestrictionHelper
         public int initialMoneyLevel = NoLimit;
         public int initialMoneyAmount = NoLimit;
         public float unitCostMultiplier = 1f;
+        public float moneyProductionPercent = 100f;
 
         public void AddRawValue(string key, string value)
         {
@@ -275,6 +277,12 @@ public static class LevelRestrictionHelper
     {
         if (rules == null || rules.initialMoneyAmount < 0) return fallback;
         return rules.initialMoneyAmount;
+    }
+
+    public static float GetMoneyProductionMultiplier(RestrictionRules rules)
+    {
+        if (rules == null) return 1f;
+        return rules.moneyProductionPercent * 0.01f;
     }
 
     public static int ApplyUnitCostMultiplier(int cost, float multiplier)
@@ -748,6 +756,13 @@ public static class LevelRestrictionHelper
     {
         if (!TryParseNonNegativeInt(value, out int initialMoneyAmount)) return;
         rules.initialMoneyAmount = initialMoneyAmount;
+    }
+
+    private static void ParseMoneyProductionPercent(RestrictionRules rules, string value)
+    {
+        if (rules == null) return;
+        if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float percent)) return;
+        rules.moneyProductionPercent = percent;
     }
 
     //private static void ParseUnitCostMultiplier(RestrictionRules rules, string value)
