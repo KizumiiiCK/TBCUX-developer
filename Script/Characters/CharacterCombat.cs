@@ -478,6 +478,8 @@ public abstract partial class Character
     public bool IsOnKB() => onKB;
     public KB_Type GetLastTriggeredKBType() => lastTriggeredKBType;
     public IReadOnlyList<Character> GetLastAttackHitTargets() => lastAttackHitTargets;
+    public int GetReload() => Reload;
+    public void SetReload(int reloadT) => Reload = reloadT < 0 ? 0 : reloadT;
     public int GetRealReload() => realReload;
     public void SetRealReload(int reloadT) => realReload = reloadT < 0 ? 0 : reloadT;
 

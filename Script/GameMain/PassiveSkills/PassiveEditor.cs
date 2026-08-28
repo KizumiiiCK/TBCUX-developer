@@ -488,7 +488,7 @@ public class Impatience : PassiveSkill
     public override void OnFinishAttack(Character character)
     {
         impatience_level++;
-        character.SetRealReload(character.GetRealReload() - duration);
+        character.SetReload(character.GetReload() - duration);
     }
 }
 public class PressureLearn : PassiveSkill
