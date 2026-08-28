@@ -54,6 +54,7 @@ public abstract class E : MonoBehaviour
     public virtual void RemoveEffect() { }
     public EffectName GetEffectName() => effectName;
     protected void InstallEffect() {
+        if (effectName == EffectName.toxic) return;
         string en=string.Empty;
         bool enemy;
         switch (effectName)
