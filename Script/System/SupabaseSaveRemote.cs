@@ -38,6 +38,15 @@ public static class SupabaseSaveRemote
 
     public static void Initialize(string url, string key, string playerId)
     {
+        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(playerId))
+        {
+            supabaseUrl = null;
+            supabaseKey = null;
+            pid = null;
+            initialized = false;
+            Debug.LogWarning("[SupabaseSaveRemote] Cloud save is not configured. Local play continues without remote.");
+            return;
+        }
 
         supabaseUrl = url;
         supabaseKey = key;

@@ -45,9 +45,10 @@ public static class UXPref
     // Specials
     public const string RewardPenalty = "reward-p";
 
-    // Supabase (global fixed values)
-    public const string SupabaseUrl = "https://udnacihdrcqwjbnavyau.supabase.co";
-    public const string SupabaseKey = "sb_publishable_icguQw1JHoIlGDk8TBxECw_Mj_-ABem";
+    // Cloud save credentials live in gitignored Resources/Private/SupabaseSettings.asset
+    public static string SupabaseUrl => SupabaseSettings.UrlValue;
+    public static string SupabaseKey => SupabaseSettings.KeyValue;
+    public static bool HasSupabaseConfig => SupabaseSettings.IsConfigured;
 
     // UI rarity frame colors
     public static readonly Color FrameColorDefault = Color.white;

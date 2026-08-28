@@ -38,6 +38,12 @@ public class CheckInSystem : MonoBehaviour
             Close();
             return;
         }
+        if (!UXPref.HasSupabaseConfig)
+        {
+            Close();
+            return;
+        }
+
         string pid = PlayerPrefs.GetString(UXPref.UserPrefKey, "KIZUMIII");
         SupabaseSaveRemote.Initialize(UXPref.SupabaseUrl, UXPref.SupabaseKey, pid);
 

@@ -10,8 +10,8 @@
 //public class SupabaseSaveUploader : MonoBehaviour
 //{
 //    public event Action<string> OnPidReserved;
-//    private const string SupabaseUrl = "https://udnacihdrcqwjbnavyau.supabase.co";
-//    private const string SupabaseKey = "sb_publishable_icguQw1JHoIlGDk8TBxECw_Mj_-ABem";
+//    private const string SupabaseUrl = ""; // local Resources/Private/SupabaseSettings.asset
+//    private const string SupabaseKey = "";
 //    private const string PidReserveTable = "player_ids";
 //    private const string UserTable = "user_accounts";
 //    private const string UserPrefKey = "USER";

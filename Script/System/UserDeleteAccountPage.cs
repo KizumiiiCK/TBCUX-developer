@@ -52,6 +52,11 @@ public class UserDeleteAccountPage : MonoBehaviour
     private void OnConfirmDeleteClicked()
     {
         if (isDeleting) return;
+        if (!UXPref.HasSupabaseConfig)
+        {
+            Debug.LogWarning("[UserDeleteAccountPage] " + SupabaseSettings.MissingConfigHint);
+            return;
+        }
 
         if (secondConfirmRequired)
         {

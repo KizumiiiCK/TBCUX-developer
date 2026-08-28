@@ -103,6 +103,10 @@
 Thumbs.db
 Desktop.ini
 
+# Local cloud-save credentials (copy from SupabaseSettings.example.asset)
+/Resources/Private/SupabaseSettings.asset
+/Resources/Private/SupabaseSettings.asset.meta
+
 # Dev leftovers (kept on disk, not versioned)
 /Script/System/AnimationDisplayer.cs.origin
 /Resources/Units/testers/
