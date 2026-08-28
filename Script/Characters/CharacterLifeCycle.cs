@@ -118,7 +118,6 @@ public abstract partial class Character
         if (UNITYAnimated) Destroy(GetComponent<AnimationDisplayer>());
 
         if (IsEliteUnit) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.strategic});
-        if(!IsCat()&&traits.Mtl) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.metal});
         foreach (var ca in characterAbilities) AbilityInstaller.Install(this, ca);
     }
 
