@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using Builda;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,7 +47,16 @@ public class BontiqueCanvas : UICanvasMain
             return;
         }
 
-        if (!visibleCategories.Contains(currentCategory)) currentCategory = visibleCategories[0];
+        if (visibleCategories.Contains(BontiqueType.Builda))
+        {
+            visibleCategories.Remove(BontiqueType.Builda);
+            visibleCategories.Insert(0, BontiqueType.Builda);
+            currentCategory = BontiqueType.Builda;
+        }
+        else if (!visibleCategories.Contains(currentCategory))
+        {
+            currentCategory = visibleCategories[0];
+        }
 
         foreach (BontiqueType t in visibleCategories)
         {
@@ -217,6 +228,13 @@ public class BontiqueCanvas : UICanvasMain
             return;
         }
 
+        if (item.IsPlatformPay)
+        {
+            if (IsPageInProgress) return;
+            StartCoroutine(RedeemPlatformPayRoutine(item));
+            return;
+        }
+
         int have = RewardingSystem.GetAmount(item.CurrencyId);
         if (have < item.CurrencyAmount)
         {
@@ -313,6 +331,65 @@ public class BontiqueCanvas : UICanvasMain
         rewardCanvas.Initialize(item.RewardKind, item.gainId, item.ObtainAmount);
     }
 
+    private IEnumerator RedeemPlatformPayRoutine(BontiqueShopItem item)
+    {
+        if (item == null || !item.IsPlatformPay) yield break;
+
+        SetPageInProgress(true);
+        bool done = false;
+        BuildaResult response = null;
+        BuildaSDK.PayShowPanel(item.PayId, r =>
+        {
+            response = r;
+            done = true;
+        });
+        while (!done) yield return null;
+        SetPageInProgress(false);
+
+        if (response == null || !response.Ok)
+        {
+            string code = response != null && response.Error != null ? response.Error.Code : "NO_RESULT";
+            Debug.Log($"Bontique: pay cancelled or failed. bid={item.bid} payId={item.PayId} code={code}");
+            RefreshSpawnedItemStatesAfterPurchase();
+            yield break;
+        }
+
+        if (!TryReadPaySuccess(response.DataMap, out string orderId))
+        {
+            Debug.Log($"Bontique: pay not successful. bid={item.bid} payId={item.PayId}");
+            RefreshSpawnedItemStatesAfterPurchase();
+            yield break;
+        }
+
+        if (!BuildaPayOrders.TryClaim(orderId))
+        {
+            Debug.Log($"Bontique: order already claimed. bid={item.bid} orderId={orderId}");
+            RefreshSpawnedItemStatesAfterPurchase();
+            yield break;
+        }
+
+        DeliverShopItem(item, recordPurchase: false);
+    }
+
+    private static bool TryReadPaySuccess(Dictionary<string, object> map, out string orderId)
+    {
+        orderId = string.Empty;
+        if (map == null) return false;
+
+        bool success = false;
+        if (map.TryGetValue("success", out object successRaw) && successRaw is bool flag)
+            success = flag;
+        if (!success) return false;
+
+        if (map.TryGetValue("orderId", out object raw) && raw != null)
+        {
+            if (raw is string s) orderId = s;
+            else orderId = Convert.ToString(raw, CultureInfo.InvariantCulture);
+        }
+        if (string.IsNullOrEmpty(orderId)) return false;
+        return true;
+    }
+
     private void EvaluateItemState(BontiqueShopItem item, DateTime now, out int remaining, out bool interactable)
     {
         remaining = -1;
@@ -388,6 +465,9 @@ public class BontiqueCanvas : UICanvasMain
         foreach (BontiqueType t in Enum.GetValues(typeof(BontiqueType)))
         {
             if (t == BontiqueType.Unknown) continue;
+#if !UNITY_WEBGL
+            if (t == BontiqueType.Builda) continue;
+#endif
             if (HasVisibleItemsInCategory(t, now)) categories.Add(t);
         }
         return categories;

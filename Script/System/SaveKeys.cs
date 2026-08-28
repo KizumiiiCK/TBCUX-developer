@@ -15,9 +15,9 @@ using System.Collections.Generic;
 /// <list type="bullet">
 /// <item>7 chapter progress shards - one per playable chapter under Resources/LevelData/Chapters</item>
 /// <item>7 character-upgrade shards - one per rarity digit 0..6</item>
-/// <item>8 single-value payloads</item>
+/// <item>9 single-value payloads</item>
 /// </list>
-/// 22 keys total, which also fits in one 32-key <c>getMany</c>, so the boot pull is a single
+/// 23 keys total, which also fits in one 32-key <c>getMany</c>, so the boot pull is a single
 /// round-trip.
 /// </summary>
 public static class SaveKeys
@@ -77,12 +77,17 @@ public static class SaveKeys
     public const string CheckIn = "tbcx-checkin";
 
     /// <summary>
+    /// Claimed Builda pay <c>orderId</c> values. Same order must never grant twice.
+    /// </summary>
+    public const string PayOrders = "tbcx-pay-orders";
+
+    /// <summary>
     /// Every key the boot pull should fetch. Order is irrelevant; count matters, because staying
     /// at or below 32 keeps the boot pull to one <c>getMany</c>.
     /// </summary>
     public static List<string> AllKeys()
     {
-        var keys = new List<string>(Chapters.Length + RarityCount + 8);
+        var keys = new List<string>(Chapters.Length + RarityCount + 9);
 
         for (int i = 0; i < Chapters.Length; i++) keys.Add(Progress(Chapters[i]));
         for (int r = 0; r < RarityCount; r++) keys.Add(Upgrades(r));
@@ -95,6 +100,7 @@ public static class SaveKeys
         keys.Add(DailyMapClear);
         keys.Add(DrawPending);
         keys.Add(CheckIn);
+        keys.Add(PayOrders);
 
         return keys;
     }

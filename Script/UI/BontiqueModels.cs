@@ -10,6 +10,7 @@ public enum BontiqueType
     Characters = 4,
     Event = 5,
     Others = 6,
+    Builda = 7,
     Unknown = -1
 }
 public enum LimitType
@@ -37,6 +38,14 @@ public class BontiqueShopItem
     public int LimitCount;
     public DateTime? LimitStart;
     public DateTime? LimitEnd;
+    /// <summary>
+    /// Non-empty: this SKU is a Builda <c>payPoints</c> product. Redeem calls
+    /// <c>PayShowPanel</c> instead of consuming in-game currency. Must match
+    /// <c>^[A-Za-z0-9_-]{1,64}$</c> (no colon).
+    /// </summary>
+    public string PayId;
+
+    public bool IsPlatformPay => !string.IsNullOrEmpty(PayId);
 
     public bool IsInActiveWindow(DateTime now)
     {
@@ -114,7 +123,7 @@ public class BontiqueShopItem
 
     private static BontiqueType ToBontiqueType(int value)
     {
-        return value >= 0 && value <= 6 ? (BontiqueType)value : BontiqueType.Unknown;
+        return value >= 0 && value <= 7 ? (BontiqueType)value : BontiqueType.Unknown;
     }
 
     private static RewardType ToRewardType(int value)

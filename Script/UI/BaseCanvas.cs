@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -225,7 +226,7 @@ public class BaseCanvas : UICanvasMain
             frameUI.OpenPage(
                 BontiqueCanvasPrefab,
                 page => currentSubCanvas = page,
-                null,
+                new List<int> { RewardingSystem.RewardNumMap[RewardName.BuildaCoin] },
                 FrameUIDisplayer.DoorAction.None
             );
         }
