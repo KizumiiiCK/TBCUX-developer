@@ -84,6 +84,8 @@ public abstract partial class Character
         float treasureBonus = 1 + treasureCount / 100f;
 
         NameCode = data.Name;
+        if (!string.IsNullOrEmpty(NameCode) && NameCode[0] == CharacterPlacer.OppositePrefix)
+            NameCode = NameCode.Substring(1);
         if (forceLevel >= 1) level = forceLevel;
         IsEliteUnit = data.isEliteUnit;
         BaseEmotion = data.baseEmotion;

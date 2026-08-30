@@ -674,7 +674,6 @@ public class LevelDataEditor : Editor
         {
             string folder = CharacterPlacer.GetBundledFolderPath(identity);
             icon = LoadUnitSprite(folder, "enemy_icon");
-            if (icon == null) icon = LoadUnitSprite(folder, "icon_deploy");
         }
 
         enemyIconCache[id] = icon;

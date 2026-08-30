@@ -88,6 +88,12 @@ public static class CharacterPlacer
         return icon;
     }
 
+    public static Sprite LoadEnemyIcon(UnitIdentity identity)
+    {
+        if (!identity.IsValid) return null;
+        return BundledAddressables.LoadSync<Sprite>(GetLoadPath(identity) + "enemy_icon");
+    }
+
     public static AnimDecryptPack Decrypt(UnitIdentity identity, CharacterData data)
     {
         if (!identity.IsValid || data == null || data.UNITYAnimated) return null;

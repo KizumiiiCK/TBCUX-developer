@@ -1253,7 +1253,7 @@ public class ZombieReviveAddon : PassiveSkill
     private bool initialized;
     private bool reviving;
     private int remainingRevives;
-    private bool purified = false;
+    private bool purified;
     private float reviveHealthBase;
 
     public override void OnAddingAbility(Character character)
@@ -1268,7 +1268,7 @@ public class ZombieReviveAddon : PassiveSkill
     {
         if (character == null) return;
         bool hasZombieKiller = atkTypes != null && atkTypes.Contains(AttackType.zombieKiller);
-        purified = hasZombieKiller && (character.GetHealth() - DMG < 0);
+        purified = hasZombieKiller && character.GetHealth() - DMG <= 0f;
         if (purified) character.EM?.InstantiateBattleObject(SEnums.zombieKiller, character.transform.position.x, character.transform.position.y);
     }
 

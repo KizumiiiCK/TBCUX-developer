@@ -104,7 +104,6 @@ public class CatCharacter : AnimatorCachedCharacter
         bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);
         SetIncomingTraitCorresponding(matchedTraits);
         if (matchedTraits) Passive_OnMatchedTraits(atkTypes);
-        Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         if(atkTypes!=null)foreach (var ar in atkTypeResis)
         {
             foreach (var at in atkTypes)
@@ -119,6 +118,7 @@ public class CatCharacter : AnimatorCachedCharacter
         if (matchedTraits) DMG_DREeffects(ref DMG, dre);
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
+        Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         TakeDMG(DMG);
         if(DMG>0)TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
         HitEffect(atkTypes);
