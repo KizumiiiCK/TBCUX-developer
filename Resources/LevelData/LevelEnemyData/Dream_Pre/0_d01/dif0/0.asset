@@ -14,14 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: d1-0
   gainXP: 94650
-  BaseHealth: 85000
+  BaseHealth: 175000
   mapSize: 3500
   maxEmenyCount: 50
-  BackgroundID: 600
-  BaseImageID: 352
+  BackgroundID: 2
+  BaseImageID: 321
   CombatEffect:
   - rain
-  Restriction: []
+  Restriction:
+  - R+:1
+  - LC:20
   CombatAura: []
   exstage:
     exist: 0
@@ -30,87 +32,60 @@ MonoBehaviour:
   rewardlist:
   - type: 1
     id: 7
-    drawtimes: 2
-    droprate: 100
-    onlyOnce: 1
-  - type: 1
-    id: 12
-    drawtimes: 300
+    drawtimes: 1
     droprate: 100
     onlyOnce: 1
   - type: 1
     id: 11
-    drawtimes: 80000
+    drawtimes: 160000
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 34
+    drawtimes: 2
     droprate: 100
     onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: lilytales-desert
     enemySummonInfos:
-    - enemyID: e002
-      ratio: 1800
+    - enemyID: e005
+      ratio: 3000
       bossShock: 0
       repeat: -1
       firstAppear: 30
-      repeatMin: 480
-      repeatMax: 480
-      previewSprite: {fileID: 21300000, guid: 7c2c44cd1d096574ebdc4304f16af181, type: 3}
-    - enemyID: e027
+      repeatMin: 690
+      repeatMax: 1330
+      previewSprite: {fileID: 0}
+    - enemyID: e047
       ratio: 100
       bossShock: 0
-      repeat: -1
-      firstAppear: 300
+      repeat: 3
+      firstAppear: 360
       repeatMin: 600
       repeatMax: 600
-      previewSprite: {fileID: 21300000, guid: aaeaca4af87763e42b9db1e3cc77b4b9, type: 3}
-    - enemyID: e120
-      ratio: 200
+      previewSprite: {fileID: 0}
+    - enemyID: e069
+      ratio: 1000
+      bossShock: 1
+      repeat: 1
+      firstAppear: 520
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 0}
+    - enemyID: e104
+      ratio: 600
+      bossShock: 0
+      repeat: 5
+      firstAppear: 520
+      repeatMin: 300
+      repeatMax: 300
+      previewSprite: {fileID: 0}
+    - enemyID: e104
+      ratio: 600
       bossShock: 0
       repeat: -1
       firstAppear: 600
-      repeatMin: 900
-      repeatMax: 900
-      previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}
-    - enemyID: e114
-      ratio: 200
-      bossShock: 0
-      repeat: -1
-      firstAppear: 150
-      repeatMin: 1080
-      repeatMax: 1080
-      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
-  - HealthPercentageOnBreak: 99
-    bgm: lilytales-desert
-    enemySummonInfos:
-    - enemyID: e120
-      ratio: 200
-      bossShock: 0
-      repeat: 8
-      firstAppear: 250
-      repeatMin: 30
-      repeatMax: 90
-      previewSprite: {fileID: 21300000, guid: a02ad04165afede498374c50d2f68718, type: 3}
-    - enemyID: e114
-      ratio: 100
-      bossShock: 1
-      repeat: 1
-      firstAppear: 1
-      repeatMin: 0
-      repeatMax: 0
-      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
-    - enemyID: e114
-      ratio: 200
-      bossShock: 0
-      repeat: 4
-      firstAppear: 60
-      repeatMin: 120
-      repeatMax: 120
-      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
-    - enemyID: e114
-      ratio: 200
-      bossShock: 0
-      repeat: 4
-      firstAppear: 75
-      repeatMin: 120
-      repeatMax: 120
-      previewSprite: {fileID: 21300000, guid: 5be9804a0aef1664ea8daec3f31daa6d, type: 3}
+      repeatMin: 960
+      repeatMax: 1260
+      previewSprite: {fileID: 0}

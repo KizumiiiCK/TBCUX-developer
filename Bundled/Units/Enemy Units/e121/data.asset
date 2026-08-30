@@ -19,6 +19,7 @@ MonoBehaviour:
   - ATK: 2000
     frame: 10
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 120}
   areaATK: 1
@@ -29,7 +30,7 @@ MonoBehaviour:
   Reload: 28
   DetectionRange: 120
   Cost: 237
-  Cooldown: 0
+  Cooldown: 210
   UNITYAnimated: 0
   SPINEAnimated: 0
   traits:
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0

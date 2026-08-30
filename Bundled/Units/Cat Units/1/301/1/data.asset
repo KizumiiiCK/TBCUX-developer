@@ -16,9 +16,10 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 00000000
   atkInfos:
-  - ATK: 1380
+  - ATK: 2760
     frame: 77
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 551}
   areaATK: 1
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
