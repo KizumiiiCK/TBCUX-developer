@@ -64,7 +64,8 @@ public class ShowEnemyBoard : MonoBehaviour
 
                 if (!enemyIconCache.TryGetValue(en[i], out Sprite icon))
                 {
-                    icon = BundledAddressables.LoadSync<Sprite>($"Units/Enemy Units/{en[i]}/enemy_icon");
+                    if (CharacterPlacer.TryParse(en[i], false, out UnitIdentity identity) && identity.IsValid)
+                        icon = CharacterPlacer.LoadEnemyIcon(identity);
                     enemyIconCache[en[i]] = icon;
                 }
                 image.sprite = icon;
