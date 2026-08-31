@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: 6
   m_EditorClassIdentifier: 
   levelName: d-bd:6
-  gainXP: 45000
+  gainXP: 100000
   BaseHealth: 1200000
-  mapSize: 4500
+  mapSize: 4800
   maxEmenyCount: 4
   BackgroundID: 4
   BaseImageID: 310
@@ -110,6 +110,14 @@ MonoBehaviour:
       bossShock: 0
       repeat: 1
       firstAppear: 7000
+      repeatMin: 2
+      repeatMax: 2
+      previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
+    - enemyID: e065
+      ratio: 100
+      bossShock: 0
+      repeat: 1
+      firstAppear: 750
       repeatMin: 2
       repeatMax: 2
       previewSprite: {fileID: 21300000, guid: 0cd6876b0eb3931499c4b521d470099d, type: 3}
