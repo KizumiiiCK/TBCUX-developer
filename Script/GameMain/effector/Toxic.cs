@@ -8,9 +8,14 @@ public class Toxic : E
     {
         effectName = EffectName.toxic;
         Character c = GetComponent<Character>();
-        if (c != null)
+        if (c == null) return;
+        if (c.EM != null)
         {
-            c.ReceiveAttack(c.GetMaxHealth() * duration / 100, null, null, null, null, null, null);
+            c.EM.InstantiateBattleObject(
+                c.IsCat() ? SEnums.toxic : SEnums.toxic_e,
+                c.transform.position.x,
+                c.transform.position.y);
         }
+        c.ReceiveAttack(c.GetMaxHealth() * duration / 100, null, null, null, null, null, null);
     }
 }

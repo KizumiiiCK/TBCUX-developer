@@ -60,15 +60,17 @@ public class IndexViewerPause : MonoBehaviour
         }
 
         currentCharacter = character;
-        bool isCat = character is CatCharacter;
+        bool assetIsCat = character.IsCat() != character.IsOppositeUnit;
         string code = character.NameCode;
+        if (!string.IsNullOrEmpty(code) && code[0] == CharacterPlacer.OppositePrefix)
+            code = code.Substring(1);
         if (string.IsNullOrEmpty(code))
         {
             HidePanel();
             return;
         }
 
-        currentData = LoadCharacterData(code, isCat);
+        currentData = LoadCharacterData(code, assetIsCat);
         if (currentData == null)
         {
             HidePanel();
@@ -76,7 +78,7 @@ public class IndexViewerPause : MonoBehaviour
         }
 
         gameObject.SetActive(true);
-        RefreshPortrait(code, isCat);
+        RefreshPortrait(code, assetIsCat);
         RefreshLocalizedName(code);
         RefreshHealthOnly();
         RefreshKbMarkers(Mathf.Max(0, character.KB));

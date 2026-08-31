@@ -37,6 +37,14 @@ public class UserCreateAccountPage : MonoBehaviour
 
     private void Start()
     {
+        if (!UXPref.HasSupabaseConfig)
+        {
+            SetHint(SupabaseSettings.MissingConfigHint);
+            if (createButton != null) createButton.interactable = false;
+            if (retakeButton != null) retakeButton.interactable = false;
+            return;
+        }
+
         SetHint("Preparing account...");
         StartCoroutine(PrepareUniquePid());
     }

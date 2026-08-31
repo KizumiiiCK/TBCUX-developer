@@ -84,6 +84,8 @@ public abstract partial class Character
         float treasureBonus = 1 + treasureCount / 100f;
 
         NameCode = data.Name;
+        if (!string.IsNullOrEmpty(NameCode) && NameCode[0] == CharacterPlacer.OppositePrefix)
+            NameCode = NameCode.Substring(1);
         if (forceLevel >= 1) level = forceLevel;
         IsEliteUnit = data.isEliteUnit;
         BaseEmotion = data.baseEmotion;
@@ -118,7 +120,6 @@ public abstract partial class Character
         if (UNITYAnimated) Destroy(GetComponent<AnimationDisplayer>());
 
         if (IsEliteUnit) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.strategic});
-        if(!IsCat()&&traits.Mtl) AbilityInstaller.Install(this, new CharacterAbility {name=AbilityName.metal});
         foreach (var ca in characterAbilities) AbilityInstaller.Install(this, ca);
     }
 

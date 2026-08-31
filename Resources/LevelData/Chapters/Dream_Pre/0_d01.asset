@@ -14,40 +14,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sectionName: 0_d01
   mapName: dreamin
-  BGM: 
-  unlockRestriction: ???
+  BGM: lilytales-title
+  unlockRestriction: Dream_Pre+0_d00
+  oncePerDay: 0
   hardness: 1
   difficulty: 000000000001010000000000
   coverColor: {r: 0.4666667, g: 0.3254902, b: 0.227451, a: 1}
   titleColor: 3
   levelsOnMap:
-  - levelNameID: d0-0
-    levelPosition: {x: -1, y: -13}
+  - levelNameID: d1-0
+    levelPosition: {x: -33, y: 5}
     tileType: 0
-  - levelNameID: d0-1
-    levelPosition: {x: -9, y: -7}
+  - levelNameID: d1-1
+    levelPosition: {x: -34, y: 7}
     tileType: 0
-  - levelNameID: d0-2
-    levelPosition: {x: -15, y: -8}
+  - levelNameID: d1-2
+    levelPosition: {x: -30, y: 8}
     tileType: 0
-  - levelNameID: d0-3
-    levelPosition: {x: -20, y: -3}
+  - levelNameID: d1-3
+    levelPosition: {x: -28, y: 9}
     tileType: 0
-  - levelNameID: d0-4
-    levelPosition: {x: -25, y: -9}
+  - levelNameID: d1-4
+    levelPosition: {x: -25, y: 10}
     tileType: 0
-  - levelNameID: d0-5
-    levelPosition: {x: -32, y: -8}
+  - levelNameID: d1-5
+    levelPosition: {x: -21, y: 10}
     tileType: 0
-  - levelNameID: d0-6
-    levelPosition: {x: -31, y: -1}
+  - levelNameID: d1-6
+    levelPosition: {x: -18, y: 11}
     tileType: 0
-  - levelNameID: d0-7
-    levelPosition: {x: -27, y: 0}
-    tileType: 0
-  - levelNameID: d0-8
-    levelPosition: {x: -30.5, y: 3}
-    tileType: 0
-  - levelNameID: d0-9
-    levelPosition: {x: -34, y: 5}
+  - levelNameID: d1-7
+    levelPosition: {x: -14, y: 12}
     tileType: 0

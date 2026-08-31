@@ -45,19 +45,15 @@ public static class UXPref
     // Specials
     public const string RewardPenalty = "reward-p";
 
-    // Supabase credentials are intentionally BLANK, not merely unused.
-    //
-    // Every string literal in a WebGL build is readable from the browser, so shipping the real URL
-    // and anon key would publish this project's backend to anyone who opens devtools - for a
-    // backend the Builda platform blocks the game from reaching anyway. Persistence now goes
-    // through BuildaSaveBackend (privateKV) and identity through BuildaSDK.Whoami().
-    //
-    // The names survive only so the account-transfer pages still compile; those pages are
-    // unreachable on WebGL (their entry points are disabled in MMOption and UserLoginCheckPage).
-    // Do not restore real values here - inject them at runtime if the Windows/Android builds ever
-    // need them again.
-    public const string SupabaseUrl = "";
-    public const string SupabaseKey = "";
+    // WebGL: credentials stay blank. Every string in the player is readable from the browser,
+    // and the host blocks non-platform network anyway. Persistence is BuildaSaveBackend
+    // (privateKV); identity is BuildaSDK.Whoami(). Account-transfer pages still compile
+    // against these names but are unreachable (MMOption hidden, UserLoginCheckPage self-destructs).
+    // main isolated credentials in gitignored SupabaseSettings.asset; this branch must not
+    // read that asset or a filled local file would leak into the WebGL player.
+    public static string SupabaseUrl => "";
+    public static string SupabaseKey => "";
+    public static bool HasSupabaseConfig => false;
 
     // UI rarity frame colors
     public static readonly Color FrameColorDefault = Color.white;

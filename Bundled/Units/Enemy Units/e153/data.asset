@@ -68,7 +68,11 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects: []
-  abilities: []
+  abilities:
+  - name: 12
+    probability: 0
+    duration: 0
+    intensity: 0
   atkTypeResis: []
   effectResistances: []
   baseEmotion: 0

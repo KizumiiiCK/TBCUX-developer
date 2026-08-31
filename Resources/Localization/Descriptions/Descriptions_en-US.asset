@@ -962,11 +962,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 113939134422532096
-    m_Localized: All cats suffer<color=#FF6060> {0} </color>duration of the debuffs.
+    m_Localized: All enemies suffer<color=#FF6060> {0}% </color>duration of the debuffs.
     m_Metadata:
       m_Items: []
   - m_Id: 113939134502223872
-    m_Localized: All enemies suffer<color=#00FFFF> {0} </color>duration of the debuffs.
+    m_Localized: All cats suffer<color=#00FFFF> {0}% </color>duration of the debuffs.
     m_Metadata:
       m_Items: []
   - m_Id: 113939134502223873
@@ -980,7 +980,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 113939134502223875
-    m_Localized: Clear the stage using the selected guest units.
+    m_Localized: Clear the stage using the selected <color=#00FFFF> [Guest] </color>characters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 113939134502223876
+    m_Localized: The money production speed of this stage is <color=#00FFFF> {0}%
+      </color> of the original.
     m_Metadata:
       m_Items: []
   references:

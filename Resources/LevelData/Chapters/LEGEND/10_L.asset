@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 10_L
+  m_EditorClassIdentifier: 
+  sectionName: 10_L
+  mapName: lgmap_3
+  BGM: 
+  unlockRestriction: LEGEND+9_L
+  oncePerDay: 0
+  hardness: 1
+  difficulty: 000000000000000100000000
+  coverColor: {r: 0.3137255, g: 0.37254903, b: 0.34509805, a: 1}
+  titleColor: 1
+  levelsOnMap:
+  - levelNameID: L10-0
+    levelPosition: {x: 10, y: -7}
+    tileType: 0
+  - levelNameID: L10-1
+    levelPosition: {x: 15, y: -6}
+    tileType: 0
+  - levelNameID: L10-2
+    levelPosition: {x: 6, y: -3}
+    tileType: 0
+  - levelNameID: L10-3
+    levelPosition: {x: 14, y: -1}
+    tileType: 0
+  - levelNameID: L10-4
+    levelPosition: {x: 9, y: 0}
+    tileType: 0
+  - levelNameID: L10-5
+    levelPosition: {x: 9, y: 5}
+    tileType: 0

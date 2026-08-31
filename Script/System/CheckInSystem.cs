@@ -38,9 +38,9 @@ public class CheckInSystem : MonoBehaviour
             Close();
             return;
         }
-        // No SupabaseSaveRemote.Initialize here any more: the platform blocks non-platform network
-        // access, so the check-in streak lives in privateKV and the clock comes from the device
-        // (the host runs its own tamper checks).
+        // No SupabaseSaveRemote.Initialize: the host blocks non-platform network.
+        // Streak lives in privateKV; the clock is the device (host polices tampering).
+        // Do not early-return on !HasSupabaseConfig — that would disable check-in on WebGL.
 
         if (rewardAnimator == null) rewardAnimator = GetComponent<Animator>();
         if (rewardAnimator != null) rewardAnimator.speed = 0f;

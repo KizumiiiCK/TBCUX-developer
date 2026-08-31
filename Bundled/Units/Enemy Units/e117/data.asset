@@ -27,7 +27,7 @@ MonoBehaviour:
     DoNotTriggerEffects: 1
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 280}
+    ATKRange: {x: 800, y: 1200}
   areaATK: 1
   atkDuration: 9000
   Health: 174400
@@ -76,8 +76,8 @@ MonoBehaviour:
   characterEffects:
   - name: 4
     probability: 100
-    duration: 3
-    intensity: 3
+    duration: 7
+    intensity: 7
   abilities:
   - name: 15
     probability: 0

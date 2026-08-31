@@ -19,13 +19,14 @@ MonoBehaviour:
   - ATK: 7770
     frame: 20
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 0
     ATKRange: {x: 0, y: 300}
   areaATK: 1
   atkDuration: 25
   Health: 195000
   KB: 15
-  Speed: 36
+  Speed: 55
   Reload: 0
   DetectionRange: 270
   Cost: 4220
@@ -58,7 +59,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -86,3 +87,4 @@ MonoBehaviour:
     probability: 100
     duration: 0
     intensity: 0
+  baseEmotion: 0

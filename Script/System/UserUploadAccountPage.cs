@@ -71,6 +71,11 @@ public class UserUploadAccountPage : MonoBehaviour
     private void OnUploadClicked()
     {
         if (isUploading) return;
+        if (!UXPref.HasSupabaseConfig)
+        {
+            SetInfo(SupabaseSettings.MissingConfigHint);
+            return;
+        }
         if (localUser == null)
         {
             SetInfo("Local user info is invalid. Upload is unavailable.");

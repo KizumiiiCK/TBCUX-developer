@@ -19,19 +19,19 @@ MonoBehaviour:
   - ATK: 1067
     frame: 18
     DoNotTriggerEffects: 0
-    DoNotTriggerAbilities: 0
+    DoNotTriggerAbilities: 1
     Friendly: 0
     ATKRange: {x: 0, y: 375}
   - ATK: 1067
     frame: 30
     DoNotTriggerEffects: 0
-    DoNotTriggerAbilities: 0
+    DoNotTriggerAbilities: 1
     Friendly: 0
     ATKRange: {x: 0, y: 375}
   - ATK: -885
     frame: 125
-    DoNotTriggerEffects: 1
-    DoNotTriggerAbilities: 1
+    DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
     Friendly: 1
     ATKRange: {x: 0, y: 375}
   areaATK: 0

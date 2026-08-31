@@ -62,8 +62,6 @@ public class CatBase : CatCharacter
     {
         if (realHealth <= 0) { realHealth = 0; return; }
         if (DMG < 0) return;
-        // SetIncomingTraitCorresponding(AreCorrespondingTraits(enemyTraits, atkType));
-        Passive_OnBeforeTakeDamage(ref DMG, atkType);
         if (atkType != null) foreach (var ar in atkTypeResis)
         {
             foreach (var at in atkType)
@@ -75,6 +73,7 @@ public class CatBase : CatCharacter
                 }
             }
         }
+        Passive_OnBeforeTakeDamage(ref DMG, atkType);
         realHealth -= (int)DMG;
         Passive_OnAfterTakeDamage();
         if (realHealth <= 0) 

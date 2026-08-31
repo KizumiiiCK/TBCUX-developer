@@ -309,6 +309,12 @@ public static class BontiqueStaticCatalog
         #region Regular
         new BontiqueShopItem
         {
+            bid = "reg:np2core", Category = BontiqueType.Supplies, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 56, ObtainAmount = 1,
+            CurrencyId = 57, CurrencyAmount = 25,
+        },
+        new BontiqueShopItem
+        {
             bid = "reg:s2f-p", Category = BontiqueType.Supplies, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 34, ObtainAmount = 1,
             CurrencyId = 26, CurrencyAmount = 5,

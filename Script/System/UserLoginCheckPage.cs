@@ -128,6 +128,12 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private void OnCreateNewAccount()
     {
+        if (!UXPref.HasSupabaseConfig)
+        {
+            SetMessage(SupabaseSettings.MissingConfigHint);
+            return;
+        }
+
         GameObject prefab = Resources.Load<GameObject>(createAccountPagePath);
         if (prefab == null)
         {
@@ -140,6 +146,12 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private void OnInheritAccount()
     {
+        if (!UXPref.HasSupabaseConfig)
+        {
+            SetMessage(SupabaseSettings.MissingConfigHint);
+            return;
+        }
+
         GameObject prefab = Resources.Load<GameObject>(restoreAccountPagePath);
         if (prefab == null)
         {

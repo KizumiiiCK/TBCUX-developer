@@ -201,6 +201,8 @@ public class EffectManager : MonoBehaviour
         { SEnums.miniwave_e,   30 },
         { SEnums.heal,         60 },
         { SEnums.heal_e,       60 },
+        { SEnums.toxic,        60 },
+        { SEnums.toxic_e,      60 },
         { SEnums.surge,        -1 },
         { SEnums.surge_e,      -1 },
         { SEnums.minisurge,    -1 },
@@ -221,6 +223,8 @@ public class EffectManager : MonoBehaviour
         { SEnums.miniwave_e,   -1 },
         { SEnums.heal,         1 },
         { SEnums.heal_e,       1 },
+        { SEnums.toxic,        1 },
+        { SEnums.toxic_e,      1 },
         { SEnums.surge,        -1 },
         { SEnums.surge_e,      -1 },
         { SEnums.minisurge,    -1 },
@@ -419,6 +423,7 @@ public enum SEnums
     soul, bite, critical, savage, zombieKiller, wave_invalid, wave_stop, invalid,
     wave, wave_e, miniwave, miniwave_e,
     heal, heal_e,
+    toxic, toxic_e,
     surge, surge_e, minisurge, minisurge_e
 }
 

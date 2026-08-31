@@ -66,6 +66,11 @@ public class UserRestoreAccountPage : MonoBehaviour
     private void OnRestoreClicked()
     {
         if (isWorking) return;
+        if (!UXPref.HasSupabaseConfig)
+        {
+            SetInfo(SupabaseSettings.MissingConfigHint);
+            return;
+        }
 
         string pid = userIdInput != null ? userIdInput.text.Trim() : string.Empty;
         string code = transferCodeInput != null ? transferCodeInput.text.Trim() : string.Empty;

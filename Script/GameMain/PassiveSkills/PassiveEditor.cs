@@ -488,7 +488,7 @@ public class Impatience : PassiveSkill
     public override void OnFinishAttack(Character character)
     {
         impatience_level++;
-        character.SetRealReload(character.GetRealReload() - duration);
+        character.SetReload(character.GetReload() - duration);
     }
 }
 public class PressureLearn : PassiveSkill
@@ -1043,9 +1043,11 @@ public class ATK_Buffer : PassiveSkill
 {
     public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
-        for (int i = 0; i < character.Targets.Count; i++)
+        IReadOnlyList<Character> hitTargets = character.GetLastAttackHitTargets();
+        int count = character.areaATK ? hitTargets.Count : Mathf.Min(1, hitTargets.Count);
+        for (int i = 0; i < count; i++)
         {
-            IncreaseATK(character.Targets[i].GetComponent<Character>());
+            IncreaseATK(hitTargets[i]);
         }
     }
     private void IncreaseATK(Character character)
@@ -1251,7 +1253,7 @@ public class ZombieReviveAddon : PassiveSkill
     private bool initialized;
     private bool reviving;
     private int remainingRevives;
-    private bool purified = false;
+    private bool purified;
     private float reviveHealthBase;
 
     public override void OnAddingAbility(Character character)
@@ -1266,7 +1268,7 @@ public class ZombieReviveAddon : PassiveSkill
     {
         if (character == null) return;
         bool hasZombieKiller = atkTypes != null && atkTypes.Contains(AttackType.zombieKiller);
-        purified = hasZombieKiller && (character.GetHealth() - DMG < 0);
+        purified = hasZombieKiller && character.GetHealth() - DMG <= 0f;
         if (purified) character.EM?.InstantiateBattleObject(SEnums.zombieKiller, character.transform.position.x, character.transform.position.y);
     }
 

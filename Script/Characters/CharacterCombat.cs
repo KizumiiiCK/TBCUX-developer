@@ -306,7 +306,7 @@ public abstract partial class Character
         float afterhealth = realHealth - DMG;
         if (DMG < -1) EM.InstantiateBattleObject(IsCat() ? SEnums.heal : SEnums.heal_e, transform.position.x, transform.position.y);
         else if (DMG == 0) EM.InstantiateBattleObject(SEnums.invalid, transform.position.x, transform.position.y);
-        else if (afterhealth < maxHealth - (realKBtimes + 1) * hardness)
+        else if (afterhealth <= 0f || afterhealth < maxHealth - (realKBtimes + 1) * hardness)
         {
             realKBtimes = (int)((maxHealth - afterhealth) / hardness);
             if (coroutineKB == null)
@@ -374,10 +374,10 @@ public abstract partial class Character
             if (i <= d1) SwitchAnimation(3);
             if (i == duration - 1)
             {
-                if (realHealth < 0)
+                if (realHealth <= 0)
                 {
                     Passive_OnDead();
-                    if (realHealth < 0) Dead();
+                    if (realHealth <= 0) Dead();
                 }// check death
                 transform.position = new Vector2(transform.position.x, startingY);
                 Targets.Clear();
@@ -478,6 +478,8 @@ public abstract partial class Character
     public bool IsOnKB() => onKB;
     public KB_Type GetLastTriggeredKBType() => lastTriggeredKBType;
     public IReadOnlyList<Character> GetLastAttackHitTargets() => lastAttackHitTargets;
+    public int GetReload() => Reload;
+    public void SetReload(int reloadT) => Reload = reloadT < 0 ? 0 : reloadT;
     public int GetRealReload() => realReload;
     public void SetRealReload(int reloadT) => realReload = reloadT < 0 ? 0 : reloadT;
 

@@ -276,21 +276,22 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 - **本地**：`SaveSystem`（JSON 序列化到 `streamingAssetsPath`）、`GenericSaveSystem`、`UserInfoLocalStore`。
 - **云端**：`SupabaseSaveRemote` 通过 `UnityWebRequest` 直连 Supabase REST API，带重试机制，支持账户创建 / 登录 / 恢复 / 删除，以及转移码（`TransferCodeRules`）。
 
+Windows / Android 上，云端凭证**不进 git**，走本机 `Resources/Private/SupabaseSettings.asset`（仓库只留 `SupabaseSettings.example.asset`）。
+
 > **WebGL / Builda 平台分支例外**：平台禁止访问非平台网络，且 `BinaryFormatter` 在 IL2CPP 下不可用。
 > 因此 WebGL 下存档改走平台私域 KV：`BuildaSaveBackend`（传输 + 内存缓存）、`SaveCodec`（自写紧凑二进制，
 > 处理 `JsonUtility` 无法序列化的 `int[,]` / `string[,]`）、`SaveKeys`（key 命名表，**一旦上线不可改名**，
 > 改名等于玩家丢档）。进度按章节分 7 片、角色升级按稀有度分 7 片，以绕开单值 32KB 上限。
 > 身份由 `BuildaSDK.Whoami()` 提供，账户页在 WebGL 下已停用（`MMOption` 按钮隐藏、`UserLoginCheckPage` 自毁）。
 >
-> Supabase 的 URL / Key 已从源码**清空**（`UXPref.SupabaseUrl` / `SupabaseKey` 为空串）——WebGL 构建里的
-> 字符串在浏览器中可读，不能把后端凭据打进包。如 Windows / Android 需要，请在运行时注入。
-> `SupabaseSaveUploader.cs` 已删除（896 行全注释死代码，且内含凭据字面量）。
+> 此分支上 `UXPref.SupabaseUrl` / `SupabaseKey` 固定为空、`HasSupabaseConfig` 为 false，**不读取**本机 `SupabaseSettings.asset`（否则填好的本地文件会打进 WebGL 包）。签到与进度走 privateKV，不因缺 Supabase 配置而关闭。
+> `SupabaseSaveUploader.cs` 已删除（内含凭据字面量的死代码）。
 
 ---
 
 ## Addressables 约定
 
-- 组：`Units`、`BGM`、`Visuals`、若干 `Localization-*`。BGM 组必须 **Include in Build**。
+- 组：`Units`、`BGM`、`Visuals`、若干 `Localization-*`。Windows / Android 上 BGM 组必须 **Include in Build**；本 WebGL 分支为 **0**（BGM 由宿主播放，不打进 Player）。
 - `Build Addressables with Player Build` 为关闭：打 Player **不会**自动打 Addressables。先对该平台做 Addressables 构建，再打 exe / apk。
 - 一次 Addressables Build 会打当前平台**所有**纳入构建的组，不必按资源或按组各点一次。
 - Windows 与 Android 产物不通用。
@@ -313,6 +314,7 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 | CG 插画 | `Bundled/CG/**` 的图片 | ✅ 保留 shader / 材质 |
 | 对话立绘 | `Bundled/DialogueImage/**` 的图片 | ✅ 保留 `DialoguePortraitSettings.asset` |
 | 战斗背景图 | `Bundled/Background/**` 的图片 | ✅ 保留 prefab / shader / 材质 / 脚本 |
+| 云端凭证 | `Resources/Private/SupabaseSettings.asset` | 本机填写；仓库只留 `.example` |
 
 **保留在库中的核心数据**：`Bundled/Units/` 的 `data.asset` + 精灵图 + 动画 txt、关卡 / 敌人数据、本地化、Addressables 组配置，以及上述各类配置资源。
 
@@ -329,9 +331,10 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 1. 准备一个 Unity **2022.3.60f1c1** 工程（含 `Packages/`、`ProjectSettings/` —— 这些不在本仓库内）。确保已有 Addressables 与 Localization 包。
 2. 将本仓库 clone 为该工程的 `Assets/` 目录（覆盖 `Script/`、`Resources/`、`Bundled/`、`AddressableAssetsData/`）。
 3. 从媒体存储补齐 [被排除的媒体](#未纳入版本管理的内容)。
-4. 用 Unity 打开工程，等待导入完成。
-5. 切到目标平台（Windows 或 Android），做一次 Addressables **New Build**（或已有 content state 时 Update）。
-6. 再打 Player。
+4. （可选）若要调试云端存档：复制 `Resources/Private/SupabaseSettings.example.asset` 为 `SupabaseSettings.asset` 并填写 URL / key；不配则本地游玩即可。
+5. 用 Unity 打开工程，等待导入完成。
+6. 切到目标平台（Windows 或 Android），做一次 Addressables **New Build**（或已有 content state 时 Update）。
+7. 再打 Player。
 
 > 字体 SDF 被排除时，TextMeshPro 可能显示为 □；把字体放回 `Bundled/System/fonts/` 后重建 Visuals 所在的 Addressables 即可。
 
@@ -342,6 +345,7 @@ Localization 会在 `AddressableAssetsData` 下生成 `Localization-*` 组，这
 - **仅**提交白名单目录：`Script/`、`Resources/`、`Bundled/`、`AddressableAssetsData/`。不要 `git add -A` 整个 `Assets/`。
 - 新增 Addressable 资源：放进 `Bundled/` 对应组，勾选 Addressable，**连同** `AddressableAssetsData/AssetGroups/` 的组文件一起提交。
 - 大体积媒体（BGM clip、字体、CG、立绘、背景图、视频）放到项目媒体存储，不要进本仓库。
+- 填好的 `Resources/Private/SupabaseSettings.asset` 不要提交（已被 gitignore）；只提交空的 `.example`。
 - Unity 的 `.meta` 必须随对应资源一同提交。
 - 提交前确保 Unity 已完成导入。
 - Addressables Build 产物不要提交；`addressables_content_state.bin` 要提交。
