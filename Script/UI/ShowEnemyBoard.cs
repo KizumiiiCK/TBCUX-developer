@@ -47,10 +47,9 @@ public class ShowEnemyBoard : MonoBehaviour
                 multiText = iconObj.transform.GetChild(0).GetComponent<TMP_Text>();
             if (image != null)
             {
-                // 图标按需异步加载；槽位复用时以 iconObj 为 owner，旧请求自动作废
-                string iconAddress = blindAllEnemyIcons
-                    ? EnemyHatenaSpritePath
-                    : $"Units/Enemy Units/{en[i]}/enemy_icon";
+                // 图标按需异步加载；槽位复用时以 iconObj 为 owner，旧请求自动作废。
+                // 敌我双边：'-' 前缀仍按 CharacterPlacer 解析到猫/敌资源目录，但预览只读 enemy_icon。
+                string iconAddress = ResolveEnemyBoardIconAddress(en[i], blindAllEnemyIcons);
                 AsyncIconLoader.Instance.Load(iconObj, iconAddress,
                     sprite => { if (image != null) image.sprite = sprite; });
 
@@ -70,5 +69,15 @@ public class ShowEnemyBoard : MonoBehaviour
         // {
         //     panel.SetSize(Mathf.Min(count * 64+160, 800)*2, Mathf.Min(count/10 * 64+200, 330)*2);
         // }
+    }
+
+    private static string ResolveEnemyBoardIconAddress(string rawCode, bool blindAllEnemyIcons)
+    {
+        if (blindAllEnemyIcons) return EnemyHatenaSpritePath;
+        if (CharacterPlacer.TryParse(rawCode, false, out UnitIdentity identity) && identity.IsValid)
+        {
+            return CharacterPlacer.GetLoadPath(identity) + "enemy_icon";
+        }
+        return $"Units/Enemy Units/{rawCode}/enemy_icon";
     }
 }

@@ -60,7 +60,8 @@ public class IndexViewerPause : MonoBehaviour
         }
 
         currentCharacter = character;
-        bool assetIsCat = character.IsCat() != character.IsOppositeUnit;
+        bool hostIsCat = character.IsCat();
+        bool assetIsCat = hostIsCat != character.IsOppositeUnit;
         string code = character.NameCode;
         if (!string.IsNullOrEmpty(code) && code[0] == CharacterPlacer.OppositePrefix)
             code = code.Substring(1);
@@ -78,7 +79,7 @@ public class IndexViewerPause : MonoBehaviour
         }
 
         gameObject.SetActive(true);
-        RefreshPortrait(code, assetIsCat);
+        RefreshPortrait(code, assetIsCat, !hostIsCat);
         RefreshLocalizedName(code);
         RefreshHealthOnly();
         RefreshKbMarkers(Mathf.Max(0, character.KB));
@@ -97,19 +98,18 @@ public class IndexViewerPause : MonoBehaviour
         if (gameObject.activeSelf) gameObject.SetActive(false);
     }
 
-    private void RefreshPortrait(string code, bool isCat)
+    private void RefreshPortrait(string code, bool assetIsCat, bool enemyFacing)
     {
         if (portraitImage == null) return;
 
         // 被检视的单位已在场上，资源由 BattlePrewarm 预热过，同步读取通常命中缓存；
         // 未命中时（例如敌人图标未随单位一起预热）走异步补拉，避免出现空图。
-        Sprite portrait = LoadPortrait(code, isCat);
+        // 敌方槽位（含猫当敌）只读 enemy_icon；我方槽位才读 icon_deploy。
+        string address = ResolvePortraitAddress(code, assetIsCat, enemyFacing);
+        Sprite portrait = LoadPortrait(code, assetIsCat, enemyFacing);
         if (portrait != null) portraitImage.sprite = portrait;
         else
         {
-            string address = isCat && code.Length >= 5
-                ? string.Format(CatIconPathFormat, code[0], code.Substring(1, 3), code[4])
-                : string.Format(EnemyIconPathFormat, code);
             AsyncIconLoader.Instance.Load(portraitImage.gameObject, address,
                 sprite => { if (portraitImage != null && sprite != null) portraitImage.sprite = sprite; });
         }
@@ -117,8 +117,19 @@ public class IndexViewerPause : MonoBehaviour
         RectTransform rt = portraitImage.rectTransform;
         if (rt != null)
         {
-            rt.sizeDelta = isCat ? new Vector2(128f, 100f) : new Vector2(128f, 128f);
+            rt.sizeDelta = assetIsCat ? new Vector2(128f, 100f) : new Vector2(128f, 128f);
         }
+    }
+
+    private static string ResolvePortraitAddress(string code, bool assetIsCat, bool enemyFacing)
+    {
+        if (assetIsCat && code.Length >= 5)
+        {
+            if (enemyFacing)
+                return $"Units/Cat Units/{code[0]}/{code.Substring(1, 3)}/{code[4]}/enemy_icon";
+            return string.Format(CatIconPathFormat, code[0], code.Substring(1, 3), code[4]);
+        }
+        return string.Format(EnemyIconPathFormat, code);
     }
 
     private void RefreshLocalizedName(string code)
@@ -252,26 +263,15 @@ public class IndexViewerPause : MonoBehaviour
         return data;
     }
 
-    private Sprite LoadPortrait(string code, bool isCat)
+    private Sprite LoadPortrait(string code, bool assetIsCat, bool enemyFacing)
     {
-        string cacheKey = (isCat ? "cat:" : "enemy:") + code;
+        string cacheKey = (assetIsCat ? "cat:" : "enemy:") + (enemyFacing ? "e:" : "d:") + code;
         if (portraitCache.TryGetValue(cacheKey, out Sprite cached) && cached != null)
         {
             return cached;
         }
 
-        Sprite portrait = null;
-        if (isCat && code.Length >= 5)
-        {
-            string path = string.Format(CatIconPathFormat, code[0], code.Substring(1, 3), code[4]);
-            portrait = BundledAddressables.LoadSync<Sprite>(path);
-        }
-        else if (!isCat)
-        {
-            string path = string.Format(EnemyIconPathFormat, code);
-            portrait = BundledAddressables.LoadSync<Sprite>(path);
-        }
-
+        Sprite portrait = BundledAddressables.LoadSync<Sprite>(ResolvePortraitAddress(code, assetIsCat, enemyFacing));
         portraitCache[cacheKey] = portrait;
         return portrait;
     }

@@ -226,7 +226,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
                 {
                     Image target = img;
                     AsyncIconLoader.Instance.Load(target.gameObject,
-                        CharacterPlacer.GetLoadPath(slotIdentity) + "icon_deploy",
+                        ResolveTeamSlotIconAddress(slotIdentity),
                         sprite => { if (target != null && sprite != null) target.sprite = sprite; });
                 }
             }
@@ -353,15 +353,11 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
             btn.SetText(cd.Cost + " $");
             // 图标按需异步加载：先留空，到位后填充
-            string path = CharacterPlacer.GetLoadPath(identity);
-            AsyncIconLoader.Instance.Load(btn.gameObject, path + "icon_deploy",
+            string path = ResolveTeamSlotIconAddress(identity);
+            AsyncIconLoader.Instance.Load(btn.gameObject, path,
                 sprite =>
                 {
-                    if (btn == null) return;
-                    if (sprite != null) { btn.SetCover(sprite); return; }
-                    // 敌方单位用 enemy_icon 作为回退
-                    AsyncIconLoader.Instance.Load(btn.gameObject, path + "enemy_icon",
-                        fallback => { if (btn != null) btn.SetCover(fallback); });
+                    if (btn != null) btn.SetCover(sprite);
                 });
         }
         else
@@ -371,6 +367,15 @@ public class EquipTeamSelectionPanel : MonoBehaviour
             btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
             btn.SetText(string.Empty);
         }
+    }
+
+    /// <summary>
+    /// 编队是我方槽位：猫资源读 icon_deploy，放进来的敌方资源读 enemy_icon。
+    /// </summary>
+    private static string ResolveTeamSlotIconAddress(UnitIdentity identity)
+    {
+        string root = CharacterPlacer.GetLoadPath(identity);
+        return root + (identity.AssetIsCat ? "icon_deploy" : "enemy_icon");
     }
 
     private void HandleSlotClicked(int index)
