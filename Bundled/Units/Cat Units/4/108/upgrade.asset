@@ -15,7 +15,19 @@ MonoBehaviour:
   cost:
   - method: 0
     upgrade_consume: []
-  - method: 1
-    upgrade_consume: []
+  - method: 3
+    upgrade_consume:
+    - reward_name: 11
+      count: 1000000
+    - reward_name: 36
+      count: 2
+    - reward_name: 38
+      count: 1
+    - reward_name: 39
+      count: 1
+    - reward_name: 40
+      count: 1
+    - reward_name: 41
+      count: 2
   - method: 1
     upgrade_consume: []
