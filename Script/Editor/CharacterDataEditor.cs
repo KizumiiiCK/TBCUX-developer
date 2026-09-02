@@ -923,16 +923,13 @@ public class CharacterDataEditor : Editor
     private string BuildLocalizedDescription(string descriptionCode, int probability, int duration, int intensity)
     {
         string format = GetLocalizedTextCached(DescTableName, descriptionCode);
-        string p = probability > 0 ? $"<color=#FF3030>{probability}</color>" : null;
-        string d = duration > 0 ? $"<color=#FF3030>{duration}</color>" : null;
-        string i = intensity > 0 ? $"<color=#FF3030>{intensity}</color>" : null;
+        string p = $"<color=#FF3030>{probability}</color>";
+        string d = $"<color=#FF3030>{duration}</color>";
+        string i = $"<color=#FF3030>{intensity}</color>";
 
         try
         {
-            if (i != null) return string.Format(format, p, d, i);
-            if (d != null) return string.Format(format, p, d);
-            if (p != null) return string.Format(format, p);
-            return format;
+            return string.Format(format, p, d, i);
         }
         catch
         {

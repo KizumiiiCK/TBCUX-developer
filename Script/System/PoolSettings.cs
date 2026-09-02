@@ -15,7 +15,10 @@ public class Pool
     public int[] draw_times;
     public float[] dropRates=new float[6];
     public List<int[]> dropUnits;
+    public bool IsPermanent() => PoolSystemTime.IsPermanent(pool_cycle_period, pool_duration);
     public bool IsPoolActivating() => PoolSystemTime.IsActivityActive(pool_start_delay, pool_cycle_period, pool_duration);
+    public int DaysUntilNextStart() => PoolSystemTime.DaysUntilNextStart(pool_start_delay, pool_cycle_period, pool_duration);
+    public bool ShouldShowInCapsuleList() => PoolSystemTime.ShouldShowInCapsuleList(pool_start_delay, pool_cycle_period, pool_duration);
     public Sprite GetPoolIcon() => Resources.Load<Sprite>($"Pools/icon/{pool_name}");
     public Sprite GetPoolPoster() => Resources.Load<Sprite>($"Pools/poster/{pool_name}");
     public int Draw(bool bonus=false)
@@ -42,7 +45,7 @@ public class Pool
 
 public static class PoolSystemTime
 {
-    public static readonly DateTime openTime = new DateTime(year: 2026, month: 8, day: 22);
+    public static readonly DateTime openTime = new DateTime(year: 2026, month: 8, day: 18);
     public static DateTime Now => PlatformTimeSystem.Now;
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
@@ -51,9 +54,14 @@ public static class PoolSystemTime
     public static (int year, int month, int day) GetYMD(DateTime dt) =>
         (dt.Year, dt.Month, dt.Day);
 
+    public const int CapsulePreviewHorizonDays = 30;
+
+    public static bool IsPermanent(int cycleDays, int durationDays) =>
+        cycleDays <= 0 || durationDays <= 0;
+
     public static bool IsActivityActive(int firstDelayDays, int cycleDays, int durationDays)
     {
-        if (cycleDays <= 0 || durationDays <= 0) return true;
+        if (IsPermanent(cycleDays, durationDays)) return true;
 
         DateTime now = Now.Date;
         int totalDays = (int)(now - openTime.Date).TotalDays;
@@ -74,6 +82,27 @@ public static class PoolSystemTime
         int daysInCycle = daysSinceFirst % cycleDays;
 
         return durationDays-daysInCycle;
+    }
+
+    public static int DaysUntilNextStart(int firstDelayDays, int cycleDays, int durationDays)
+    {
+        if (IsPermanent(cycleDays, durationDays)) return 0;
+
+        int totalDays = (int)(Now.Date - openTime.Date).TotalDays;
+        if (totalDays < firstDelayDays) return firstDelayDays - totalDays;
+
+        int daysInCycle = (totalDays - firstDelayDays) % cycleDays;
+        if (daysInCycle < 0) daysInCycle += cycleDays;
+        if (daysInCycle < durationDays) return 0;
+        return cycleDays - daysInCycle;
+    }
+
+    public static bool ShouldShowInCapsuleList(int firstDelayDays, int cycleDays, int durationDays)
+    {
+        if (IsPermanent(cycleDays, durationDays)) return true;
+        if (IsActivityActive(firstDelayDays, cycleDays, durationDays)) return true;
+        int daysUntil = DaysUntilNextStart(firstDelayDays, cycleDays, durationDays);
+        return daysUntil > 0 && daysUntil <= CapsulePreviewHorizonDays;
     }
 }
 
