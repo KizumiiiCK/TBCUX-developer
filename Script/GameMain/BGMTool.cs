@@ -233,6 +233,7 @@ public static class BGMTool
         { "Future_III", "002" },
         { "LEGEND", "000" },
         { "Dream_Pre", "lilytales-title" },
+        { "Challenge", "062" },
         { "Dungeon", "HazeReverb-43-antinova" },
     };
 }

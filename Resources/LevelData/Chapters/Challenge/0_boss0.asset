@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: 0_boss0
   m_EditorClassIdentifier: 
   sectionName: 0_boss0
-  mapName: 
+  mapName: boss0
   BGM: 
   unlockRestriction: World_III+0_worldiii
   oncePerDay: 0
   hardness: 1
   difficulty: 000000000000000100000000
-  coverColor: {r: 0, g: 0, b: 0, a: 1}
-  titleColor: 0
-  levelsOnMap: []
+  coverColor: {r: 0.29803923, g: 0.3137255, b: 0.25882354, a: 1}
+  titleColor: 4
+  levelsOnMap:
+  - levelNameID: b0-0
+    levelPosition: {x: -2, y: 2}
+    tileType: 0

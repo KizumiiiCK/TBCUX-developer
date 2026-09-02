@@ -25,6 +25,10 @@
 !/Bundled/**
 !/AddressableAssetsData/**
 
+# Addressables linker file — regenerated on every content build
+/AddressableAssetsData/link.xml
+/AddressableAssetsData/link.xml.meta
+
 # --- Exclude heavy peripheral media (kept locally, not versioned) ---
 # These do not affect core game data (stats, level, localization, unit data).
 # Re-ignored AFTER the whitelist above, so last-match-wins drops them.

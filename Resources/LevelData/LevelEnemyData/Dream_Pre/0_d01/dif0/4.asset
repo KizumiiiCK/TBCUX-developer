@@ -21,7 +21,7 @@ MonoBehaviour:
   BaseImageID: 342
   CombatEffect: []
   Restriction:
-  - FS:10500/20+10511/20+22000/20+22010/20+22020/20++++++60001/20
+  - FS:10500/20+10511/20+22000/20+22010/20+22020/20+++40611/20+++60001/20
   - ap:25
   CombatAura: []
   exstage:
@@ -92,7 +92,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 0}
     - enemyID: e019
-      ratio: 600
+      ratio: 800
       bossShock: 1
       repeat: 1
       firstAppear: 2
