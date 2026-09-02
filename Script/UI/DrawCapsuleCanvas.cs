@@ -93,32 +93,69 @@ public class DrawCapsuleCanvas : UICanvasMain
 
     public void LoadAllPools()
     {
-        pools= new List<Pool>();
-        var posters = new List<Sprite>();
-        for (int i = 0; i<PoolInfo.pools.Length; i++)
-        {
-            Pool p = PoolInfo.pools[i];
-            if (p.IsPoolActivating())
-            {
-                pools.Add(p);
-                posters.Add(p.GetPoolPoster());
-            }
-        }
+        pools = PoolInfo.pools
+            .Select((pool, originalIndex) => new { pool, originalIndex })
+            .Where(entry => entry.pool.ShouldShowInCapsuleList())
+            .OrderBy(entry => GetPoolDisplayGroup(entry.pool))
+            .ThenBy(entry => GetPoolDisplayGroup(entry.pool) == PoolDisplayGroupUpcoming
+                ? entry.pool.DaysUntilNextStart()
+                : 0)
+            .ThenBy(entry => entry.originalIndex)
+            .Select(entry => entry.pool)
+            .ToList();
+
+        var posters = new List<Sprite>(pools.Count);
+        for (int i = 0; i < pools.Count; i++) posters.Add(pools[i].GetPoolPoster());
         if (posterRoulette != null) posterRoulette.SetPosters(posters, 0);
-        LoadPool(0);
-        //UpdatePoolVideoByIndex(current_pool_num, true);
+        if (pools.Count > 0) LoadPool(0);
     }
+
+    private const int PoolDisplayGroupLimited = 0;
+    private const int PoolDisplayGroupPermanent = 1;
+    private const int PoolDisplayGroupUpcoming = 2;
+
+    private static int GetPoolDisplayGroup(Pool pool)
+    {
+        if (pool.IsPermanent()) return PoolDisplayGroupPermanent;
+        if (pool.IsPoolActivating()) return PoolDisplayGroupLimited;
+        return PoolDisplayGroupUpcoming;
+    }
+
+    private static bool IsPoolDrawable(Pool pool) =>
+        pool != null && (pool.IsPermanent() || pool.IsPoolActivating());
+
     public void LoadPool(int poolNum)
     {
+        if (pools == null || poolNum < 0 || poolNum >= pools.Count) return;
         current_pool_num = poolNum;
         Pool p= pools[poolNum];
+        bool upcoming = !IsPoolDrawable(p);
         item_x1.sprite = StorageImageHelper.GetItemImage(p.cost_item[0]);
         item_x10.sprite = StorageImageHelper.GetItemImage(p.cost_item[1]);
         count_x10.text = "x " + p.cost_amount[1].ToString();
-        days_left_text.text = $"{PoolSystemTime.ActivityDayLeft(p.pool_start_delay,p.pool_cycle_period,p.pool_duration)}  DAY(S)  LEFT !";
+        if (upcoming)
+        {
+            int daysUntil = Mathf.Max(1, p.DaysUntilNextStart());
+            days_left_text.text = $"COMING IN  <color=#00FFFF>{daysUntil}</color>  DAY(S)!";
+        }
+        else if (p.IsPermanent())
+        {
+            days_left_text.text = string.Empty;
+        }
+        else
+        {
+            days_left_text.text = $"<color=#FF6060>{PoolSystemTime.ActivityDayLeft(p.pool_start_delay,p.pool_cycle_period,p.pool_duration)}</color>  DAY(S)  LEFT !";
+        }
         RefreshFrameUICurrenciesForPool(p);
         RefreshQuickSingleDrawControls(p);
-        if (PoolInfo.test_free)
+        if (upcoming)
+        {
+            count_x1.color = Color.white;
+            count_x10.color = Color.white;
+            DrawBtn_x1.interactable = false;
+            DrawBtn_x10.interactable = false;
+        }
+        else if (PoolInfo.test_free)
         {
             count_x10.text = "x 0";
             count_x1.color = Color.white;
@@ -150,6 +187,7 @@ public class DrawCapsuleCanvas : UICanvasMain
     public void Draw_1_Times()
     {
         Pool p = pools[current_pool_num];
+        if (!IsPoolDrawable(p)) return;
         int singleCost = p.cost_amount[0] * quickSingleDrawCount;
         int singleDrawTimes = p.draw_times[0] * quickSingleDrawCount;
         if(!PoolInfo.test_free)
@@ -163,6 +201,7 @@ public class DrawCapsuleCanvas : UICanvasMain
     }
     public void Draw_10_Times()
     {
+        if (!IsPoolDrawable(pools[current_pool_num])) return;
         if (!PoolInfo.test_free)
             if (!RewardingSystem.ConsumeItem(pools[current_pool_num].cost_item[1], pools[current_pool_num].cost_amount[1])) return;
         DrawBtn_x1.interactable = false;

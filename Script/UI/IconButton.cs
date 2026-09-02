@@ -14,9 +14,9 @@ public class IconButton : MonoBehaviour
     {
         ability_name_code = nc;
         ability_description_code = dc;
-        probability = p > 0 ? p : null;
-        duration = d > 0 ? d : null;
-        intensity = i > 0 ? i : null;
+        probability = p;
+        duration = d;
+        intensity = i;
     }
     public void CallDescription()
     {

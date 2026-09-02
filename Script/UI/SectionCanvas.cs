@@ -24,6 +24,71 @@ public class SectionCanvas : UICanvasMain
     [SerializeField] private float sectionItemCellHeight = 30f;
     [SerializeField] private int sectionPreloadRows = 10;
 
+    // Key = chapter folder name (PlayerPrefs ChapterName). Value = sectionName load/display order.
+    private static readonly Dictionary<string, string[]> SectionLoadOrder = new Dictionary<string, string[]>
+    {
+        ["World_I"] = new[]
+        {
+            "0_worldi",
+        },
+        ["World_II"] = new[]
+        {
+            "0_worldii",
+        },
+        ["World_III"] = new[]
+        {
+            "0_worldiii",
+            "1_iii_mouse",
+        },
+        ["Future_I"] = new[]
+        {
+            "0_futurei",
+            "1_f1_m3",
+            "2_f1_cm",
+        },
+        ["LEGEND"] = new[]
+        {
+            "0_L",
+            "1_L",
+            "2_L",
+            "3_L",
+            "4_L",
+            "5_L",
+            "6_L",
+            "7_L",
+            "8_L",
+            "9_L",
+            "10_L",
+            "11_L",
+        },
+        ["Dream_Pre"] = new[]
+        {
+            "0_d00",
+            "0_d01",
+            "0_d02",
+        },
+        ["Dungeon"] = new[]
+        {
+            "0_greeting",
+            "0_gret1",
+            "1_a0_xpm",
+            "1_c0_red",
+            "1_c1_purple",
+            "1_c2_green",
+            "1_c3_yellow",
+            "1_c4_blue",
+            "1_m0_mnk",
+            "1_m1_mnk",
+            "3_b1_forest",
+            "3_b2_desert",
+            "3_b3_volcano",
+        },
+        ["Challenge"] = new[]
+        {
+            "0_boss0",
+        }
+    };
+
     private readonly List<SectionEntry> sectionEntries = new List<SectionEntry>();
     private Vector2 canvasSize;
     private VirtualizedScrollGrid<SectionEntry> sectionGrid;
@@ -149,11 +214,27 @@ public class SectionCanvas : UICanvasMain
                 localizedText => chapterName.text = localizedText ?? worldName);
         }
 
-        string worldPath = $"LevelData/Chapters/{worldName}";
-        MapInfo[] sections = Resources.LoadAll<MapInfo>(worldPath);
-        for (int i = 0; i < sections.Length; i++)
+        if (!SectionLoadOrder.TryGetValue(worldName, out string[] order) || order == null || order.Length == 0)
         {
-            sectionEntries.Add(new SectionEntry { mapInfo = sections[i], sectionOrder = i });
+            Debug.LogWarning($"[SectionCanvas] No section load order for chapter '{worldName}'.");
+            sectionGrid?.SetData(sectionEntries, true);
+            return;
+        }
+
+        string worldPath = $"LevelData/Chapters/{worldName}";
+        for (int i = 0; i < order.Length; i++)
+        {
+            string sectionName = order[i];
+            if (string.IsNullOrEmpty(sectionName)) continue;
+
+            MapInfo mapInfo = Resources.Load<MapInfo>($"{worldPath}/{sectionName}");
+            if (mapInfo == null)
+            {
+                Debug.LogWarning($"[SectionCanvas] Missing MapInfo '{worldPath}/{sectionName}'.");
+                continue;
+            }
+
+            sectionEntries.Add(new SectionEntry { mapInfo = mapInfo, sectionOrder = sectionEntries.Count });
         }
 
         sectionGrid?.SetData(sectionEntries, true);

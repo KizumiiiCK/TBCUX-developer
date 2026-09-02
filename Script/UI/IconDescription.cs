@@ -28,20 +28,14 @@ public class IconDescription : MonoBehaviour
                 string redP = $"<color=#FF3030>{p}</color>";
                 string redD = $"<color=#FF3030>{d}</color>";
                 string redI = $"<color=#FF3030>{i}</color>";
-                if (i == null)
+                try
                 {
-                    if (d == null)
-                    {
-                        if (p == null)
-                            description_final = description_format;
-                        else
-                            description_final = string.Format(description_format, redP);
-                    }
-                    else
-                        description_final = string.Format(description_format, redP, redD);
-                }
-                else
                     description_final = string.Format(description_format, redP, redD, redI);
+                }
+                catch
+                {
+                    description_final = description_format;
+                }
                 descriptionA.text = description_final;
             });
     }
