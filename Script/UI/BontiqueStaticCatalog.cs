@@ -452,13 +452,13 @@ public static class BontiqueStaticCatalog
         new BontiqueShopItem
         {
             bid = "b:ad-coins", AdPosId = "b-ad-coins", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 99, ObtainAmount = 2500,
+            gainId = 99, ObtainAmount = 1,
             CurrencyId = 98, CurrencyAmount = 1,
         },
         new BontiqueShopItem
         {
             bid = "b:ad-cans", AdPosId = "b-ad-cans", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 12, ObtainAmount = 50,
+            gainId = 12, ObtainAmount = 25,
             CurrencyId = 98, CurrencyAmount = 1,
         },
         // IAP: RMB → BuildaCoin (99). PayId is the manifest payPoints id (no colon).
@@ -496,104 +496,104 @@ public static class BontiqueStaticCatalog
         new BontiqueShopItem
         {
             bid = "b:can5", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 12, ObtainAmount = 5,
-            CurrencyId = 99, CurrencyAmount = 5,
+            gainId = 12, ObtainAmount = 500,
+            CurrencyId = 99, CurrencyAmount = 6,
         },
         new BontiqueShopItem
         {
             bid = "b:can15", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 12, ObtainAmount = 15,
-            CurrencyId = 99, CurrencyAmount = 12,
+            gainId = 12, ObtainAmount = 2000,
+            CurrencyId = 99, CurrencyAmount = 18,
         },
         new BontiqueShopItem
         {
             bid = "b:can50", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 12, ObtainAmount = 50,
-            CurrencyId = 99, CurrencyAmount = 35,
+            gainId = 12, ObtainAmount = 5000,
+            CurrencyId = 99, CurrencyAmount = 40,
         },
         new BontiqueShopItem
         {
             bid = "b:gt1", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 7, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 30,
+            CurrencyId = 99, CurrencyAmount = 2,
         },
         new BontiqueShopItem
         {
             bid = "b:gt10", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 7, ObtainAmount = 10,
-            CurrencyId = 99, CurrencyAmount = 250,
+            CurrencyId = 99, CurrencyAmount = 20,
         },
         new BontiqueShopItem
         {
             bid = "b:xp1", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 11, ObtainAmount = 100000,
+            gainId = 11, ObtainAmount = 1000000,
             CurrencyId = 99, CurrencyAmount = 10,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-p", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 26, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 8,
+            CurrencyId = 99, CurrencyAmount = 7,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-r", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 27, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 8,
+            CurrencyId = 99, CurrencyAmount = 7,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-b", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 28, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 8,
+            CurrencyId = 99, CurrencyAmount = 7,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-g", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 29, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 8,
+            CurrencyId = 99, CurrencyAmount = 7,
         },
         new BontiqueShopItem
         {
             bid = "b:cfs-y", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 30, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 8,
+            CurrencyId = 99, CurrencyAmount = 7,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-p", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 34, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 25,
+            CurrencyId = 99, CurrencyAmount = 24,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-r", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 35, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 25,
+            CurrencyId = 99, CurrencyAmount = 24,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-b", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 36, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 25,
+            CurrencyId = 99, CurrencyAmount = 24,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-g", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 37, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 25,
+            CurrencyId = 99, CurrencyAmount = 24,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-y", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 38, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 25,
+            CurrencyId = 99, CurrencyAmount = 24,
         },
         new BontiqueShopItem
         {
             bid = "b:cf-rb", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 39, ObtainAmount = 1,
-            CurrencyId = 99, CurrencyAmount = 150,
+            CurrencyId = 99, CurrencyAmount = 100,
         },
         #endregion
 #endif
