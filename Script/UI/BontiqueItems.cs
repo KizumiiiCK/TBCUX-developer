@@ -136,7 +136,7 @@ public class BontiqueItems : MonoBehaviour
         {
             string costAndOwned;
             int displayCurrencyId = item.CurrencyId;
-            if (item.CurrencyId == 11 || item.CurrencyId == 12 || item.IsPlatformPay)
+            if (item.CurrencyId == 11 || item.CurrencyId == 12 || item.IsRewardedAd || item.IsPlatformPay)
             {
                 costAndOwned = item.IsPlatformPay
                     ? $"¥{Mathf.Max(0, item.CurrencyAmount)}"
@@ -150,7 +150,7 @@ public class BontiqueItems : MonoBehaviour
         }
         if (redeemButton != null)
         {
-            bool currencyEnough = item.IsPlatformPay || currentCurrencyAmount >= item.CurrencyAmount;
+            bool currencyEnough = item.IsRewardedAd || item.IsPlatformPay || currentCurrencyAmount >= item.CurrencyAmount;
             bool canRedeem = interactable && currencyEnough;
             Color targetColor = canRedeem ? CanBuyButtonColor : CannotBuyButtonColor;
             redeemButton.SetFrameColorPersistent(targetColor);

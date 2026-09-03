@@ -45,7 +45,15 @@ public class BontiqueShopItem
     /// </summary>
     public string PayId;
 
+    /// <summary>
+    /// Non-empty: redeem calls <c>AdShowReward</c>. <c>posId</c> is a game-chosen
+    /// stats tag (no manifest entry). Grant only when the host reports success.
+    /// </summary>
+    public string AdPosId;
+
     public bool IsPlatformPay => !string.IsNullOrEmpty(PayId);
+
+    public bool IsRewardedAd => !string.IsNullOrEmpty(AdPosId);
 
     public bool IsInActiveWindow(DateTime now)
     {

@@ -228,6 +228,13 @@ public class BontiqueCanvas : UICanvasMain
             return;
         }
 
+        if (item.IsRewardedAd)
+        {
+            if (IsPageInProgress) return;
+            StartCoroutine(RedeemRewardedAdRoutine(item));
+            return;
+        }
+
         if (item.IsPlatformPay)
         {
             if (IsPageInProgress) return;
@@ -371,6 +378,39 @@ public class BontiqueCanvas : UICanvasMain
         DeliverShopItem(item, recordPurchase: false);
     }
 
+    private IEnumerator RedeemRewardedAdRoutine(BontiqueShopItem item)
+    {
+        if (item == null || !item.IsRewardedAd) yield break;
+
+        SetPageInProgress(true);
+        bool done = false;
+        BuildaResult response = null;
+        BuildaSDK.AdShowReward(item.AdPosId, r =>
+        {
+            response = r;
+            done = true;
+        });
+        while (!done) yield return null;
+        SetPageInProgress(false);
+
+        if (response == null || !response.Ok)
+        {
+            string code = response != null && response.Error != null ? response.Error.Code : "NO_RESULT";
+            Debug.Log($"Bontique: rewarded ad cancelled or failed. bid={item.bid} posId={item.AdPosId} code={code}");
+            RefreshSpawnedItemStatesAfterPurchase();
+            yield break;
+        }
+
+        if (!TryReadAdSuccess(response.DataMap))
+        {
+            Debug.Log($"Bontique: rewarded ad not completed. bid={item.bid} posId={item.AdPosId}");
+            RefreshSpawnedItemStatesAfterPurchase();
+            yield break;
+        }
+
+        DeliverShopItem(item, recordPurchase: false);
+    }
+
     private static bool TryReadPaySuccess(Dictionary<string, object> map, out string orderId)
     {
         orderId = string.Empty;
@@ -388,6 +428,14 @@ public class BontiqueCanvas : UICanvasMain
         }
         if (string.IsNullOrEmpty(orderId)) return false;
         return true;
+    }
+
+    private static bool TryReadAdSuccess(Dictionary<string, object> map)
+    {
+        if (map == null) return false;
+        if (map.TryGetValue("success", out object successRaw) && successRaw is bool flag)
+            return flag;
+        return false;
     }
 
     private void EvaluateItemState(BontiqueShopItem item, DateTime now, out int remaining, out bool interactable)

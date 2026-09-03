@@ -579,6 +579,7 @@ public enum RewardName
     Bottle_Water=75, Bottle_Soul=76,
     SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80,
     GF_Core=81,
+    builda_ad_icon=98,
     BuildaCoin=99
 }
 [System.Serializable]
@@ -671,6 +672,7 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
+        {RewardName.builda_ad_icon,98},
         {RewardName.BuildaCoin,99},
         {RewardName.Bottle_Water,110},
         {RewardName.Bottle_Soul,111},

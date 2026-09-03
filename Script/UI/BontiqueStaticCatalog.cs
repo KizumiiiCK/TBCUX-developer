@@ -448,6 +448,19 @@ public static class BontiqueStaticCatalog
         #endregion
 #if UNITY_WEBGL
         #region Builda
+        // Rewarded ads first: watch → in-game items. AdPosId is a stats tag, not a payPoint.
+        new BontiqueShopItem
+        {
+            bid = "b:ad-coins", AdPosId = "b-ad-coins", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 2500,
+            CurrencyId = 98, CurrencyAmount = 1,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:ad-cans", AdPosId = "b-ad-cans", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 50,
+            CurrencyId = 98, CurrencyAmount = 1,
+        },
         // IAP: RMB → BuildaCoin (99). PayId is the manifest payPoints id (no colon).
         new BontiqueShopItem
         {

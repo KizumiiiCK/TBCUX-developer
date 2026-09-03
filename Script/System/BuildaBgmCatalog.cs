@@ -45,6 +45,7 @@ public static class BuildaBgmCatalog
 034|034.ogg
 047|047.ogg
 048|048.ogg
+062|062.ogg
 148|148.ogg
 149|149.ogg
 150|150.ogg
@@ -57,6 +58,8 @@ lose|lose.ogg
 zrdc|zrdc.ogg
 bills_piano|bills_piano.mp3
 dct|dct.mp3
+GF_Achieve_loop|GF_Achieve_loop.mp3
+GF_Factory_loop|GF_Factory_loop.mp3
 GF_EV4_intermission|GF_EV4_intermission.mp3
 GF_EV6_90w_pt2|GF_EV6_90w_pt2.mp3
 HazeReverb-43-antinova|HazeReverb-43-antinova.mp3
