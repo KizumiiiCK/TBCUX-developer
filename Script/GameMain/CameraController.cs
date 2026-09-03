@@ -7,7 +7,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float maxSize = 20f; // 相机最大size值
     [SerializeField] private float limitation = 20f; // 相机最大size值
     [Header("Input Feel")]
-    [SerializeField] private float touchZoomSensitivity = 0.01f;
+    [SerializeField] private float touchZoomSensitivity = 0.035f;
     [SerializeField] private float mouseZoomSensitivity = 1f;
     [SerializeField] private float maxPanSpeed = 35f;
     [SerializeField] private float longDragStopThreshold = 0.2f;
@@ -23,6 +23,14 @@ public class CameraController : MonoBehaviour
     private Vector2 lastMousePosition;
     private float touchDragDuration;
     private float mouseDragDuration;
+
+    private void Awake()
+    {
+        if (touchZoomSensitivity < 0.03f)
+        {
+            touchZoomSensitivity = 0.035f;
+        }
+    }
 
     private void Start()
     {
@@ -71,7 +79,8 @@ public class CameraController : MonoBehaviour
 
             float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
 
-            currentSize += deltaMagnitudeDiff * touchZoomSensitivity; // 使用 currentSize 来替代 targetSize
+            // 操作双指放大时使画面放大（反向修正），并应用提升后的灵敏度
+            currentSize -= deltaMagnitudeDiff * touchZoomSensitivity;
             currentSize = Mathf.Clamp(currentSize, minSize, Mathf.Min(limitation, maxSize));
         }
         // 处理单指左右滑动
@@ -149,7 +158,8 @@ public class CameraController : MonoBehaviour
     {
         float dt = Mathf.Max(Time.unscaledDeltaTime, 0.0001f);
         float worldPerPixel = (cam.orthographicSize * 2f) / Mathf.Max(1, Screen.height);
-        float targetVelocity = -(deltaXPixel * worldPerPixel) / dt;
+        // 向右划动（deltaXPixel > 0）时相机向左走，反转原先的符号
+        float targetVelocity = (deltaXPixel * worldPerPixel) / dt;
         targetVelocity = Mathf.Clamp(targetVelocity, -maxPanSpeed, maxPanSpeed);
         // 不做平滑，保持即时速度响应
         currentVelocityX = targetVelocity;

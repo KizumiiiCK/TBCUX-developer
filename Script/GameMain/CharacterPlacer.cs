@@ -129,6 +129,7 @@ public static class CharacterPlacer
         if (!Mathf.Approximately(power, 1f)) character.SetPower(power);
         character.LoadCharacterData(levelController, data, level, treasureCount);
         character.levelController = levelController;
+        UnitSpawningPassive.RequestPrewarm(character, data);
         CharacterVisualLoader.InitializeRuntimeCharacterVisual(
             spawned,
             identity.AssetIsCat,

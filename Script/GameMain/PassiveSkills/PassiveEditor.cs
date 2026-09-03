@@ -54,11 +54,19 @@ public static class AbilityInstaller
         { AbilityName.Aux_SelfDamage, typeof(Aux_SelfDamage)},
         { AbilityName.Aux_HealDamage, typeof(Aux_HealDamage)},
     };
-    public static void Install(Character C, CharacterAbility ca)
+    public static PassiveSkill Create(CharacterAbility ca)
     {
-        if (!skillMap.TryGetValue(ca.name, out var skillType)) return;
+        if (ca == null) return null;
+        if (!skillMap.TryGetValue(ca.name, out var skillType)) return null;
         var passive = (PassiveSkill)Activator.CreateInstance(skillType);
         passive.SetPassiveValues(ca.name, ca.probability, ca.duration, ca.intensity);
+        return passive;
+    }
+
+    public static void Install(Character C, CharacterAbility ca)
+    {
+        var passive = Create(ca);
+        if (passive == null) return;
         C.AddPassiveEffect(passive);
         passive.OnAddingAbility(C);
     }
@@ -266,6 +274,103 @@ public abstract class AnimationDrivingPassive : PassiveSkill
 
     /// <summary>驱动结束时（无论正常完成、被 KB 打断还是异常）保证执行的清理。可用 character.IsOnKB() 区分退出原因。</summary>
     protected virtual void OnDriveEnd(Character character) { }
+}
+
+/// <summary>
+/// 会生成新单位的被动基类（炮弹、未来的 Summoner 等）。
+/// 安装时自动异步预热子类声明的资源，避免 WebGL 上首次生成命中 PREWARM MISS。
+/// 子类实现 <see cref="CollectSpawnAddresses"/>；若还要预热整套角色资源（data / 贴图 / 动画），再覆盖 <see cref="CollectSpawnAssets"/>。
+/// 覆盖 <see cref="OnAddingAbility"/> 时必须调用 base。
+/// </summary>
+public abstract class UnitSpawningPassive : PassiveSkill
+{
+    private static readonly Dictionary<string, GameObject> PrefabCache = new Dictionary<string, GameObject>();
+    private static readonly HashSet<string> PrewarmInFlight = new HashSet<string>();
+
+    public override void OnAddingAbility(Character character)
+    {
+        RequestPrewarm(character);
+    }
+
+    /// <summary>本能力会 Instantiate 的单位 prefab 地址（无扩展名的 Resources 风格）。</summary>
+    public abstract void CollectSpawnAddresses(IList<string> addresses);
+
+    /// <summary>
+    /// 把本能力需要的全部 Addressables 加入预热列表。
+    /// 默认把 <see cref="CollectSpawnAddresses"/> 的 prefab 入列；Summoner 可在此调用 <see cref="BattlePrewarm.AddUnit"/>。
+    /// </summary>
+    public virtual void CollectSpawnAssets(BundledAddressables.PrewarmList list)
+    {
+        if (list == null) return;
+        var addresses = new List<string>(4);
+        CollectSpawnAddresses(addresses);
+        for (int i = 0; i < addresses.Count; i++) AddPrefabAddress(list, addresses[i]);
+    }
+
+    /// <summary>角色生成时：扫描 data.abilities，对所有 UnitSpawningPassive 启动预热。</summary>
+    public static void RequestPrewarm(Character host, CharacterData data)
+    {
+        if (host == null || data?.abilities == null) return;
+        for (int i = 0; i < data.abilities.Length; i++)
+        {
+            if (!(AbilityInstaller.Create(data.abilities[i]) is UnitSpawningPassive spawner)) continue;
+            spawner.RequestPrewarm(host);
+        }
+    }
+
+    /// <summary>战前预热：把 data 上所有生成型能力的资源加入 list。</summary>
+    public static void CollectSpawnAssetsFromData(CharacterData data, BundledAddressables.PrewarmList list)
+    {
+        if (data?.abilities == null || list == null) return;
+        for (int i = 0; i < data.abilities.Length; i++)
+        {
+            if (!(AbilityInstaller.Create(data.abilities[i]) is UnitSpawningPassive spawner)) continue;
+            spawner.CollectSpawnAssets(list);
+        }
+    }
+
+    public void RequestPrewarm(Character host)
+    {
+        if (host == null) return;
+
+        string gate = PrewarmGateKey();
+        if (!PrewarmInFlight.Add(gate)) return;
+
+        var list = new BundledAddressables.PrewarmList();
+        CollectSpawnAssets(list);
+        if (list.Count == 0)
+        {
+            PrewarmInFlight.Remove(gate);
+            return;
+        }
+
+        host.StartCoroutine(PrewarmRoutine(list, gate));
+    }
+
+    protected virtual string PrewarmGateKey()
+        => GetType().FullName + "|" + probability + "|" + duration + "|" + intensity;
+
+    protected static void AddPrefabAddress(BundledAddressables.PrewarmList list, string address)
+    {
+        if (list == null || string.IsNullOrEmpty(address)) return;
+        if (BundledAddressables.Exists(address, typeof(GameObject))) list.Add<GameObject>(address);
+    }
+
+    protected static GameObject TryLoadPrefab(string address)
+    {
+        if (string.IsNullOrEmpty(address)) return null;
+        if (PrefabCache.TryGetValue(address, out GameObject cached) && cached != null) return cached;
+
+        GameObject prefab = BundledAddressables.LoadSync<GameObject>(address);
+        if (prefab != null) PrefabCache[address] = prefab;
+        return prefab;
+    }
+
+    private static IEnumerator PrewarmRoutine(BundledAddressables.PrewarmList list, string gate)
+    {
+        yield return BundledAddressables.PrewarmRoutine(list);
+        PrewarmInFlight.Remove(gate);
+    }
 }
 
 public class AffectByStrategy : PassiveSkill
@@ -1076,10 +1181,18 @@ public class Sacrifice : PassiveSkill
     }
 }
 
-public class ProjectileLauncher : PassiveSkill
+public class ProjectileLauncher : UnitSpawningPassive
 {
-    private static readonly Dictionary<int, GameObject> ProjectilePrefabCache = new Dictionary<int, GameObject>();
     private static readonly List<CharacterEffect> ReusableEffectPayload = new List<CharacterEffect>(8);
+
+    public static string GetProjectileAddress(int projectileId)
+        => $"Units/Projectiles/p{Mathf.Max(0, projectileId):000}/projunit";
+
+    public override void CollectSpawnAddresses(IList<string> addresses)
+    {
+        if (addresses == null) return;
+        addresses.Add(GetProjectileAddress(probability));
+    }
 
     public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
     {
@@ -1089,14 +1202,13 @@ public class ProjectileLauncher : PassiveSkill
         if (character.atkInfos == null || step < 0 || step >= character.atkInfos.Length) return;
         ATKInfo atk = character.atkInfos[step];
         bool triggerEffect = !atk.DoNotTriggerEffects;
-        if (!ProjectilePrefabCache.TryGetValue(probability, out GameObject prefab) || prefab == null)
-        {
-            prefab = BundledAddressables.LoadSync<GameObject>($"Units/Projectiles/p{probability:000}/projunit");
-            ProjectilePrefabCache[probability] = prefab;
-        }
+
+        string address = GetProjectileAddress(probability);
+        GameObject prefab = TryLoadPrefab(address);
         if (prefab == null)
         {
-            Debug.Log("No such projectile!");
+            RequestPrewarm(character);
+            Debug.LogWarning($"[ProjectileLauncher] Projectile p{probability:000} not ready yet; prewarm started.");
             return;
         }
 

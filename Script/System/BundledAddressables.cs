@@ -147,6 +147,15 @@ public static class BundledAddressables
 
         if (!initialized) yield return InitializeRoutine();
 
+        string key = CacheKey(address, typeof(T));
+        if (handleCache.TryGetValue(key, out AsyncOperationHandle existing)
+            && existing.IsValid()
+            && existing.Status == AsyncOperationStatus.Succeeded)
+        {
+            onCompleted(existing.Convert<T>());
+            yield break;
+        }
+
         string resolved = ResolveAddress(address, typeof(T));
         if (resolved == null)
         {
@@ -156,6 +165,11 @@ public static class BundledAddressables
 
         AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(resolved);
         yield return handle;
+        if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+        {
+            handleCache[key] = handle;
+            missedAddresses.Remove(key);
+        }
         onCompleted(handle);
     }
 

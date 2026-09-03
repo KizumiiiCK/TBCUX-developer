@@ -33,13 +33,24 @@ public class CannonUnit : Character
     public override void InitializeCharacter()
     {
         attackedTargets.Clear();
-        catBase = GameObject.Find("CatBase").GetComponent<CatBase>();
-        transform.position = catBase.transform.position;
-        realDamage = new int[1];
-        realDamage[0] = (int)(catBase.Health * 0.005f);
-        //ATKTypes = new List<AttackType> { AttackType.baseCannon };
-        cannon_effects = BundledAddressables.LoadNumberedSync<GameObject>(
-            $"Units/CatBases/effectUnits/{cannon_type}/eff");
+        catBase = GameObject.Find("CatBase")?.GetComponent<CatBase>();
+        if (catBase != null)
+        {
+            transform.position = catBase.transform.position;
+            realDamage = new int[1];
+            realDamage[0] = (int)(catBase.Health * 0.005f);
+            if (cannon_type == 0 && catBase.CannonType != 0)
+            {
+                cannon_type = catBase.CannonType;
+            }
+        }
+        else
+        {
+            realDamage = new int[1] { 100 };
+        }
+
+        string effFolder = CatBase.GetCannonEffFolder(cannon_type);
+        cannon_effects = BundledAddressables.LoadNumberedSync<GameObject>(effFolder);
         StartCoroutine(SummonCannon());
     }
 
@@ -66,8 +77,11 @@ public class CannonUnit : Character
             int effIndex = pattern.eff_flow_num;
             if (cannon_effects != null && effIndex >= 0 && effIndex < cannon_effects.Length)
             {
-                Instantiate(cannon_effects[effIndex], transform.position 
-                    + new Vector3(-pattern.eff_flow_pos.x/100f, pattern.eff_flow_pos.y / 100f, 0), Quaternion.identity);
+                if (cannon_effects[effIndex] != null)
+                {
+                    Instantiate(cannon_effects[effIndex], transform.position 
+                        + new Vector3(-pattern.eff_flow_pos.x/100f, pattern.eff_flow_pos.y / 100f, 0), Quaternion.identity);
+                }
             }
 
             Vector2 range = pattern.eff_dmg_range;

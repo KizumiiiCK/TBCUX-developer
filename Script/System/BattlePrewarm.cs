@@ -19,9 +19,6 @@ public static class BattlePrewarm
     private static readonly string[] BaseMaanims = { "walk", "idle", "attack", "kb" };
     private static readonly string[] ExtraMaanims = { "p", "in", "dive", "out" };
 
-    /// <summary>Upper bound for the Units/Projectiles/pNNN scan. Raise if new ids are added.</summary>
-    private const int MaxProjectileId = 100;
-
     /// <summary>Address of the LevelData asset for the pref-selected level.</summary>
     public static string GetLevelDataAddress(string chapterName, string sectionName, int diff, int levelNum)
         => $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/{levelNum}";
@@ -74,10 +71,24 @@ public static class BattlePrewarm
             yield break;
         }
 
-        // Stage 2 - every Addressable the level references.
+        // Stage 2 - every Addressable the level references (unit visuals + CharacterData).
         var stage2 = BuildBattleList(ld, teamCodes);
         yield return BundledAddressables.PrewarmRoutine(stage2,
-            (p, label) => onProgress?.Invoke(0.02f + p * 0.98f, label));
+            (p, label) => onProgress?.Invoke(0.02f + p * 0.95f, label));
+
+        // Stage 3 - prefabs spawned by UnitSpawningPassive (ProjectileLauncher, future Summoner).
+        // CharacterData is resident after stage 2, so ability payloads can be read.
+        var stage3 = new BundledAddressables.PrewarmList();
+        CollectSpawnAssetsFromBattle(ld, teamCodes, stage3);
+        if (stage3.Count > 0)
+        {
+            yield return BundledAddressables.PrewarmRoutine(stage3,
+                (p, label) => onProgress?.Invoke(0.97f + p * 0.03f, label));
+        }
+        else
+        {
+            onProgress?.Invoke(1f, "Ready");
+        }
     }
 
     /// <summary>Resources-relative path of the LevelData asset (not an Addressables address).</summary>
@@ -172,7 +183,51 @@ public static class BattlePrewarm
         list.Add<GameObject>("Units/Enemy Units/surgeunit");
 
         AddPlayerBaseAssets(list);
-        AddProjectileAssets(list);
+    }
+
+    /// <summary>
+    /// Queues assets spawned by <see cref="UnitSpawningPassive"/> on the team and enemy table.
+    /// Call after their CharacterData has been prewarmed so LoadSync can read abilities.
+    /// </summary>
+    public static void CollectSpawnAssetsFromBattle(
+        LevelData ld,
+        string[] teamCodes,
+        BundledAddressables.PrewarmList list)
+    {
+        if (list == null) return;
+
+        if (teamCodes != null)
+        {
+            for (int i = 0; i < teamCodes.Length; i++)
+            {
+                if (!CharacterPlacer.TryParse(teamCodes[i], true, out UnitIdentity identity) || !identity.IsValid) continue;
+                CollectSpawnAssetsFromUnit(identity.AssetIsCat, identity.CharacterCode, list);
+            }
+        }
+
+        if (ld?.enemySummoners == null) return;
+        var seenEnemies = new HashSet<string>();
+        for (int i = 0; i < ld.enemySummoners.Length; i++)
+        {
+            EnemySummonInfo[] infos = ld.enemySummoners[i]?.enemySummonInfos;
+            if (infos == null) continue;
+
+            for (int j = 0; j < infos.Length; j++)
+            {
+                string id = infos[j]?.enemyID;
+                if (string.IsNullOrEmpty(id) || !seenEnemies.Add(id)) continue;
+                CollectSpawnAssetsFromUnit(false, id, list);
+            }
+        }
+    }
+
+    private static void CollectSpawnAssetsFromUnit(bool cat, string characterCode, BundledAddressables.PrewarmList list)
+    {
+        if (string.IsNullOrEmpty(characterCode)) return;
+
+        string root = CharacterVisualLoader.GetCharacterLoadPath(cat, characterCode);
+        CharacterData data = BundledAddressables.LoadSync<CharacterData>(root + "data");
+        UnitSpawningPassive.CollectSpawnAssetsFromData(data, list);
     }
 
     /// <summary>
@@ -183,29 +238,31 @@ public static class BattlePrewarm
     {
         int numBase = PlayerPrefs.GetInt(UXPref.BASE_BaseNum, 0);
         int numDeco = PlayerPrefs.GetInt(UXPref.BASE_DecorationNum, 0);
-        int cannonType = PlayerPrefs.GetInt(UXPref.BASE_CannonNum, 0);
 
         list.Add<Sprite>($"Units/CatBases/base/{numBase}");
         list.Add<Sprite>($"Units/CatBases/decorations/{numDeco}");
-        list.Add<Sprite>($"Units/CatBases/head/{cannonType}");
 
-        // CatBase.cs:177 / CannonUnit.cs:41 - the cannon and its effect units.
-        list.Add<GameObject>($"Units/CatBases/effectUnits/{cannonType}/cannonUnit");
-        list.AddNumbered<GameObject>($"Units/CatBases/effectUnits/{cannonType}/eff", 16);
+        // Prewarm all cannon types (0..8) so switching cannons in battle is instant and guaranteed to work
+        for (int i = 0; i <= 8; i++)
+        {
+            AddCannonAssets(list, i);
+        }
+
         // CatBase.cs:243 - install-complete effect, hard-coded to set 5.
         list.Add<GameObject>("Units/CatBases/effectUnits/5/eff/1");
     }
 
-    /// <summary>
-    /// Projectile prefabs (PassiveEditor.cs:1092). The id comes from per-unit passive data and is
-    /// only known at fire time, so the whole catalogued range is queued; absent ids are skipped.
-    /// </summary>
-    private static void AddProjectileAssets(BundledAddressables.PrewarmList list)
+    public static void AddCannonAssets(BundledAddressables.PrewarmList list, int cannonType)
     {
-        for (int i = 0; i <= MaxProjectileId; i++)
+        string headAddr = $"Units/CatBases/head/{cannonType}";
+        string unitAddr = CatBase.GetCannonUnitAddress(cannonType);
+        string effFolder = CatBase.GetCannonEffFolder(cannonType);
+
+        if (BundledAddressables.Exists(headAddr, typeof(Sprite))) list.Add<Sprite>(headAddr);
+        if (BundledAddressables.Exists(unitAddr, typeof(GameObject)))
         {
-            string address = $"Units/Projectiles/p{i:000}/projunit";
-            if (BundledAddressables.Exists(address, typeof(GameObject))) list.Add<GameObject>(address);
+            list.Add<GameObject>(unitAddr);
+            list.AddNumbered<GameObject>(effFolder, 16);
         }
     }
 

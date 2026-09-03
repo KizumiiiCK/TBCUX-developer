@@ -14,6 +14,11 @@ public class CatBase : CatCharacter
     private const float CANNON_INSTALL_DURATION = 10f;
     private int cannon_type = 0;
 
+    public int CannonType => cannon_type;
+    public GameObject CurrentCannonPrefab => currentCannonPrefab;
+    public bool IsCannonInstalling => isCannonInstalling;
+
+    private GameObject currentCannonPrefab;
     private Transform main;
     private Transform headTransform;
     private GameObject TowerStrike;
@@ -57,6 +62,9 @@ public class CatBase : CatCharacter
         renderer_deco.sprite=towerDecoration;
         SetCannonHead(cannon_type);
         BaseResist();
+
+        // 游戏开始时加载选定的基地大炮攻击单位及其特效
+        LoadCannonUnit(cannon_type);
     }
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkType)
     {
@@ -162,6 +170,48 @@ public class CatBase : CatCharacter
         RefreshCannonUI();
     }
 
+    public static string GetCannonUnitAddress(int headIndex) => $"Units/CatBases/effectUnits/{Mathf.Max(0, headIndex)}/cannonUnit";
+    public static string GetCannonEffFolder(int headIndex) => $"Units/CatBases/effectUnits/{Mathf.Max(0, headIndex)}/eff";
+
+    /// <summary>
+    /// 异步预热并加载指定大炮的攻击单位及全部特效资源，确保可被直接生成
+    /// </summary>
+    public Coroutine LoadCannonUnit(int headIndex, System.Action<GameObject> onComplete = null)
+    {
+        return StartCoroutine(LoadCannonUnitRoutine(headIndex, onComplete));
+    }
+
+    private IEnumerator LoadCannonUnitRoutine(int headIndex, System.Action<GameObject> onComplete = null)
+    {
+        int clamped = Mathf.Max(0, headIndex);
+        string unitAddress = GetCannonUnitAddress(clamped);
+        string effFolder = GetCannonEffFolder(clamped);
+        string headAddress = $"Units/CatBases/head/{clamped}";
+
+        var list = new BundledAddressables.PrewarmList();
+        list.Add<Sprite>(headAddress);
+        list.Add<GameObject>(unitAddress);
+        list.AddNumbered<GameObject>(effFolder, 16);
+        list.Add<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
+
+        yield return BundledAddressables.PrewarmRoutine(list);
+
+        GameObject loadedPrefab = BundledAddressables.LoadSync<GameObject>(unitAddress);
+        if (loadedPrefab != null)
+        {
+            if (cannon_type == clamped)
+            {
+                currentCannonPrefab = loadedPrefab;
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[CatBase] Failed to load cannon unit prefab for cannon_type={clamped} at '{unitAddress}'");
+        }
+
+        onComplete?.Invoke(loadedPrefab);
+    }
+
     /// <summary>
     /// 发射大炮
     /// </summary>
@@ -173,8 +223,29 @@ public class CatBase : CatCharacter
         cannonCharged = 0;
         cannonButton.interactable = false;
         cannonButtonAnimation.enabled = false;
-        GameObject cannonPrefab = BundledAddressables.LoadSync<GameObject>(string.Format(CANNON_UNIT_PATH, cannon_type));
-        if (cannonPrefab != null) Instantiate(cannonPrefab);
+
+        GameObject cannonPrefab = currentCannonPrefab;
+        if (cannonPrefab == null)
+        {
+            string unitAddress = GetCannonUnitAddress(cannon_type);
+            cannonPrefab = BundledAddressables.LoadSync<GameObject>(unitAddress);
+            if (cannonPrefab != null) currentCannonPrefab = cannonPrefab;
+        }
+
+        if (cannonPrefab != null)
+        {
+            GameObject cannonObj = Instantiate(cannonPrefab);
+            CannonUnit unit = cannonObj.GetComponent<CannonUnit>();
+            if (unit != null)
+            {
+                unit.cannon_type = cannon_type;
+            }
+        }
+        else
+        {
+            Debug.LogError($"[CatBase] Cannon fire failed: cannot load cannonUnit for cannon_type {cannon_type}. Retrying load...");
+            LoadCannonUnit(cannon_type);
+        }
     }
 
     private void RefreshCannonUI()
@@ -182,7 +253,7 @@ public class CatBase : CatCharacter
         float progress = Mathf.Clamp01(cannonCharged / CANNON_CHARGE_TIME);
         cannonButtonImage.fillAmount = progress;
 
-        if (cannonCharged >= CANNON_CHARGE_TIME)
+        if (cannonCharged >= CANNON_CHARGE_TIME && !isCannonInstalling)
         {
             cannonButton.interactable = true;
             cannonButtonAnimation.enabled = true;
@@ -223,11 +294,19 @@ public class CatBase : CatCharacter
         if (cannonButton != null) cannonButton.interactable = false;
         if (cannonButtonAnimation != null) cannonButtonAnimation.enabled = false;
 
+        // 战斗中更换基地攻击单位时，立即开始加载对应类型的攻击单位
+        Coroutine loadRoutine = LoadCannonUnit(nextHead);
+
         float width = 6f;
         float height = 3f;
         float elapsed = 0f;
         while (elapsed < CANNON_INSTALL_DURATION)
         {
+            if (isBaseDefeated || realHealth <= 0)
+            {
+                isCannonInstalling = false;
+                yield break;
+            }
             elapsed += Time.deltaTime;
             float px = Random.Range(-0.05f, 0.05f);
             if (headTransform != null) headTransform.localPosition = new Vector2(px, 0);
@@ -237,6 +316,9 @@ public class CatBase : CatCharacter
             yield return new WaitForFixedUpdate();
         }
         if (headTransform != null) headTransform.localPosition = Vector2.zero;
+
+        // 确保新攻击单位资源已加载完成
+        if (loadRoutine != null) yield return loadRoutine;
 
         ApplyCannonHeadImmediate(nextHead, true);
         var completeFx = BundledAddressables.LoadSync<GameObject>(CANNON_INSTALL_COMPLETE_EFFECT_PATH);
@@ -254,6 +336,10 @@ public class CatBase : CatCharacter
         int clamped = Mathf.Max(0, headIndex);
         cannon_type = clamped;
         if (savePref) PlayerPrefs.SetInt(UXPref.BASE_CannonNum, clamped);
+
+        string unitAddress = GetCannonUnitAddress(clamped);
+        GameObject loaded = BundledAddressables.LoadSync<GameObject>(unitAddress);
+        if (loaded != null) currentCannonPrefab = loaded;
 
         if (main == null || main.childCount <= 2) return;
         SpriteRenderer renderer_head = main.GetChild(2).GetComponent<SpriteRenderer>();
