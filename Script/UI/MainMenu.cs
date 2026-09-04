@@ -44,6 +44,13 @@ public class MainMenu : MonoBehaviour
     private readonly List<GameObject> pooledSubChapterButtons = new List<GameObject>();
     private readonly Dictionary<string, Sprite> chapterCoverCache = new Dictionary<string, Sprite>();
     // Start is called before the first frame update
+    private void Awake()
+    {
+        ShowTagInOnce();
+        Input.multiTouchEnabled = false;
+        StartCoroutine(ApplyInitialLanguageRoutine());
+    }
+
     private void Start()
     {
         ShowTagInOnce();
@@ -52,12 +59,11 @@ public class MainMenu : MonoBehaviour
         optionCanvas.SetActive(false);
         ButtonInitializer();
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // Language comes from the host after the boot gate; volume is owned by the platform
-        // settings page. Keep the start button locked until UserLoginCheckPage finishes boot,
-        // otherwise a fast tap can enter a chapter against an empty save cache.
+        // Volume is owned by the platform settings page. Keep the start button locked until
+        // UserLoginCheckPage finishes boot, otherwise a fast tap can enter a chapter against
+        // an empty save cache.
         operating = true;
 #else
-        ResetLanguage();
         SetBGMVolume();
         SetSEVolume();
 #endif
@@ -65,62 +71,50 @@ public class MainMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// Called once the boot gate has hydrated saves and read <c>whoami</c>. Applies the host
-    /// language and unlocks the main menu.
+    /// Called once the boot gate has hydrated saves and read <c>whoami</c>. Unlocks the main menu.
     /// </summary>
     public void NotifyPlatformBootComplete()
     {
-        ApplyHostLanguage();
         operating = false;
     }
 
     /// <summary>
-    /// Maps the host language onto the two project locales (zh-CN / en-US)
-    /// using exact match, then language-prefix, then English.
+    /// First thing on entering the game: wait for Unity Localization, then pick locale 0 (zh-CN)
+    /// when the Builda host language is Chinese, otherwise locale 1 (en-US).
     /// </summary>
-    public void ApplyHostLanguage()
+    private IEnumerator ApplyInitialLanguageRoutine()
     {
+        yield return LocalizationSettings.InitializationOperation;
+
+        int lang = 0;
 #if UNITY_WEBGL && !UNITY_EDITOR
         string host = Builda.BuildaSDK.RuntimeLanguage();
+        if (!string.IsNullOrWhiteSpace(host)
+            && !host.Trim().StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+        {
+            lang = 1;
+        }
+#else
+        lang = PlayerPrefs.GetInt(UXPref.LANG, 0);
+#endif
+        ResetLanguage(lang);
+    }
+
+    public void ResetLanguage()
+    {
+        ResetLanguage(PlayerPrefs.GetInt(UXPref.LANG, 0));
+    }
+
+    public void ResetLanguage(int lang)
+    {
         var locales = LocalizationSettings.AvailableLocales;
         if (locales == null || locales.Locales == null || locales.Locales.Count == 0) return;
 
-        UnityEngine.Localization.Locale chosen = FindLocale(host);
-        if (chosen == null)
-        {
-            int dash = host.IndexOf('-');
-            string prefix = dash > 0 ? host.Substring(0, dash) : host;
-            if (!string.Equals(prefix, host, StringComparison.OrdinalIgnoreCase))
-                chosen = FindLocale(prefix);
-        }
-        if (chosen == null) chosen = FindLocale("en");
-        if (chosen != null) LocalizationSettings.SelectedLocale = chosen;
-#endif
-    }
+        int index = lang == 1 && locales.Locales.Count > 1 ? 1 : 0;
+        if (index >= locales.Locales.Count) return;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-    private static UnityEngine.Localization.Locale FindLocale(string code)
-    {
-        if (string.IsNullOrEmpty(code)) return null;
-        var locales = LocalizationSettings.AvailableLocales.Locales;
-        if (locales == null) return null;
-        for (int i = 0; i < locales.Count; i++)
-        {
-            var locale = locales[i];
-            if (locale == null) continue;
-            string id = locale.Identifier.Code;
-            if (string.IsNullOrEmpty(id)) continue;
-            if (id.Equals(code, StringComparison.OrdinalIgnoreCase)) return locale;
-            if (id.StartsWith(code + "-", StringComparison.OrdinalIgnoreCase)) return locale;
-        }
-        return null;
-    }
-#endif
-
-    private void Awake()
-    {
-        ShowTagInOnce();
-        Input.multiTouchEnabled = false;
+        PlayerPrefs.SetInt(UXPref.LANG, index);
+        LocalizationSettings.SelectedLocale = locales.Locales[index];
     }
 
     private void ShowTagInOnce()
@@ -262,11 +256,6 @@ public class MainMenu : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
         StartCoroutine(FullCptShow(true));
         operating = false;
-    }
-    public void ResetLanguage()
-    {
-        int L=PlayerPrefs.GetInt(UXPref.LANG, 0);
-        LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[L];
     }
     public void SetBGMVolume()
     {

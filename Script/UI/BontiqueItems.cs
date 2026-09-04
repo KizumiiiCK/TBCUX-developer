@@ -139,7 +139,7 @@ public class BontiqueItems : MonoBehaviour
             if (item.CurrencyId == 11 || item.CurrencyId == 12 || item.IsRewardedAd || item.IsPlatformPay)
             {
                 costAndOwned = item.IsPlatformPay
-                    ? $"¥{Mathf.Max(0, item.CurrencyAmount)}"
+                    ? $"{Mathf.Max(0, item.CurrencyAmount)}G"
                     : Mathf.Max(0, item.CurrencyAmount).ToString();
             }
             else

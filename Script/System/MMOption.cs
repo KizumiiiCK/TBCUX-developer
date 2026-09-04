@@ -78,7 +78,10 @@ public class MMOption : MonoBehaviour
     {
         lang = L;
         PlayerPrefs.SetInt(UXPref.LANG, lang);
-        LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[L];
+        var locales = LocalizationSettings.AvailableLocales;
+        if (locales == null || locales.Locales == null || locales.Locales.Count == 0) return;
+        if (lang < 0 || lang >= locales.Locales.Count) return;
+        LocalizationSettings.SelectedLocale = locales.Locales[lang];
     }
 
     private void OpenUploadAccountPage()
