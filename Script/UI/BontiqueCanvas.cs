@@ -273,7 +273,9 @@ public class BontiqueCanvas : UICanvasMain
             RewardingSystem.GainRewardByOrder(item.gainId, item.ObtainAmount);
         }
 
-        if (recordPurchase) BontiquePurchaseSave.AddPurchase(item.bid, currentTime.Date);
+        // Platform pay / ads pass recordPurchase: false; limited SKUs still need a save entry.
+        if (recordPurchase || item.Limit != LimitType.None)
+            BontiquePurchaseSave.AddPurchase(item.bid, currentTime.Date);
         ShowRewardTransition(item);
         RebuildPurchaseCache();
         RefreshCurrencyDisplaysAfterPurchase();

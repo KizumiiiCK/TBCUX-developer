@@ -455,36 +455,80 @@ public static class BontiqueStaticCatalog
             gainId = 12, ObtainAmount = 15,
             CurrencyId = 98, CurrencyAmount = 1,
         },
-        // IAP: RMB → BuildaCoin (99). PayId is the manifest payPoints id (no colon).
+        // IAP: platform G → BuildaCoin (99). PayId is the manifest payPoints id (no colon).
+        // price unit is G coins: 1 RMB ≈ 10000 G. Shop prices are 50% off that rate.
+        // First-charge SKUs share PayId with the regular tier; OnlyOnce hides them after purchase.
+        new BontiqueShopItem
+        {
+            bid = "b:iap-1-first", PayId = "b-iap-1", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 2,
+            CurrencyId = 99, CurrencyAmount = 500,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-1", PayId = "b-iap-1", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 1,
+            CurrencyId = 99, CurrencyAmount = 500,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-10-first", PayId = "b-iap-10", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 20,
+            CurrencyId = 99, CurrencyAmount = 5000,
+        },
         new BontiqueShopItem
         {
             bid = "b:iap-10", PayId = "b-iap-10", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 99, ObtainAmount = 10,
-            CurrencyId = 99, CurrencyAmount = 500,
+            CurrencyId = 99, CurrencyAmount = 5000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-55-first", PayId = "b-iap-55", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 110,
+            CurrencyId = 99, CurrencyAmount = 25000,
         },
         new BontiqueShopItem
         {
             bid = "b:iap-55", PayId = "b-iap-55", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
             gainId = 99, ObtainAmount = 55,
-            CurrencyId = 99, CurrencyAmount = 2500,
+            CurrencyId = 99, CurrencyAmount = 25000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-120-first", PayId = "b-iap-120", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 240,
+            CurrencyId = 99, CurrencyAmount = 50000,
         },
         new BontiqueShopItem
         {
             bid = "b:iap-120", PayId = "b-iap-120", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 99, ObtainAmount = 150,
-            CurrencyId = 99, CurrencyAmount = 6000,
+            gainId = 99, ObtainAmount = 120,
+            CurrencyId = 99, CurrencyAmount = 50000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-400-first", PayId = "b-iap-400", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 800,
+            CurrencyId = 99, CurrencyAmount = 150000,
         },
         new BontiqueShopItem
         {
             bid = "b:iap-400", PayId = "b-iap-400", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 99, ObtainAmount = 500,
-            CurrencyId = 99, CurrencyAmount = 18000,
+            gainId = 99, ObtainAmount = 400,
+            CurrencyId = 99, CurrencyAmount = 150000,
+        },
+        new BontiqueShopItem
+        {
+            bid = "b:iap-1000-first", PayId = "b-iap-1000", Category = BontiqueType.Builda, Limit = LimitType.OnlyOnce, LimitCount = 1, RewardKind = RewardType.item,
+            gainId = 99, ObtainAmount = 2000,
+            CurrencyId = 99, CurrencyAmount = 340000,
         },
         new BontiqueShopItem
         {
             bid = "b:iap-1000", PayId = "b-iap-1000", Category = BontiqueType.Builda, Limit = LimitType.None, RewardKind = RewardType.item,
-            gainId = 99, ObtainAmount = 1420,
-            CurrencyId = 99, CurrencyAmount = 45000,
+            gainId = 99, ObtainAmount = 1000,
+            CurrencyId = 99, CurrencyAmount = 340000,
         },
         // Spend BuildaCoin (99) for in-game items. Not a host pay SKU.
         new BontiqueShopItem
