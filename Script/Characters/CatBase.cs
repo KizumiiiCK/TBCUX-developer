@@ -196,6 +196,11 @@ public class CatBase : CatCharacter
 
         yield return BundledAddressables.PrewarmRoutine(list);
 
+        // The head sprite is normally prewarmed before the battle, but this path also runs for
+        // mid-battle switches (and covers a prewarm gap), so apply it once the load lands - the
+        // synchronous read in ApplyCannonHeadImmediate returns null on WebGL when it is not resident.
+        if (cannon_type == clamped) ApplyCannonHeadSprite(clamped);
+
         GameObject loadedPrefab = BundledAddressables.LoadSync<GameObject>(unitAddress);
         if (loadedPrefab != null)
         {
@@ -220,10 +225,6 @@ public class CatBase : CatCharacter
         if (cannonButton == null || cannonButtonAnimation == null) return;
         if (isCannonInstalling) return;
 
-        cannonCharged = 0;
-        cannonButton.interactable = false;
-        cannonButtonAnimation.enabled = false;
-
         GameObject cannonPrefab = currentCannonPrefab;
         if (cannonPrefab == null)
         {
@@ -232,19 +233,25 @@ public class CatBase : CatCharacter
             if (cannonPrefab != null) currentCannonPrefab = cannonPrefab;
         }
 
-        if (cannonPrefab != null)
+        if (cannonPrefab == null)
         {
-            GameObject cannonObj = Instantiate(cannonPrefab);
-            CannonUnit unit = cannonObj.GetComponent<CannonUnit>();
-            if (unit != null)
-            {
-                unit.cannon_type = cannon_type;
-            }
-        }
-        else
-        {
-            Debug.LogError($"[CatBase] Cannon fire failed: cannot load cannonUnit for cannon_type {cannon_type}. Retrying load...");
+            // The unit is no longer prewarmed before the battle (it loads during the ~22-45s charge),
+            // so a fire attempt can land before it arrives. Keep the charge so the player does not
+            // lose a full charge cycle to a slow download, and let the retry finish the load.
+            Debug.LogWarning($"[CatBase] Cannon not ready for cannon_type {cannon_type}; keeping charge and retrying load.");
             LoadCannonUnit(cannon_type);
+            return;
+        }
+
+        cannonCharged = 0;
+        cannonButton.interactable = false;
+        cannonButtonAnimation.enabled = false;
+
+        GameObject cannonObj = Instantiate(cannonPrefab);
+        CannonUnit unit = cannonObj.GetComponent<CannonUnit>();
+        if (unit != null)
+        {
+            unit.cannon_type = cannon_type;
         }
     }
 
@@ -341,11 +348,20 @@ public class CatBase : CatCharacter
         GameObject loaded = BundledAddressables.LoadSync<GameObject>(unitAddress);
         if (loaded != null) currentCannonPrefab = loaded;
 
+        ApplyCannonHeadSprite(clamped);
+    }
+
+    /// <summary>
+    /// Pushes the cannon head sprite onto the base renderer. Safe to call again once an async load
+    /// finishes: a missing sprite leaves the previous one in place rather than blanking the head.
+    /// </summary>
+    private void ApplyCannonHeadSprite(int headIndex)
+    {
         if (main == null || main.childCount <= 2) return;
         SpriteRenderer renderer_head = main.GetChild(2).GetComponent<SpriteRenderer>();
         if (renderer_head == null) return;
 
-        Sprite towerHead = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/head/{clamped}");
+        Sprite towerHead = BundledAddressables.LoadSync<Sprite>($"Units/CatBases/head/{Mathf.Max(0, headIndex)}");
         if (towerHead != null) renderer_head.sprite = towerHead;
     }
 }

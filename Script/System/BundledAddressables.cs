@@ -25,6 +25,14 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 /// </summary>
 public static class BundledAddressables
 {
+    /// <summary>
+    /// Prewarm entries in flight at once. Kept above Addressables' own
+    /// <c>maxConcurrentWebRequests</c> (3) on purpose: most entries in a batch resolve from cache or
+    /// miss the catalog entirely and never issue a request, so the extra lanes cost nothing while
+    /// letting the ones that do download stay saturated.
+    /// </summary>
+    private const int DefaultPrewarmConcurrency = 8;
+
     private static bool initialized;
     private static bool initializing;
 
@@ -237,8 +245,16 @@ public static class BundledAddressables
     /// Loads every queued entry, reporting progress as (0..1, currentLabel).
     /// Missing addresses are logged but do not abort the batch - a level should still start if one
     /// optional effect is absent.
+    ///
+    /// Entries run <paramref name="maxConcurrency"/> at a time. This matters more than bandwidth:
+    /// every entry costs at least one frame to await, so a serial batch of ~390 addresses (a typical
+    /// battle) burned ~390 frames - 6.5s at 60fps, worse on mobile - regardless of how few bytes it
+    /// actually moved. Overlapping them collapses that to roughly total/concurrency frames.
     /// </summary>
-    public static IEnumerator PrewarmRoutine(PrewarmList list, Action<float, string> onProgress = null)
+    public static IEnumerator PrewarmRoutine(
+        PrewarmList list,
+        Action<float, string> onProgress = null,
+        int maxConcurrency = DefaultPrewarmConcurrency)
     {
         if (list == null || list.Count == 0)
         {
@@ -249,16 +265,162 @@ public static class BundledAddressables
         if (!initialized) yield return InitializeRoutine();
 
         int total = list.Count;
-        for (int i = 0; i < total; i++)
+        int lanes = Mathf.Clamp(maxConcurrency, 1, total);
+        var active = new List<EntryPump>(lanes);
+        int nextEntry = 0;
+        int completed = 0;
+        string lastLabel = string.Empty;
+
+        while (completed < total)
         {
-            PrewarmList.Entry entry = list.Entries[i];
-            float baseProgress = i / (float)total;
-            onProgress?.Invoke(baseProgress, entry.Label);
-            // Heartbeat during the download too, not just between entries: one entry can pull a
-            // whole bundle, which on a slow connection outlasts any single stall budget.
-            yield return entry.Run(() => onProgress?.Invoke(baseProgress, entry.Label));
+            // Top the lanes up as slots free, so a fast entry never waits on a slow neighbour.
+            while (active.Count < lanes && nextEntry < total)
+            {
+                PrewarmList.Entry entry = list.Entries[nextEntry++];
+                lastLabel = entry.Label;
+                // Capture this entry's own label - `lastLabel` keeps moving as later lanes start, so
+                // closing over it would make a slow download report a neighbour's name.
+                string entryLabel = entry.Label;
+                active.Add(new EntryPump(entry, () => onProgress?.Invoke(completed / (float)total, entryLabel)));
+            }
+
+            for (int i = active.Count - 1; i >= 0; i--)
+            {
+                active[i].Step();
+                if (!active[i].IsDone) continue;
+
+                lastLabel = active[i].Label;
+                active.RemoveAt(i);
+                completed++;
+                onProgress?.Invoke(completed / (float)total, lastLabel);
+            }
+
+            // Every lane is mid-flight (or the batch is drained); give the frame back.
+            if (completed < total) yield return null;
         }
+
         onProgress?.Invoke(1f, string.Empty);
+    }
+
+    /// <summary>
+    /// Drives one prewarm entry's coroutine (and any coroutines it yields) a frame at a time, so
+    /// several entries can share one driving coroutine.
+    ///
+    /// This has to interpret yielded values itself, since it is not running under Unity's coroutine
+    /// scheduler: a yielded <see cref="AsyncOperationHandle"/> is held in <see cref="pendingHandle"/>
+    /// and re-checked on later steps. Calling MoveNext again without that check would advance the
+    /// entry past its own await and read a handle that has not finished.
+    /// </summary>
+    private sealed class EntryPump
+    {
+        private readonly Stack<IEnumerator> stack = new Stack<IEnumerator>();
+        private AsyncOperationHandle pendingHandle;
+        private bool hasPendingHandle;
+
+        public string Label { get; }
+        public bool IsDone { get; private set; }
+
+        public EntryPump(PrewarmList.Entry entry, Action heartbeat)
+        {
+            Label = entry.Label;
+            IEnumerator routine = null;
+            try
+            {
+                routine = entry.Run(heartbeat);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[BundledAddressables] Prewarm entry '{entry.Label}' failed to start: {e.Message}");
+            }
+
+            if (routine == null) IsDone = true;
+            else stack.Push(routine);
+        }
+
+        /// <summary>Advances this entry as far as it can go without waiting.</summary>
+        public void Step()
+        {
+            if (IsDone) return;
+
+            if (hasPendingHandle)
+            {
+                if (pendingHandle.IsValid() && !pendingHandle.IsDone) return;
+                hasPendingHandle = false;
+                pendingHandle = default;
+            }
+
+            while (stack.Count > 0)
+            {
+                IEnumerator top = stack.Peek();
+                bool moved;
+                try
+                {
+                    moved = top.MoveNext();
+                }
+                catch (Exception e)
+                {
+                    // One malformed entry must not take the whole batch down.
+                    Debug.LogWarning($"[BundledAddressables] Prewarm entry '{Label}' threw: {e.Message}");
+                    stack.Pop();
+                    continue;
+                }
+
+                if (!moved)
+                {
+                    stack.Pop();
+                    continue;
+                }
+
+                object current = top.Current;
+
+                // Handle checks come before the IEnumerator check on purpose: both
+                // AsyncOperationHandle and AsyncOperationHandle<T> implement IEnumerator, so testing
+                // for IEnumerator first would push them onto the stack and skip this fast path.
+                if (current is AsyncOperationHandle handle)
+                {
+                    if (handle.IsValid() && !handle.IsDone)
+                    {
+                        pendingHandle = handle;
+                        hasPendingHandle = true;
+                        return;
+                    }
+                    continue;
+                }
+
+                // AsyncOperationHandle<T> is a distinct struct with no conversion to the non-generic
+                // form, so it cannot be matched above. Yielding it back to the driver (return, not
+                // continue) is what keeps this safe: re-entering the loop on the same frame would
+                // spin forever on a handle whose Current is already non-null.
+                if (IsGenericOperationHandle(current))
+                {
+                    stack.Push((IEnumerator)current);
+                    return;
+                }
+
+                if (current is IEnumerator nested)
+                {
+                    stack.Push(nested);
+                    continue;
+                }
+
+                // null (or anything else these routines yield): resume on the next frame.
+                return;
+            }
+
+            IsDone = true;
+        }
+
+        /// <summary>
+        /// True for <c>AsyncOperationHandle&lt;T&gt;</c> of any T. These must be driven as enumerators
+        /// (their MoveNext returns !IsDone) rather than treated as nested prewarm routines.
+        /// </summary>
+        private static bool IsGenericOperationHandle(object value)
+        {
+            if (!(value is IEnumerator)) return false;
+            Type t = value.GetType();
+            return t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(AsyncOperationHandle<>);
+        }
     }
 
     /// <summary>

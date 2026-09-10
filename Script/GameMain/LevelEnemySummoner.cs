@@ -53,7 +53,17 @@ public class LevelEnemySummoner : MonoBehaviour
                 == nextTime[i])
             {
                 if (!LC.DeployAnEnemy()) continue;
-                if (!Deploy(i)) continue;
+                if (!Deploy(i))
+                {
+                    // Hand the slot back. DeployAnEnemy() already charged it against
+                    // maxEnemyDeploy, and nothing else will ever release it: RemoveAnEnemy is
+                    // called from EnemyCharacter.Dead, and no enemy was spawned to die. Since
+                    // timepassed[i] is deliberately left alone so the wave retries next tick, a
+                    // leaked slot per tick drains the whole budget in maxEnemyDeploy frames and
+                    // permanently stops the level from summoning anything.
+                    LC.RemoveAnEnemy();
+                    continue;
+                }
                 currentDeployed[i]++;
                 //if (currentDeployed[i] == ESI[i].repeat) { continue; }
                 timepassed[i] = 0;

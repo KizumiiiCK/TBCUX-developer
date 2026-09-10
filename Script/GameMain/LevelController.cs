@@ -1,10 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Android;
-using UnityEngine.Audio;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -142,9 +141,6 @@ public class LevelController : MonoBehaviour
     [SerializeField] protected Transform Deployers;
     [SerializeField] protected Transform GuestDeployers;
     [SerializeField] protected GameObject MaxDeployed;
-
-    [Header("Audio Mixer")]
-    [SerializeField] protected AudioMixer mixer;
 
     [Header("UI Sliders")]
     [SerializeField] protected Slider bgmSlider;
@@ -769,7 +765,7 @@ public class LevelController : MonoBehaviour
     {
         float dB = linear <= 0 ? MIN_VOLUME_DB : VOLUME_LOG_MULTIPLIER * Mathf.Log10(linear);
         Debug.Log(dB);
-        mixer.SetFloat(UXPref.BGM_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.BGM_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.BGM_PARAM, linear);
     }
 
@@ -780,7 +776,7 @@ public class LevelController : MonoBehaviour
     {
         float dB = linear <= 0 ? MIN_VOLUME_DB : VOLUME_LOG_MULTIPLIER * Mathf.Log10(linear);
         Debug.Log(dB);
-        mixer.SetFloat(UXPref.SE_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.SE_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.SE_PARAM, linear);
     }
 

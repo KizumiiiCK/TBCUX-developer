@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Audio;
 
 public class EffectManager : MonoBehaviour
 {
@@ -12,9 +11,6 @@ public class EffectManager : MonoBehaviour
     private readonly Dictionary<string, AudioClip[]> effectSoundCache = new Dictionary<string, AudioClip[]>();
     private readonly Dictionary<string, AudioSource> effectSoundPlayers = new Dictionary<string, AudioSource>();
     private const string EffectSourceRoot = "Effects/source file/";
-    private const string AudioMixerResourcePath = "Music/AudioMixer";
-    private AudioMixerGroup seMixerGroup;
-    private bool seMixerResolved;
     public AnimationDisplayer InstantiateBattleObject(SEnums sename,float posX, float posY, bool playSound=true)
     {
         string effectName = sename.ToString();
@@ -161,31 +157,11 @@ public class EffectManager : MonoBehaviour
         src.playOnAwake = false;
         src.loop = false;
         src.spatialBlend = 0f;
-        src.outputAudioMixerGroup = ResolveSEMixerGroup();
+        src.outputAudioMixerGroup = GameAudioMixer.SEGroup;
         effectSoundPlayers[soundKey] = src;
         return src;
     }
 
-    private AudioMixerGroup ResolveSEMixerGroup()
-    {
-        if (seMixerResolved) return seMixerGroup;
-        seMixerResolved = true;
-
-        AudioMixer mixer = Resources.Load<AudioMixer>(AudioMixerResourcePath);
-        if (mixer == null)
-        {
-            Debug.LogWarning($"[EffectManager] AudioMixer not found at Resources/{AudioMixerResourcePath}");
-            return null;
-        }
-        AudioMixerGroup[] groups = mixer.FindMatchingGroups("SE");
-        if (groups == null || groups.Length == 0)
-        {
-            Debug.LogWarning("[EffectManager] SE mixer group not found.");
-            return null;
-        }
-        seMixerGroup = groups[0];
-        return seMixerGroup;
-    }
     private static Dictionary<SEnums, int> SEExistT = new Dictionary<SEnums, int>() {
         { SEnums.soul,         90 },
         { SEnums.bite,         30 },

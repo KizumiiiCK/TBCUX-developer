@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
@@ -37,7 +36,6 @@ public class MainMenu : MonoBehaviour
     //[SerializeField] private GameObject ChapterSelectionBtn;
     [Header("Prefab")]
     [SerializeField] private GameObject subChapter;
-    [SerializeField] private AudioMixer mixer;
 
     private bool operating = false;
     private bool tagInShown;
@@ -261,14 +259,14 @@ public class MainMenu : MonoBehaviour
     {
         float linear= PlayerPrefs.GetFloat(UXPref.BGM_PARAM, 0);
         float dB = linear <= 0 ? -80f : 20f * Mathf.Log10(linear);
-        mixer.SetFloat(UXPref.BGM_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.BGM_PARAM, dB);
     }
 
     public void SetSEVolume()
     {
         float linear = PlayerPrefs.GetFloat(UXPref.SE_PARAM, 0);
         float dB = linear <= 0 ? -80f : 20f * Mathf.Log10(linear);
-        mixer.SetFloat(UXPref.SE_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.SE_PARAM, dB);
     }
 
     public void SetWelcomeBackMessage(string text)

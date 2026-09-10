@@ -1,12 +1,10 @@
-using UnityEngine;
-using UnityEngine.Audio;
+﻿using UnityEngine;
 using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 public class MMOption : MonoBehaviour
 {
     [SerializeField] private Button[] languageToggles;
-    [SerializeField] private AudioMixer mixer;
     [SerializeField] private Slider bgmSlider;
     [SerializeField] private Slider seSlider;
     [Header("Account Actions")]
@@ -56,7 +54,7 @@ public class MMOption : MonoBehaviour
     {
         float dB = linear <= 0 ? -80f : 20f * Mathf.Log10(linear);
         Debug.Log(dB);
-        mixer.SetFloat(UXPref.BGM_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.BGM_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.BGM_PARAM, linear);
     }
 
@@ -64,7 +62,7 @@ public class MMOption : MonoBehaviour
     {
         float dB = linear <= 0 ? -80f : 20f * Mathf.Log10(linear);
         Debug.Log(dB);
-        mixer.SetFloat(UXPref.SE_PARAM, dB);
+        GameAudioMixer.SetVolumeDb(UXPref.SE_PARAM, dB);
         PlayerPrefs.SetFloat(UXPref.SE_PARAM, linear);
     }
     private void RefreshTable()

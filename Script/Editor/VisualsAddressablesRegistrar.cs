@@ -21,6 +21,7 @@ public static class VisualsAddressablesRegistrar
         new FolderMapping("Assets/Bundled/Background/CombatEffects", "Background/CombatEffects"),
         new FolderMapping("Assets/Bundled/DialogueImage", "DialogueImage"),
         new FolderMapping("Assets/Bundled/System/fonts", "System/fonts"),
+        new FolderMapping("Assets/Bundled/System/audio", "System/audio"),
     };
 
     private struct FolderMapping
@@ -66,6 +67,7 @@ public static class VisualsAddressablesRegistrar
         for (int f = 0; f < Folders.Length; f++)
             registered += RegisterFolder(settings, group, Folders[f]);
 
+        AddressablesBundleSplitter.RelabelIfSplit(settings, group, AddressablesBundleSplitter.VisualsLabelFor);
         settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
         AssetDatabase.SaveAssets();
         Debug.Log(

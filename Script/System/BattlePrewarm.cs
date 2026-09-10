@@ -182,6 +182,10 @@ public static class BattlePrewarm
         list.Add<GameObject>("Units/Cat Units/surgeunit");
         list.Add<GameObject>("Units/Enemy Units/surgeunit");
 
+        // EffectManager.GetOrCreateEffectSoundPlayer routes every SE AudioSource through the shared
+        // mixer's SE group. It runs from mid-frame combat callbacks, so the mixer must be resident.
+        list.Add<UnityEngine.Audio.AudioMixer>(GameAudioMixer.Address);
+
         AddPlayerBaseAssets(list);
     }
 
@@ -242,16 +246,23 @@ public static class BattlePrewarm
         list.Add<Sprite>($"Units/CatBases/base/{numBase}");
         list.Add<Sprite>($"Units/CatBases/decorations/{numDeco}");
 
-        // Prewarm all cannon types (0..8) so switching cannons in battle is instant and guaranteed to work
-        for (int i = 0; i <= 8; i++)
-        {
-            AddCannonAssets(list, i);
-        }
-
-        // CatBase.cs:243 - install-complete effect, hard-coded to set 5.
-        list.Add<GameObject>("Units/CatBases/effectUnits/5/eff/1");
+        // Only the equipped cannon's head sprite. CatBase.InitializeCharacter reads it synchronously
+        // (SetCannonHead -> ApplyCannonHeadImmediate -> LoadSync), so it must be resident or the base
+        // renders headless on the first frame.
+        //
+        // The unit prefab and its effects are deliberately left out: nothing can fire the cannon
+        // until it charges (CANNON_CHARGE_TIME = 1350 ChargeCannon ticks, one per frame - ~22s at
+        // 60fps, ~45s at 30fps), and CatBase.InitializeCharacter already kicks off LoadCannonUnit
+        // asynchronously. Switching cannons mid-battle is covered the same way, behind the 10s
+        // CANNON_INSTALL_DURATION animation.
+        list.Add<Sprite>($"Units/CatBases/head/{Mathf.Max(0, PlayerPrefs.GetInt(UXPref.BASE_CannonNum, 0))}");
     }
 
+    /// <summary>
+    /// Queues one cannon type's full asset set (head, unit prefab, effects).
+    /// No longer part of the battle prewarm - <see cref="CatBase.LoadCannonUnit"/> pulls this on
+    /// demand during the charge window. Kept for callers that want a cannon resident up front.
+    /// </summary>
     public static void AddCannonAssets(BundledAddressables.PrewarmList list, int cannonType)
     {
         string headAddr = $"Units/CatBases/head/{cannonType}";

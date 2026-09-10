@@ -70,6 +70,7 @@ public static class UnitsAddressablesRegistrar
         for (int f = 0; f < Folders.Length; f++)
             registered += RegisterFolder(settings, group, Folders[f], ref skipped);
 
+        AddressablesBundleSplitter.RelabelIfSplit(settings, group, AddressablesBundleSplitter.UnitsLabelFor);
         settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
         AssetDatabase.SaveAssets();
         Debug.Log(
@@ -164,6 +165,7 @@ public static class UnitsAddressablesRegistrar
 
         int skipped = 0;
         int registered = RegisterFolder(settings, group, folder, ref skipped);
+        AddressablesBundleSplitter.RelabelIfSplit(settings, group, AddressablesBundleSplitter.UnitsLabelFor);
         settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
         AssetDatabase.SaveAssets();
         Debug.Log($"Rebuilt {folder.AddressRoot}: {registered} entries (skipped {skipped} unsupported).");
