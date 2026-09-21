@@ -11,7 +11,6 @@ public class CharacterData : ScriptableObject
     public ATKInfo[] atkInfos;
     public bool areaATK;
     public int atkDuration;
-    //public bool one_off;
     public int Health;
     public int KB; // Knockback
     public int Speed;
@@ -35,7 +34,6 @@ public class CharacterData : ScriptableObject
     public CharacterAbility[] abilities;
     public AttackTypeResistance[] atkTypeResis;
     public CharacterEffect[] effectResistances;
-    public EmotionUX baseEmotion = EmotionUX.none;
 
     public CharacterData Clone()
     {

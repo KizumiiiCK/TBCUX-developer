@@ -50,7 +50,7 @@ public abstract partial class Character
         
         realSpeed = Speed;
         realReload = Reload;
-        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
+        ResetAttackRangeToDetection();
         StartPos();
         EM = GameObject.Find("Effects").GetComponent<EffectManager>();
         InitializeCharacter();
@@ -81,16 +81,24 @@ public abstract partial class Character
             Debug.LogError($"[Character] Data not found");
             return;
         }
-        float treasureBonus = 1 + treasureCount / 100f;
+        treasureBonus = 1 + treasureCount / 100f;
 
         NameCode = data.Name;
         if (!string.IsNullOrEmpty(NameCode) && NameCode[0] == CharacterPlacer.OppositePrefix)
             NameCode = NameCode.Substring(1);
         if (forceLevel >= 1) level = forceLevel;
-        IsEliteUnit = data.isEliteUnit;
-        BaseEmotion = data.baseEmotion;
+        // 精英单位只对猫咪方生效。敌方放置（含用猫数据当敌人）一律不启用。
+        IsEliteUnit = data.isEliteUnit && IsCat();
         Health = (int)(data.Health * treasureBonus);
-        KB = data.KB;
+        // KB 非正数基本都是数据没填。hardness = maxHealth / KB，除以 0 会得到 Infinity，
+        // 之后整套击退判定（含 SyncKBStateToHealth 的 hardness <= 0 兜底）全部失效，
+        // 所以在读入这一层就归一到 1，并留个警告方便回头补数据。
+        if (data.KB > 0) KB = data.KB;
+        else
+        {
+            KB = 1;
+            Debug.LogWarning($"[Character] {NameCode} KB={data.KB}，数据缺失，按 1 处理");
+        }
         Speed = data.Speed;
         Reload = data.Reload;
         DetectionRange = data.DetectionRange;
@@ -105,7 +113,6 @@ public abstract partial class Character
         for (int i = 0; i < atkInfos.Length; i++) realDamage[i] = (int)(atkInfos[i].ATK * treasureBonus);
         areaATK = data.areaATK;
         atkDuration = data.atkDuration;
-        //one_off = data.one_off;
 
         traits = data.traits;
         subtraits = data.subtraits;
@@ -157,16 +164,23 @@ public abstract partial class Character
         return runtimeInfos;
     }
     private int current_animation_index = 999;
+    private const int AttackAnimIndex = 2;
     public void SwitchAnimation(int index) {
         // 被动技能可以把请求的动画号改写成自己的阶段动画（如遁地、practician），
         // 从而无需再用 BlockAnimationSwitch 关闭/打开来打断原动画更新。KB/死亡等动画会被放行。
         index = Passive_OnAfterSwitchingAnim(index);
-        if (current_animation_index == index) return;
+        // UA 攻击态不能 transist to self，且攻击剪辑不循环。连击时必须强制重播。
+        bool restartUaAttack = UNITYAnimated && index == AttackAnimIndex;
+        if (current_animation_index == index && !restartUaAttack) return;
         current_animation_index = index;
         if (UNITYAnimated)
         {
             if (animator == null) animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
-            if (animator != null) animator.SetInteger("state", index);
+            if (animator != null)
+            {
+                animator.SetInteger("state", index);
+                if (restartUaAttack) animator.Play("attack", 0, 0f);
+            }
         }
         else
         {
@@ -200,7 +214,7 @@ public abstract partial class Character
         {
             animator = GetComponent<Animator>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
-            if (SPINEAnimated) skeletonAnimator = GetComponentInChildren<SkeletonAnimation>();
+            if (SPINEAnimated) skeletonAnimator = FindPrimarySkeletonAnimation();
         }
         else
         {
@@ -210,28 +224,42 @@ public abstract partial class Character
 
     private void ApplySpineAnimationSpeed(float speed)
     {
-        if (skeletonAnimator == null) skeletonAnimator = GetComponentInChildren<SkeletonAnimation>(true);
-        if (skeletonAnimator != null)
+        // uaunit 根节点常挂一个空的 SkeletonAnimation，真正在播的是子物体（如 main）。
+        // 只改 GetComponentInChildren 拿到的第一个，会停错对象，Spine 会把当前动画播完。
+        SkeletonAnimation[] allSpines = GetComponentsInChildren<SkeletonAnimation>(true);
+        for (int i = 0; i < allSpines.Length; i++)
         {
-            skeletonAnimator.timeScale = speed;
-            if (skeletonAnimator.AnimationState != null)
-            {
-                skeletonAnimator.AnimationState.TimeScale = speed;
-            }
+            SetSkeletonAnimationTimeScale(allSpines[i], speed);
         }
 
-        // // 兜底：部分 Spine 结构可能有多个 SkeletonAnimation，统一写入保证立即停住。
-        // SkeletonAnimation[] allSpines = GetComponentsInChildren<SkeletonAnimation>(true);
-        // for (int i = 0; i < allSpines.Length; i++)
-        // {
-        //     SkeletonAnimation spine = allSpines[i];
-        //     if (spine == null) continue;
-        //     spine.timeScale = speed;
-        //     if (spine.AnimationState != null)
-        //     {
-        //         spine.AnimationState.TimeScale = speed;
-        //     }
-        // }
+        if (skeletonAnimator == null) skeletonAnimator = FindPrimarySkeletonAnimation(allSpines);
+    }
+
+    private SkeletonAnimation FindPrimarySkeletonAnimation(SkeletonAnimation[] cached = null)
+    {
+        SpineAnimationEventController controller = GetComponentInChildren<SpineAnimationEventController>(true);
+        if (controller != null && controller.Skeleton != null) return controller.Skeleton;
+
+        SkeletonAnimation[] allSpines = cached != null ? cached : GetComponentsInChildren<SkeletonAnimation>(true);
+        SkeletonAnimation fallback = null;
+        for (int i = 0; i < allSpines.Length; i++)
+        {
+            SkeletonAnimation spine = allSpines[i];
+            if (spine == null) continue;
+            if (fallback == null) fallback = spine;
+            if (spine.skeletonDataAsset != null) return spine;
+        }
+        return fallback;
+    }
+
+    private static void SetSkeletonAnimationTimeScale(SkeletonAnimation spine, float speed)
+    {
+        if (spine == null) return;
+        spine.timeScale = speed;
+        if (spine.AnimationState != null)
+        {
+            spine.AnimationState.TimeScale = speed;
+        }
     }
 
     private void RegisterToTargetManager()

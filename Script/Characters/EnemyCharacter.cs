@@ -8,7 +8,8 @@ public class EnemyCharacter : AnimatorCachedCharacter
     {
         maxHealth = Health * strengthenRate * Power;
         realHealth = maxHealth;
-        hardness = maxHealth / KB;
+        // 同 CatCharacter：KB 可能来自预制体而没经过 LoadCharacterData 的归一。
+        hardness = maxHealth / Mathf.Max(1, KB);
         realDamage = new int[atkInfos.Length];
         for (int i = 0; i < atkInfos.Length; i++)
         {
@@ -91,6 +92,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        if (SkipDestroyCombatAccounting) return;
         if (levelController == null) { Debug.LogError("LC not found."); return; }
         levelController.AddMoney(Cost);
         levelController.RemoveAnEnemy();
@@ -116,8 +118,9 @@ public class EnemyCharacter : AnimatorCachedCharacter
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
-        TakeDMG(DMG);
+        // 效果先挂、伤害后落，理由见 CatCharacter.ReceiveAttack。
         if (matchedTraits && DMG>0) TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
+        TakeDMG(DMG);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }

@@ -7,6 +7,14 @@ using UnityEngine;
 public abstract partial class Character
 {
     private const float CharacterTargetVolumeLength = 200;
+    /// <summary>
+    /// 击退位移的距离补偿。下面 PerformKB 的 X 位移用的是「每帧从当前位置、按恒定系数
+    /// 1/duration 插值」的写法，属于指数逼近，duration 帧后只能走到 DX 的约 64%
+    /// （剩余 (1-1/n)^n → 1/e，帧数越多越接近 63.2%）。而各 KB_Type 的 DX 常数是当年
+    /// 按线性插值调出来的，换成 ease-out 时没有同步调整，所以在这里统一乘回去：
+    /// 64% × 1.5 ≈ 96%，实际位移重新接近 DX/100 的名义值。
+    /// </summary>
+    private const float KBDistanceCompensation = 1.5f;
     // 全抗性命中特效类型，只读共享，避免每次完全抵抗命中时分配新List
     protected static readonly List<AttackType> WaveInvalidHitTypes = new List<AttackType> { AttackType.wave_invalid };
     // 当本次攻击禁止触发效果时，职业克制也应失效（全false）。
@@ -32,7 +40,12 @@ public abstract partial class Character
                                      : go.GetComponent<EnemyCharacter>() as T;
     }
 
-    private List<CharacterEffect> DetermineSelfATKEffects()
+    /// <summary>
+    /// 按各效果自身的 probability（乘 GetFactor）掷一次骰，返回本次攻击真正要附加的效果。
+    /// public 是给不走 Attack() 的被动用的（如 DeadSoul 在死亡时补一发 Surge），
+    /// 这样脱离普攻流程产生的攻击也和普攻用同一套附带效果规则。
+    /// </summary>
+    public List<CharacterEffect> DetermineSelfATKEffects()
     {
         var list = new List<CharacterEffect>();
         float sf = GetFactor();
@@ -93,6 +106,10 @@ public abstract partial class Character
             if (!doNotTriggerAbilities)
             {
                 Passive_OnAttacking(ref dmg, ref types);
+                // 被动（如 ProjectileLauncher）可能在这里 RemoveAllTarget() 来接管本次命中。
+                // Targets 在下面是实时读的，基地目标却是上面缓存的局部变量，必须重新取一次，
+                // 否则群攻分支会用失效的引用再打基地一次（弹幕伤害 + 原生伤害双击）。
+                baseTarget = GetValidBaseTarget();
             }
             if (specific != null)
             {
@@ -176,7 +193,7 @@ public abstract partial class Character
         realReload = 0; 
         animateStep = 0;
         Supporter_Target_Switch(true); // 重置Friendly模式
-        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange); // 重置攻击范围为检测范围
+        ResetAttackRangeToDetection();
         for(int i = Targets.Count - 1; i >= 0; i--)
         {
             if (Targets[i]==null) Targets.RemoveAt(i);
@@ -184,7 +201,6 @@ public abstract partial class Character
     }
     public void ExitAttack()
     {
-        if (one_off) { Destroy(gameObject); }
         onATK = false;
         ResetAttackResolveState();
         animateStep = 0;
@@ -202,7 +218,7 @@ public abstract partial class Character
         animatedframes = 0;
         realReload = 0;
         Supporter_Target_Switch(true);
-        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
+        ResetAttackRangeToDetection();
     }
     protected bool AreCorrespondingTraits(Traits targetTrait, List<AttackType> atkTypes = null)
     {
@@ -221,8 +237,6 @@ public abstract partial class Character
     }
     protected void SetIncomingTraitCorresponding(bool matched) => incomingTraitCorresponding = matched;
     public bool HasIncomingTraitCorresponding() => incomingTraitCorresponding;
-    public void SetNewTarget(GameObject newTarget, bool quickTrigger) { if (quickTrigger) Attack(realDamage[animateStep],false,false,newTarget); else Targets.Add(newTarget); }
-    public void RemoveTarget(GameObject newTarget) { Targets.Remove(newTarget); }
     public void RemoveAllTarget() { Targets = new List<GameObject>(); BaseTarget = null; }
     public GameObject FindNearest()
     {
@@ -252,10 +266,12 @@ public abstract partial class Character
         // 切换Friendly攻击模式（攻击同阵营）
         // switchback=false: 切换到Friendly模式（攻击同阵营）
         // switchback=true: 切换回正常模式（攻击敌对阵营）
+        //
+        // 这里只写模式，不清空 Targets。CharacterTargetManager 每轮 tick 都是覆盖式重算，
+        // 清空既不会触发重算，又会在下一轮 tick 前留下一段空目标窗口——那段窗口里 Attack()
+        // 会被 Targets 为空的入口判定挡掉，整段攻击静默作废（AttackBox 时代靠清空来强制
+        // 重新检测，那套前提已经不存在了）。真正的同步点是随后的 SetAttackRange。
         CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, !switchback);
-        
-        // 清空当前目标列表，让管理器重新计算
-        RemoveAllTarget();
     }
     #endregion
 
@@ -354,7 +370,7 @@ public abstract partial class Character
         // KB can interrupt a Friendly attack step; force search mode back to enemy side.
         CharacterTargetManager.Instance.SetCharacterFriendlyMode(this, false);
         CharacterTargetManager.Instance.NotifyCharacterStatePulse(this, EmotionBattleState.kb);
-        SetAttackRange(-CharacterTargetVolumeLength, DetectionRange);
+        ResetAttackRangeToDetection();
         SwitchAnimation(3);
         Targets.Clear();
         BaseTarget = null;
@@ -362,7 +378,7 @@ public abstract partial class Character
         Passive_OnBeforeKB();
 
         int sign = gameObject.CompareTag("Cat") ? 1 : -1;
-        float targetX = transform.position.x + sign * (DX / 100f);
+        float targetX = transform.position.x + sign * (DX * KBDistanceCompensation / 100f);
         float lerptime = 1 / (float)duration;
         for (int i = 0; i < duration; i++)
         {
@@ -377,6 +393,12 @@ public abstract partial class Character
                 if (realHealth <= 0)
                 {
                     Passive_OnDead();
+                    if (SkipDestroyCombatAccounting)
+                    {
+                        onKB = false;
+                        coroutineKB = null;
+                        yield break;
+                    }
                     if (realHealth <= 0) Dead();
                 }// check death
                 transform.position = new Vector2(transform.position.x, startingY);
@@ -414,6 +436,13 @@ public abstract partial class Character
         }
     }
     public virtual void SetAttackRange(float near, float far) { }
+    /// <summary>
+    /// 把攻击范围复位成出场时的检测范围。攻击结束、被击退、被外部动画（AnimationDrivingPassive）
+    /// 接管结束后都该回到这个状态，否则单位会一直带着某个攻击段的窄范围。
+    /// detectionScale 用于按比例缩放远端（如策略「防守」只用一半检测范围），
+    /// 近端始终是 -CharacterTargetVolumeLength，避免各处手写 0 造成近身范围不一致。
+    /// </summary>
+    public void ResetAttackRangeToDetection(float detectionScale = 1f) => SetAttackRange(-CharacterTargetVolumeLength, DetectionRange * detectionScale);
     public virtual void DMG_DREeffects(ref float DMG, DamageRelatedEffect dre) { }
     public virtual void DMG_SubTraitsEffects(ref float DMG, SubTraits opponentSubtraits) { }
     public void Wave_Attack(int level, bool mini, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
@@ -425,14 +454,43 @@ public abstract partial class Character
         CharacterTargetManager.Instance.RegisterProjectile(ww);
         ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
     }
-    public void Surge_Attack(int level, bool mini, int dis, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    /// <summary>
+    /// 在身前 dis（1/100 世界单位）处放一发 Surge。
+    /// delayFrames 让 surgeunit 生成后先空转若干帧再出现并判定，
+    /// 给「死亡后 30 帧才放亡魂」这类有前摇的来源用——等待由 surgeunit 自己数，
+    /// 所以发起者当场消失也不影响。
+    /// </summary>
+    public void Surge_Attack(int level, bool mini, int dis, float DMG, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes, int delayFrames = 0)
     {
         GameObject suPrefab = BundledAddressables.LoadSync<GameObject>(
             IsCat() ? "Units/Cat Units/surgeunit" : "Units/Enemy Units/surgeunit");
         if (suPrefab == null) return;
         SurgeUnit ss = Instantiate(suPrefab, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ss);
-        ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
+        ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes, delayFrames);
+    }
+    /// <summary>
+    /// 这个单位一整套攻击的总强度：atkInfos 各段攻击力的<b>绝对值</b>之和，乘战斗数值倍率，再乘攻击力增益。
+    /// <para>
+    /// 取绝对值是因为治疗段的 ATK 存的是负数（Friendly=1 的那一段，如 -128）。按原值相加的话，
+    /// 纯奶妈会得到一个负的总和、混合单位的治疗量会把伤害抵掉一部分——但「治疗 128」同样是
+    /// 128 点攻击强度，不该因为符号就当它没有。所以这里按量级求和。
+    /// </para>
+    /// GetCombatStatMultiplier 就是猫咪等级/宝物/Power、敌人关卡强化的那个统一倍率，
+    /// realDamage 各段也是这么算出来的；这里不直接求和 realDamage 是因为它是 int[]，
+    /// 猫咪那条路（LoadCharacterData 乘宝物取整、InitializeCharacter 再乘等级取整）会截断两次。
+    /// ATK_muiltipier 是 ATK_Buffer 之类的临时增益，普攻在 Attack() 里也乘它，跟着乘才对得上实战。
+    /// </summary>
+    public float GetTotalAttackDamage()
+    {
+        if (atkInfos == null) return 0f;
+        float sum = 0f;
+        for (int i = 0; i < atkInfos.Length; i++)
+        {
+            if (atkInfos[i] == null) continue;
+            sum += Mathf.Abs(atkInfos[i].ATK);
+        }
+        return sum * GetCombatStatMultiplier() * ATK_muiltipier;
     }
     public virtual void Dead()
     {

@@ -10,7 +10,14 @@ public abstract partial class Character : MonoBehaviour
     public bool IsEliteUnit { get; private set; }
     public bool IsOppositeUnit { get; private set; }
     public float Power { get; private set; } = 1f;
-    public EmotionUX BaseEmotion { get; private set; } = EmotionUX.none;
+    public float TreasureBonus => treasureBonus;
+    public UnitIdentity SpawnIdentity { get; private set; }
+    public int SpawnUaOrder { get; private set; }
+    public int SpawnAdOrder { get; private set; }
+    public bool SkipDestroyCombatAccounting { get; private set; }
+    /// <summary>这只单位的数值里是否已经叠了本能。变身时靠它决定新形态要不要一起继承。</summary>
+    public bool HasTalent { get; private set; }
+    protected float treasureBonus = 1f;
     public float topPositionY { get; private set; } = 0f;
 
     /* ====== ս������ ====== */
@@ -28,7 +35,6 @@ public abstract partial class Character : MonoBehaviour
     public ATKInfo[] atkInfos;
     public bool areaATK;
     public int atkDuration;
-    public bool one_off;
 
     /* ====== �������� ====== */
     public Traits traits;
@@ -82,11 +88,11 @@ public abstract partial class Character : MonoBehaviour
     public abstract float GetFactor();
 
     /// <summary>
-    /// 与生命/攻击相同的战斗数值倍率：猫咪为 (0.8 + 0.2 * 等级) * Power，敌人为 strengthenRate * Power（关卡百分比）。
+    /// 与生命/攻击相同的战斗数值倍率：猫咪为 WorldTreasure * (0.8 + 0.2 * 等级) * Power，敌人为 strengthenRate * Power（关卡百分比）。
     /// </summary>
     public float GetCombatStatMultiplier()
     {
-        if (IsCat()) return (0.8f + 0.2f * level) * Power;
+        if (IsCat()) return treasureBonus * (0.8f + 0.2f * level) * Power;
         float strengthen = this is EnemyCharacter enemy ? enemy.strengthenRate : 1f;
         return strengthen * Power;
     }
@@ -128,7 +134,16 @@ public abstract partial class Character : MonoBehaviour
     }
     public bool IsOnAttack() => onATK;
     public void SetOppositeUnit(bool opposite) => IsOppositeUnit = opposite;
+    public void SetSpawnIdentity(UnitIdentity identity) => SpawnIdentity = identity;
+    public void SetSpawnVisualOrders(int uaOrder, int adOrder)
+    {
+        SpawnUaOrder = uaOrder;
+        SpawnAdOrder = adOrder;
+    }
+    public void MarkSkipDestroyCombatAccounting() => SkipDestroyCombatAccounting = true;
+    public void MarkTalentApplied() => HasTalent = true;
     public bool ShouldRecordProficiency() => IsCat() && !IsOppositeUnit;
+    public int CombatLevel => level;
 
     public void CacheTopPositionY()
     {
