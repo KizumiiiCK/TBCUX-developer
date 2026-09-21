@@ -98,10 +98,17 @@
 /Bundled/Background/**/*.PNG.meta
 
 # Optional local/OS noise
+# Unity generates a .meta for any file it does not recognise, including these
+# local leftovers. Ignoring only the file leaves an orphan .meta behind, so each
+# pattern needs its .meta twin (the way *.psd already does).
 *.tmp
+*.tmp.meta
 *.bak
+*.bak.meta
 *.swp
+*.swp.meta
 *.origin
+*.origin.meta
 *.psd
 *.psd.meta
 Thumbs.db
