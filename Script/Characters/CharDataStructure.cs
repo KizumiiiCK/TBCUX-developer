@@ -251,7 +251,9 @@ public enum AttackType
 {
     none=0, wave=1, surge=2, explosion=3,
     [EditorBrowsable(EditorBrowsableState.Never)] 
-    critical, savage, zombieKiller, barrierBreaker, shieldPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly
+    // 新增项一律追加在末尾：这些值会随 atkTypeResis / ATKType 序列化进 data.asset，
+    // 插在中间会静默平移已填好的数据。
+    critical, savage, zombieKiller, barrierBreaker, shieldPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly, toxic
 }
 public enum AbilityName
 {
@@ -260,14 +262,15 @@ public enum AbilityName
     strategic=2,strengthen=3, survive=4, critical=5, zombieKiller=6, soulStrike=7, barrierBreaker=8, shieldPiercing=9, savage=10, 
     extraMoney=11, metal=12, miniWave=13, wave=14, wave_stop=15, miniSurge=16, surge=17, counter_surge=18, explosion=19, summoner=20, 
     shieldProvider=21, maxShield=22,
+    ChangePhase=43,
     practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38, clearDebuffs=39, 
     barrier=40, akuShield=41, barrierProvider = 42,
-    impatience=50, pressureLearn=51, targetHighestHp=52,
+    impatience=50, pressureLearn=51, targetHighestHp=52, deadSoul=53,
     selfSlow =100, selfWeaken=101, selfLacerate=102, selfDeathmark=103,
     BaseCharacter = 500,
     [EditorBrowsable(EditorBrowsableState.Never)]
     buff_defence = 23, buff_attack = 24, buff_speed = 25, buff_kb = 26, buff_costdown = 27, buff_recover = 28, buff_atkFreq = 29,
-    Aux_MaxDMGBlock = 900, Aux_MinDMGBlock = 901, Aux_OneHit = 902, Aux_SelfDamage = 903, Aux_HealDamage = 904,
+    Aux_MaxDMGBlock = 900, Aux_MinDMGBlock = 901, Aux_OneHit = 902, Aux_SelfDamage = 903, Aux_HealDamage = 904, Aux_BossWave = 905,
     invisible =999,
 }
 public enum KB_Type

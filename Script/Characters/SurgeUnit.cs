@@ -12,15 +12,22 @@ public class SurgeUnit : Character
     public int surge_level = 1;
     public float distance = 1;
     bool Mini=false;
+    /// <summary>
+    /// 生成后先空转的帧数。给 DeadSoul 这类「先播完一段前摇动画、再炸」的来源用。
+    /// 等待放在 surgeunit 自己的协程里而不是发起者身上：发起者（尸体）马上就要被销毁，
+    /// 它的协程会一起没掉，而 surgeunit 是独立的根物体，能自己数完这几帧。
+    /// </summary>
+    private int delayFrames = 0;
     private GameObject W;
     private AnimDecryptPack adp;
 
-    public void BeginSurgeAttack(int level, bool mini, int dis, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public void BeginSurgeAttack(int level, bool mini, int dis, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes, int delay = 0)
     {
         CharacterTargetManager.Instance.RegisterProjectile(this);
         surge_level = level;
         Mini = mini;
         distance = dis / 100f;
+        delayFrames = Mathf.Max(0, delay);
         float scaledDamage = Mini ? DMG * 0.2f : DMG;
         realDamage = new int[1] { Mathf.Max(0, Mathf.RoundToInt(scaledDamage)) };
         traits = _traits;
@@ -49,6 +56,9 @@ public class SurgeUnit : Character
     }
     private IEnumerator SummonSurge()
     {
+        // 前摇：这段时间里本单位已经注册成弹幕，但不会造成任何判定，也还没有生成表现。
+        for (int j = 0; j < delayFrames; j++) yield return new WaitForFixedUpdate();
+
         int sign=IsCat() ? -1 : 1;
         Vector3 basePos = transform.position;
         if (basePos.y < -900) basePos = basePos + new Vector3(0, 1000, 0);
