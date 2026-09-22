@@ -877,10 +877,12 @@ public class LevelController : MonoBehaviour
             int gainTimes = CalculateRewardGainTimes(rewardList[i], rewardPenalty);
             if (gainTimes == 0) continue;
 
-            // 应用奖励惩罚
+            // 应用奖励惩罚：每次 XP_PUNCH 保留 (100-2.5)%，连乘后趋近 0，不会变负或爆表。
             if (rewardPenalty > 0 && !rewardList[i].onlyOnce)
             {
-                gainTimes = Mathf.CeilToInt(gainTimes * (PERCENTAGE_BASE - Mathf.Pow((1-REWARD_PENALTY_MULTIPLIER), rewardPenalty)) / PERCENTAGE_BASE);
+                float keepRate = Mathf.Pow(1f - REWARD_PENALTY_MULTIPLIER / PERCENTAGE_BASE, rewardPenalty);
+                keepRate = Mathf.Clamp01(keepRate);
+                gainTimes = Mathf.Max(0, Mathf.CeilToInt(gainTimes * keepRate));
             }
 
             // 发放奖励
