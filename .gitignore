@@ -11,18 +11,21 @@
 !/Resources/
 !/Script/
 !/Bundled/
+!/Materials/
 !/AddressableAssetsData/
 
 # Keep folder meta files for GUID stability
 !/Resources.meta
 !/Script.meta
 !/Bundled.meta
+!/Materials.meta
 !/AddressableAssetsData.meta
 
 # Include all content under allowed folders
 !/Resources/**
 !/Script/**
 !/Bundled/**
+!/Materials/**
 !/AddressableAssetsData/**
 
 # Addressables linker file — regenerated on every content build
