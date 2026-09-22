@@ -521,8 +521,8 @@ MonoBehaviour:
   TireUp_btn: {fileID: 6081804105608950336}
   EvolveComfirmCanvas: {fileID: 1524196547502679812}
   Talent_btn: {fileID: 4745174998773299216}
-  LegendExchange_btn: {fileID: 0}
-  LegendExchange_text: {fileID: 0}
+  LegendExchange_btn: {fileID: 9128935310839737076}
+  LegendExchange_text: {fileID: 2100159174740088000}
   Prof_btn: {fileID: 2194091829504321441}
   upgradeCostXpItem: {fileID: 8285329140399152642}
   upgradeCostCatEyeItem: {fileID: 654053597541056375}
@@ -1871,6 +1871,7 @@ RectTransform:
   - {fileID: 2377409897061937547}
   - {fileID: 4927596195886110204}
   - {fileID: 5027833608153051546}
+  - {fileID: 5650268092719000609}
   m_Father: {fileID: 4354713892819812279}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2808,16 +2809,16 @@ RectTransform:
   m_GameObject: {fileID: 3222542724694772114}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2772353865333621348}
   - {fileID: 2610073198609589115}
-  m_Father: {fileID: 680930868489545457}
+  m_Father: {fileID: 6143615797183040577}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -830, y: -412}
+  m_AnchoredPosition: {x: 683, y: -387}
   m_SizeDelta: {x: 188, y: 93}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3621850861894551272
@@ -6248,7 +6249,6 @@ RectTransform:
   - {fileID: 7863312267538748854}
   - {fileID: 4161271235402150761}
   - {fileID: 3824885451658571397}
-  - {fileID: 5650268092719000609}
   m_Father: {fileID: 4354713892819812279}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
