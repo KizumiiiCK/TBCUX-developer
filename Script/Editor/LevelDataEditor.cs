@@ -375,13 +375,39 @@ public class LevelDataEditor : Editor
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField($"#{index}", labelBold);
         GUILayout.FlexibleSpace();
-        if (GUILayout.Button("删除", GUILayout.Width(70)))
+        if (GUILayout.Button("复制", GUILayout.Width(70)))
+        {
+            DuplicateRewardElement(rewardListProp, index);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            return true;
+        }
+        if (GUILayout.Button("删除", GUILayout.Width(80)))
         {
             rewardListProp.DeleteArrayElementAtIndex(index);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
             return true;
         }
+        GUI.enabled = index > 0;
+        if (GUILayout.Button("↑", GUILayout.Width(28)))
+        {
+            rewardListProp.MoveArrayElement(index, index - 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = index < rewardListProp.arraySize - 1;
+        if (GUILayout.Button("↓", GUILayout.Width(28)))
+        {
+            rewardListProp.MoveArrayElement(index, index + 1);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUI.enabled = true;
+            return true;
+        }
+        GUI.enabled = true;
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.Space(2);
 
@@ -421,6 +447,20 @@ public class LevelDataEditor : Editor
         newElement.FindPropertyRelative("drawtimes").intValue = 1;
         newElement.FindPropertyRelative("droprate").intValue = 100;
         newElement.FindPropertyRelative("onlyOnce").boolValue = false;
+    }
+
+    private static void DuplicateRewardElement(SerializedProperty rewardListProp, int sourceIndex)
+    {
+        if (sourceIndex < 0 || sourceIndex >= rewardListProp.arraySize) return;
+        SerializedProperty source = rewardListProp.GetArrayElementAtIndex(sourceIndex);
+        int newIndex = sourceIndex + 1;
+        rewardListProp.InsertArrayElementAtIndex(newIndex);
+        SerializedProperty copy = rewardListProp.GetArrayElementAtIndex(newIndex);
+        copy.FindPropertyRelative("type").enumValueIndex = source.FindPropertyRelative("type").enumValueIndex;
+        copy.FindPropertyRelative("id").intValue = source.FindPropertyRelative("id").intValue;
+        copy.FindPropertyRelative("drawtimes").intValue = source.FindPropertyRelative("drawtimes").intValue;
+        copy.FindPropertyRelative("droprate").intValue = source.FindPropertyRelative("droprate").intValue;
+        copy.FindPropertyRelative("onlyOnce").boolValue = source.FindPropertyRelative("onlyOnce").boolValue;
     }
 
     private void DrawEnemySummonersSection(SerializedProperty enemySummonersProp)
