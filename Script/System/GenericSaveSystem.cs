@@ -19,6 +19,8 @@ public static class UXPref
     public const string Difficulty = "DF";
     public const string LevelNum = "LN";
     public const string DirectMark = "DR";
+    /// <summary>选关页勾了「使用通关的队伍」。由 LevelTiler 独占写入，进关卡时读。</summary>
+    public const string UseClearedTeam = "UCT";
     public const string DefaultChapterName = "World_I";
     public const string LANG = "Lang";
     public const string TIREUPUNLOCKMARK = "TireUp_{0}";
@@ -397,6 +399,57 @@ public class GameProgressSave
             if (all[i].ChapterName == chapterName)
                 all[i] = ccl;
         GenericSaveSystem.SaveData(all, filename);
+    }
+
+    /// <summary>
+    /// 取某关记录的通关队伍。刻意不走 LoadSectionProgress —— 那条路会 UpdateCCL 重建并重写
+    /// 整个存档文件，进关卡时没必要挨这一次写盘。
+    /// 没有记录、或记录整行为空时返回 null，调用方应退回自选队伍。
+    /// </summary>
+    public static string[] GetClearedTeam(string chapterName, string sectionName, int levelNum)
+    {
+        ChapterClearList[] all = GenericSaveSystem.LoadData<ChapterClearList[]>(filename);
+        if (all == null) return null;
+        ChapterClearList chapter = all.FirstOrDefault(c => c != null && c.ChapterName == chapterName);
+        SectionClearList sec = chapter?.SectionList?.FirstOrDefault(s => s != null && s.SectionName == sectionName);
+        return ExtractClearedTeam(sec, levelNum);
+    }
+
+    /// <summary>
+    /// 从已读入内存的小节记录里取通关队伍，供选关页复用（它本来就持有 secClearList，不必再读盘）。
+    /// 返回的数组长度固定为 13：关卡没有强制格时 TryApplyForcedSlots 不会补齐长度，
+    /// 少一格就会让部署器的定长循环越界。
+    /// </summary>
+    public static string[] ExtractClearedTeam(SectionClearList sec, int levelNum)
+    {
+        if (sec == null || levelNum < 0) return null;
+        string[,] teams = sec.cleared_teams;
+        if (teams == null || levelNum >= teams.GetLength(0)) return null;
+
+        string[] row = new string[teamSize];
+        bool hasAny = false;
+        int width = Mathf.Min(teamSize, teams.GetLength(1));
+        for (int i = 0; i < teamSize; i++)
+        {
+            row[i] = i < width ? (teams[levelNum, i] ?? string.Empty) : string.Empty;
+            if (!string.IsNullOrEmpty(row[i])) hasAny = true;
+        }
+        return hasAny ? row : null;
+    }
+
+    /// <summary>
+    /// 只问「这关有没有通关队伍记录」时用这个：不建数组。
+    /// 选关页拖动时每跨过一格都要问一次，那条路上不能有分配。
+    /// </summary>
+    public static bool HasClearedTeam(SectionClearList sec, int levelNum)
+    {
+        if (sec == null || levelNum < 0) return false;
+        string[,] teams = sec.cleared_teams;
+        if (teams == null || levelNum >= teams.GetLength(0)) return false;
+        int width = Mathf.Min(teamSize, teams.GetLength(1));
+        for (int i = 0; i < width; i++)
+            if (!string.IsNullOrEmpty(teams[levelNum, i])) return true;
+        return false;
     }
 }
 public static class LocalizationHelper

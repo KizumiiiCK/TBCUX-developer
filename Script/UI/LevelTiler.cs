@@ -15,6 +15,14 @@ public class LevelTiler : UICanvasMain
     [SerializeField] private TMP_Text team_txt;
     [SerializeField] private Button ShowteamBtn;
 
+    [Header("Cleared Team")]
+    /// <summary>开关式按钮：用本关记录的通关队伍出击。文字和边框色都由 KiButton 自己带，不用外挂 TMP_Text。</summary>
+    [SerializeField] private KiButton ClearTeamBtn;
+    [SerializeField] private Color clearTeamSelectedColor = new Color(1f, 0.85f, 0.35f);
+    /// <summary>没有通关记录、按钮不可点时的边框色。KiButton 不重写 disabled 视觉，只靠 Button
+    /// 的 transition，预制体上如果是 None 就完全看不出禁用，所以颜色在代码里显式压下去。</summary>
+    [SerializeField] private Color clearTeamDisabledColor = new Color(0.22f, 0.22f, 0.24f);
+
     [Header("Battle Controls")]
     [SerializeField] private Button CombatBtn;
 
@@ -47,6 +55,8 @@ public class LevelTiler : UICanvasMain
     private int mapSectionDifficulty;
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
     private const string RestrictionWarningPrefabPath = "UI/FunctionalPanels/WarningMark";
+    private const string ClearTeamUseTextId = "id:clear_team_use";
+    private const string ClearTeamConfirmTextId = "id:clear_team_confirm";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
     private readonly List<GameObject> spawnedLevelTiles = new List<GameObject>();
     private readonly Dictionary<string, LevelData> levelDataCache = new Dictionary<string, LevelData>();
@@ -54,6 +64,20 @@ public class LevelTiler : UICanvasMain
     private GameObject worldMapRoot;
     private Coroutine buildLevelTilesRoutine;
     private bool isDailyMapLocked;
+    /// <summary>本关是否有可用的通关队伍记录（按 cleared_teams 行非空判定，不分难度）。</summary>
+    private bool clearedTeamAvailable;
+    private bool useClearedTeam;
+    private string clearTeamUseText = ClearTeamUseTextId;
+    private string clearTeamConfirmText = ClearTeamConfirmTextId;
+    /// <summary>未选定时的边框色，取自预制体里配的 initialColor（见 RefreshClearTeamButton）。</summary>
+    private Color clearTeamNormalColor = Color.white;
+    private bool clearTeamNormalColorCached;
+    /// <summary>
+    /// KiButton 的 Awake 才会记下 label 的原始字号，SetText 不传 size 时要拿它回填。
+    /// 首次激活时本组件的 OnEnable 早于 KiButton.Awake，那时调 SetText 会把字号写成 0，
+    /// 所以按钮的外观刷新一律等到 Start（所有 Awake 都跑完了）之后才开始。
+    /// </summary>
+    private bool clearTeamBtnReady;
 
     public GameProgressSave.SectionClearList secClearList;
 
@@ -65,17 +89,151 @@ public class LevelTiler : UICanvasMain
         TeamBtn.onClick.AddListener(SwitchTeamBtn);
         ShowteamBtn.onClick.AddListener(ToggleSelectionsPanel);
         CombatBtn.onClick.AddListener(LaunchAttack);
+        if (ClearTeamBtn != null) ClearTeamBtn.onClick.AddListener(OnClearTeamBtnClicked);
+        clearTeamBtnReady = true;
+        RefreshClearTeamButton();
+        CacheClearTeamTexts();
         cam.backgroundColor = MI.coverColor;
         InitializeDragSelector();
         RefreshDailyMapChallengeState();
     }
     private void OnEnable()
     {
-        team_txt.text = TeamNameSave.GetTeamNameOrDefault(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0));
-        if (selectionsPanel != null) selectionsPanel.SetTeamDisplay(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0), team_txt.text);
+        // 每次回到选关页都回到「不选通关队伍」。
+        ResetClearTeamSelection();
+        // 装备页可能换了队伍或改了队名，队名标签和格子都要重读存档。
+        // 这里必须无条件刷：ResetClearTeamSelection 只在原本是选定态时才刷标签。
+        RefreshTeamLabel();
+        if (selectionsPanel != null) selectionsPanel.ReloadFromSave();
         TeamBtn.interactable = true;
         RestoreMapVisibility();
         RefreshDailyMapChallengeState();
+    }
+
+    /// <summary>
+    /// 两条按钮文案都在 UI Elements 表里，本地化是异步的：先用 id 占位，回调到了再写进去。
+    /// 回调可能晚于销毁，所以用组件是否还在做闸。
+    /// </summary>
+    private void CacheClearTeamTexts()
+    {
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, ClearTeamUseTextId, localized =>
+        {
+            if (this == null) return;
+            clearTeamUseText = localized ?? ClearTeamUseTextId;
+            RefreshClearTeamButton();
+        });
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, ClearTeamConfirmTextId, localized =>
+        {
+            if (this == null) return;
+            clearTeamConfirmText = localized ?? ClearTeamConfirmTextId;
+            RefreshClearTeamButton();
+        });
+    }
+
+    /// <summary>
+    /// 取当前关卡记录的通关队伍。cleared_teams 不分难度，所以这里也不带难度参数。
+    /// 直接用已经读进内存的 secClearList，不再走 LoadSectionProgress（那条路会重写整个存档）。
+    /// </summary>
+    private string[] GetClearedTeamForCurrentLevel()
+    {
+        if (secClearList == null) return null;
+        return GameProgressSave.ExtractClearedTeam(secClearList, current_level_num);
+    }
+
+    /// <summary>只判断有没有记录，不取内容：拖动选关时每跨一格都要问，这条路上不能有分配。</summary>
+    private bool HasClearedTeamForCurrentLevel()
+    {
+        return secClearList != null && GameProgressSave.HasClearedTeam(secClearList, current_level_num);
+    }
+
+    /// <summary>进页面、换关卡、建完关卡列表时都调：一律回到「不选」，并按新关卡重算能不能选。</summary>
+    private void ResetClearTeamSelection()
+    {
+        bool available = HasClearedTeamForCurrentLevel();
+        bool wasSelected = useClearedTeam;
+        useClearedTeam = false;
+        if (wasSelected)
+        {
+            if (selectionsPanel != null) selectionsPanel.ExitPreview();
+            RefreshTeamLabel();
+        }
+        // 这里是拖动选关的热路径（每跨半格 LevelDragSelector 就回调一次）。可用性没变就别去重刷
+        // KiButton：SetText 会触发 TMP 重建，SetFrameColorPersistent 会重扫并重写 9 个边框 Image。
+        if (available == clearedTeamAvailable && !wasSelected) return;
+        clearedTeamAvailable = available;
+        RefreshClearTeamButton();
+    }
+
+    private void RefreshClearTeamButton()
+    {
+        if (!clearTeamBtnReady || ClearTeamBtn == null) return;
+        // 未选定色取预制体里配的边框色：SetFrameColorPersistent 会把 initialColor 一起改掉，
+        // 所以必须在第一次染色之前记下来，否则原值就找不回来了。
+        if (!clearTeamNormalColorCached)
+        {
+            clearTeamNormalColor = ClearTeamBtn.GetInitialColor();
+            clearTeamNormalColorCached = true;
+        }
+        ClearTeamBtn.interactable = clearedTeamAvailable;
+        ClearTeamBtn.SetText(useClearedTeam ? clearTeamConfirmText : clearTeamUseText);
+        // 禁用优先于选定：不可点时一律灰黑，玩家一眼就知道这关没通关记录。
+        Color frame = !clearedTeamAvailable ? clearTeamDisabledColor
+            : useClearedTeam ? clearTeamSelectedColor : clearTeamNormalColor;
+        ClearTeamBtn.SetFrameColorPersistent(frame);
+    }
+
+    /// <summary>地图上的队名标签：选定通关队伍时显示固定文字，否则显示 pref 索引那一队的队名。</summary>
+    private void RefreshTeamLabel()
+    {
+        if (team_txt == null) return;
+        if (useClearedTeam)
+        {
+            team_txt.text = EquipTeamSelectionPanel.ClearedTeamPreviewLabel;
+            return;
+        }
+        int teamIndex = PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0);
+        team_txt.text = TeamNameSave.GetTeamNameOrDefault(teamIndex);
+        if (selectionsPanel != null) selectionsPanel.SetTeamDisplay(teamIndex, team_txt.text);
+    }
+
+    private void OnClearTeamBtnClicked()
+    {
+        if (!clearedTeamAvailable) return;
+        SetUseClearedTeam(!useClearedTeam);
+    }
+
+    private void SetUseClearedTeam(bool use)
+    {
+        useClearedTeam = use && clearedTeamAvailable;
+        ApplyClearedTeamPreview();
+        RefreshClearTeamButton();
+        RefreshTeamLabel();
+    }
+
+    /// <summary>把选定状态同步到（可能没打开的）队伍面板上。</summary>
+    private void ApplyClearedTeamPreview()
+    {
+        if (selectionsPanel == null) return;
+        if (useClearedTeam)
+        {
+            string[] team = GetClearedTeamForCurrentLevel();
+            if (team != null) selectionsPanel.ShowPreviewTeam(team, OnClearedTeamPreviewCancelled);
+        }
+        else
+        {
+            selectionsPanel.ExitPreview();
+        }
+    }
+
+    /// <summary>
+    /// 面板里左右换队时由面板回调。面板此刻已经自己退出预览并重载了存档队伍，
+    /// 这里只更新本页状态和显示，不能再回头调面板，否则就绕回去了。
+    /// </summary>
+    private void OnClearedTeamPreviewCancelled()
+    {
+        useClearedTeam = false;
+        RefreshClearTeamButton();
+        RefreshTeamLabel();
     }
     void Update()
     {
@@ -184,6 +342,8 @@ public class LevelTiler : UICanvasMain
         }
         PlayerPrefs.DeleteKey(UXPref.DirectMark);
         buildLevelTilesRoutine = null;
+        // 列表建完（含中途 break）才知道最终停在哪一关，这时重算一次按钮可用性。
+        ResetClearTeamSelection();
     }
     private LevelData GetCachedLevelData(string path)
     {
@@ -253,6 +413,9 @@ public class LevelTiler : UICanvasMain
             bc.sprite = portraits[index];
         }
         PlayerPrefs.SetInt(UXPref.LevelNum, current_level_num);
+        // 通关队伍标记由本页独占：每次出击都显式写或删，绝不留残值给下一关。
+        if (useClearedTeam && HasClearedTeamForCurrentLevel()) PlayerPrefs.SetInt(UXPref.UseClearedTeam, 1);
+        else PlayerPrefs.DeleteKey(UXPref.UseClearedTeam);
         this.enabled = false;
     }
     private void ToggleSelectionsPanel()
@@ -286,6 +449,10 @@ public class LevelTiler : UICanvasMain
                     OnPanelTeamStateChanged
                 );
                 selectionsPanel.SetTeamDisplay(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0), TeamNameSave.GetTeamNameOrDefault(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0)));
+                // 选关页的格子只做展示：这里换位/移除没有意义，编队只在 EquipCanvas 里做。
+                selectionsPanel.SetSlotEditing(false);
+                // 面板是每次开关都重建的，打开时要把当前的选定状态补上。
+                ApplyClearedTeamPreview();
             }
             return;
         }
@@ -297,6 +464,9 @@ public class LevelTiler : UICanvasMain
 
     private void OnPanelTeamStateChanged(int teamIndex, string teamName)
     {
+        // 选定通关队伍时地图标签固定显示 CLEARED TEAMS，不能被面板的队伍通知盖回真实队名。
+        // 面板每次打开都会 Initialize→LoadCurrentTeamFromPrefs→通知一次，没这道闸就会把标签打回去。
+        if (useClearedTeam) return;
         team_txt.text = TeamNameSave.NormalizeTeamName(teamIndex, teamName);
     }
     public void SetEnemyAppears(int levelNum, LevelData led)
@@ -326,6 +496,8 @@ public class LevelTiler : UICanvasMain
     {
         if (current_level_num == cln) return;
         current_level_num = cln;
+        // 换关卡就等于换了一份通关记录，选定必须作废。
+        ResetClearTeamSelection();
         ChanageSEBShowInfo(current_level_num);
     }
     public void ShowSEB()
