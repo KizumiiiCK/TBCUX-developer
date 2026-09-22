@@ -19,7 +19,8 @@ public class PSStatusBar : MonoBehaviour
     private Vector3 filler_scale = Vector3.one;
 
     private static readonly Dictionary<string, Sprite> iconCache = new Dictionary<string, Sprite>();
-    private const string IconResourcePath = "Effects/PS_statebar/icons/";
+    // 状态条图标复用能力自己的图标，不再单独维护一套（名字形如 a-41）。
+    private const string IconResourcePath = "EAIcons/";
 
     private void Awake()
     {
