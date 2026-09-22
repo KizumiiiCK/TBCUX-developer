@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.VisualScripting;
@@ -138,11 +137,11 @@ public class LevelEnemySummoner : MonoBehaviour
             sortingOrder * 1000 + sr_samelayer * 100,
             sortingOrder * 1000 + sr_samelayer * 50);
         if (enemy == null) return false;
-        if (ESI[i].bossShock) enemy.AddComponent<BossPositionLimit>();
-        //WaveShock
         if (ESI[i].bossShock)
         {
-            StartCoroutine(BossShock());
+            enemy.AddComponent<BossPositionLimit>();
+            Character spawned = enemy.GetComponent<Character>();
+            Aux_BossWave.EnsureOn(spawned);
         }
         return true;
     }
@@ -170,20 +169,5 @@ public class LevelEnemySummoner : MonoBehaviour
             return;
         }
         dogeBase = db.GetComponent<DogeBase>();
-    }
-    private IEnumerator BossShock()
-    {
-        yield return new WaitForFixedUpdate();
-        GameObject shk = Resources.Load<GameObject>($"Effects/boss_shock");
-        Instantiate(shk, dogeBase.transform.position, Quaternion.identity);
-        GameObject[] cats = GameObject.FindGameObjectsWithTag("Cat");
-        foreach (GameObject c in cats)
-        {
-            CatCharacter cc = c.GetComponent<CatCharacter>();
-            if (cc != null)
-            {
-                cc.StartKBCoroutine(KB_Type.bossShock);
-            }
-        }
     }
 }
