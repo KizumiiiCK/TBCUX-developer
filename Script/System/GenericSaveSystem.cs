@@ -77,6 +77,32 @@ public static class UXPref
         }
     }
 }
+/// <summary>
+/// Fixed window of the 1st Anniversary activity. All checks take an explicit date so callers
+/// are forced to pass the verified world date instead of the tamperable local clock.
+/// </summary>
+public static class FirstAnniversarySchedule
+{
+    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 10, day: 2);
+    public const int DurationDays = 30;
+
+    /// <summary>Last day the activity is still open (inclusive).</summary>
+    public static DateTime EndDate => StartDate.AddDays(DurationDays - 1);
+
+    public static bool IsWithinWindow(DateTime date)
+    {
+        DateTime d = date.Date;
+        return d >= StartDate.Date && d <= EndDate.Date;
+    }
+
+    /// <summary>Days remaining including the given day; 0 once the window has closed.</summary>
+    public static int DaysLeft(DateTime date)
+    {
+        if (!IsWithinWindow(date)) return 0;
+        return (EndDate.Date - date.Date).Days + 1;
+    }
+}
+
 public static class GenericSaveSystem
 {
     // 保存数据
@@ -132,6 +158,12 @@ public static class GenericSaveSystem
             return null;
         }
         // return SupabaseSaveRemote.Load<T>(filename);
+    }
+
+    public static bool HasData(string filename)
+    {
+        if (string.IsNullOrEmpty(filename)) return false;
+        return File.Exists(Path.Combine(FirmFilePath, filename + FirmEnding));
     }
 
     public static void DeleteData(string filename)
@@ -561,7 +593,8 @@ public enum RewardName
     DrawMax_N=68, DrawMax_EX=69, DrawMax_R=70, DrawMax_SR=71, DrawMax_UR=72, DrawMax_LR=73, DrawMax_G=74,
     Bottle_Water=75, Bottle_Soul=76,
     SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80,
-    GF_Core=81
+    GF_Core=81,
+    Anniversary_Ticket=82, Anniversary_Select=83
 }
 [System.Serializable]
 public class Dialogue
@@ -653,6 +686,8 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
+        {RewardName.Anniversary_Ticket,75},
+        {RewardName.Anniversary_Select,76},
         {RewardName.Bottle_Water,110},
         {RewardName.Bottle_Soul,111},
         {RewardName.SecMed_Purple,120},
