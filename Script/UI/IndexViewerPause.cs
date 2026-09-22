@@ -70,7 +70,7 @@ public class IndexViewerPause : MonoBehaviour
             return;
         }
 
-        currentData = LoadCharacterData(code, assetIsCat);
+        currentData = ApplyTalentForDisplay(LoadCharacterData(code, assetIsCat), character, code);
         if (currentData == null)
         {
             HidePanel();
@@ -87,6 +87,29 @@ public class IndexViewerPause : MonoBehaviour
         {
             indexViewer.ShowCharacterDetails(currentData, false, 1);
         }
+    }
+
+    /// <summary>
+    /// 本能是在出战时就叠进单位数据里的（UnitDeployer.ApplyTalent），但这个面板是照角色编号
+    /// 重新读一份基础资源，不补这一步就会漏掉本能追加的属性和能力，显示出来的成分和场上的单位对不上。
+    ///
+    /// 判定只认 Character.HasTalent：它由 UnitDeployer 在生成时打上、变身时由 PassiveForm 传给新形态，
+    /// 没走过出战流程的基地、弹体、敌方和 opposite 单位天然是 false，走原路径即可。
+    /// 不能改读存档——CharacterUpgradeSave.GetDetails 碰到不认识的 id 会直接建一条并写回存档。
+    ///
+    /// 传进来的是 Addressables 缓存里的资源本体（characterDataCache 还长期握着它），
+    /// 绝不能就地叠，必须先 Clone。
+    ///
+    /// 只叠数据、不传 talent 给 IndexViewer：战斗中不需要标出哪几项是本能给的。
+    /// </summary>
+    private CharacterData ApplyTalentForDisplay(CharacterData baseData, Character character, string code)
+    {
+        if (baseData == null || character == null || !character.HasTalent) return baseData;
+        TalentData talent = TalentData.Load(code);
+        if (talent == null) return baseData;
+        CharacterData merged = baseData.Clone();
+        talent.ApplyTo(merged);
+        return merged;
     }
 
     public void HidePanel()

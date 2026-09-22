@@ -150,7 +150,7 @@ public class PauseCharacterInspector : MonoBehaviour
         pointerId = id;
         pointerStart = screenPos;
         pointerDragged = false;
-        pointerOnUi = IsPointerOnInteractiveUI(screenPos, id);
+        pointerOnUi = IsPointerOnBlockingUI(screenPos, id);
     }
 
     private void FinishPointer(Vector2 screenPos)
@@ -168,7 +168,7 @@ public class PauseCharacterInspector : MonoBehaviour
         pointerDragged = true;
     }
 
-    private static bool IsPointerOnInteractiveUI(Vector2 screenPos, int id)
+    private bool IsPointerOnBlockingUI(Vector2 screenPos, int id)
     {
         EventSystem eventSystem = EventSystem.current;
         if (eventSystem == null) return false;
@@ -187,6 +187,10 @@ public class PauseCharacterInspector : MonoBehaviour
             if (hit == null) continue;
             if (hit.GetComponentInParent<Selectable>() != null) return true;
             if (hit.GetComponentInParent<ScrollRect>() != null) return true;
+            // 展示框自己的头像、血条、属性图标都是 raycastTarget，却既不是 Selectable 也不在
+            // ScrollRect 里。不在这里挡掉的话，点面板本体会被 PickCharacter 判成「点在空白处」，
+            // 玩家想看详情反而把面板点没了。
+            if (statementRoot != null && hit.transform.IsChildOf(statementRoot.transform)) return true;
         }
 
         return false;
@@ -195,13 +199,21 @@ public class PauseCharacterInspector : MonoBehaviour
     private void HandleClick(Vector2 screenPos)
     {
         PruneHistory();
+
+        Character target = PickCharacter(screenPos);
+        if (target == null)
+        {
+            // 点空白即关闭。CollectNearPointer 的 MaxXDistance/MaxYDistance 已经把「离得太远不算」
+            // 排除在外了，所以走到这里就是玩家有意点在没有单位的地方。
+            // 原先这里直接 return，面板只能等单位死亡或退出暂停才消失，玩家点不掉。
+            ClearOutlineAndPanel();
+            return;
+        }
+
         if (history.Count >= HistorySize)
         {
             history.Dequeue();
         }
-
-        Character target = PickCharacter(screenPos);
-        if (target == null) return;
 
         SelectCharacter(target);
         Remember(target);
