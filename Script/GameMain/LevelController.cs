@@ -371,6 +371,11 @@ public class LevelController : MonoBehaviour
         }
         int mapSize = LD.mapSize;
 
+        // 限制条件必须在这里解析：tl 会改写 treasureCount，而下面的金钱倍率、基地血量、经验奖励都拿它算。
+        // ApplyLevelRestrictionSettings 仍留在 SetupMapAndBases 之后，它要用那里才赋值的 catBaseComponent。
+        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
+        treasureCount = LevelRestrictionHelper.GetTreasureCount(levelRestrictions, treasureCount);
+
         // 计算金钱倍率
         CalculateMoneyMultiplier();
 
@@ -379,7 +384,6 @@ public class LevelController : MonoBehaviour
 
         // 设置关卡信息
         SetupLevelInfo();
-        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
         ApplyLevelRestrictionSettings();
 
         // 设置战斗效果

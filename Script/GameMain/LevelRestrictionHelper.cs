@@ -13,7 +13,7 @@ public static class LevelRestrictionHelper
     private static readonly HashSet<string> CaseSensitiveRestrictionKeys =
         new HashSet<string>(StringComparer.Ordinal)
         {
-            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap"
+            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap", "tl"
         };
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
         new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
@@ -46,7 +46,8 @@ public static class LevelRestrictionHelper
             { "zr", ParseZombieReviveRestrictionValue },
             { "FS", ParseForcedAllSlots },
             { "fs", ParseForcedGuestSlots },
-            { "ap", ParseMoneyProductionPercent }
+            { "ap", ParseMoneyProductionPercent },
+            { "tl", ParseForcedTreasureCount }
         };
 
     public class RestrictionRules
@@ -60,6 +61,7 @@ public static class LevelRestrictionHelper
 
         public bool hasAllowRarity;
         public bool hasForcedSlots;
+        public bool hasForcedTreasureCount;
         public readonly bool[] forcedSlotActive = new bool[ForcedSlotCount];
         public readonly string[] forcedSlotCodes = CreateEmptyForcedSlots();
         public readonly int[] forcedSlotLevels = CreateEmptyForcedLevels();
@@ -67,6 +69,7 @@ public static class LevelRestrictionHelper
         public int maxCatLevel = NoLimit;
         public int initialMoneyLevel = NoLimit;
         public int initialMoneyAmount = NoLimit;
+        public int forcedTreasureCount;
         public float unitCostMultiplier = 1f;
         public float moneyProductionPercent = 100f;
 
@@ -283,6 +286,16 @@ public static class LevelRestrictionHelper
     {
         if (rules == null) return 1f;
         return rules.moneyProductionPercent * 0.01f;
+    }
+
+    /// <summary>
+    /// tl 生效时返回强制的宝物数量，否则返回存档里的真实数量。返回值可能越界，由调用方 Clamp。
+    /// 宝物数量同时决定金钱倍率、猫咪基地血量、经验奖励、部署冷却和单位血量/攻击，所以必须在这些计算之前取。
+    /// </summary>
+    public static int GetTreasureCount(RestrictionRules rules, int fallback)
+    {
+        if (rules == null || !rules.hasForcedTreasureCount) return fallback;
+        return rules.forcedTreasureCount;
     }
 
     public static int ApplyUnitCostMultiplier(int cost, float multiplier)
@@ -763,6 +776,19 @@ public static class LevelRestrictionHelper
         if (rules == null) return;
         if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float percent)) return;
         rules.moneyProductionPercent = percent;
+    }
+
+    /// <summary>
+    /// tl:{n}　强制把我方宝物数量设为 n。0-150 的收口交给 LevelController.CalculateMoneyMultiplier
+    /// 里那道统一的 Clamp（宝物数量在游戏里本来就不可能越界），这里只负责把数字原样交出去。
+    /// 填多条时后面的覆盖前面的。
+    /// </summary>
+    private static void ParseForcedTreasureCount(RestrictionRules rules, string value)
+    {
+        if (rules == null) return;
+        if (!int.TryParse(value, out int count)) return;
+        rules.forcedTreasureCount = count;
+        rules.hasForcedTreasureCount = true;
     }
 
     //private static void ParseUnitCostMultiplier(RestrictionRules rules, string value)
