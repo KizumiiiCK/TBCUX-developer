@@ -85,7 +85,6 @@ public class CharacterEditor : Editor
     //    }
 
     //    EditorGUILayout.PropertyField(serializedObject.FindProperty("areaATK"), new GUIContent("Area ATK"));
-    //    EditorGUILayout.PropertyField(serializedObject.FindProperty("one_off"), new GUIContent("One Off"));
     //    EditorGUILayout.PropertyField(serializedObject.FindProperty("Health"), new GUIContent("Health"));
     //    EditorGUILayout.PropertyField(serializedObject.FindProperty("KB"), new GUIContent("Knockback"));
     //    EditorGUILayout.PropertyField(serializedObject.FindProperty("Speed"), new GUIContent("Speed"));
