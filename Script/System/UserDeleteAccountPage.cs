@@ -122,8 +122,7 @@ public class UserDeleteAccountPage : MonoBehaviour
         using (UnityWebRequest request = new UnityWebRequest(url, "DELETE"))
         {
             request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=minimal");
 
             yield return request.SendWebRequest();

@@ -83,7 +83,7 @@ public static class UXPref
 /// </summary>
 public static class FirstAnniversarySchedule
 {
-    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 10, day: 2);
+    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 9, day: 2);
     public const int DurationDays = 30;
 
     /// <summary>Last day the activity is still open (inclusive).</summary>
@@ -379,14 +379,24 @@ public class GameProgressSave
             //clear mark
             if (newD > 0 && newL > 0 && newSec.clear_times[0, newL - 1] > 0)
                 newSec.cleared = true;
-            for (int l = 0; l < Mathf.Min(oldL, newL); l++)
+            // 下面这三个数组各有自己的长度，不能拿 clear_times 的边界去套它们：
+            // 字段是后陆续加的，老存档里可能为 null；关卡数或 teamSize 变过时长度也可能不一致。
+            // 拷不动的部分就留着新建时的默认值，宁可丢一格记录也不能让整个存档读取崩掉。
+            int copyL = Mathf.Min(oldL, newL);
+            for (int l = 0; l < copyL; l++)
             {
-                newSec.reward_gained[l] = oldSec.reward_gained[l];
-                for (int j = 0; j < teamSize; j++)
-                {
-                    newSec.cleared_teams[l,j] = oldSec.cleared_teams[l,j];
-                }
-                newSec.cleared_cannon[l]=oldSec.cleared_cannon[l];
+                if (oldSec.reward_gained != null && l < oldSec.reward_gained.Length)
+                    newSec.reward_gained[l] = oldSec.reward_gained[l];
+                if (oldSec.cleared_cannon != null && l < oldSec.cleared_cannon.Length)
+                    newSec.cleared_cannon[l] = oldSec.cleared_cannon[l];
+            }
+            if (oldSec.cleared_teams != null)
+            {
+                int teamL = Mathf.Min(oldSec.cleared_teams.GetLength(0), newSec.cleared_teams.GetLength(0));
+                int teamW = Mathf.Min(oldSec.cleared_teams.GetLength(1), newSec.cleared_teams.GetLength(1));
+                for (int l = 0; l < teamL; l++)
+                    for (int j = 0; j < teamW; j++)
+                        newSec.cleared_teams[l, j] = oldSec.cleared_teams[l, j];
             }
         }
 

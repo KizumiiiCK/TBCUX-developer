@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +12,6 @@ public class CheckInSystem : MonoBehaviour
     [SerializeField] private TMP_Text checkinStatement;
     [SerializeField] private Animator rewardAnimator;
 
-    private DateTime lastCheckInDate;
     private int consecutiveDays = 0;
     private bool hasRewardToShow = false;
     private DateTime currentServerDate = DateTime.MinValue;
@@ -28,25 +28,93 @@ public class CheckInSystem : MonoBehaviour
         50000,150,1
     };
     private int[] bonusCount = new int[typeCount];
+
+    /// <summary>周年庆期间 XP 换成的抽奖券基础张数。同样吃连签倍率和下面的双倍。</summary>
+    private const int AnniversaryTicketBase = 1;
+
+    /// <summary>周年庆期间所有奖励的额外倍率。和连签倍率相乘后才取整，见 BuildTodayRewards。</summary>
+    private const int AnniversaryBonusMultiplier = 2;
+
+    /// <summary>
+    /// 本次签到实际发放的奖励种类。周年庆期间第一项的 XP 会换成抽奖券，所以必须落在实例数组上
+    /// ——上面的 rewardNames 是静态的，活过场景切换，改一次就会污染同一次运行里之后的所有签到。
+    /// 初值是默认表的副本，让 SetRewardDisplay 在任何路径下都不会读到未赋值的枚举。
+    /// </summary>
+    private readonly RewardName[] activeRewardNames = (RewardName[])rewardNames.Clone();
+
     public const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
     private static readonly TimeSpan Utc8Offset = TimeSpan.FromHours(8);
+
+    /// <summary>
+    /// Raised once today's UTC+8 date is established for this session. Fires at most once per
+    /// session; late subscribers read <see cref="VerifiedToday"/> instead.
+    /// </summary>
+    public static event Action<DateTime> VerifiedTodayResolved;
+
+    /// <summary>
+    /// Today's date, or null while it is still unproven.
+    /// <para>
+    /// Only set through two equally trustworthy paths: a fresh network fetch, or a cached date
+    /// that still matches the local clock. The latter is sound because the cache is written only
+    /// after a successful fetch — if the device clock had been moved since, the two would differ
+    /// and the online flow would run instead. A failed fetch leaves this null: the cache then
+    /// proves only that some earlier day was verified, not which day today is.
+    /// </para>
+    /// </summary>
+    public static DateTime? VerifiedToday { get; private set; }
+
+    private static void ResolveVerifiedToday(DateTime date)
+    {
+        DateTime value = date.Date;
+        if (VerifiedToday == value) return;
+        VerifiedToday = value;
+        VerifiedTodayResolved?.Invoke(value);
+    }
+
+    /// <summary>
+    /// Today's date when it is proven, or null while it is not.
+    /// <para>
+    /// Same trust rule as <see cref="VerifiedToday"/>, but usable before the check-in flow has run:
+    /// it also accepts a cached date that still matches the local clock, which is the "already went
+    /// online today" fast path. Scenes that live ahead of the check-in canvas (the title screen) gate
+    /// date-locked content through this. An empty cache, or one disagreeing with the clock, yields
+    /// null — the cache then proves only that some earlier day was verified, not which day it is now.
+    /// </para>
+    /// </summary>
+    public static DateTime? GetVerifiedToday()
+    {
+        if (VerifiedToday.HasValue) return VerifiedToday;
+
+        string token = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
+        if (string.IsNullOrEmpty(token)) return null;
+        if (token != GetUtc8TodayToken()) return null;
+        return DateTime.TryParseExact(token, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime cached)
+            ? cached
+            : (DateTime?)null;
+    }
+
+    /// <summary>
+    /// Publishes the cached date on the fast path where the local clock still agrees with it,
+    /// so a player who already went online today needs no further network round trip.
+    /// </summary>
+    private static void ResolveVerifiedTodayFromValidCache()
+    {
+        DateTime? proven = GetVerifiedToday();
+        if (proven.HasValue) ResolveVerifiedToday(proven.Value);
+    }
 
     private void Start()
     {
         if (ShouldSkipByLocalDate())
         {
-            Close();
-            return;
-        }
-        if (!UXPref.HasSupabaseConfig)
-        {
+            // Already verified online earlier today, and the local clock still agrees.
+            ResolveVerifiedTodayFromValidCache();
             Close();
             return;
         }
 
-        string pid = PlayerPrefs.GetString(UXPref.UserPrefKey, "KIZUMIII");
-        SupabaseSaveRemote.Initialize(UXPref.SupabaseUrl, UXPref.SupabaseKey, pid);
-
+        // Check-in state lives in the local user account; no Supabase round trip is required.
+        // The world-time sources are third-party services unrelated to Supabase.
         if (rewardAnimator == null) rewardAnimator = GetComponent<Animator>();
         if (rewardAnimator != null) rewardAnimator.speed = 0f;
         StartLoadingCheckIn();
@@ -75,8 +143,7 @@ public class CheckInSystem : MonoBehaviour
         var tasks = new List<LoadingTask>
         {
             new LoadingTask("Getting world time...", ExecuteFetchTimeTask),
-            new LoadingTask("Pulling check-in data...", ExecuteFetchCheckInDataTask),
-            new LoadingTask("Uploading check-in data...", ExecuteUploadCheckInDataTask)
+            new LoadingTask("Processing check-in...", ExecuteLocalCheckInTask)
         };
         loadingPage.Initialize(tasks, OnLoadingCompleted);
     }
@@ -87,6 +154,8 @@ public class CheckInSystem : MonoBehaviour
 
         if (!success)
         {
+            // Today's date stays unproven: the cached token is stale or the clock may have moved.
+            // Leave VerifiedToday null so date-gated content neither unlocks nor tears itself down.
             Close();
             return;
         }
@@ -104,7 +173,7 @@ public class CheckInSystem : MonoBehaviour
 
     private IEnumerator ExecuteFetchTimeTask(LoadingTask task)
     {
-        if (!EnsureNetworkAndRemoteReady(task))
+        if (!EnsureNetworkReady(task))
         {
             yield break;
         }
@@ -127,6 +196,7 @@ public class CheckInSystem : MonoBehaviour
         }
 
         currentServerDate = serverDate.Value.Date;
+        ResolveVerifiedToday(currentServerDate);
         task.Success = true;
         task.Result = currentServerDate;
         if (loadingPage != null) loadingPage.SetDetail($"Time OK: {currentServerDate:yyyy-MM-dd}");
@@ -143,43 +213,41 @@ public class CheckInSystem : MonoBehaviour
         return cachedDate == today;
     }
 
-    private IEnumerator ExecuteFetchCheckInDataTask(LoadingTask task)
+    /// <summary>
+    /// 纯本地结算：连签状态存在本地 user account（userinfo 文件）里，不依赖 Supabase。
+    /// 落盘顺序是「先写签到记录，再发奖」——两步之间崩溃玩家只会少拿一次奖励，
+    /// 绝不会因为记录没写上而下次重复发奖（旧流程发奖在上传之前，上传失败时就会重复发）。
+    /// </summary>
+    private IEnumerator ExecuteLocalCheckInTask(LoadingTask task)
     {
-        if (!EnsureNetworkAndRemoteReady(task))
-        {
-            yield break;
-        }
-        if (loadingPage != null) loadingPage.SetDetail("Pulling check-in data...");
-
-        DateTime? remoteLastDate = null;
-        int remoteConsecutive = 0;
-        yield return SupabaseSaveRemote.GetUserCheckInData((lastDate, consecutive) =>
-        {
-            remoteLastDate = lastDate;
-            remoteConsecutive = consecutive;
-        });
-
-        lastCheckInDate = remoteLastDate?.Date ?? DateTime.MinValue;
-        consecutiveDays = remoteConsecutive;
-        hasRewardToShow = false;
-        task.Success = true;
-        task.Result = new Vector2Int(lastCheckInDate == DateTime.MinValue ? -1 : lastCheckInDate.DayOfYear, consecutiveDays);
-        if (loadingPage != null) loadingPage.SetDetail("Check-in data pulled.");
-    }
-
-    private IEnumerator ExecuteUploadCheckInDataTask(LoadingTask task)
-    {
-        if (!EnsureNetworkAndRemoteReady(task) || currentServerDate == DateTime.MinValue)
+        if (currentServerDate == DateTime.MinValue)
         {
             task.Success = false;
             task.Result = null;
-            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: invalid upload state.");
+            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: invalid check-in state.");
             yield break;
         }
-        if (loadingPage != null) loadingPage.SetDetail("Uploading check-in update...");
 
         DateTime today = currentServerDate;
-        if (lastCheckInDate == today)
+
+        // 本机没有账号存档（比如未走登录流程的开发版本）：日期已经验证，但没有地方持久化
+        // 连签状态。不发奖、也不降级到 PlayerPrefs，避免之后真正建号时两份记录分叉。
+        if (!UserInfoLocalStore.TryLoad(out UserInfoLocalData user))
+        {
+            task.Success = true;
+            task.Result = false;
+            SaveCachedWorldDate();
+            if (loadingPage != null) loadingPage.SetDetail("No local user account; check-in skipped.");
+            yield break;
+        }
+
+        if (!TryParseLocalCheckInDate(user.last_checkin_date, out DateTime lastDate))
+        {
+            // 从未签到：当作昨天签过，首次签到拿到第 1 天奖励（和旧的远端行为一致）。
+            lastDate = today.AddDays(-1);
+        }
+
+        if (lastDate == today)
         {
             Debug.Log("Already signed in!");
             SaveCachedWorldDate();
@@ -189,42 +257,79 @@ public class CheckInSystem : MonoBehaviour
             yield break;
         }
 
-        if (lastCheckInDate == DateTime.MinValue)
-        {
-            lastCheckInDate = today.AddDays(-1);
-        }
-
-        if (today.Month != lastCheckInDate.Month || today.Year != lastCheckInDate.Year)
+        if (today.Month != lastDate.Month || today.Year != lastDate.Year)
         {
             consecutiveDays = 0;
         }
-        else if ((today - lastCheckInDate).Days > 1)
+        else if ((today - lastDate).Days > 1)
         {
             consecutiveDays = 0;
+        }
+        else
+        {
+            consecutiveDays = Mathf.Max(0, user.consecutive_days);
         }
         consecutiveDays++;
 
-        float bonusRate = 1 + consecutiveDays * consecutiveBonus;
-        for (int i = 0; i < typeCount; i++) bonusCount[i] = CalculateRewardAmount(rewardCount[i], bonusRate);
-        for (int i = 0; i < typeCount; i++) RewardingSystem.GainReward(rewardNames[i], bonusCount[i]);
-
-        lastCheckInDate = today;
-        bool uploadOk = false;
-        yield return SupabaseSaveRemote.UpdateUserCheckInData(today, consecutiveDays, ok => uploadOk = ok);
-        if (!uploadOk)
+        // 记录先落盘，发奖在后面：记录写失败就整体失败，一分奖励都不发。
+        user.last_checkin_date = today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        user.consecutive_days = consecutiveDays;
+        if (!UserInfoLocalStore.Save(user))
         {
             task.Success = false;
             task.Result = null;
-            if (loadingPage != null) loadingPage.SetDetail("Connection Failed: upload check-in data failed.");
+            if (loadingPage != null) loadingPage.SetDetail("Failed to save local check-in data.");
             yield break;
         }
 
-        hasRewardToShow = true;
         SaveCachedWorldDate();
+
+        float bonusRate = 1 + consecutiveDays * consecutiveBonus;
+        float effectiveRate = BuildTodayRewards(today, bonusRate);
+        for (int i = 0; i < typeCount; i++)
+        {
+            RewardingSystem.GainReward(activeRewardNames[i], bonusCount[i]);
+        }
+
+        hasRewardToShow = true;
         task.Success = true;
         task.Result = true;
-        if (loadingPage != null) loadingPage.SetDetail("Check-in upload success.");
-        Debug.Log($"Check in successful for {consecutiveDays} day(s)! You have gained {bonusRate} reward bonus.");
+        if (loadingPage != null) loadingPage.SetDetail("Check-in complete.");
+        Debug.Log($"Check in successful for {consecutiveDays} day(s)! You have gained {effectiveRate} reward bonus.");
+    }
+
+    private static bool TryParseLocalCheckInDate(string token, out DateTime date)
+    {
+        date = default;
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        return DateTime.TryParseExact(token.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture,
+            DateTimeStyles.None, out date);
+    }
+
+    /// <summary>
+    /// 结算本次签到实际发放的奖励种类和数量。
+    /// <para>
+    /// 传进来的日期落在周年庆窗口内（<see cref="FirstAnniversarySchedule.IsWithinWindow"/>）时做两件事：
+    /// 把 XP 换成周年庆抽奖券，并给所有奖励再叠一层双倍。两层倍率先相乘、最后只取整一次，因为
+    /// <see cref="CalculateRewardAmount"/> 是向下取整——分两步取整会吃掉小数部分，比如连签 15 天
+    /// （倍率 1.5）的 1 张券，乘完再取整是 3 张，先取整就只剩 2 张。
+    /// </para>
+    /// <para>
+    /// 判定用的是已验证的服务器日期，不是本地时钟：调用点在本地结算任务里，此时 currentServerDate
+    /// 必然已经拿到（任务开头就会因为它是 MinValue 而失败退出）。
+    /// </para>
+    /// </summary>
+    private float BuildTodayRewards(DateTime date, float bonusRate)
+    {
+        bool anniversary = FirstAnniversarySchedule.IsWithinWindow(date);
+        float rate = anniversary ? bonusRate * AnniversaryBonusMultiplier : bonusRate;
+        for (int i = 0; i < typeCount; i++)
+        {
+            bool swapToTicket = anniversary && rewardNames[i] == RewardName.XP;
+            activeRewardNames[i] = swapToTicket ? RewardName.Anniversary_Ticket : rewardNames[i];
+            bonusCount[i] = CalculateRewardAmount(swapToTicket ? AnniversaryTicketBase : rewardCount[i], rate);
+        }
+        return rate;
     }
 
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
@@ -244,20 +349,13 @@ public class CheckInSystem : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    private bool EnsureNetworkAndRemoteReady(LoadingTask task)
+    private bool EnsureNetworkReady(LoadingTask task)
     {
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             task.Success = false;
             task.Result = null;
             if (loadingPage != null) loadingPage.NotifyFailure("No network connection.");
-            return false;
-        }
-        if (!SupabaseSaveRemote.IsReady())
-        {
-            task.Success = false;
-            task.Result = null;
-            if (loadingPage != null) loadingPage.NotifyFailure("Supabase not ready.");
             return false;
         }
         return true;
@@ -272,11 +370,13 @@ public class CheckInSystem : MonoBehaviour
     {
         for(int i = 0; i < typeCount; i++)
         {
-            int index = Array.IndexOf(Enum.GetValues(typeof(RewardName)), rewardNames[i]);
+            // 图标走 RewardNumMap 而不是枚举的序号：RewardName 中间有成段注释掉的值，
+            // 序号和图片编号只是在前 13 项里凑巧一致，Anniversary_Ticket 会算成 61（别的道具）
+            // 而正确编号是 75。
             Transform R = RewardDispalyer.GetChild(i);
             if (R != null)
             {
-                R.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>($"Reward/{index}");
+                R.GetChild(0).GetComponent<Image>().sprite = StorageImageHelper.GetItemImage(activeRewardNames[i]);
                 R.GetChild(2).GetComponent<TMP_Text>().text = $"x  {bonusCount[i]}";
             }
         }

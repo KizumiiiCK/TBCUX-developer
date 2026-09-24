@@ -380,82 +380,6 @@ public static class SupabaseSaveRemote
         if (rows.Count > 0) yield return Upsert("enemy_meet", $"[{string.Join(",", rows)}]");
     }
 
-    public static IEnumerator GetUserCheckInData(Action<DateTime?, int> onComplete)
-    {
-
-        if (!IsReady())
-        {
-            Debug.LogError("[SupabaseSaveRemote] Not initialized.");
-            onComplete?.Invoke(null, 0);
-            yield break;
-        }
-
-        string url = $"{supabaseUrl}/rest/v1/user_accounts?pid=eq.{pid}&select=last_checkin_date,consecutive_days";
-        yield return GetJson(url, json =>
-        {
-            var rows = JsonHelper.FromJsonArray<UserAccountCheckInRow>(json);
-            if (rows.Length == 0)
-            {
-                onComplete?.Invoke(null, 0);
-                return;
-            }
-
-            DateTime? lastDate = null;
-            if (!string.IsNullOrWhiteSpace(rows[0].last_checkin_date)
-                && DateTime.TryParse(rows[0].last_checkin_date, out DateTime parsed))
-            {
-                lastDate = parsed;
-            }
-            onComplete?.Invoke(lastDate, rows[0].consecutive_days);
-        });
-    }
-
-    public static IEnumerator UpdateUserCheckInData(DateTime date, int consecutive, Action<bool> onComplete = null)
-    {
-
-        if (!IsReady())
-        {
-            Debug.LogError("[SupabaseSaveRemote] Not initialized.");
-            onComplete?.Invoke(false);
-            yield break;
-        }
-
-        string url = $"{supabaseUrl}/rest/v1/user_accounts?pid=eq.{pid}";
-        string payload = "{"
-                         + $"\"last_checkin_date\":\"{date.ToString("o")}\","
-                         + $"\"consecutive_days\":{consecutive}"
-                         + "}";
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(payload);
-        float start = Time.realtimeSinceStartup;
-        int attempt = 0;
-        string lastError = string.Empty;
-        while (Time.realtimeSinceStartup - start < RequestRetryWindowSeconds)
-        {
-            attempt++;
-            using (UnityWebRequest request = new UnityWebRequest(url, "PATCH"))
-            {
-                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                request.downloadHandler = new DownloadHandlerBuffer();
-                request.SetRequestHeader("Content-Type", "application/json");
-                request.SetRequestHeader("apikey", supabaseKey);
-                request.SetRequestHeader("Authorization", $"Bearer {supabaseKey}");
-                request.SetRequestHeader("Prefer", "return=minimal");
-                yield return request.SendWebRequest();
-                if (request.result == UnityWebRequest.Result.Success)
-                {
-                    onComplete?.Invoke(true);
-                    yield break;
-                }
-
-                lastError = $"{request.error} - {request.downloadHandler.text}";
-                yield return new WaitForSecondsRealtime(RequestRetryDelaySeconds);
-            }
-        }
-
-        Debug.LogError($"[SupabaseSaveRemote] Update check-in failed after retries: {lastError}");
-        onComplete?.Invoke(false);
-    }
-
     private static IEnumerator GetJson(string url, Action<string> onComplete)
     {
 
@@ -467,8 +391,7 @@ public static class SupabaseSaveRemote
             attempt++;
             using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
-                request.SetRequestHeader("apikey", supabaseKey);
-                request.SetRequestHeader("Authorization", $"Bearer {supabaseKey}");
+                SupabaseSettings.ApplyRequestHeaders(request, supabaseKey);
                 yield return request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success)
                 {
@@ -494,8 +417,7 @@ public static class SupabaseSaveRemote
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("apikey", supabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {supabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request, supabaseKey);
             request.SetRequestHeader("Prefer", "resolution=merge-duplicates");
             yield return request.SendWebRequest();
             if (request.result != UnityWebRequest.Result.Success)
@@ -677,13 +599,6 @@ public static class SupabaseSaveRemote
         public string pid;
         public int enemy_code;
         public bool met;
-    }
-
-    [Serializable]
-    private class UserAccountCheckInRow
-    {
-        public string last_checkin_date;
-        public int consecutive_days;
     }
 
     private static class JsonHelper

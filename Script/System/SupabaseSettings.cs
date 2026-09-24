@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -29,6 +31,21 @@ public class SupabaseSettings : ScriptableObject
     public static bool IsConfigured => Current.HasCredentials;
     public static string UrlValue => Current.Url;
     public static string KeyValue => Current.AnonKey;
+
+    /// <summary>
+    /// New publishable/secret keys are not JWTs. Sending them as
+    /// Authorization Bearer makes the API gateway return Invalid JWT.
+    /// Legacy anon keys (eyJ...) still need both headers for PostgREST.
+    /// </summary>
+    public static void ApplyRequestHeaders(UnityWebRequest request, string key = null)
+    {
+        if (request == null) return;
+        string token = string.IsNullOrWhiteSpace(key) ? KeyValue : key.Trim();
+        if (string.IsNullOrEmpty(token)) return;
+        request.SetRequestHeader("apikey", token);
+        if (token.StartsWith("eyJ", StringComparison.Ordinal))
+            request.SetRequestHeader("Authorization", "Bearer " + token);
+    }
 
     public static SupabaseSettings Current
     {

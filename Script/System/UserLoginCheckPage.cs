@@ -73,8 +73,7 @@ public class UserLoginCheckPage : MonoBehaviour
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)

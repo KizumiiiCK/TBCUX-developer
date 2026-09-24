@@ -215,8 +215,7 @@ public class UserCreateAccountPage : MonoBehaviour
         string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?user_name=eq.{encoded}&select=pid&limit=1";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
@@ -272,8 +271,7 @@ public class UserCreateAccountPage : MonoBehaviour
             request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload));
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "resolution=merge-duplicates,return=minimal");
             yield return request.SendWebRequest();
 
@@ -303,8 +301,7 @@ public class UserCreateAccountPage : MonoBehaviour
         string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{encoded}&select=pid&limit=1";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
