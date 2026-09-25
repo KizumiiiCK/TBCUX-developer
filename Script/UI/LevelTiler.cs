@@ -657,14 +657,14 @@ public class LevelTiler : UICanvasMain
 
     private void RefreshDailyMapChallengeState()
     {
-        if (MI == null || !MI.oncePerDay)
+        if (MI == null || !MI.HasDailyTimesLimit)
         {
             isDailyMapLocked = false;
             return;
         }
 
         string currentDateToken = CheckInSystem.GetCachedWorldDateToken();
-        isDailyMapLocked = DailyMapChallengeSave.HasSectionClearRecordToday(currentDateToken, MI.sectionName);
+        isDailyMapLocked = DailyMapChallengeSave.HasReachedDailyLimit(currentDateToken, MI.sectionName, MI.timesLimit);
     }
 
     private void OnDragLevelChanged(int levelIndex)

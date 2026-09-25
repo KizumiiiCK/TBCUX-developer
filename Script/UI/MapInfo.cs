@@ -12,12 +12,14 @@ public class MapInfo : ScriptableObject
     public string mapName = "";
     public string BGM=string.Empty;
     public string unlockRestriction = null;
-    public bool oncePerDay = false;
+    public int timesLimit = 0;
     public int hardness = 1;
     public bool[] difficulty = new bool[12];
     public Color coverColor = Color.black;
     public TitleColor titleColor = TitleColor.white;
     public LevelTileInfo[] levelsOnMap;
+
+    public bool HasDailyTimesLimit => timesLimit >= 1;
 }
 
 [System.Serializable]

@@ -83,7 +83,7 @@ public static class UXPref
 /// </summary>
 public static class FirstAnniversarySchedule
 {
-    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 9, day: 2);
+    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 10, day: 2);
     public const int DurationDays = 30;
 
     /// <summary>Last day the activity is still open (inclusive).</summary>
@@ -184,10 +184,17 @@ public static class GenericSaveSystem
 }
 
 [System.Serializable]
+public class DailyMapSectionClear
+{
+    public string sectionName = string.Empty;
+    public int times;
+}
+
+[System.Serializable]
 public class DailyMapClearRecord
 {
     public string dateToken = string.Empty;
-    public List<string> clearedSectionNames = new List<string>();
+    public List<DailyMapSectionClear> sectionClears = new List<DailyMapSectionClear>();
 }
 
 public static class DailyMapChallengeSave
@@ -205,15 +212,25 @@ public static class DailyMapChallengeSave
         GenericSaveSystem.DeleteData(filename);
     }
 
-    public static bool HasSectionClearRecordToday(string currentDateToken, string sectionName)
+    public static int GetSectionClearCountToday(string currentDateToken, string sectionName)
     {
-        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return false;
+        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return 0;
 
         ResetIfNewDay(currentDateToken);
         DailyMapClearRecord save = GenericSaveSystem.LoadData<DailyMapClearRecord>(filename);
-        if (save == null) return false;
-        if (save.dateToken != currentDateToken) return false;
-        return save.clearedSectionNames != null && save.clearedSectionNames.Contains(sectionName);
+        if (save == null || save.dateToken != currentDateToken || save.sectionClears == null) return 0;
+        for (int i = 0; i < save.sectionClears.Count; i++)
+        {
+            DailyMapSectionClear entry = save.sectionClears[i];
+            if (entry != null && entry.sectionName == sectionName) return Mathf.Max(0, entry.times);
+        }
+        return 0;
+    }
+
+    public static bool HasReachedDailyLimit(string currentDateToken, string sectionName, int timesLimit)
+    {
+        if (timesLimit < 1) return false;
+        return GetSectionClearCountToday(currentDateToken, sectionName) >= timesLimit;
     }
 
     public static void RecordSectionClear(string currentDateToken, string sectionName)
@@ -226,18 +243,29 @@ public static class DailyMapChallengeSave
             save = new DailyMapClearRecord
             {
                 dateToken = currentDateToken,
-                clearedSectionNames = new List<string>()
+                sectionClears = new List<DailyMapSectionClear>()
             };
         }
-        else if (save.clearedSectionNames == null)
+        else if (save.sectionClears == null)
         {
-            save.clearedSectionNames = new List<string>();
+            save.sectionClears = new List<DailyMapSectionClear>();
         }
 
-        if (!save.clearedSectionNames.Contains(sectionName))
+        DailyMapSectionClear entry = null;
+        for (int i = 0; i < save.sectionClears.Count; i++)
         {
-            save.clearedSectionNames.Add(sectionName);
+            if (save.sectionClears[i] != null && save.sectionClears[i].sectionName == sectionName)
+            {
+                entry = save.sectionClears[i];
+                break;
+            }
         }
+        if (entry == null)
+        {
+            entry = new DailyMapSectionClear { sectionName = sectionName, times = 0 };
+            save.sectionClears.Add(entry);
+        }
+        entry.times = Mathf.Max(0, entry.times) + 1;
 
         GenericSaveSystem.SaveData(save, filename);
     }

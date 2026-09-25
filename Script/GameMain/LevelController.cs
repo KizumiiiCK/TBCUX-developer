@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -1294,11 +1295,10 @@ public class LevelController : MonoBehaviour
         if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return false;
 
         MapInfo mapInfo = TryGetCurrentMapInfo();
-        if (mapInfo == null) return false;
-        if (!mapInfo.oncePerDay) return false;
+        if (mapInfo == null || !mapInfo.HasDailyTimesLimit) return false;
         DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
-        //PlayerPrefs.SetString(UXPref.Localized_InsDailyClear, "TRUE");
-        return true;
+        return DailyMapChallengeSave.HasReachedDailyLimit(
+            CheckInSystem.GetCachedWorldDateToken(), sectionName, mapInfo.timesLimit);
     }
 
     private MapInfo TryGetCurrentMapInfo()
