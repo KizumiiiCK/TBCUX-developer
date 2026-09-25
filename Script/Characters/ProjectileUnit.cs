@@ -60,7 +60,16 @@ public class ProjectileUnit : AnimatorCachedCharacter
             characterEffects = new CharacterEffect[0];
         }
 
-        // Use one attack step from current hit.
+        // Keep the prefab hitbox. Rewriting ATKInfo without ATKRange zeros it to (0,0);
+        // attack then SetAttackRange(0,0) and the target list is wiped before damage resolves.
+        Vector2 hitRange = new Vector2(-200f, 100f);
+        if (atkInfos != null && atkInfos.Length > 0 && atkInfos[0] != null)
+        {
+            hitRange = atkInfos[0].ATKRange;
+            if (Mathf.Approximately(hitRange.x, 0f)) hitRange.x = -200f;
+            if (Mathf.Approximately(hitRange.y, 0f)) hitRange.y = 100f;
+        }
+        if (atkInfos == null || atkInfos.Length == 0) atkInfos = new ATKInfo[1];
         atkInfos[0] = new ATKInfo
         {
             ATK = damage,
@@ -68,6 +77,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
             DoNotTriggerEffects = !triggerEffectThisAttack,
             DoNotTriggerAbilities = !triggerEffectThisAttack,
             Friendly = false,
+            ATKRange = hitRange,
         };
         realDamage = new int[1] { Mathf.Max(1, Mathf.RoundToInt(damage)) };
 
@@ -109,7 +119,10 @@ public class ProjectileUnit : AnimatorCachedCharacter
         {
             animatedframes += frame_step;
             if (ShouldResolveAttackFrame(atkInfos[animateStep].frame))
+            {
+                CharacterTargetManager.Instance.RefreshTargetsForProjectile(this);
                 Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects, atkInfos[animateStep].DoNotTriggerAbilities);
+            }
             if (animatedframes >= atkDuration)
             {
                 ExitAttack();
