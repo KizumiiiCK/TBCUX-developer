@@ -390,7 +390,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 130872346130333696
-    m_Localized: <color=#FF6060>Daily Event!</color>
+    m_Localized: <color=#FF6060>Daily Event! {0} times remaining!</color>
     m_Metadata:
       m_Items: []
   - m_Id: 130872503890690048
@@ -449,6 +449,10 @@ MonoBehaviour:
     m_Localized: 'Confirm
 
       +1 ?'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 176985064054538240
+    m_Localized: Offline
     m_Metadata:
       m_Items: []
   references:

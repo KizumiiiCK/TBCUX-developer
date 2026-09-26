@@ -37,7 +37,6 @@ public static class UserInfoLocalStore
             if (string.IsNullOrWhiteSpace(json)) return false;
             data = JsonUtility.FromJson<UserInfoLocalData>(json);
             return data != null
-                && !string.IsNullOrWhiteSpace(data.pid)
                 && !string.IsNullOrWhiteSpace(data.user_name)
                 && !string.IsNullOrWhiteSpace(data.device_code);
         }
@@ -46,6 +45,11 @@ public static class UserInfoLocalStore
             Debug.LogError($"[UserInfoLocalStore] Load failed: {e.Message}");
             return false;
         }
+    }
+
+    public static bool HasOnlinePid(UserInfoLocalData data)
+    {
+        return data != null && !string.IsNullOrWhiteSpace(data.pid);
     }
 
     public static bool Save(UserInfoLocalData data)

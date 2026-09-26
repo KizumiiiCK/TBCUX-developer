@@ -14,6 +14,7 @@ public class MMOption : MonoBehaviour
     [SerializeField] private Button deleteAccountButton;
 
     private const string UploadAccountPagePath = "UI/Pages/user/TransferAccount";
+    private const string LoginCheckPagePath = "UI/Pages/user/UserLoginCheckPage";
     private const string DeleteAccountPagePath = "UI/Pages/user/DeleteAccount";
 
     private int lang = 0;
@@ -72,13 +73,22 @@ public class MMOption : MonoBehaviour
 
     private void OpenUploadAccountPage()
     {
-        GameObject prefab = Resources.Load<GameObject>(UploadAccountPagePath);
+        bool hasOnlinePid = UserInfoLocalStore.TryLoad(out UserInfoLocalData user)
+            && UserInfoLocalStore.HasOnlinePid(user);
+        string path = hasOnlinePid ? UploadAccountPagePath : LoginCheckPagePath;
+        GameObject prefab = Resources.Load<GameObject>(path);
         if (prefab == null)
         {
-            Debug.LogError($"[MMOption] Missing page prefab: {UploadAccountPagePath}");
+            Debug.LogError($"[MMOption] Missing page prefab: {path}");
             return;
         }
-        Instantiate(prefab);
+
+        GameObject obj = Instantiate(prefab);
+        if (!hasOnlinePid)
+        {
+            UserLoginCheckPage page = obj.GetComponent<UserLoginCheckPage>();
+            if (page != null) page.StayForAccountChoice();
+        }
     }
 
     private void OpenDeleteAccountPage()

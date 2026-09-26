@@ -14,6 +14,7 @@ public class UserLoginCheckPage : MonoBehaviour
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Button createNewButton;
     [SerializeField] private Button inheritButton;
+    [SerializeField] private Button offlineButton;
     [SerializeField] private MainMenu mainMenu;
 
     private static string loadingPagePath = "UI/Pages/loading";
@@ -23,11 +24,18 @@ public class UserLoginCheckPage : MonoBehaviour
     private LoadingPage loadingPage;
     private UserInfoLocalData localInfo;
     private UserAccountRow remoteRow;
+    private bool stayForAccountChoice;
 
     private void Awake()
     {
         if (createNewButton != null) createNewButton.onClick.AddListener(OnCreateNewAccount);
         if (inheritButton != null) inheritButton.onClick.AddListener(OnInheritAccount);
+        if (offlineButton != null) offlineButton.onClick.AddListener(OnOfflinePlay);
+    }
+
+    public void StayForAccountChoice()
+    {
+        stayForAccountChoice = true;
     }
 
     private void Start()
@@ -38,15 +46,20 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private IEnumerator BootstrapCheck()
     {
-        // If a local user file exists and contains pid, user_name and device_code,
-        // accept it immediately and skip network verification for a lightweight offline-first flow.
+        if (stayForAccountChoice)
+        {
+            ShowChoice(true);
+            if (offlineButton != null) offlineButton.gameObject.SetActive(false);
+            yield break;
+        }
+
+        // If a local user file exists, accept it immediately and skip network verification.
         if (!UserInfoLocalStore.TryLoad(out localInfo))
         {
             ShowNewUserPanel();
             yield break;
         }
 
-        // localInfo is complete (TryLoad guarantees pid/user_name/device_code are non-empty) -> accept local
         if (mainMenu != null)
         {
             string nickname = string.IsNullOrWhiteSpace(localInfo.user_name) ? localInfo.user_name : localInfo.user_name;
@@ -97,19 +110,32 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private void OnCreateNewAccount()
     {
-        if (!UXPref.HasSupabaseConfig)
+        OpenCreateAccount(offlineOnly: false);
+    }
+
+    private void OnOfflinePlay()
+    {
+        if (UserInfoLocalStore.TryLoad(out _))
         {
-            SetMessage(SupabaseSettings.MissingConfigHint);
+            Destroy(gameObject);
             return;
         }
 
+        OpenCreateAccount(offlineOnly: true);
+    }
+
+    private void OpenCreateAccount(bool offlineOnly)
+    {
         GameObject prefab = Resources.Load<GameObject>(createAccountPagePath);
         if (prefab == null)
         {
             SetMessage($"缺少页面：{createAccountPagePath}");
             return;
         }
-        Instantiate(prefab);
+
+        GameObject obj = Instantiate(prefab);
+        UserCreateAccountPage page = obj.GetComponent<UserCreateAccountPage>();
+        if (page != null) page.SetOfflineOnly(offlineOnly);
         Destroy(gameObject);
     }
 
@@ -145,6 +171,7 @@ public class UserLoginCheckPage : MonoBehaviour
     {
         if (createNewButton != null) createNewButton.gameObject.SetActive(show);
         if (inheritButton != null) inheritButton.gameObject.SetActive(show);
+        if (offlineButton != null) offlineButton.gameObject.SetActive(show);
     }
 
     private void StartLoading(List<LoadingTask> tasks, Action<bool> onComplete)

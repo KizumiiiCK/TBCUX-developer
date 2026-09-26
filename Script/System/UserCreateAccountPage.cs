@@ -27,6 +27,7 @@ public class UserCreateAccountPage : MonoBehaviour
     private string generatedPid;
     private bool usernameDuplicated;
     private bool pidGenerating;
+    private bool offlineOnly;
 
     private void Awake()
     {
@@ -35,8 +36,34 @@ public class UserCreateAccountPage : MonoBehaviour
         if (backButton != null) backButton.onClick.AddListener(OnBackClicked);
     }
 
+    public void SetOfflineOnly(bool value)
+    {
+        offlineOnly = value;
+    }
+
     private void Start()
     {
+        if (UserInfoLocalStore.TryLoad(out UserInfoLocalData existing)
+            && userNameInput != null
+            && string.IsNullOrWhiteSpace(userNameInput.text)
+            && !string.IsNullOrWhiteSpace(existing.user_name))
+        {
+            userNameInput.text = existing.user_name;
+        }
+
+        if (offlineOnly)
+        {
+            generatedPid = string.Empty;
+            UpdatePidDisplay(null);
+            if (retakeButton != null)
+            {
+                retakeButton.interactable = false;
+                retakeButton.gameObject.SetActive(false);
+            }
+            SetHint("Please enter your username.");
+            return;
+        }
+
         if (!UXPref.HasSupabaseConfig)
         {
             SetHint(SupabaseSettings.MissingConfigHint);
@@ -129,6 +156,12 @@ public class UserCreateAccountPage : MonoBehaviour
 
     private void OnCreateClicked()
     {
+        if (offlineOnly)
+        {
+            CreateOfflineLocal();
+            return;
+        }
+
         if (pidGenerating)
         {
             SetHint("Generating account ID...");
@@ -153,7 +186,7 @@ public class UserCreateAccountPage : MonoBehaviour
 
     private void OnRetakeClicked()
     {
-        if (pidGenerating) return;
+        if (offlineOnly || pidGenerating) return;
         SetHint("Retaking account ID...");
         StartCoroutine(PrepareUniquePid());
     }
@@ -185,19 +218,47 @@ public class UserCreateAccountPage : MonoBehaviour
             yield break;
         }
 
-        UserInfoLocalStore.Save(new UserInfoLocalData
-        {
-            pid = generatedPid,
-            user_name = userName,
-            device_code = UserInfoLocalStore.GetDeviceCode()
-        });
+        PersistLocalUser(generatedPid, userName);
 
-        PlayerPrefs.SetString(UXPref.UserPrefKey, generatedPid);
-        PlayerPrefs.Save();
+        if (!string.IsNullOrWhiteSpace(generatedPid))
+        {
+            PlayerPrefs.SetString(UXPref.UserPrefKey, generatedPid);
+            PlayerPrefs.Save();
+        }
 
         if (createButton != null) createButton.interactable = false;
         if (retakeButton != null) retakeButton.interactable = false;
         SetHint("Account created successfully!");
+    }
+
+    private void CreateOfflineLocal()
+    {
+        if (UserInfoLocalStore.TryLoad(out _))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        string userName = userNameInput != null ? userNameInput.text : string.Empty;
+        if (!ValidateUserName(userName, out string error))
+        {
+            SetHint(error);
+            return;
+        }
+
+        PersistLocalUser(string.Empty, userName.Trim());
+        Destroy(gameObject);
+    }
+
+    private static void PersistLocalUser(string pid, string userName)
+    {
+        if (!UserInfoLocalStore.TryLoad(out UserInfoLocalData data) || data == null)
+            data = new UserInfoLocalData();
+
+        data.pid = pid ?? string.Empty;
+        data.user_name = userName;
+        data.device_code = UserInfoLocalStore.GetDeviceCode();
+        UserInfoLocalStore.Save(data);
     }
 
     private IEnumerator ExecuteCheckNameTask(LoadingTask task, string userName)

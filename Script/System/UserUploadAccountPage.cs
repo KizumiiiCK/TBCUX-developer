@@ -51,7 +51,7 @@ public class UserUploadAccountPage : MonoBehaviour
 
     private void Start()
     {
-        if (!UserInfoLocalStore.TryLoad(out localUser))
+        if (!UserInfoLocalStore.TryLoad(out localUser) || !UserInfoLocalStore.HasOnlinePid(localUser))
         {
             SetInfo("Failed to read local user save. Upload is unavailable.");
             SetUserDisplay("--------", "--------");
