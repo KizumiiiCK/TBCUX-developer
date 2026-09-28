@@ -55,6 +55,11 @@ public class LevelTiler : UICanvasMain
     private int mapSectionDifficulty;
     private const string CatSelectionsPrefabPath = "UI/FunctionalPanels/Cat Selections";
     private const string RestrictionWarningPrefabPath = "UI/FunctionalPanels/WarningMark";
+    private const string DailyRemarkPrefabPath = "UI/FunctionalPanels/sectionDailyRemark";
+    private const string DailyRemarkNodeName = "__SectionDailyRemark";
+    private const string DailyTextId = "id:daily";
+    private static readonly Vector2 DailyRemarkAnchoredPosition = new Vector2(150f, 120f);
+    private const float DailyRemarkScale = 1.6f;
     private const string ClearTeamUseTextId = "id:clear_team_use";
     private const string ClearTeamConfirmTextId = "id:clear_team_confirm";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
@@ -62,6 +67,7 @@ public class LevelTiler : UICanvasMain
     private readonly Dictionary<string, LevelData> levelDataCache = new Dictionary<string, LevelData>();
     /// <summary>关卡大地图根物体（由本组件创建与销毁，不再由 BaseCanvas 管理）。</summary>
     private GameObject worldMapRoot;
+    private GameObject dailyRemarkInstance;
     private Coroutine buildLevelTilesRoutine;
     private bool isDailyMapLocked;
     /// <summary>本关是否有可用的通关队伍记录（按 cleared_teams 行非空判定，不分难度）。</summary>
@@ -660,11 +666,71 @@ public class LevelTiler : UICanvasMain
         if (MI == null || !MI.HasDailyTimesLimit)
         {
             isDailyMapLocked = false;
+            SetDailyRemarkVisible(false);
             return;
         }
 
         string currentDateToken = CheckInSystem.GetCachedWorldDateToken();
+        int used = DailyMapChallengeSave.GetSectionClearCountToday(currentDateToken, MI.sectionName);
         isDailyMapLocked = DailyMapChallengeSave.HasReachedDailyLimit(currentDateToken, MI.sectionName, MI.timesLimit);
+        RefreshDailyRemark(Mathf.Max(0, MI.timesLimit - used));
+    }
+
+    private void RefreshDailyRemark(int remaining)
+    {
+        GameObject remarkGO = EnsureDailyRemark();
+        if (remarkGO == null) return;
+        remarkGO.SetActive(true);
+        ApplyDailyRemarkPosition(remarkGO);
+
+        Transform textRoot = remarkGO.transform.childCount > 0 ? remarkGO.transform.GetChild(0) : null;
+        TMP_Text remarkText = textRoot != null ? textRoot.GetComponent<TMP_Text>() : null;
+        if (remarkText == null) return;
+
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, DailyTextId,
+            localizedText =>
+            {
+                if (this == null || remarkText == null) return;
+                remarkText.text = string.Format(localizedText ?? DailyTextId, remaining);
+            });
+    }
+
+    private GameObject EnsureDailyRemark()
+    {
+        if (dailyRemarkInstance != null) return dailyRemarkInstance;
+        if (CombatBtn == null) return null;
+
+        Transform existing = CombatBtn.transform.Find(DailyRemarkNodeName);
+        if (existing != null)
+        {
+            dailyRemarkInstance = existing.gameObject;
+            return dailyRemarkInstance;
+        }
+
+        GameObject prefab = Resources.Load<GameObject>(DailyRemarkPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"LevelTiler: missing prefab Resources/{DailyRemarkPrefabPath}");
+            return null;
+        }
+
+        dailyRemarkInstance = Instantiate(prefab, CombatBtn.transform);
+        dailyRemarkInstance.name = DailyRemarkNodeName;
+        return dailyRemarkInstance;
+    }
+
+    private void ApplyDailyRemarkPosition(GameObject remarkGO)
+    {
+        if (remarkGO == null) return;
+        RectTransform rt = remarkGO.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.anchoredPosition = DailyRemarkAnchoredPosition;
+        rt.localScale = Vector3.one * DailyRemarkScale;
+    }
+
+    private void SetDailyRemarkVisible(bool visible)
+    {
+        if (dailyRemarkInstance != null) dailyRemarkInstance.SetActive(visible);
     }
 
     private void OnDragLevelChanged(int levelIndex)
