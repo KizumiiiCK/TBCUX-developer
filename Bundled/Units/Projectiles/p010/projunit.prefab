@@ -76,20 +76,19 @@ MonoBehaviour:
   KB: 0
   Speed: 0
   Reload: 0
-  DetectionRange: 25
+  DetectionRange: 50
   Cost: 0
   Cooldown: 0
   ATKTypes: 
   atkInfos:
   - ATK: 0
-    frame: 0
+    frame: 1
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 50}
+    ATKRange: {x: 0, y: 100}
   areaATK: 0
   atkDuration: 15
-  one_off: 0
   traits:
     Red: 0
     Flt: 0

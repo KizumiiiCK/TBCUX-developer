@@ -21,14 +21,14 @@ MonoBehaviour:
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 1200, y: 3000}
+    ATKRange: {x: 900, y: 2100}
   areaATK: 0
   atkDuration: 420
   Health: 1270
   KB: 2
   Speed: 2
   Reload: 330
-  DetectionRange: 1500
+  DetectionRange: 1200
   Cost: 5700
   Cooldown: 4500
   UNITYAnimated: 1
@@ -75,4 +75,3 @@ MonoBehaviour:
     intensity: 0
   atkTypeResis: []
   effectResistances: []
-  baseEmotion: 4

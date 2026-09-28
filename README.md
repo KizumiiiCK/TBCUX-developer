@@ -129,7 +129,7 @@ Assets/                          ← git 根目录
 - `ScriptableObjects/LevelData.cs` — 关卡定义（见 [核心数据模型](#核心数据模型)）
 - `ScriptableObjects/UpgradeInfo.cs` — 升级信息
 - `effector/` — 状态效果：`Toxic`（毒）、`Curse`（诅咒）、`Slow`（减速）、`Stop`（定身）、`Lacerate`（撕裂）、`Wrap`（束缚）、`Weaken`（虚弱）、`DeathMark`（死亡标记）、`BuffInstaller`
-- `PassiveSkills/PassiveEditor.cs` — 被动技能编辑
+- `PassiveSkills/` — 被动技能：`PassiveCore`（安装表与基类）、`PassiveOffense`、`PassiveGuard`、`PassiveForm`、`PassiveTactic`、`PassiveAux`
 
 **`System/` 亮点**：
 
