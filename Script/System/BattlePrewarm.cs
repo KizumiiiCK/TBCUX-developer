@@ -72,6 +72,9 @@ public static class BattlePrewarm
         }
 
         // Stage 2 - every Addressable the level references (unit visuals + CharacterData).
+        // FS / fs replace deployer slots outright, so resolve the lineup the battle will actually
+        // deploy before anything is queued.
+        teamCodes = ResolveEffectiveTeam(ld, teamCodes);
         var stage2 = BuildBattleList(ld, teamCodes);
         yield return BundledAddressables.PrewarmRoutine(stage2,
             (p, label) => onProgress?.Invoke(0.02f + p * 0.95f, label));
@@ -94,6 +97,30 @@ public static class BattlePrewarm
     /// <summary>Resources-relative path of the LevelData asset (not an Addressables address).</summary>
     public static LevelData LoadLevelData(string chapterName, string sectionName, int diff, int levelNum)
         => Resources.Load<LevelData>(GetLevelDataAddress(chapterName, sectionName, diff, levelNum));
+
+    /// <summary>
+    /// Applies the level's FS / fs slot overrides to the saved team, the same way
+    /// <see cref="LevelController.SetupCatDeployers"/> does before it builds the deployers.
+    ///
+    /// Those two restrictions swap units into deployer slots regardless of what the player picked, so
+    /// prewarming the saved row would download a team the battle never deploys and miss every unit it
+    /// does. FS covers all 13 slots, fs only the 3 guest slots; slots it leaves alone keep the
+    /// player's own choice, which is why the override is applied to the saved row instead of
+    /// replacing it.
+    /// </summary>
+    public static string[] ResolveEffectiveTeam(LevelData ld, string[] teamCodes)
+    {
+        if (ld == null) return teamCodes;
+
+        LevelRestrictionHelper.RestrictionRules rules = LevelRestrictionHelper.Parse(ld.Restriction);
+        if (!LevelRestrictionHelper.HasForcedSlots(rules)) return teamCodes;
+
+        // TryApplyForcedSlots writes through when the array is already slot-sized, so copy first
+        // rather than editing the caller's row.
+        string[] effective = teamCodes == null ? null : (string[])teamCodes.Clone();
+        LevelRestrictionHelper.TryApplyForcedSlots(rules, ref effective);
+        return effective;
+    }
 
     /// <summary>
     /// Queues every address a battle reads synchronously: level scenery, the player's team and

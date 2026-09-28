@@ -25,17 +25,21 @@ public class KiPanel : MonoBehaviour
     private Color[] frameOriginalColors;
     private Color labelOriginalColor;
     private float labelOriginalSize;
+    private bool outfitInitialized;
 
     private void Awake()
     {
         CacheRefs();
         InitializeOutfit();
+        outfitInitialized = true;
     }
 
     private void OnEnable()
     {
         CacheRefs();
+        if (outfitInitialized) return;
         InitializeOutfit();
+        outfitInitialized = true;
     }
 
     private void OnValidate()

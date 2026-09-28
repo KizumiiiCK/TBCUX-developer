@@ -43,10 +43,25 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private Transform warningMarkPoolRoot;
     private LevelRestrictionHelper.RestrictionRules activeRestrictionRules;
     private bool suppressTeamNameNotify;
+    private Coroutine slotDataRoutine;
+    private bool slotDataPending;
 
     private void Awake()
     {
         activeRestrictionRules = LevelRestrictionHelper.Parse(null);
+    }
+
+    private void OnEnable()
+    {
+        // A refresh requested while the panel was hidden could not run its coroutine; pick it up now.
+        if (slotDataPending) EnsureSlotDataResolved();
+    }
+
+    private void OnDisable()
+    {
+        // Unity stops the routine with the object. Drop the stale handle so the next enable restarts
+        // it instead of trying to stop a coroutine that is already dead.
+        slotDataRoutine = null;
     }
     private int currentModifyingSlot = -1;
     private int currentTeamIndex = 0;
@@ -103,6 +118,51 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         {
             ApplySlotVisual(i, cachedCharCodes[i]);
         }
+        RefreshRestrictionMarks();
+        EnsureSlotDataResolved();
+    }
+
+    /// <summary>
+    /// Pulls the team's CharacterData and re-renders, so slots whose unit was not resident when the
+    /// panel opened still fill in.
+    ///
+    /// The panel is opened straight from a menu, with no prewarm gate in front of it, so on WebGL a
+    /// sync read of a team unit's data returns null (see BundledAddressables): the saved team is
+    /// almost never the set of units some earlier page happened to download. Rendering used to be
+    /// gated on that read, so a player with a full team saw thirteen empty slots - and saw them fill
+    /// in only when the units happened to be resident already, which is what made this look
+    /// intermittent.
+    /// </summary>
+    private void EnsureSlotDataResolved()
+    {
+        slotDataPending = true;
+        if (!isActiveAndEnabled) return;
+        if (slotDataRoutine != null) StopCoroutine(slotDataRoutine);
+        slotDataRoutine = StartCoroutine(ResolveSlotDataRoutine());
+    }
+
+    private IEnumerator ResolveSlotDataRoutine()
+    {
+        // Catalog first: every existence probe below (and in ApplySlotVisual) reads it, and a probe
+        // made before it is loaded answers "no" for units that do ship.
+        if (!BundledAddressables.IsReady) yield return BundledAddressables.InitializeRoutine();
+
+        var list = new BundledAddressables.PrewarmList();
+        for (int i = 0; i < cachedCharCodes.Length; i++)
+        {
+            if (!CharacterPlacer.TryParse(cachedCharCodes[i], true, out UnitIdentity identity)) continue;
+            if (!identity.IsValid) continue;
+            list.Add<CharacterData>(CharacterPlacer.GetLoadPath(identity) + "data");
+        }
+        if (list.Count > 0) yield return BundledAddressables.PrewarmRoutine(list);
+
+        slotDataRoutine = null;
+        slotDataPending = false;
+
+        // Re-read cachedCharCodes rather than a snapshot taken before the download: the player may
+        // have swapped or removed slots meanwhile, and what is there now is what should be drawn.
+        int slotCount = Mathf.Min(currentSelectedButtons.Length, cachedCharCodes.Length);
+        for (int i = 0; i < slotCount; i++) ApplySlotVisual(i, cachedCharCodes[i]);
         RefreshRestrictionMarks();
     }
 
@@ -317,65 +377,66 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         var btn = currentSelectedButtons[slotIndex];
         if (btn == null) return;
 
-        if (string.IsNullOrEmpty(fullCode))
+        if (!CharacterPlacer.TryParse(fullCode, true, out UnitIdentity identity)
+            || !identity.IsValid
+            || !BundledAddressables.Exists(CharacterPlacer.GetLoadPath(identity) + "data", typeof(CharacterData)))
         {
-            btn.SetCover(null);
-            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
-            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
-            btn.SetText(string.Empty);
+            // Empty slot, malformed code, or a unit that is not in this build. The catalog answers the
+            // last case without a download, so an unloaded unit is no longer mistaken for a missing one.
+            ClearSlotVisual(btn);
             return;
         }
 
-        if (!CharacterPlacer.TryParse(fullCode, true, out UnitIdentity identity) || !identity.IsValid)
-        {
-            btn.SetCover(null);
-            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
-            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
-            btn.SetText(string.Empty);
-            return;
-        }
-
-        int rality = 0;
+        int rality = 10;
         int outfitType = 10;
         if (identity.AssetIsCat && identity.CharacterCode.Length > 0 && char.IsDigit(identity.CharacterCode[0]))
         {
             rality = Mathf.Clamp(identity.CharacterCode[0] - '0', 0, 6);
             outfitType = rality + 1;
         }
-        else
-        {
-            rality = 10;
-        }
-        CharacterData cd = CharacterPlacer.LoadData(identity);
-        if (cd != null)
-        {
-            btn.SetOutfit(KiOutfit.Border, outfitType);
-            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
-            btn.SetText(cd.Cost + " $");
-            // 图标按需异步加载：先留空，到位后填充
-            string path = ResolveTeamSlotIconAddress(identity);
-            AsyncIconLoader.Instance.Load(btn.gameObject, path,
-                sprite =>
-                {
-                    if (btn != null) btn.SetCover(sprite);
-                });
-        }
-        else
-        {
-            btn.SetCover(null);
-            btn.SetOutfit(KiOutfit.TransparentCenter, 0);
-            btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
-            btn.SetText(string.Empty);
-        }
+
+        // Frame and outfit are derived from the code alone, so the slot reads as occupied on the very
+        // first frame while the icon and cost are still on their way.
+        btn.SetOutfit(KiOutfit.Border, outfitType);
+        btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(rality));
+
+        // Cost needs the unit's data, which may still be downloading; ResolveSlotDataRoutine re-renders
+        // once it lands. Probed rather than LoadSync'd so an expected early miss is not logged as a
+        // prewarm gap, and unlike CharacterPlacer.LoadData this does not clone 13 assets per refresh.
+        BundledAddressables.TryGetPrewarmed(CharacterPlacer.GetLoadPath(identity) + "data", out CharacterData cd);
+        btn.SetText(cd != null ? cd.Cost + " $" : string.Empty);
+
+        AsyncIconLoader.Instance.Load(btn.gameObject, ResolveTeamSlotIconAddress(identity),
+            sprite =>
+            {
+                if (btn != null) btn.SetCover(sprite);
+            });
+    }
+
+    private static void ClearSlotVisual(KiButton btn)
+    {
+        // Cancel first: an icon still in flight for the unit that just left this slot would otherwise
+        // be painted into it after the clear.
+        AsyncIconLoader.Instance.Cancel(btn.gameObject);
+        btn.SetCover(null);
+        btn.SetOutfit(KiOutfit.TransparentCenter, 0);
+        btn.SetFrameColorPersistent(UXPref.GetRarityFrameColor(0));
+        btn.SetText(string.Empty);
     }
 
     /// <summary>
     /// 编队是我方槽位：猫资源读 icon_deploy，放进来的敌方资源读 enemy_icon。
+    /// Falls back to the other name when the preferred one is absent, matching
+    /// <see cref="CharacterPlacer.LoadIcon"/>'s probe order. Both checks are catalog reads.
     /// </summary>
     private static string ResolveTeamSlotIconAddress(UnitIdentity identity)
     {
         string root = CharacterPlacer.GetLoadPath(identity);
-        return root + (identity.AssetIsCat ? "icon_deploy" : "enemy_icon");
+        string preferred = root + (identity.AssetIsCat ? "icon_deploy" : "enemy_icon");
+        if (BundledAddressables.Exists(preferred, typeof(Sprite))) return preferred;
+
+        string fallback = root + (identity.AssetIsCat ? "enemy_icon" : "icon_deploy");
+        return BundledAddressables.Exists(fallback, typeof(Sprite)) ? fallback : preferred;
     }
 
     private void HandleSlotClicked(int index)

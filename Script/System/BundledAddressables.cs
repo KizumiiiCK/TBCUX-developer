@@ -587,6 +587,21 @@ public static class BundledAddressables
     }
 
     /// <summary>
+    /// Reads a prewarmed asset without reporting a miss, for callers that deliberately render before
+    /// the asset is resident and refresh once it lands (see EquipTeamSelectionPanel). Returns false
+    /// when it is not cached yet.
+    ///
+    /// <see cref="LoadSync{T}"/> is the wrong call for that pattern: it treats every uncached read as
+    /// a prewarm gap, so an optional probe would log an error per attempt and bury the real gaps in
+    /// <see cref="GetMissReport"/>.
+    /// </summary>
+    public static bool TryGetPrewarmed<T>(string address, out T asset) where T : UnityEngine.Object
+    {
+        asset = string.IsNullOrEmpty(address) ? null : ReadCache<T>(address);
+        return asset != null;
+    }
+
+    /// <summary>
     /// Loads numbered children under a folder address: {folder}/0, {folder}/1, ... until a miss.
     /// Replaces Resources.LoadAll for folders that use integer file names.
     /// </summary>

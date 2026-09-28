@@ -195,7 +195,9 @@ public sealed class VirtualizedScrollGrid<TData>
         if (viewport != null) height = Mathf.Max(height, viewport.rect.height);
 
         Vector2 size = settings.Content.sizeDelta;
-        settings.Content.sizeDelta = new Vector2(size.x, height);
+        float width = size.x;
+        if (width < 1f && viewport != null) width = viewport.rect.width;
+        settings.Content.sizeDelta = new Vector2(width, height);
     }
 
     private GameObject GetOrCreateItem()
@@ -208,7 +210,7 @@ public sealed class VirtualizedScrollGrid<TData>
         }
 
         var created = UnityEngine.Object.Instantiate(settings.ItemPrefab, settings.Content);
-        created.transform.localScale = Vector3.one;
+        created.transform.localScale = GetPrefabScale();
         return created;
     }
 
@@ -241,10 +243,18 @@ public sealed class VirtualizedScrollGrid<TData>
         float y = -(row * settings.CellHeight + settings.CellHeight * 0.5f);
 
         rt.SetParent(settings.Content, false);
-        rt.localScale = Vector3.one;
+        rt.localScale = GetPrefabScale();
         rt.anchorMin = new Vector2(0.5f, 1f);
         rt.anchorMax = new Vector2(0.5f, 1f);
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = new Vector2(x, y);
+    }
+
+    private Vector3 GetPrefabScale()
+    {
+        if (settings.ItemPrefab == null) return Vector3.one;
+        Vector3 scale = settings.ItemPrefab.transform.localScale;
+        if (scale.x == 0f || scale.y == 0f || scale.z == 0f) return Vector3.one;
+        return scale;
     }
 }

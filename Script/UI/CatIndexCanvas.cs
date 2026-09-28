@@ -153,6 +153,13 @@ public class CatIndexCanvas : UICanvasMain
             // 详情页需要该角色的完整资源，先异步拉好再显示，避免同步读缓存未命中
             yield return ShowCertainCharacterRoutine(currentRarityCodes[0]);
         }
+        else
+        {
+            // 这一档没有可显示的角色（例如开了"隐藏未获得"且该档一个都没有）。rality 已经换了，
+            // 若继续留着上一档的 current_code，后面任何 ShowCertainCharInTire 都会拼出
+            // {新rality}/{旧code} 这种从未预热、通常也不存在的地址。
+            current_code = string.Empty;
+        }
     }
     /// <summary>
     /// 显示某个角色的详情。资源改为异步按需拉取，因此对外入口只负责启动协程。
@@ -237,6 +244,13 @@ public class CatIndexCanvas : UICanvasMain
 
     private IEnumerator ShowCertainCharInTireRoutine(int tire, bool resetAnimation = true)
     {
+        // 没有选中角色时（换档后该档为空）直接退出，否则会拿旧 code 去拼地址。
+        if (string.IsNullOrEmpty(current_code))
+        {
+            showTireRoutine = null;
+            yield break;
+        }
+
         current_tire = tire;
         string unitCode = $"{rality}{current_code}{tire}";
         string loadPath = $"Units/Cat Units/{rality}/{current_code}/{tire}/";
@@ -244,6 +258,11 @@ public class CatIndexCanvas : UICanvasMain
         // 展示一个单位需要 data + 动画资源全套，这里按需拉取（图鉴不预热全部角色）
         var list = new BundledAddressables.PrewarmList();
         BattlePrewarm.AddUnit(list, true, unitCode);
+        // 升级表：末尾的 CheckUpgradeAvailable -> CheckTireUpAvailable 会同步读它。
+        // 不能依赖 ShowCertainCharacterRoutine 已经预热好：本协程还会从 tire 按钮、UpgradeCharacter、
+        // TireUpCurrentCharacter 直接进入，而 IndexCatButton 更是同一帧并发启动两条协程，谁先下载完
+        // 没有保证。漏掉时 TUC 为 null，进化按钮会静默地一直灰着。
+        list.Add<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
         yield return BundledAddressables.PrewarmRoutine(list);
 
         CharacterData CD = BundledAddressables.LoadSync<CharacterData>(loadPath + "data");

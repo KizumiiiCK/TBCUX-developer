@@ -13,14 +13,16 @@ public class BontiqueCanvas : UICanvasMain
     [SerializeField] private GameObject categoryButtonPrefab; // expects a Button
     [SerializeField] private RectTransform itemsContent;
     [SerializeField] private GameObject itemPrefab; // BontiqueItems prefab
+    [SerializeField] private ScrollRect itemsScrollRect;
+    [SerializeField] private int itemColumns = 4;
+    [SerializeField] private int itemPreloadRows = 1;
     [Header("Audio")]
     [SerializeField] private AudioSource purchaseAudioSource;
     [SerializeField] private AudioClip purchaseAudioClip;
 
     private readonly List<BontiqueShopItem> filteredBuffer = new List<BontiqueShopItem>();
     private readonly Dictionary<string, BontiquePurchaseEntry> purchaseByBid = new Dictionary<string, BontiquePurchaseEntry>();
-    private readonly List<GameObject> spawnedItemCards = new List<GameObject>();
-    private readonly List<BontiqueShopItem> spawnedItemData = new List<BontiqueShopItem>();
+    private VirtualizedScrollGrid<BontiqueShopItem> itemGrid;
     private static Dictionary<int, RewardName> rewardNameByOrder;
     private BontiqueType currentCategory = BontiqueType.Daily;
     private DateTime currentTime;
@@ -109,6 +111,7 @@ public class BontiqueCanvas : UICanvasMain
         }
 
         currentTime = fetchedTime;
+        yield return null;
         InitializeShopAfterTimeReady();
     }
 
@@ -116,8 +119,50 @@ public class BontiqueCanvas : UICanvasMain
     {
         RebuildPurchaseCache();
         CleanupExpiredPurchaseRecords(currentTime);
+        EnsureItemGrid();
         InitializeCategories();
         RefreshCurrentCategory();
+    }
+
+    private void EnsureItemGrid()
+    {
+        if (itemGrid != null || itemsContent == null || itemPrefab == null) return;
+        if (itemsScrollRect == null) itemsScrollRect = itemsContent.GetComponentInParent<ScrollRect>();
+        if (itemsScrollRect == null) return;
+
+        itemsScrollRect.horizontal = false;
+        itemsScrollRect.vertical = true;
+
+        float cellWidth = 300f;
+        float cellHeight = 420f;
+        GridLayoutGroup grid = itemsContent.GetComponent<GridLayoutGroup>();
+        if (grid != null)
+        {
+            if (grid.cellSize.x > 1f) cellWidth = grid.cellSize.x;
+            if (grid.cellSize.y > 1f) cellHeight = grid.cellSize.y;
+        }
+
+        int columns = Mathf.Max(1, itemColumns);
+        RectTransform viewport = itemsScrollRect.viewport != null
+            ? itemsScrollRect.viewport
+            : itemsScrollRect.GetComponent<RectTransform>();
+        if (viewport != null && viewport.rect.width > cellWidth)
+            columns = Mathf.Max(1, Mathf.FloorToInt(viewport.rect.width / cellWidth));
+
+        itemGrid = new VirtualizedScrollGrid<BontiqueShopItem>(
+            new VirtualizedScrollGrid<BontiqueShopItem>.Settings
+            {
+                Content = itemsContent,
+                ScrollRect = itemsScrollRect,
+                ItemPrefab = itemPrefab,
+                Columns = columns,
+                CellWidth = cellWidth,
+                CellHeight = cellHeight,
+                PreloadRows = Mathf.Max(0, itemPreloadRows),
+                DisableAutoLayout = true
+            },
+            BindItem);
+        itemGrid.Initialize();
     }
 
     private void BindItem(GameObject go, int _, BontiqueShopItem item)
@@ -129,50 +174,29 @@ public class BontiqueCanvas : UICanvasMain
         controller.Configure(item, remaining, interactable, currentTime, OnRedeemClickedSignal, OnRedeemRequested);
     }
 
-    private void ShowCategory(BontiqueType t)
+    private void ShowCategory(BontiqueType t, bool resetScroll = true)
     {
-        ClearSpawnedItemCards();
         filteredBuffer.Clear();
-        if (t == BontiqueType.Unknown) return;
-        IReadOnlyList<BontiqueShopItem> list = BontiqueStaticCatalog.GetItemsByCategory(t);
-        if (list != null)
+        if (t != BontiqueType.Unknown)
         {
-            for (int i = 0; i < list.Count; i++)
+            IReadOnlyList<BontiqueShopItem> list = BontiqueStaticCatalog.GetItemsByCategory(t);
+            if (list != null)
             {
-                BontiqueShopItem item = list[i];
-                if (ShouldDisplayItem(item, currentTime)) filteredBuffer.Add(item);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    BontiqueShopItem item = list[i];
+                    if (ShouldDisplayItem(item, currentTime)) filteredBuffer.Add(item);
+                }
             }
         }
-        SpawnItems(filteredBuffer);
+
+        EnsureItemGrid();
+        if (itemGrid != null) itemGrid.SetData(filteredBuffer, resetScroll);
     }
 
     private void RefreshCurrentCategory()
     {
-        ShowCategory(currentCategory);
-    }
-
-    private void SpawnItems(List<BontiqueShopItem> items)
-    {
-        if (itemsContent == null || itemPrefab == null || items == null) return;
-        for (int i = 0; i < items.Count; i++)
-        {
-            BontiqueShopItem item = items[i];
-            GameObject go = Instantiate(itemPrefab, itemsContent);
-            spawnedItemCards.Add(go);
-            spawnedItemData.Add(item);
-            BindItem(go, i, item);
-        }
-    }
-
-    private void ClearSpawnedItemCards()
-    {
-        for (int i = spawnedItemCards.Count - 1; i >= 0; i--)
-        {
-            GameObject card = spawnedItemCards[i];
-            if (card != null) Destroy(card);
-        }
-        spawnedItemCards.Clear();
-        spawnedItemData.Clear();
+        ShowCategory(currentCategory, true);
     }
 
     private void RebuildPurchaseCache()
@@ -305,18 +329,7 @@ public class BontiqueCanvas : UICanvasMain
 
     private void RefreshSpawnedItemStatesAfterPurchase()
     {
-        int count = Mathf.Min(spawnedItemCards.Count, spawnedItemData.Count);
-        for (int i = 0; i < count; i++)
-        {
-            GameObject card = spawnedItemCards[i];
-            BontiqueShopItem item = spawnedItemData[i];
-            if (card == null || item == null) continue;
-            BontiqueItems controller = card.GetComponent<BontiqueItems>();
-            if (controller == null) continue;
-
-            EvaluateItemState(item, currentTime, out int remaining, out bool interactable);
-            controller.RefreshPurchaseState(item, remaining, interactable, currentTime);
-        }
+        ShowCategory(currentCategory, false);
     }
 
     private void ShowRewardTransition(BontiqueShopItem item)
@@ -555,6 +568,16 @@ public class BontiqueCanvas : UICanvasMain
     {
         if (FrameUI != null) FrameUI.CloseDoor();
         yield return new WaitForSecondsRealtime(FrameUIAnimations.DoorDuration);
+    }
+
+    protected override void OnDestroy()
+    {
+        if (itemGrid != null)
+        {
+            itemGrid.Dispose();
+            itemGrid = null;
+        }
+        base.OnDestroy();
     }
 
     private bool StartLoading(List<LoadingTask> tasks, Action<bool> onComplete)

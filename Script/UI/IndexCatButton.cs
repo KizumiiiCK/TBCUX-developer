@@ -18,8 +18,12 @@ public class IndexCatButton : MonoBehaviour
 
     private void ShowCharacter()
     {
+        // Only ShowCertainCharacter. It resolves the default tire itself and shows it at the end of
+        // its routine, so also calling ShowCertainCharInTire here started a second coroutine that
+        // raced the first one: both prewarm, both spawn a display character, and whichever finished
+        // last won. The tire branch would then read the upgrade table before the other branch had
+        // downloaded it.
         CIC.ShowCertainCharacter(character_code);
-        CIC.ShowCertainCharInTire(CIC.GetCurrentCharacterDefaultTire());
     }
 
     public void SetUnlocked(bool unlocked)

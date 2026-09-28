@@ -65,6 +65,7 @@ public class BontiqueItems : MonoBehaviour
         bool isCharacterReward = item.RewardKind == RewardType.character;
         if (rewardImage != null)
         {
+            rewardImage.material = null;
             rewardImage.rectTransform.sizeDelta = isCharacterReward ? CharacterImageSize : ItemImageSize;
             if (isCharacterReward)
             {

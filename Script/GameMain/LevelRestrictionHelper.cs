@@ -887,11 +887,22 @@ public static class LevelRestrictionHelper
         return false;
     }
 
+    /// <summary>
+    /// Validates a forced slot code against the Addressables catalog rather than by loading it.
+    ///
+    /// Parse runs before the battle's assets exist: BattlePrewarm has to read the forced codes to
+    /// know what to download, and LevelController parses again while the scene is still coming up.
+    /// On WebGL a sync load of a not-yet-prewarmed address returns null (see BundledAddressables),
+    /// so validating by loading rejected every forced code - <see cref="ParseForcedSlotRange"/> then
+    /// stored empty strings in slots it had already marked forced, and TryApplyForcedSlots wiped the
+    /// whole team. The catalog is resident from boot, so it answers the only question that matters
+    /// here (does this code name a unit that shipped?) without needing the asset itself.
+    /// </summary>
     private static bool IsValidForcedCharacterCode(string raw)
     {
         if (string.IsNullOrEmpty(raw)) return false;
         if (!CharacterPlacer.TryParse(raw, true, out UnitIdentity identity) || !identity.IsValid) return false;
-        return CharacterPlacer.LoadData(identity) != null;
+        return BundledAddressables.Exists(CharacterPlacer.GetLoadPath(identity) + "data", typeof(CharacterData));
     }
 
     /// <summary>

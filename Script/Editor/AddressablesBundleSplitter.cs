@@ -37,23 +37,44 @@ public static class AddressablesBundleSplitter
     [MenuItem("TBCX/Addressables/Merge Visuals Back Into One Bundle")]
     public static void MergeVisuals() => Merge(VisualsGroupName);
 
+    /// <summary>一个 bundle 至少要装到这个量级才值一次 HTTP 请求（见 EnemyBucket 注释）。</summary>
+    private const int EnemyBucketKeyLength = 3;
+
     /// <summary>
-    /// 一个单位（含全部形态）一个 bundle：进一场战斗只拉编队里那几只，而不是整包 Cat Units。
+    /// 猫咪：一个单位（含全部形态）一个 bundle：进一场战斗只拉编队里那几只，而不是整包 Cat Units。
     /// 形态不再细分——一个单位三个形态平均不到 500KB，拆到形态级只多出两倍多的 bundle 数。
+    ///
+    /// 敌人：按编号前缀归桶，不做一敌一包。见 <see cref="EnemyBucket"/>。
     /// </summary>
     public static string UnitsLabelFor(string address)
     {
         string[] p = Segments(address);
         if (p.Length >= 5 && p[1] == "Cat Units") return LabelPrefix + "cat-" + p[2] + "-" + p[3];
-        if (p.Length >= 4 && p[1] == "Enemy Units") return LabelPrefix + "enemy-" + Sanitize(p[2]);
+        if (p.Length >= 4 && p[1] == "Enemy Units") return LabelPrefix + "enemy-" + EnemyBucket(p[2]);
         // DogeBases / CatBases / Projectiles 三类加起来 3.5MB，按类合并就够，不值得再拆。
         if (p.Length >= 2) return LabelPrefix + Sanitize(p[1]);
         return LabelPrefix + "misc";
     }
 
     /// <summary>
-    /// 一张地图一个 bundle（一场战斗只用一张，现在却要拉全部 96 张 16MB）；
-    /// 剧情立绘按角色分，其余按顶层目录分。
+    /// 敌人按编号前 3 位归桶（e800 -> enemy-e80），180 个敌人收成约 25 包。
+    ///
+    /// 一敌一包时平均只有 58KB——Web 上一次请求的头部 + TLS + RTT 占用跟这个载荷已经同量级，
+    /// 拆到这个粒度是白付请求开销。而且访问模式本来就是批量的：一关会召一整批敌人，
+    /// 桶基本会被整个用掉，过度拉取很少。归桶后平均约 400KB，正好落在合理区间。
+    ///
+    /// 取前 3 位而不是前 2 位：编号高度集中（e0 有 97 个、e1 有 62 个），
+    /// 按前 2 位会打出 5.6MB 的巨包，反而害了只用其中一只的关卡。
+    /// 前 3 位同时保住了局部性——同章节的敌人编号通常相邻，会落进同一个桶。
+    /// </summary>
+    private static string EnemyBucket(string code)
+    {
+        string s = Sanitize(code);
+        return s.Length <= EnemyBucketKeyLength ? s : s.Substring(0, EnemyBucketKeyLength);
+    }
+
+    /// <summary>
+    /// 地图按章节（编号首位）归桶；剧情立绘按角色分，其余按顶层目录分。
     /// </summary>
     public static string VisualsLabelFor(string address)
     {
@@ -62,7 +83,7 @@ public static class AddressablesBundleSplitter
         {
             // 纯数字的是地图本体；MapFillingShader / MapFillingMaterial / MapGradingSettings
             // 是所有地图共用的，单独成包才不会被复制进 96 个 bundle。
-            return IsAllDigits(p[2]) ? LabelPrefix + "map-" + p[2] : LabelPrefix + "map-shared";
+            return IsAllDigits(p[2]) ? LabelPrefix + "map-" + MapBucket(p[2]) : LabelPrefix + "map-shared";
         }
         if (p.Length >= 2 && p[0] == "Background") return LabelPrefix + "bg-" + Sanitize(p[1]);
         if (p.Length >= 2 && p[0] == "DialogueImage") return LabelPrefix + "dlg-" + DialogueCharacter(p[1]);
@@ -234,6 +255,20 @@ public static class AddressablesBundleSplitter
     }
 
     private static string[] Segments(string address) => address.Split('/');
+
+    /// <summary>
+    /// 地图按编号首位归桶（605 -> map-6），93 张地图收成 10 包，最大的桶 20 张约 2.9MB。
+    ///
+    /// 一敌一包那套理由这里也成立（单张平均 143KB，偏细），但更关键的是局部性：
+    /// 编号首位就是章节，玩家在一章里会连着打十几关，桶下载一次之后同章其余关卡都不再产生请求。
+    /// 代价是只进去看一关也要拉整章，这个是有意接受的——地图是有限内容，不像猫咪会一直加，
+    /// 用它换出来的余量正好留给后面新增的单位。
+    /// 要恢复「一图一包」把这里直接 return id 即可，运行时地址不受影响。
+    /// </summary>
+    private static string MapBucket(string id)
+    {
+        return string.IsNullOrEmpty(id) ? "misc" : id.Substring(0, 1);
+    }
 
     private static bool IsAllDigits(string s)
     {

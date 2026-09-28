@@ -62,7 +62,7 @@ public class PrewarmGate : MonoBehaviour
         PlayerDisplayName = string.Empty;
         var tasks = new List<LoadingTask>
         {
-            new LoadingTask("Connecting to content...", task => InitCatalogTask(task)),
+            new LoadingTask("Connecting to content...", task => InitBootContentTask(task)),
             new LoadingTask("Loading save data...", PullSaveTask),
             new LoadingTask("Signing in...", WhoamiTask),
         };
@@ -109,6 +109,28 @@ public class PrewarmGate : MonoBehaviour
         bool ok = false;
         yield return BundledAddressables.InitializeRoutine(result => ok = result);
         task.Success = ok;
+    }
+
+    /// <summary>
+    /// Catalog, then the shared AudioMixer.
+    ///
+    /// The mixer has to be resident from boot, not from the first battle: the menu applies the saved
+    /// BGM/SE volumes on entry (MainMenu.SetBGMVolume), and <see cref="GameAudioMixer"/> reads the
+    /// asset synchronously - which on WebGL only succeeds once it has been prewarmed. Without this the
+    /// menu's very first volume write missed, logged a prewarm miss, and sat in the pending queue
+    /// until a battle happened to load the mixer.
+    ///
+    /// It shares the catalog step rather than adding a visible one because it is a single small asset
+    /// and cannot start until the catalog is up anyway.
+    /// </summary>
+    private static IEnumerator InitBootContentTask(LoadingTask task)
+    {
+        yield return InitCatalogTask(task);
+        if (!task.Success) yield break;
+
+        // Not allowed to fail the gate: silent SE routing is a degraded menu, not an unenterable one.
+        yield return GameAudioMixer.EnsureLoadedRoutine();
+        task.ReportProgress?.Invoke();
     }
 
     private static IEnumerator PullSaveTask(LoadingTask task)

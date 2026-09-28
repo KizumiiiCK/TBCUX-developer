@@ -753,7 +753,7 @@ public class Metal : PassiveSkill
         if (DMG == 0) return;
         bool crit = false;
         if (atkTypes.Contains(AttackType.critical)) crit = true;
-        if (!crit) DMG = DMG > 0 ? 1 : -1;
+        if (!crit) DMG = DMG < 0 ? -1 : 1;
     }
 }
 public class Wave : PassiveSkill
