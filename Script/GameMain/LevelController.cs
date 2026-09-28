@@ -278,8 +278,13 @@ public class LevelController : MonoBehaviour
 
         Speed_btn.onClick.AddListener(() => SpeedUp(!speed_up));
         Upgrade_btn.onClick.AddListener(UpgradeMoney);
-        // Dev only
+#if UNITY_EDITOR
+        Skip_btn.gameObject.SetActive(true);
         Skip_btn.onClick.AddListener(() => { Pause(false); SkipGame(); });
+#else
+        if (Skip_btn != null)
+            Skip_btn.gameObject.SetActive(false);
+#endif
 
         bgmSlider.onValueChanged.AddListener(SetBGMVolume);
         seSlider.onValueChanged.AddListener(SetSEVolume);
@@ -723,11 +728,13 @@ public class LevelController : MonoBehaviour
     }
 
     /// <summary>
-    /// 跳过游戏（用于测试）
+    /// 跳过游戏（仅编辑器测试；导出包不会绑定按钮也不会生效）
     /// </summary>
     public void SkipGame()
     {
+#if UNITY_EDITOR
         dogeBase.GetComponent<DogeBase>().ReceiveAttack(SKIP_GAME_DAMAGE, null, null, null, null, null, null);
+#endif
     }
 
     #endregion
