@@ -103,17 +103,15 @@ public class CannonUnit : Character
             float finalDamage = dmg;
             DamageRelatedEffect dreToApply = DRE;
             bool isType5Zombie = cannon_type == 5 && target.traits != null && target.traits.Z;
-            if (cannon_type == 4 && target.traits != null && target.traits.Mtl)
-            {
-                finalDamage = target.GetMaxHealth() * 0.7f;
-                dreToApply = NeutralDre;
-            }
             if (isType5Zombie)
             {
                 finalDamage = target.GetMaxHealth() * 0.15f;
                 // 百分比伤害应保持“固定百分比”，不再叠加 massive/insane 倍率。
                 dreToApply = NeutralDre;
             }
+            // cannon_type == 4 对钢铁单位的 70% 最大生命伤害已改为数据驱动：
+            // 由预制体 characterEffects 里的 toxic 效果（duration 70）结算，
+            // 其命中自带 AttackType.toxic 穿透 Metal 铁壁，此处不再写代码特例。
             target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, dreToApply, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
             hitCount++;

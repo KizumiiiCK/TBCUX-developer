@@ -59,10 +59,10 @@ public class CharacterTargetManager : MonoBehaviour
     private const string EmotionPrefabPath = "Effects/emotions/Emoji";
     private const string EmotionSpriteRoot = "Effects/emotions/";
     private const float EmotionLifeSeconds = 2f;
-    private const float AttackEmotionImmediateChance = 0.15f;
-    private const float KbEmotionImmediateChance = 0.30f;
-    private const float TeamTickMinSeconds = 0.35f;
-    private const float TeamTickMaxSeconds = 0.85f;
+    private const float AttackEmotionImmediateChance = 0.1f;
+    private const float KbEmotionImmediateChance = 0.20f;
+    private const float TeamTickMinSeconds = 0.2f;
+    private const float TeamTickMaxSeconds = 0.6f;
     private const float EmotionCooldownMinSeconds = 4f;
     private const float EmotionCooldownMaxSeconds = 11f;
     private const float EmotionLateBattleRampSeconds = 200f;

@@ -7,14 +7,7 @@ using UnityEngine;
 public abstract partial class Character
 {
     private const float CharacterTargetVolumeLength = 200;
-    /// <summary>
-    /// 击退位移的距离补偿。下面 PerformKB 的 X 位移用的是「每帧从当前位置、按恒定系数
-    /// 1/duration 插值」的写法，属于指数逼近，duration 帧后只能走到 DX 的约 64%
-    /// （剩余 (1-1/n)^n → 1/e，帧数越多越接近 63.2%）。而各 KB_Type 的 DX 常数是当年
-    /// 按线性插值调出来的，换成 ease-out 时没有同步调整，所以在这里统一乘回去：
-    /// 64% × 1.5 ≈ 96%，实际位移重新接近 DX/100 的名义值。
-    /// </summary>
-    private const float KBDistanceCompensation = 1.5f;
+    private const float KBDistanceCompensation = 1f;
     // 全抗性命中特效类型，只读共享，避免每次完全抵抗命中时分配新List
     protected static readonly List<AttackType> WaveInvalidHitTypes = new List<AttackType> { AttackType.wave_invalid };
     // 当本次攻击禁止触发效果时，职业克制也应失效（全false）。
