@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 5
+  m_EditorClassIdentifier: 
+  levelName: t-3:5
+  gainXP: 10
+  BaseHealth: 11451
+  mapSize: 4000
+  maxEmenyCount: 15
+  BackgroundID: 24
+  BaseImageID: 367
+  CombatEffect: []
+  Restriction:
+  - oh:0
+  - tl:150
+  - FS:13501/20+
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 12
+    drawtimes: 100
+    droprate: 100
+    onlyOnce: 1
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 058
+    enemySummonInfos:
+    - enemyID: -30051
+      ratio: 2000
+      bossShock: 0
+      repeat: -1
+      firstAppear: 900
+      repeatMin: 380
+      repeatMax: 380
+      previewSprite: {fileID: 0}

@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 1st
+  m_EditorClassIdentifier: 
+  sectionName: 1st
+  mapName: Anniv-map
+  BGM: lowtea
+  unlockRestriction: 
+  timesLimit: 16
+  hardness: 1
+  difficulty: 010101010101010101000000
+  coverColor: {r: 0.9921569, g: 0.94117653, b: 0.8235295, a: 1}
+  titleColor: 0
+  levelsOnMap:
+  - levelNameID: anni-1:0
+    levelPosition: {x: -6.6, y: 2.6}
+    tileType: 0
+  - levelNameID: anni-1:1
+    levelPosition: {x: -8.5, y: 6}
+    tileType: 0
+  - levelNameID: anni-1:2
+    levelPosition: {x: -3.3, y: 6.7}
+    tileType: 0
+  - levelNameID: anni-1:3
+    levelPosition: {x: 4, y: 10.5}
+    tileType: 0
+  - levelNameID: anni-1:4
+    levelPosition: {x: 5.5, y: 3}
+    tileType: 0
+  - levelNameID: anni-1:5
+    levelPosition: {x: 9, y: 0}
+    tileType: 0
+  - levelNameID: anni-1:6
+    levelPosition: {x: 5.8, y: -0.8}
+    tileType: 0
+  - levelNameID: anni-1:7
+    levelPosition: {x: 6.3, y: -4.3}
+    tileType: 0
+  - levelNameID: anni-1:8
+    levelPosition: {x: 3, y: -7.5}
+    tileType: 0
+  - levelNameID: anni-1:9
+    levelPosition: {x: 0.5, y: -2.5}
+    tileType: 0
+  - levelNameID: anni-1:10
+    levelPosition: {x: 1, y: -10}
+    tileType: 0
+  - levelNameID: anni-1:11
+    levelPosition: {x: -0.5, y: -5.7}
+    tileType: 0
+  - levelNameID: anni-1:12
+    levelPosition: {x: -2.5, y: -9.8}
+    tileType: 0
+  - levelNameID: anni-1:13
+    levelPosition: {x: -4.5, y: -6.5}
+    tileType: 0
+  - levelNameID: anni-1:14
+    levelPosition: {x: -1.5, y: -2.5}
+    tileType: 0
+  - levelNameID: anni-1:15
+    levelPosition: {x: -0.5, y: 3}
+    tileType: 0

@@ -29,10 +29,12 @@ public class SectionCanvas : UICanvasMain
         ["World_I"] = new[]
         {
             "0_worldi",
+            "tutorial_1",
         },
         ["World_II"] = new[]
         {
             "0_worldii",
+            "tutorial_2",
         },
         ["World_III"] = new[]
         {
@@ -42,6 +44,7 @@ public class SectionCanvas : UICanvasMain
         ["Future_I"] = new[]
         {
             "0_futurei",
+            "tutorial_3",
             "1_f1_m3",
             "2_f1_cm",
         },

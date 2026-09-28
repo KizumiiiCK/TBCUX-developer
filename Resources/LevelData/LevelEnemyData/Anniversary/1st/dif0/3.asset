@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e7634d28969964f9cb3344c32bfd4d, type: 3}
+  m_Name: 3
+  m_EditorClassIdentifier: 
+  levelName: anni-1:3
+  gainXP: 25661
+  BaseHealth: 26630
+  mapSize: 4288
+  maxEmenyCount: 50
+  BackgroundID: 21
+  BaseImageID: 900
+  CombatEffect: []
+  Restriction:
+  - S-:331
+  CombatAura: []
+  exstage:
+    exist: 0
+    enter_rate: 0
+    mapName: 
+  rewardlist:
+  - type: 1
+    id: 42
+    drawtimes: 2
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 43
+    drawtimes: 2
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 44
+    drawtimes: 2
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 45
+    drawtimes: 2
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 46
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 75
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
+  - type: 1
+    id: 75
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 0
+  enemySummoners:
+  - HealthPercentageOnBreak: 100
+    bgm: 032
+    enemySummonInfos:
+    - enemyID: e024
+      ratio: 100
+      bossShock: 0
+      repeat: -1
+      firstAppear: 900
+      repeatMin: 2100
+      repeatMax: 2100
+      previewSprite: {fileID: 0}
+    - enemyID: e038
+      ratio: 30
+      bossShock: 0
+      repeat: -1
+      firstAppear: 1200
+      repeatMin: 2700
+      repeatMax: 2700
+      previewSprite: {fileID: 0}
+    - enemyID: e024
+      ratio: 100
+      bossShock: 0
+      repeat: 3
+      firstAppear: 90
+      repeatMin: 300
+      repeatMax: 300
+      previewSprite: {fileID: 0}
+    - enemyID: e038
+      ratio: 30
+      bossShock: 0
+      repeat: 2
+      firstAppear: 400
+      repeatMin: 900
+      repeatMax: 900
+      previewSprite: {fileID: 0}
+    - enemyID: e020
+      ratio: 50
+      bossShock: 1
+      repeat: 1
+      firstAppear: 30
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 0}
+    - enemyID: e041
+      ratio: 5
+      bossShock: 0
+      repeat: 2
+      firstAppear: 900
+      repeatMin: 1800
+      repeatMax: 1800
+      previewSprite: {fileID: 0}
+  - HealthPercentageOnBreak: 99
+    bgm: 033
+    enemySummonInfos:
+    - enemyID: e092
+      ratio: 25
+      bossShock: 0
+      repeat: -1
+      firstAppear: 1
+      repeatMin: 30
+      repeatMax: 360
+      previewSprite: {fileID: 0}
+    - enemyID: e040
+      ratio: 50
+      bossShock: 0
+      repeat: 3
+      firstAppear: 30
+      repeatMin: 450
+      repeatMax: 550
+      previewSprite: {fileID: 0}
+    - enemyID: e040
+      ratio: 50
+      bossShock: 0
+      repeat: -1
+      firstAppear: 1200
+      repeatMin: 1800
+      repeatMax: 1800
+      previewSprite: {fileID: 0}
+    - enemyID: e026
+      ratio: 50
+      bossShock: 1
+      repeat: 1
+      firstAppear: 0
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 0}
+    - enemyID: e151
+      ratio: 4
+      bossShock: 1
+      repeat: 1
+      firstAppear: 3600
+      repeatMin: 0
+      repeatMax: 0
+      previewSprite: {fileID: 0}
+    - enemyID: e109
+      ratio: 10
+      bossShock: 0
+      repeat: 2
+      firstAppear: 60
+      repeatMin: 900
+      repeatMax: 900
+      previewSprite: {fileID: 0}
