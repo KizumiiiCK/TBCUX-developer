@@ -166,5 +166,6 @@ public static class BGMTool
         { "Dream_Pre", "lilytales-title" },
         { "Challenge", "062" },
         { "Dungeon", "HazeReverb-43-antinova" },
+        { "Anniversary", "HazeReverb-Coffee-House" },
     };
 }

@@ -34,6 +34,9 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private Transform FullChapterContent;
     [SerializeField] private Transform SubChapterContent;
     [SerializeField] private TMP_Text welcomeBackText;
+    [Tooltip("The anniversary entry in the chapter list. Hidden unless a verified world date falls " +
+             "inside the activity window.")]
+    [SerializeField] private GameObject anniversaryChapter;
     //[SerializeField] private GameObject ChapterSelectionBtn;
     [Header("Prefab")]
     [SerializeField] private GameObject subChapter;
@@ -51,6 +54,7 @@ public class MainMenu : MonoBehaviour
         Application.targetFrameRate = 30;
         optionCanvas.SetActive(false);
         ButtonInitializer();
+        ApplyAnniversaryGate();
         ResetLanguage();
         SetBGMVolume();
         SetSEVolume();
@@ -60,6 +64,33 @@ public class MainMenu : MonoBehaviour
     {
         ShowTagInOnce();
         Input.multiTouchEnabled = false;
+        // Hidden until proven otherwise, so a stale scene state can never leak the entry.
+        SetAnniversaryEntriesVisible(false);
+    }
+
+    /// <summary>
+    /// Shows the anniversary entries only for a world date we have actually verified online.
+    /// <para>
+    /// The title screen runs ahead of the check-in flow, so it reads the trust rule straight out of
+    /// local storage: the cached date counts only while the local clock still agrees with it, which
+    /// means "we already went online today". A never-online launch, or a clock the player moved,
+    /// leaves the date unproven — the entries then stay hidden rather than guessing, and the save is
+    /// left untouched because deleting it needs the same proof that we are outside the window.
+    /// </para>
+    /// </summary>
+    private void ApplyAnniversaryGate()
+    {
+        DateTime? today = CheckInSystem.GetVerifiedToday();
+        SetAnniversaryEntriesVisible(today.HasValue && FirstAnniversarySchedule.IsWithinWindow(today.Value));
+    }
+
+    /// <summary>
+    /// Both entries live or die together, so the gate is computed once and applied here. Either may
+    /// be left unset — a scene that only uses one of the two is fine.
+    /// </summary>
+    private void SetAnniversaryEntriesVisible(bool visible)
+    {
+        if (anniversaryChapter != null) anniversaryChapter.SetActive(visible);
     }
 
     private void ShowTagInOnce()
