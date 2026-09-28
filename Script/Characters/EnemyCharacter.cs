@@ -94,7 +94,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         base.OnDestroy();
         if (SkipDestroyCombatAccounting) return;
         if (levelController == null) { Debug.LogError("LC not found."); return; }
-        levelController.AddMoney(Cost);
+        levelController.AddMoney(Cost * LevelRestrictionHelper.GetKillMoneyMultiplier(levelController.LevelRestrictions));
         levelController.RemoveAnEnemy();
     }
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)

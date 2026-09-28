@@ -13,7 +13,7 @@ public static class LevelRestrictionHelper
     private static readonly HashSet<string> CaseSensitiveRestrictionKeys =
         new HashSet<string>(StringComparer.Ordinal)
         {
-            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap", "tl"
+            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap", "Ap", "tl"
         };
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
         new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
@@ -47,6 +47,7 @@ public static class LevelRestrictionHelper
             { "FS", ParseForcedAllSlots },
             { "fs", ParseForcedGuestSlots },
             { "ap", ParseMoneyProductionPercent },
+            { "Ap", ParseKillMoneyPercent },
             { "tl", ParseForcedTreasureCount }
         };
 
@@ -72,6 +73,7 @@ public static class LevelRestrictionHelper
         public int forcedTreasureCount;
         public float unitCostMultiplier = 1f;
         public float moneyProductionPercent = 100f;
+        public float killMoneyPercent = 100f;
 
         public void AddRawValue(string key, string value)
         {
@@ -286,6 +288,12 @@ public static class LevelRestrictionHelper
     {
         if (rules == null) return 1f;
         return rules.moneyProductionPercent * 0.01f;
+    }
+
+    public static float GetKillMoneyMultiplier(RestrictionRules rules)
+    {
+        if (rules == null) return 1f;
+        return rules.killMoneyPercent * 0.01f;
     }
 
     /// <summary>
@@ -776,6 +784,16 @@ public static class LevelRestrictionHelper
         if (rules == null) return;
         if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float percent)) return;
         rules.moneyProductionPercent = percent;
+    }
+
+    /// <summary>
+    /// Ap:{n}　击杀敌人结算金钱为原来的 n%。填写约定与 ap 相同，多条时后面的覆盖前面的。
+    /// </summary>
+    private static void ParseKillMoneyPercent(RestrictionRules rules, string value)
+    {
+        if (rules == null) return;
+        if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float percent)) return;
+        rules.killMoneyPercent = percent;
     }
 
     /// <summary>
