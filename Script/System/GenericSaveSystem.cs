@@ -19,6 +19,8 @@ public static class UXPref
     public const string Difficulty = "DF";
     public const string LevelNum = "LN";
     public const string DirectMark = "DR";
+    /// <summary>选关页勾了「使用通关的队伍」。由 LevelTiler 独占写入，进关卡时读。</summary>
+    public const string UseClearedTeam = "UCT";
     public const string DefaultChapterName = "World_I";
     public const string LANG = "Lang";
     public const string TIREUPUNLOCKMARK = "TireUp_{0}";
@@ -80,6 +82,32 @@ public static class UXPref
         }
     }
 }
+/// <summary>
+/// Fixed window of the 1st Anniversary activity. All checks take an explicit date so callers
+/// are forced to pass the verified world date instead of the tamperable local clock.
+/// </summary>
+public static class FirstAnniversarySchedule
+{
+    public static readonly DateTime StartDate = new DateTime(year: 2026, month: 10, day: 2);
+    public const int DurationDays = 30;
+
+    /// <summary>Last day the activity is still open (inclusive).</summary>
+    public static DateTime EndDate => StartDate.AddDays(DurationDays - 1);
+
+    public static bool IsWithinWindow(DateTime date)
+    {
+        DateTime d = date.Date;
+        return d >= StartDate.Date && d <= EndDate.Date;
+    }
+
+    /// <summary>Days remaining including the given day; 0 once the window has closed.</summary>
+    public static int DaysLeft(DateTime date)
+    {
+        if (!IsWithinWindow(date)) return 0;
+        return (EndDate.Date - date.Date).Days + 1;
+    }
+}
+
 public static class GenericSaveSystem
 {
     // 保存数据
@@ -137,6 +165,12 @@ public static class GenericSaveSystem
         // return SupabaseSaveRemote.Load<T>(filename);
     }
 
+    public static bool HasData(string filename)
+    {
+        if (string.IsNullOrEmpty(filename)) return false;
+        return File.Exists(Path.Combine(FirmFilePath, filename + FirmEnding));
+    }
+
     public static void DeleteData(string filename)
     {
         string fullpath = Path.Combine(FirmFilePath, filename + FirmEnding);
@@ -155,10 +189,17 @@ public static class GenericSaveSystem
 }
 
 [System.Serializable]
+public class DailyMapSectionClear
+{
+    public string sectionName = string.Empty;
+    public int times;
+}
+
+[System.Serializable]
 public class DailyMapClearRecord
 {
     public string dateToken = string.Empty;
-    public List<string> clearedSectionNames = new List<string>();
+    public List<DailyMapSectionClear> sectionClears = new List<DailyMapSectionClear>();
 }
 
 public static class DailyMapChallengeSave
@@ -176,15 +217,25 @@ public static class DailyMapChallengeSave
         BuildaSaveBackend.Remove(SaveKeys.DailyMapClear);
     }
 
-    public static bool HasSectionClearRecordToday(string currentDateToken, string sectionName)
+    public static int GetSectionClearCountToday(string currentDateToken, string sectionName)
     {
-        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return false;
+        if (string.IsNullOrEmpty(currentDateToken) || string.IsNullOrEmpty(sectionName)) return 0;
 
         ResetIfNewDay(currentDateToken);
         DailyMapClearRecord save = Load();
-        if (save == null) return false;
-        if (save.dateToken != currentDateToken) return false;
-        return save.clearedSectionNames != null && save.clearedSectionNames.Contains(sectionName);
+        if (save == null || save.dateToken != currentDateToken || save.sectionClears == null) return 0;
+        for (int i = 0; i < save.sectionClears.Count; i++)
+        {
+            DailyMapSectionClear entry = save.sectionClears[i];
+            if (entry != null && entry.sectionName == sectionName) return Mathf.Max(0, entry.times);
+        }
+        return 0;
+    }
+
+    public static bool HasReachedDailyLimit(string currentDateToken, string sectionName, int timesLimit)
+    {
+        if (timesLimit < 1) return false;
+        return GetSectionClearCountToday(currentDateToken, sectionName) >= timesLimit;
     }
 
     public static void RecordSectionClear(string currentDateToken, string sectionName)
@@ -197,18 +248,29 @@ public static class DailyMapChallengeSave
             save = new DailyMapClearRecord
             {
                 dateToken = currentDateToken,
-                clearedSectionNames = new List<string>()
+                sectionClears = new List<DailyMapSectionClear>()
             };
         }
-        else if (save.clearedSectionNames == null)
+        else if (save.sectionClears == null)
         {
-            save.clearedSectionNames = new List<string>();
+            save.sectionClears = new List<DailyMapSectionClear>();
         }
 
-        if (!save.clearedSectionNames.Contains(sectionName))
+        DailyMapSectionClear entry = null;
+        for (int i = 0; i < save.sectionClears.Count; i++)
         {
-            save.clearedSectionNames.Add(sectionName);
+            if (save.sectionClears[i] != null && save.sectionClears[i].sectionName == sectionName)
+            {
+                entry = save.sectionClears[i];
+                break;
+            }
         }
+        if (entry == null)
+        {
+            entry = new DailyMapSectionClear { sectionName = sectionName, times = 0 };
+            save.sectionClears.Add(entry);
+        }
+        entry.times = Mathf.Max(0, entry.times) + 1;
 
         BuildaSaveBackend.Set(SaveKeys.DailyMapClear, SaveCodec.EncodeDailyMapClear(save));
     }
@@ -421,14 +483,24 @@ public class GameProgressSave
             //clear mark
             if (newD > 0 && newL > 0 && newSec.clear_times[0, newL - 1] > 0)
                 newSec.cleared = true;
-            for (int l = 0; l < Mathf.Min(oldL, newL); l++)
+            // 下面这三个数组各有自己的长度，不能拿 clear_times 的边界去套它们：
+            // 字段是后陆续加的，老存档里可能为 null；关卡数或 teamSize 变过时长度也可能不一致。
+            // 拷不动的部分就留着新建时的默认值，宁可丢一格记录也不能让整个存档读取崩掉。
+            int copyL = Mathf.Min(oldL, newL);
+            for (int l = 0; l < copyL; l++)
             {
-                newSec.reward_gained[l] = oldSec.reward_gained[l];
-                for (int j = 0; j < teamSize; j++)
-                {
-                    newSec.cleared_teams[l,j] = oldSec.cleared_teams[l,j];
-                }
-                newSec.cleared_cannon[l]=oldSec.cleared_cannon[l];
+                if (oldSec.reward_gained != null && l < oldSec.reward_gained.Length)
+                    newSec.reward_gained[l] = oldSec.reward_gained[l];
+                if (oldSec.cleared_cannon != null && l < oldSec.cleared_cannon.Length)
+                    newSec.cleared_cannon[l] = oldSec.cleared_cannon[l];
+            }
+            if (oldSec.cleared_teams != null)
+            {
+                int teamL = Mathf.Min(oldSec.cleared_teams.GetLength(0), newSec.cleared_teams.GetLength(0));
+                int teamW = Mathf.Min(oldSec.cleared_teams.GetLength(1), newSec.cleared_teams.GetLength(1));
+                for (int l = 0; l < teamL; l++)
+                    for (int j = 0; j < teamW; j++)
+                        newSec.cleared_teams[l, j] = oldSec.cleared_teams[l, j];
             }
         }
 
@@ -467,6 +539,57 @@ public class GameProgressSave
         }
         Debug.Log($"cleared: {sec.cleared}");
         SaveChapter(ccl);
+    }
+
+    /// <summary>
+    /// 取某关记录的通关队伍。刻意不走 LoadSectionProgress —— 那条路会 UpdateCCL 重建并重写
+    /// 整个存档文件，进关卡时没必要挨这一次写盘。
+    /// 没有记录、或记录整行为空时返回 null，调用方应退回自选队伍。
+    /// </summary>
+    public static string[] GetClearedTeam(string chapterName, string sectionName, int levelNum)
+    {
+        ChapterClearList[] all = GenericSaveSystem.LoadData<ChapterClearList[]>(filename);
+        if (all == null) return null;
+        ChapterClearList chapter = all.FirstOrDefault(c => c != null && c.ChapterName == chapterName);
+        SectionClearList sec = chapter?.SectionList?.FirstOrDefault(s => s != null && s.SectionName == sectionName);
+        return ExtractClearedTeam(sec, levelNum);
+    }
+
+    /// <summary>
+    /// 从已读入内存的小节记录里取通关队伍，供选关页复用（它本来就持有 secClearList，不必再读盘）。
+    /// 返回的数组长度固定为 13：关卡没有强制格时 TryApplyForcedSlots 不会补齐长度，
+    /// 少一格就会让部署器的定长循环越界。
+    /// </summary>
+    public static string[] ExtractClearedTeam(SectionClearList sec, int levelNum)
+    {
+        if (sec == null || levelNum < 0) return null;
+        string[,] teams = sec.cleared_teams;
+        if (teams == null || levelNum >= teams.GetLength(0)) return null;
+
+        string[] row = new string[teamSize];
+        bool hasAny = false;
+        int width = Mathf.Min(teamSize, teams.GetLength(1));
+        for (int i = 0; i < teamSize; i++)
+        {
+            row[i] = i < width ? (teams[levelNum, i] ?? string.Empty) : string.Empty;
+            if (!string.IsNullOrEmpty(row[i])) hasAny = true;
+        }
+        return hasAny ? row : null;
+    }
+
+    /// <summary>
+    /// 只问「这关有没有通关队伍记录」时用这个：不建数组。
+    /// 选关页拖动时每跨过一格都要问一次，那条路上不能有分配。
+    /// </summary>
+    public static bool HasClearedTeam(SectionClearList sec, int levelNum)
+    {
+        if (sec == null || levelNum < 0) return false;
+        string[,] teams = sec.cleared_teams;
+        if (teams == null || levelNum >= teams.GetLength(0)) return false;
+        int width = Mathf.Min(teamSize, teams.GetLength(1));
+        for (int i = 0; i < width; i++)
+            if (!string.IsNullOrEmpty(teams[levelNum, i])) return true;
+        return false;
     }
 }
 public static class LocalizationHelper
@@ -579,6 +702,7 @@ public enum RewardName
     Bottle_Water=75, Bottle_Soul=76,
     SecMed_Purple=77, SecMed_Red=78, SecMed_Blue=79, SecMed_Green=80,
     GF_Core=81,
+    Anniversary_Ticket=82, Anniversary_Select=83,
     builda_ad_icon=98,
     BuildaCoin=99
 }
@@ -672,6 +796,8 @@ public static class RewardingSystem
         {RewardName.DrawMax_UR,72},
         {RewardName.DrawMax_LR,73},
         {RewardName.DrawMax_G,74},
+        {RewardName.Anniversary_Ticket,75},
+        {RewardName.Anniversary_Select,76},
         {RewardName.builda_ad_icon,98},
         {RewardName.BuildaCoin,99},
         {RewardName.Bottle_Water,110},

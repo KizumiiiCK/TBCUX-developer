@@ -14,6 +14,7 @@ public class UserLoginCheckPage : MonoBehaviour
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Button createNewButton;
     [SerializeField] private Button inheritButton;
+    [SerializeField] private Button offlineButton;
     [SerializeField] private MainMenu mainMenu;
 
     private static string loadingPagePath = "UI/Pages/loading";
@@ -23,11 +24,18 @@ public class UserLoginCheckPage : MonoBehaviour
     private LoadingPage loadingPage;
     private UserInfoLocalData localInfo;
     private UserAccountRow remoteRow;
+    private bool stayForAccountChoice;
 
     private void Awake()
     {
         if (createNewButton != null) createNewButton.onClick.AddListener(OnCreateNewAccount);
         if (inheritButton != null) inheritButton.onClick.AddListener(OnInheritAccount);
+        if (offlineButton != null) offlineButton.onClick.AddListener(OnOfflinePlay);
+    }
+
+    public void StayForAccountChoice()
+    {
+        stayForAccountChoice = true;
     }
 
     private void Start()
@@ -57,8 +65,20 @@ public class UserLoginCheckPage : MonoBehaviour
     }
 #endif
 
+    /// <summary>
+    /// Editor / non-WebGL only. On the Builda player <see cref="Start"/> hands off to
+    /// <c>PrewarmGate.RunBoot</c> instead: identity is the platform account and saves live in
+    /// privateKV, so none of the account-choice flow below is reachable there.
+    /// </summary>
     private IEnumerator BootstrapCheck()
     {
+        if (stayForAccountChoice)
+        {
+            ShowChoice(true);
+            if (offlineButton != null) offlineButton.gameObject.SetActive(false);
+            yield break;
+        }
+
         // Editor Play Mode: mark the save cache ready (empty) so synchronous reads do not look
         // like a missing cloud pull. There is no host KV in the editor.
         bool pulled = false;
@@ -76,7 +96,6 @@ public class UserLoginCheckPage : MonoBehaviour
             yield break;
         }
 
-        // localInfo is complete (TryLoad guarantees pid/user_name/device_code are non-empty) -> accept local
         if (mainMenu != null)
         {
             string nickname = string.IsNullOrWhiteSpace(localInfo.user_name) ? localInfo.user_name : localInfo.user_name;
@@ -103,8 +122,7 @@ public class UserLoginCheckPage : MonoBehaviour
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
@@ -128,19 +146,32 @@ public class UserLoginCheckPage : MonoBehaviour
 
     private void OnCreateNewAccount()
     {
-        if (!UXPref.HasSupabaseConfig)
+        OpenCreateAccount(offlineOnly: false);
+    }
+
+    private void OnOfflinePlay()
+    {
+        if (UserInfoLocalStore.TryLoad(out _))
         {
-            SetMessage(SupabaseSettings.MissingConfigHint);
+            Destroy(gameObject);
             return;
         }
 
+        OpenCreateAccount(offlineOnly: true);
+    }
+
+    private void OpenCreateAccount(bool offlineOnly)
+    {
         GameObject prefab = Resources.Load<GameObject>(createAccountPagePath);
         if (prefab == null)
         {
             SetMessage($"缺少页面：{createAccountPagePath}");
             return;
         }
-        Instantiate(prefab);
+
+        GameObject obj = Instantiate(prefab);
+        UserCreateAccountPage page = obj.GetComponent<UserCreateAccountPage>();
+        if (page != null) page.SetOfflineOnly(offlineOnly);
         Destroy(gameObject);
     }
 
@@ -176,6 +207,7 @@ public class UserLoginCheckPage : MonoBehaviour
     {
         if (createNewButton != null) createNewButton.gameObject.SetActive(show);
         if (inheritButton != null) inheritButton.gameObject.SetActive(show);
+        if (offlineButton != null) offlineButton.gameObject.SetActive(show);
     }
 
     private void StartLoading(List<LoadingTask> tasks, Action<bool> onComplete)

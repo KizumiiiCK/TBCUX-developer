@@ -15,6 +15,7 @@ public class SpineAnimationEventController : MonoBehaviour
 
     [Header("基础配置")]
     [SerializeField] private SkeletonAnimation _skeletonAnimation;
+    public SkeletonAnimation Skeleton => _skeletonAnimation != null ? _skeletonAnimation : GetComponent<SkeletonAnimation>();
 
     [Header("过渡设置")]
     [Tooltip("未命中自定义规则时的默认过渡时长（秒）")]

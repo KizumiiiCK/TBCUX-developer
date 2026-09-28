@@ -2519,7 +2519,7 @@ RectTransform:
   m_Father: {fileID: 7376355720525476087}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3574,7 +3574,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &5928757165582767767
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5237,7 +5237,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8723173281154733705
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5673,7 +5673,7 @@ RectTransform:
   m_Father: {fileID: 4974789407268748476}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8692,6 +8692,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 164072435700840792}
+  - component: {fileID: 6222127335127420596}
   m_Layer: 5
   m_Name: rightpinned
   m_TagString: Untagged
@@ -8722,6 +8723,18 @@ RectTransform:
   m_AnchoredPosition: {x: 1080, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6222127335127420596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6633386047383732795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b0918b3c95a6f4a8358dcab4267884, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6711582931977034443
 GameObject:
   m_ObjectHideFlags: 0
@@ -9028,6 +9041,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4859286494282518940}
+  - component: {fileID: 6754706031810338548}
   m_Layer: 5
   m_Name: leftpinned
   m_TagString: Untagged
@@ -9055,6 +9069,18 @@ RectTransform:
   m_AnchoredPosition: {x: -1080, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6754706031810338548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6837016058355280772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b0918b3c95a6f4a8358dcab4267884, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6918976365939303812
 GameObject:
   m_ObjectHideFlags: 0

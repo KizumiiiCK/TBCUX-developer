@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class EquipTeamSelectionPanel : MonoBehaviour
 {
+    /// <summary>预览通关队伍时队名框显示的固定文字（选关页地图上的队名标签也用它，保持一致）。</summary>
+    public const string ClearedTeamPreviewLabel = "CLEARED TEAMS";
+
     [Header("Selection Slots")]
     [SerializeField] private KiButton[] currentSelectedButtons = new KiButton[13];
     [SerializeField] private Sprite emptySlotSprite;
@@ -45,6 +48,11 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private bool suppressTeamNameNotify;
     private Coroutine slotDataRoutine;
     private bool slotDataPending;
+    /// <summary>false 时格子只做展示。关卡页用：那里换位/移除没有意义，编队只在 EquipCanvas 里做。</summary>
+    private bool slotEditingEnabled = true;
+    /// <summary>预览态：显示的是历史阵容而不是存档里的队伍，任何改动都不许落盘。</summary>
+    private bool previewMode;
+    private Action onPreviewCancelled;
 
     private void Awake()
     {
@@ -92,10 +100,57 @@ public class EquipTeamSelectionPanel : MonoBehaviour
         currentTeamIndex = Mathf.Clamp(teamNumber, 0, SelectionsSave.TeamNum - 1);
         currentTeamName = TeamNameSave.NormalizeTeamName(currentTeamIndex, teamName);
         if (teamNameInput == null) return;
+        // 预览态的队名框写着 CLEARED TEAMS，不能被真实队名盖回去；索引和队名照常记下来，
+        // 退出预览时还要用。
+        if (previewMode) return;
         suppressTeamNameNotify = true;
         string fallback = $"Team {currentTeamIndex + 1}";
         teamNameInput.text = string.IsNullOrWhiteSpace(currentTeamName) ? fallback : currentTeamName;
         suppressTeamNameNotify = false;
+    }
+
+    /// <summary>关卡页调用：格子只做展示。默认开启，EquipCanvas 不受影响。</summary>
+    public void SetSlotEditing(bool editable)
+    {
+        slotEditingEnabled = editable;
+        if (!editable) HideSwapPanel();
+    }
+
+    /// <summary>
+    /// 展示一套不属于存档的历史阵容（通关队伍）。预览期间一切改动都不会写回存档，
+    /// 玩家按左右换队时退出预览并回调 onCancelled，让调用方取消自己的选定状态。
+    /// </summary>
+    public void ShowPreviewTeam(string[] codes, Action onCancelled = null)
+    {
+        if (codes == null) return;
+        previewMode = true;
+        onPreviewCancelled = onCancelled;
+        HideSwapPanel();
+        RefreshSlots(codes);
+        if (teamNameInput != null)
+        {
+            suppressTeamNameNotify = true;
+            teamNameInput.text = ClearedTeamPreviewLabel;
+            suppressTeamNameNotify = false;
+            teamNameInput.interactable = false;
+        }
+    }
+
+    /// <summary>退出预览，回到存档里当前索引的队伍。没在预览时什么都不做（避免切关时反复读盘）。</summary>
+    public void ExitPreview()
+    {
+        if (!previewMode) return;
+        previewMode = false;
+        onPreviewCancelled = null;
+        if (teamNameInput != null) teamNameInput.interactable = true;
+        LoadCurrentTeamFromPrefs();
+    }
+
+    /// <summary>重新按存档刷新格子与队名（页面重新激活时用；预览态交给 ExitPreview 处理）。</summary>
+    public void ReloadFromSave()
+    {
+        if (previewMode) return;
+        LoadCurrentTeamFromPrefs();
     }
 
     public void RefreshSlots(string[] charCodes)
@@ -360,6 +415,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
     private void OnTeamNameInputValueChanged(string value)
     {
         if (suppressTeamNameNotify) return;
+        if (previewMode) return;
         if (onTeamNameChanged != null)
         {
             onTeamNameChanged.Invoke(value);
@@ -441,6 +497,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private void HandleSlotClicked(int index)
     {
+        if (!slotEditingEnabled) return;
         if (onSlotClicked != null)
         {
             onSlotClicked.Invoke(index);
@@ -455,6 +512,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private void HandleSwapTargetClicked(int index)
     {
+        if (!slotEditingEnabled) return;
         if (onSwapTargetClicked != null)
         {
             onSwapTargetClicked.Invoke(index);
@@ -478,6 +536,7 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private void HandleRemoveClicked()
     {
+        if (!slotEditingEnabled) return;
         if (onRemoveClicked != null)
         {
             onRemoveClicked.Invoke();
@@ -493,6 +552,17 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private void HandleChangeTeamClicked(bool after)
     {
+        // 预览态下按换队，说明玩家想回去用自选队伍：退出预览、停在 pref 记着的那一队（索引不动），
+        // 并通知调用方取消选定。必须拦在默认逻辑之前 —— 默认逻辑第一件事就是 SaveCurrentTeamState()，
+        // 那会把历史阵容存成玩家的当前队伍。
+        if (previewMode)
+        {
+            Action cancelled = onPreviewCancelled;
+            ExitPreview();
+            cancelled?.Invoke();
+            return;
+        }
+
         if (onChangeTeamClicked != null)
         {
             onChangeTeamClicked.Invoke(after);
@@ -519,6 +589,8 @@ public class EquipTeamSelectionPanel : MonoBehaviour
 
     private void SaveCurrentTeamState()
     {
+        // 预览态的 cachedCharCodes 装的是历史阵容，落盘就等于用它覆盖玩家的自选队伍。
+        if (previewMode) return;
         SelectionsSave.SetRow(currentTeamIndex, cachedCharCodes);
         TeamNameSave.SetTeamName(currentTeamIndex, currentTeamName);
         NotifyTeamStateChanged();

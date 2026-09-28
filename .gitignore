@@ -11,18 +11,21 @@
 !/Resources/
 !/Script/
 !/Bundled/
+!/Materials/
 !/AddressableAssetsData/
 
 # Keep folder meta files for GUID stability
 !/Resources.meta
 !/Script.meta
 !/Bundled.meta
+!/Materials.meta
 !/AddressableAssetsData.meta
 
 # Include all content under allowed folders
 !/Resources/**
 !/Script/**
 !/Bundled/**
+!/Materials/**
 !/AddressableAssetsData/**
 
 # Addressables linker file — regenerated on every content build
@@ -98,10 +101,17 @@
 /Bundled/Background/**/*.PNG.meta
 
 # Optional local/OS noise
+# Unity generates a .meta for any file it does not recognise, including these
+# local leftovers. Ignoring only the file leaves an orphan .meta behind, so each
+# pattern needs its .meta twin (the way *.psd already does).
 *.tmp
+*.tmp.meta
 *.bak
+*.bak.meta
 *.swp
+*.swp.meta
 *.origin
+*.origin.meta
 *.psd
 *.psd.meta
 Thumbs.db
@@ -112,6 +122,8 @@ Desktop.ini
 /Resources/Private/SupabaseSettings.asset.meta
 
 # Dev leftovers (kept on disk, not versioned)
+/Script/Dev/
+/Script/Dev.meta
 /Script/System/AnimationDisplayer.cs.origin
 /Resources/Units/testers/
 /Resources/Units/testers.meta

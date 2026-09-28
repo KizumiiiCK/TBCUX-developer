@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using Unity.VisualScripting;
@@ -295,8 +296,13 @@ public class LevelController : MonoBehaviour
 
         Speed_btn.onClick.AddListener(() => SpeedUp(!speed_up));
         Upgrade_btn.onClick.AddListener(UpgradeMoney);
-        // Dev only
+#if UNITY_EDITOR
+        Skip_btn.gameObject.SetActive(true);
         Skip_btn.onClick.AddListener(() => { Pause(false); SkipGame(); });
+#else
+        if (Skip_btn != null)
+            Skip_btn.gameObject.SetActive(false);
+#endif
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         if (bgmSlider != null) bgmSlider.gameObject.SetActive(false);
@@ -399,6 +405,11 @@ public class LevelController : MonoBehaviour
         }
         int mapSize = LD.mapSize;
 
+        // 限制条件必须在这里解析：tl 会改写 treasureCount，而下面的金钱倍率、基地血量、经验奖励都拿它算。
+        // ApplyLevelRestrictionSettings 仍留在 SetupMapAndBases 之后，它要用那里才赋值的 catBaseComponent。
+        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
+        treasureCount = LevelRestrictionHelper.GetTreasureCount(levelRestrictions, treasureCount);
+
         // 计算金钱倍率
         CalculateMoneyMultiplier();
 
@@ -407,7 +418,6 @@ public class LevelController : MonoBehaviour
 
         // 设置关卡信息
         SetupLevelInfo();
-        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
         ApplyLevelRestrictionSettings();
 
         // 设置战斗效果
@@ -747,11 +757,13 @@ public class LevelController : MonoBehaviour
     }
 
     /// <summary>
-    /// 跳过游戏（用于测试）
+    /// 跳过游戏（仅编辑器测试；导出包不会绑定按钮也不会生效）
     /// </summary>
     public void SkipGame()
     {
+#if UNITY_EDITOR
         dogeBase.GetComponent<DogeBase>().ReceiveAttack(SKIP_GAME_DAMAGE, null, null, null, null, null, null);
+#endif
     }
 
     #endregion
@@ -1013,6 +1025,7 @@ public class LevelController : MonoBehaviour
     protected void SetupCatDeployersNormal()
     {
         characters_code = SelectionsSave.GetRow(PlayerPrefs.GetInt(SelectionsSave.pref_teamnum, 0));
+        TryUseClearedTeam(ref characters_code);
         LevelRestrictionHelper.TryApplyForcedSlots(levelRestrictions, ref characters_code);
         int[] proficiencyLevels = LPU.SetUp(characters_code);
         int teamProficiencyBonus = CalculateTeamProficiencyBonus(proficiencyLevels);
@@ -1062,6 +1075,19 @@ public class LevelController : MonoBehaviour
                 GetDeploymentCostMultiplier(code));
             LevelRestrictionHelper.ApplyToDeployer(deployer, code, levelRestrictions, true, ShouldLockAllCatsByRestriction());
         }
+    }
+
+    /// <summary>
+    /// 选关页勾了「使用通关的队伍」时，用存档里记下的通关阵容替换自选队伍。
+    /// 标记保留不删：重开关卡会重载场景，删了就退回自选队伍了；标记只由选关页在出击时写或删。
+    /// 取到的记录不完整就当没勾，宁可用自选队伍也不能让玩家带着空卡组进场。
+    /// </summary>
+    private void TryUseClearedTeam(ref string[] codes)
+    {
+        if (PlayerPrefs.GetInt(UXPref.UseClearedTeam, 0) != 1) return;
+        string[] cleared = GameProgressSave.GetClearedTeam(chapterName, sectionName, levelNum);
+        if (cleared == null || cleared.Length != SelectionsSave.SIZE) return;
+        codes = cleared;
     }
 
     /// <summary>
@@ -1309,11 +1335,10 @@ public class LevelController : MonoBehaviour
         if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return false;
 
         MapInfo mapInfo = TryGetCurrentMapInfo();
-        if (mapInfo == null) return false;
-        if (!mapInfo.oncePerDay) return false;
+        if (mapInfo == null || !mapInfo.HasDailyTimesLimit) return false;
         DailyMapChallengeSave.RecordSectionClear(CheckInSystem.GetCachedWorldDateToken(), sectionName);
-        //PlayerPrefs.SetString(UXPref.Localized_InsDailyClear, "TRUE");
-        return true;
+        return DailyMapChallengeSave.HasReachedDailyLimit(
+            CheckInSystem.GetCachedWorldDateToken(), sectionName, mapInfo.timesLimit);
     }
 
     private MapInfo TryGetCurrentMapInfo()

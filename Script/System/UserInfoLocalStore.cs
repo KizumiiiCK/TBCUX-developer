@@ -8,6 +8,12 @@ public class UserInfoLocalData
     public string pid;
     public string user_name;
     public string device_code;
+
+    /// <summary>UTC+8 日期 token（yyyy-MM-dd），本机最后一次成功签到的日期；空字符串表示从未签到。</summary>
+    public string last_checkin_date;
+
+    /// <summary>本机记录的连续签到天数。</summary>
+    public int consecutive_days;
 }
 
 public static class UserInfoLocalStore
@@ -31,7 +37,6 @@ public static class UserInfoLocalStore
             if (string.IsNullOrWhiteSpace(json)) return false;
             data = JsonUtility.FromJson<UserInfoLocalData>(json);
             return data != null
-                && !string.IsNullOrWhiteSpace(data.pid)
                 && !string.IsNullOrWhiteSpace(data.user_name)
                 && !string.IsNullOrWhiteSpace(data.device_code);
         }
@@ -40,6 +45,11 @@ public static class UserInfoLocalStore
             Debug.LogError($"[UserInfoLocalStore] Load failed: {e.Message}");
             return false;
         }
+    }
+
+    public static bool HasOnlinePid(UserInfoLocalData data)
+    {
+        return data != null && !string.IsNullOrWhiteSpace(data.pid);
     }
 
     public static bool Save(UserInfoLocalData data)

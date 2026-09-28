@@ -91,7 +91,6 @@ public class CharacterDataEditor : Editor
         SerializedProperty cooldownProp = serializedObject.FindProperty("Cooldown");
         SerializedProperty areaAtkProp = serializedObject.FindProperty("areaATK");
         SerializedProperty atkDurationProp = serializedObject.FindProperty("atkDuration");
-        SerializedProperty baseEmotionProp = serializedObject.FindProperty("baseEmotion");
         SerializedProperty atkTypeProp = serializedObject.FindProperty("ATKType");
         SerializedProperty atkInfosProp = serializedObject.FindProperty("atkInfos");
         SerializedProperty dreProp = serializedObject.FindProperty("DRE");
@@ -110,7 +109,6 @@ public class CharacterDataEditor : Editor
                 detectRangeProp, costProp,
                 cooldownProp, atkDurationProp,
                 areaAtkProp);
-            EditorGUILayout.PropertyField(baseEmotionProp, new GUIContent("Base Emotion"));
             DrawCatLevel50Preview(data);
             EditorGUILayout.PropertyField(atkTypeProp, new GUIContent("ATK Types"), true);
             DrawAtkInfosTable(atkInfosProp);

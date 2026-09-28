@@ -126,7 +126,9 @@ public static class CharacterPlacer
         }
 
         character.SetOppositeUnit(identity.IsOpposite);
-        if (!Mathf.Approximately(power, 1f)) character.SetPower(power);
+        character.SetSpawnIdentity(identity);
+        character.SetSpawnVisualOrders(uaOrder, adOrder);
+        character.SetPower(power);
         character.LoadCharacterData(levelController, data, level, treasureCount);
         character.levelController = levelController;
         UnitSpawningPassive.RequestPrewarm(character, data);

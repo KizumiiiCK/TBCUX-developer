@@ -13,6 +13,7 @@ public class UserUploadAccountPage : MonoBehaviour
 {
     private const string UserTable = "user_accounts";
     private const string BontiquePurchaseTable = "bontique_purchases";
+    private const string AnniversaryBoardTable = "anniversary_board";
     private const string LoadingPagePath = "UI/Pages/loading";
 
     [Header("Main UI")]
@@ -50,7 +51,7 @@ public class UserUploadAccountPage : MonoBehaviour
 
     private void Start()
     {
-        if (!UserInfoLocalStore.TryLoad(out localUser))
+        if (!UserInfoLocalStore.TryLoad(out localUser) || !UserInfoLocalStore.HasOnlinePid(localUser))
         {
             SetInfo("Failed to read local user save. Upload is unavailable.");
             SetUserDisplay("--------", "--------");
@@ -123,6 +124,7 @@ public class UserUploadAccountPage : MonoBehaviour
             new LoadingTask("Uploading enemy meet flags...", ExecuteUploadEnemyMeetTask),
             new LoadingTask("Uploading team selections...", ExecuteUploadTeamSelectionsTask),
             new LoadingTask("Uploading boutique purchases...", ExecuteUploadBontiquePurchasesTask),
+            new LoadingTask("Uploading anniversary board...", ExecuteUploadAnniversaryBoardTask),
             new LoadingTask("Updating account transfer metadata...", task => ExecuteUpdateUserAccountTask(task, transferCode)),
         };
 
@@ -404,9 +406,37 @@ public class UserUploadAccountPage : MonoBehaviour
         if (!ok && loadingPage != null) loadingPage.NotifyFailure("Failed to upload bontique_purchases.");
     }
 
+    /// <summary>
+    /// 周年庆棋盘：4 个 long 位掩码，和 reward_inventory / enemy_meet 一样压成一行数组。
+    /// 活动没开或玩家没点过棋盘时本地没有存档文件，直接跳过——不要传一盘空棋盘上去，
+    /// 那会在远端建一行，让继承方凭空得到一个已初始化的棋盘。
+    /// </summary>
+    private IEnumerator ExecuteUploadAnniversaryBoardTask(LoadingTask task)
+    {
+        if (loadingPage != null) loadingPage.SetDetail("Reading and uploading anniversary_board as one bigint[4] row...");
+
+        long[] masks = FirstAnniversarySave.GetRawData();
+        if (masks == null || masks.Length == 0)
+        {
+            task.Success = true;
+            if (loadingPage != null) loadingPage.SetDetail("No local anniversary_board data. Skipped.");
+            yield break;
+        }
+
+        string row = "{"
+            + $"\"pid\":\"{JsonEscape(localUser.pid)}\","
+            + $"\"masks\":{LongArrayJson(masks)}"
+            + "}";
+
+        bool ok = false;
+        yield return Upsert(AnniversaryBoardTable, $"[{row}]", success => ok = success);
+        task.Success = ok;
+        if (!ok && loadingPage != null) loadingPage.NotifyFailure("Failed to upload anniversary_board.");
+    }
+
     private IEnumerator ExecuteUpdateUserAccountTask(LoadingTask task, string transferCode)
     {
-        if (loadingPage != null) loadingPage.SetDetail("Updating user_accounts.transfer_code / device_code / last_update...");
+        if (loadingPage != null) loadingPage.SetDetail("Updating user_accounts transfer metadata and check-in state...");
 
         if (utc8Now == DateTime.MinValue)
         {
@@ -415,11 +445,17 @@ public class UserUploadAccountPage : MonoBehaviour
             yield break;
         }
 
+        // 连签状态随账号一起带走。没签到时传 null，而不是空字符串（timestamptz 列不收 ""）。
+        string checkinDateJson = string.IsNullOrWhiteSpace(localUser.last_checkin_date)
+            ? "null"
+            : "\"" + JsonEscape(localUser.last_checkin_date) + "\"";
         string patchUrl = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(localUser.pid)}";
         string json = "{"
             + $"\"transfer_code\":\"{JsonEscape(transferCode)}\","
             + "\"device_code\":\"\","
-            + $"\"last_update\":\"{JsonEscape(utc8Now.ToString("o", CultureInfo.InvariantCulture))}\""
+            + $"\"last_update\":\"{JsonEscape(utc8Now.ToString("o", CultureInfo.InvariantCulture))}\","
+            + $"\"last_checkin_date\":{checkinDateJson},"
+            + $"\"consecutive_days\":{Mathf.Max(0, localUser.consecutive_days)}"
             + "}";
 
         byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
@@ -428,8 +464,7 @@ public class UserUploadAccountPage : MonoBehaviour
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=representation");
 
             yield return request.SendWebRequest();
@@ -459,8 +494,7 @@ public class UserUploadAccountPage : MonoBehaviour
             request.downloadHandler = new DownloadHandlerBuffer();
             request.timeout = 25;
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "resolution=merge-duplicates");
 
             yield return request.SendWebRequest();
@@ -480,8 +514,7 @@ public class UserUploadAccountPage : MonoBehaviour
         {
             request.downloadHandler = new DownloadHandlerBuffer();
             request.timeout = 25;
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=minimal");
 
             yield return request.SendWebRequest();
@@ -582,6 +615,24 @@ public class UserUploadAccountPage : MonoBehaviour
         {
             if (i > 0) sb.Append(',');
             sb.Append(arr[i]);
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// long[] 专用，不能复用 IntArrayJson：周年庆棋盘用 1L &lt;&lt; index 存 64 格，
+    /// 第 64 格就是符号位，整盘点亮时值是 -1，走 int 会溢出。
+    /// 用 InvariantCulture 是因为负号在某些区域设置下不是 '-'。
+    /// </summary>
+    private static string LongArrayJson(long[] arr)
+    {
+        if (arr == null) return "[]";
+        var sb = new StringBuilder("[");
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if (i > 0) sb.Append(',');
+            sb.Append(arr[i].ToString(CultureInfo.InvariantCulture));
         }
         sb.Append(']');
         return sb.ToString();

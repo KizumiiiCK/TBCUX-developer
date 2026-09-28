@@ -278,7 +278,7 @@ MonoBehaviour:
   KB: 0
   Speed: 0
   Reload: 0
-  DetectionRange: 0
+  DetectionRange: 50
   Cost: 0
   Cooldown: 0
   ATKTypes: 
@@ -288,10 +288,9 @@ MonoBehaviour:
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 330}
+    ATKRange: {x: 0, y: 120}
   areaATK: 1
   atkDuration: 30
-  one_off: 0
   traits:
     Red: 0
     Flt: 0

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public static class BontiqueStaticCatalog
 {
+    private static readonly DateTime Anniv_start_1 = new DateTime(2026, 9, 2);
+    private static readonly DateTime Anniv_end_1 = new DateTime(2026, 11, 5);
     private static readonly List<BontiqueShopItem> Catalog = new List<BontiqueShopItem>
     {
         // Non-event items keep LimitStart/LimitEnd as null.
@@ -295,16 +297,119 @@ public static class BontiqueStaticCatalog
             CurrencyId = 12, CurrencyAmount = 2400,
             LimitCount = 1,
         },
+        new BontiqueShopItem
+        {
+            bid = "char:1401", Category = BontiqueType.Characters, Limit = LimitType.OnlyOnce, RewardKind = RewardType.character,
+            gainId = 1401, ObtainAmount = 1,
+            CurrencyId = 12, CurrencyAmount = 2500,
+            LimitCount = 1,
+        },
         #endregion
         #region Event
-        //new BontiqueShopItem
-        //{
-        //    bid = "once:open2026", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
-        //    gainId = 12, ObtainAmount = 2026,
-        //    CurrencyId = 11, CurrencyAmount = 1,
-        //    LimitCount = 1,
-        //    LimitStart = new DateTime(2026, 5, 27), LimitEnd = new DateTime(2026, 6, 14)
-        //},
+        new BontiqueShopItem
+        {
+            bid = "once:fix-can", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 1500,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = new DateTime(2026, 9, 9), LimitEnd = new DateTime(2026, 10, 9)
+        },
+        new BontiqueShopItem
+        {
+            bid = "once:anniv-can", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 12, ObtainAmount = 2026,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "once:anniv-pt", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 8, ObtainAmount = 2,
+            CurrencyId = 11, CurrencyAmount = 1,
+            LimitCount = 1,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:anniv-d2s", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 76, ObtainAmount = 1,
+            CurrencyId = 75, CurrencyAmount = 1,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2pt", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 8, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 40,
+            LimitCount = 3,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2gt", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 7, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 7,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2xp", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 11, ObtainAmount = 1000000,
+            CurrencyId = 76, CurrencyAmount = 5,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2cfs-p", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 26, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 2,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2cfs-r", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 27, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 2,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2cfs-b", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 28, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 2,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2cfs-g", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 29, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 2,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2cfs-y", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 30, ObtainAmount = 1,
+            CurrencyId = 76, CurrencyAmount = 2,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
+        new BontiqueShopItem
+        {
+            bid = "evt:ct2np", Category = BontiqueType.Event, Limit = LimitType.Event, RewardKind = RewardType.item,
+            gainId = 57, ObtainAmount = 30,
+            CurrencyId = 76, CurrencyAmount = 10,
+            LimitCount = 9999,
+            LimitStart = Anniv_start_1, LimitEnd = Anniv_end_1
+        },
         #endregion
         #region Regular
         new BontiqueShopItem

@@ -45,6 +45,7 @@ public static class BuildaBgmCatalog
 034|034.ogg
 047|047.ogg
 048|048.ogg
+058|058.ogg
 062|062.ogg
 148|148.ogg
 149|149.ogg
@@ -52,6 +53,8 @@ public static class BuildaBgmCatalog
 300|300.ogg
 301|301.ogg
 302|302.ogg
+304|304.ogg
+305|305.ogg
 victory|victory.ogg
 dojovictory|dojovictory.ogg
 lose|lose.ogg
@@ -64,6 +67,7 @@ GF_EV4_intermission|GF_EV4_intermission.mp3
 GF_EV6_90w_pt2|GF_EV6_90w_pt2.mp3
 HazeReverb-43-antinova|HazeReverb-43-antinova.mp3
 HazeReverb-Battle-Warehouse3|HazeReverb-Battle-Warehouse3.mp3
+HazeReverb-Coffee-House|HazeReverb-Coffee-House.mp3
 HazeReverb-Feast|HazeReverb-Feast.mp3
 HazeReverb-moon|HazeReverb-moon.mp3
 HazeReverb-night_raid|HazeReverb-night_raid.mp3

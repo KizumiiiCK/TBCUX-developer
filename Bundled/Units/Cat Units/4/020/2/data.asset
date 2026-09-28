@@ -70,9 +70,9 @@ MonoBehaviour:
   characterEffects: []
   abilities:
   - name: 3
-    probability: 100
+    probability: 1
     duration: 300
-    intensity: 1
+    intensity: 300
   - name: 4
     probability: 100
     duration: 0
@@ -81,4 +81,3 @@ MonoBehaviour:
   - type: 1
     intensity: 100
   effectResistances: []
-  baseEmotion: 0

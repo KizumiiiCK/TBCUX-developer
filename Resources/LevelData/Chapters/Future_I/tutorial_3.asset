@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: tutorial_3
+  m_EditorClassIdentifier: 
+  sectionName: tutorial_3
+  mapName: world_future
+  BGM: 002
+  unlockRestriction: World_III+0_worldiii
+  timesLimit: 0
+  hardness: 1
+  difficulty: 000000000101000000000000
+  coverColor: {r: 0.47843137, g: 0.77254903, b: 0.84705883, a: 1}
+  titleColor: 0
+  levelsOnMap:
+  - levelNameID: t-0:0
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: t-0:1
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: t-0:2
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: t-0:3
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: t-0:4
+    levelPosition: {x: -56, y: 2}
+    tileType: 0
+  - levelNameID: t-0:5
+    levelPosition: {x: -56, y: 2}
+    tileType: 0

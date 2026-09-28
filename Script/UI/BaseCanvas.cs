@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +24,10 @@ public class BaseCanvas : UICanvasMain
     [SerializeField] private Button MedalBtn;
     [SerializeField] private Button StorageBtn;
     [SerializeField] private Button CatCapsBtn;
+    [SerializeField] private Button AnniversaryBtn;
+    [Tooltip("Countdown label under the anniversary button. Written only when the button is " +
+             "revealed, so it never needs its own date check.")]
+    [SerializeField] private TMP_Text AnniversaryDaysText;
     //[SerializeField] private Button EnterMapBtn;
 
     private Vector2 canvasSize;
@@ -36,6 +42,7 @@ public class BaseCanvas : UICanvasMain
     private const string CapsuleDrawCanvasPrefab = "DrawCapsuleCanvas";
     private const string StorageCanvasPrefab = "StorageCanvas";
     private const string BontiqueCanvasPrefab = "BontiqueCanvas";
+    private const string AnniversaryCanvasPrefab = "AnniversaryBoardCanvas";
 
     private void Start()
     {
@@ -46,6 +53,7 @@ public class BaseCanvas : UICanvasMain
         AddButtonListener();
         if (PlayerPrefs.GetInt(UXPref.DirectMark, 0) == 1) DirectToMap();
         //PlayerPrefs.DeleteKey(UXPref.DirectMark);
+        SubscribeAnniversaryGate();
         Instantiate(Resources.Load<GameObject>("UI/Pages/CheckInCanvas"));
         RewardingSystem.GainReward(RewardName.XP, 0);
         UpdateCurrencies();
@@ -55,6 +63,44 @@ public class BaseCanvas : UICanvasMain
         ShowTagInOnce();
         Camera.main.backgroundColor = Color.black;
         Input.multiTouchEnabled = false;
+        // Stays hidden until a verified world date proves the activity is running.
+        if (AnniversaryBtn != null) AnniversaryBtn.gameObject.SetActive(false);
+    }
+
+    #region Anniversary Gate
+
+    private void SubscribeAnniversaryGate()
+    {
+        CheckInSystem.VerifiedTodayResolved += OnVerifiedTodayResolved;
+        // Covers the case where today's date was already established earlier this session.
+        if (CheckInSystem.VerifiedToday.HasValue)
+            OnVerifiedTodayResolved(CheckInSystem.VerifiedToday.Value);
+    }
+
+    /// <summary>
+    /// Gates the activity on a proven date. While today is unknown (offline first launch of the
+    /// day) this never runs, so the button stays hidden and the save is left untouched: playing
+    /// requires proof we are inside the window, and deleting requires proof we are outside it.
+    /// </summary>
+    private void OnVerifiedTodayResolved(DateTime today)
+    {
+        if (FirstAnniversarySchedule.IsWithinWindow(today))
+        {
+            // DaysLeft counts today in, so the final day reads "0 DAYS REMAINING".
+            if (AnniversaryDaysText != null)
+                AnniversaryDaysText.text = $"<color=#00FFFF>{FirstAnniversarySchedule.DaysLeft(today) - 1}</color>  DAYS  REMAINING";
+            if (AnniversaryBtn != null) AnniversaryBtn.gameObject.SetActive(true);
+            return;
+        }
+        FirstAnniversarySave.DeleteIfOutsideWindow(today);
+    }
+
+    #endregion
+
+    protected override void OnDestroy()
+    {
+        CheckInSystem.VerifiedTodayResolved -= OnVerifiedTodayResolved;
+        base.OnDestroy();
     }
 
     private void ShowTagInOnce()
@@ -83,6 +129,8 @@ public class BaseCanvas : UICanvasMain
         CatCapsBtn.onClick.AddListener(delegate { if (operating) return; ToCapsuleDrawCanvas(); });
         BontiqueBtn.onClick.AddListener(delegate { if (operating) return; ToBontiqueCanvas(); });
         StorageBtn.onClick.AddListener(delegate { if (operating) return; ToStorageCanvas(); });
+        if (AnniversaryBtn != null)
+            AnniversaryBtn.onClick.AddListener(delegate { if (operating) return; ToAnniversaryCanvas(); });
     }
     public void UpdateCurrencies()
     {
@@ -121,6 +169,7 @@ public class BaseCanvas : UICanvasMain
     public void ToEnemyCanvas() { StartCoroutine(ShowEnemyCanvas()); }
     public void ToCapsuleDrawCanvas() { StartCoroutine(ShowCapsuleCanvas()); }
     public void ToBontiqueCanvas() { StartCoroutine(ShowBontiqueCanvas()); }
+    public void ToAnniversaryCanvas() { StartCoroutine(ShowAnniversaryCanvas()); }
     public void ToStorageCanvas() { StartCoroutine(ShowStorageCanvas()); }
     public void MapToEquip(string[] enemies = null, string[] restrictions = null, bool blindEnemyIcons = false)
     {
@@ -227,6 +276,21 @@ public class BaseCanvas : UICanvasMain
                 BontiqueCanvasPrefab,
                 page => currentSubCanvas = page,
                 new List<int> { RewardingSystem.RewardNumMap[RewardName.BuildaCoin] },
+                FrameUIDisplayer.DoorAction.None
+            );
+        }
+        yield return new WaitForSeconds(FrameUIAnimations.DoorDuration);
+        operating = false;
+    }
+    private IEnumerator ShowAnniversaryCanvas()
+    {
+        operating = true;
+        if (frameUI != null)
+        {
+            frameUI.OpenPage(
+                AnniversaryCanvasPrefab,
+                page => currentSubCanvas = page,
+                null,
                 FrameUIDisplayer.DoorAction.None
             );
         }

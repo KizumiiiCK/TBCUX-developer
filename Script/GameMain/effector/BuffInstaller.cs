@@ -15,6 +15,19 @@ public class EffectInstaller : MonoBehaviour
         int _duration = Mathf.FloorToInt(duration);
         int _intensity = Mathf.FloorToInt(intensity);
         Character character = target != null ? target.GetComponent<Character>() : null;
+        // 击退的 duration 是「力量比例」而不是帧数（1 = DX 240，负数反向），抗性应当按比率
+        // 线性削弱它。所以它必须在下面的取整门槛之前处理：FloorToInt 会把 0~1 之间的值
+        // 截成 0，让 1 级击退碰上任何非零抗性都变成完全免疫。
+        if (effectName is EffectName ename && ename == EffectName.knockback)
+        {
+            if (character == null || Mathf.Approximately(duration, 0f))
+            {
+                SpawnAttachedEffect(character, "effect_blocked", BlockedEffectLifetime);
+                return;
+            }
+            character.StartKBCoroutine(KB_Type.knockBack, 240 * duration);
+            return;
+        }
         if (_duration == 0)
         {
             SpawnAttachedEffect(character, "effect_blocked", BlockedEffectLifetime);
@@ -46,9 +59,9 @@ public class EffectInstaller : MonoBehaviour
                 if (target.GetComponent<Toxic>() != null) txc = target.GetComponent<Toxic>();
                 else txc = target.AddComponent<Toxic>();
                 txc.duration = _duration;
-                break;
-            case EffectName.knockback:
-                target.GetComponent<Character>().StartKBCoroutine(KB_Type.knockBack, 240 * duration);
+                // 复用已有组件时 Start/EffectInitializer 不会再跑，所以毒伤必须在这里显式结算，
+                // 否则对已中毒的目标只是刷新了 duration，一滴血都不掉。
+                txc.EffectOperation();
                 break;
             case EffectName.wrap:
                 Wrap wrp;

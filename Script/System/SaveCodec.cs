@@ -384,10 +384,15 @@ public static class SaveCodec
             if (record == null) { w.Write(false); return; }
             w.Write(true);
             WriteNullableString(w, record.dateToken);
-            var names = record.clearedSectionNames;
-            if (names == null) { w.Write(NullLength); return; }
-            w.Write(names.Count);
-            for (int i = 0; i < names.Count; i++) WriteNullableString(w, names[i]);
+            var clears = record.sectionClears;
+            if (clears == null) { w.Write(NullLength); return; }
+            w.Write(clears.Count);
+            for (int i = 0; i < clears.Count; i++)
+            {
+                DailyMapSectionClear entry = clears[i];
+                WriteNullableString(w, entry?.sectionName);
+                w.Write(entry?.times ?? 0);
+            }
         });
     }
 
@@ -404,12 +409,43 @@ public static class SaveCodec
             int n = r.ReadInt32();
             if (n == NullLength)
             {
-                record.clearedSectionNames = null;
+                record.sectionClears = null;
                 return record;
             }
-            record.clearedSectionNames = new List<string>(n);
-            for (int i = 0; i < n; i++) record.clearedSectionNames.Add(ReadNullableString(r));
+            record.sectionClears = new List<DailyMapSectionClear>(n);
+            for (int i = 0; i < n; i++)
+            {
+                record.sectionClears.Add(new DailyMapSectionClear
+                {
+                    sectionName = ReadNullableString(r),
+                    times = r.ReadInt32(),
+                });
+            }
             return record;
+        });
+    }
+
+    public static byte[] EncodeLongArray(long[] values)
+    {
+        return ToBytes(w =>
+        {
+            WriteHeader(w);
+            if (values == null) { w.Write(NullLength); return; }
+            w.Write(values.Length);
+            for (int i = 0; i < values.Length; i++) w.Write(values[i]);
+        });
+    }
+
+    public static long[] DecodeLongArray(byte[] bytes)
+    {
+        return FromBytes(bytes, r =>
+        {
+            ReadHeader(r, "long array");
+            int n = r.ReadInt32();
+            if (n == NullLength) return null;
+            var a = new long[n];
+            for (int i = 0; i < n; i++) a[i] = r.ReadInt64();
+            return a;
         });
     }
 

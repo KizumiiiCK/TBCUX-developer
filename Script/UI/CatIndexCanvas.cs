@@ -32,9 +32,15 @@ public class CatIndexCanvas : UICanvasMain
     //Tire Up
     [SerializeField] private KiButton TireUp_btn;
     [SerializeField] private EvolveComfirm EvolveComfirmCanvas;
+    //Talent
+    [SerializeField] private KiButton Talent_btn;
     protected bool TireUp_itemNeeded = true;
     protected RewardName[] TireUp_consumeItems = new RewardName[6];
     protected int[] TireUp_consumeAmount = new int[6];
+    //Legend Ticket Exchange
+    [SerializeField] private Button LegendExchange_btn;
+    /// <summary>按钮上的文字框。没填就在 InitializeButtons 里往子物体找一个。</summary>
+    [SerializeField] private TMP_Text LegendExchange_text;
     //UI elements
     [SerializeField] private Button Prof_btn;
     [SerializeField] private FrameCurrencyItem upgradeCostXpItem;
@@ -82,6 +88,20 @@ public class CatIndexCanvas : UICanvasMain
     private static readonly Color CostInsufficientColor = new Color(1f, 0f, 0f, 1f);
     private static readonly Color UpgradeButtonEnabledColor = new Color(0.55f, 0.95f, 0.9f, 1f);
     private static readonly Color UpgradeButtonDisabledColor = new Color(1f, 0.72f, 0.72f, 1f);
+    // 传说票直接兑换：只在 Uber Rare 页可用，一次一张。
+    private const int LegendExchangeRarity = 4;
+    private const RewardName LegendExchangeTicket = RewardName.Ticket_Legend;
+    private const int LegendExchangeCost = 1;
+    private const string LegendExchangeRedeemTextId = "id:LTRedeem";
+    private const string LegendExchangeUnlockTextId = "id:LTUnlock";
+    private const string LegendExchangePlusOneTextId = "id:LTPlusOne";
+    private const string LegendExchangeMaxLabel = "MAX";
+    // 本地化是异步回来的，先用 id 兜底，回调到了再重刷一次按钮文字。
+    private string legendExchangeRedeemText = LegendExchangeRedeemTextId;
+    private string legendExchangeUnlockText = LegendExchangeUnlockTextId;
+    private string legendExchangePlusOneText = LegendExchangePlusOneTextId;
+    /// <summary>已经点过一次、正在等第二次确认。任何一次刷新（换角色/换稀有度/兑换完成）都会清掉。</summary>
+    private bool legendExchangeArmed = false;
     private bool returnToEquipMode = false;
     private bool showUnownedCharacters = true;
     private bool isLoadingRarityCharacters = false;
@@ -160,6 +180,8 @@ public class CatIndexCanvas : UICanvasMain
             // {新rality}/{旧code} 这种从未预热、通常也不存在的地址。
             current_code = string.Empty;
         }
+        // 空稀有度时上面两步不会跑，按钮状态得在这里兜一次
+        RefreshLegendExchangeButton();
     }
     /// <summary>
     /// 显示某个角色的详情。资源改为异步按需拉取，因此对外入口只负责启动协程。
@@ -294,9 +316,23 @@ public class CatIndexCanvas : UICanvasMain
             LocalizationHelper.GetLocalizedText("UnitNames", unitCode, localizedText => name_txt.text = localizedText ?? unitCode);
         }
         //
-        IV.ShowCharacterDetails(CD, true, current_level);
-        CheckUpgradeAvailable();
+        CharacterUpgradeSave.UpgradeDetails ud = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
+        TalentData talent = ud.talent_unlocked ? TalentData.Load($"{rality}{current_code}") : null;
+        IV.ShowCharacterDetails(ApplyTalentForDisplay(CD, talent), true, current_level, talent);
+        CheckUpgradeAvailable(ud);
         showTireRoutine = null;
+    }
+
+    /// <summary>
+    /// 已解锁本能的角色，图鉴要看到叠加后的样子。
+    /// LoadSync 给的是 Addressables 缓存里的资源本体，绝不能就地改，所以先 Clone 再叠。
+    /// </summary>
+    private CharacterData ApplyTalentForDisplay(CharacterData source, TalentData talent)
+    {
+        if (source == null || talent == null) return source;
+        CharacterData merged = source.Clone();
+        talent.ApplyTo(merged);
+        return merged;
     }
     public void InitializeButtons()
     {
@@ -308,7 +344,14 @@ public class CatIndexCanvas : UICanvasMain
         Show_info_btn.onClick.AddListener(InfoBoardDisplay);
         if (GoToEquip_btn != null) GoToEquip_btn.onClick.AddListener(OpenEquipFromCatIndex);
         if (ToggleUnowned_btn != null) ToggleUnowned_btn.onClick.AddListener(ToggleUnownedCharacters);
+        if (LegendExchange_btn != null) LegendExchange_btn.onClick.AddListener(OnLegendExchangeClicked);
+        if (Talent_btn != null) Talent_btn.onClick.AddListener(OnTalentClicked);
+        // 普通 Button 没有自带 label，文字框没在 Inspector 里指就自己往子物体找一个。
+        if (LegendExchange_text == null && LegendExchange_btn != null)
+            LegendExchange_text = LegendExchange_btn.GetComponentInChildren<TMP_Text>(true);
         RefreshUnownedToggleVisual();
+        CacheLegendExchangeTexts();
+        RefreshLegendExchangeButton();
     }
 
     private void ToggleUnownedCharacters()
@@ -414,10 +457,10 @@ public class CatIndexCanvas : UICanvasMain
         ShowCertainCharInTire(current_tire, false);
         CheckUpgradeAvailable();
     }
-    private void CheckUpgradeAvailable()
+    private void CheckUpgradeAvailable(CharacterUpgradeSave.UpgradeDetails details = null)
     {
         Debug.Log($"Try getting ID from Characters: {rality}{current_code}");
-        CharacterUpgradeSave.UpgradeDetails UD = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
+        CharacterUpgradeSave.UpgradeDetails UD = details ?? CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
         current_level = UD.TotalLevel();
         upgrade_cost = (int)(UpgradeCost.XPcost[rality, UD.upgraded_level % 10] * (1 + UD.upgraded_level / 10 * 0.5f));
         cateyeConsuming = GetCateyeConsumeReward(rality);
@@ -443,7 +486,10 @@ public class CatIndexCanvas : UICanvasMain
         }
         current_level_text.text = $"LEVEL\n{UD.upgraded_level} + {UD.plus_level}";
         TireUp_btn.interactable = CheckTireUpAvailable($"{rality}{current_code}");
+        if (Talent_btn != null) Talent_btn.interactable = TalentUnlockAvailable(UD);
         RefreshUpgradeButtonsVisual();
+        // 换角色/换阶段都会走到这里，顺便把传说票按钮的文字和二次确认状态复位
+        RefreshLegendExchangeButton();
         //
         // Proficiency
         current_prof = UD.proficiency;
@@ -554,6 +600,123 @@ public class CatIndexCanvas : UICanvasMain
     public void SetReturnToEquipMode(bool enabled)
     {
         returnToEquipMode = enabled;
+    }
+    #endregion
+
+    #region Legend Ticket Exchange
+    /// <summary>
+    /// 传说票直接兑换（只在 Uber Rare 页出现）：第一次点亮出 "Confirm?"，第二次才真正扣票。
+    /// 获得方式和抽卡完全一致——CharacterUpgradeSave.UpgradeCharacterByDraw，
+    /// 它 plus_level++ 之后会顺手 UnlockCharacterTire(id, 0)，所以未解锁的角色一次到位。
+    /// </summary>
+    private void OnLegendExchangeClicked()
+    {
+        if (isLoadingRarityCharacters) return;
+        if (!LegendExchangeUsable(out string id)) { RefreshLegendExchangeButton(); return; }
+
+        if (!legendExchangeArmed)
+        {
+            legendExchangeArmed = true;
+            ApplyLegendExchangeState();
+            return;
+        }
+
+        // ConsumeItem 自带余量检查，扣不动就当无事发生（保底，正常走不到）
+        if (!RewardingSystem.ConsumeItem(LegendExchangeTicket, LegendExchangeCost))
+        {
+            RefreshLegendExchangeButton();
+            return;
+        }
+
+        CharacterUpgradeSave.UpgradeCharacterByDraw(id);
+        // 隐藏未拥有角色时用的是这个缓存，刚解锁的角色要同步，否则切一次筛选才会出现
+        unlockedBaseTireCache[id] = true;
+        if (virtualListReady && headIconGrid != null) headIconGrid.RebindVisible();
+
+        baseCanvas.UpdateCurrencies();
+        if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
+        PlatformAudio.PlaySfx(GetComponent<AudioSource>());
+
+        // ShowCertainCharacter 负责刷新阶段按钮上的锁和 upgradeLock（刚解锁的角色要解开升级按钮），
+        // 随后 ShowCertainCharInTire 不重播动画，只更新数值面板，并回头把本按钮刷成新状态。
+        ShowCertainCharacter(current_code);
+        ShowCertainCharInTire(current_tire, false);
+    }
+
+    /// <summary>清掉二次确认并重算显隐/文字。换角色、换阶段、换稀有度时都会走到。</summary>
+    private void RefreshLegendExchangeButton()
+    {
+        legendExchangeArmed = false;
+        ApplyLegendExchangeState();
+    }
+
+    private void ApplyLegendExchangeState()
+    {
+        if (LegendExchange_btn == null) return;
+
+        bool show = !isLoadingRarityCharacters && LegendExchangeVisible();
+        LegendExchange_btn.gameObject.SetActive(show);
+        if (!show) return;
+
+        string id = $"{rality}{current_code}";
+        bool unlocked = CharacterUpgradeSave.GetDetails(id).tire_unlocked[0];
+        // plus_level 已满：按钮照常显示，只是不给点，文字换成 MAX
+        bool available = CharacterUpgradeSave.DrawUpgradeAvailable(id);
+
+        LegendExchange_btn.interactable = available;
+        // 二次确认的文字分两种：没解锁过是「确认解锁？」，已解锁是「确认 +1？」。
+        // 未解锁的角色 plus_level 必然是 0，而上限至少是 10，所以 MAX 只会出现在已解锁的角色身上。
+        SetLegendExchangeLabel(
+            !available ? LegendExchangeMaxLabel
+            : legendExchangeArmed ? (unlocked ? legendExchangePlusOneText : legendExchangeUnlockText)
+            : legendExchangeRedeemText);
+    }
+
+    /// <summary>显隐条件：Uber Rare 页 + 至少有一张票 + 当前选中的角色确实属于这一页。</summary>
+    private bool LegendExchangeVisible()
+    {
+        if (rality != LegendExchangeRarity) return false;
+        if (RewardingSystem.GetAmount(LegendExchangeTicket) < LegendExchangeCost) return false;
+        // current_code 还停在上一个稀有度时不能继续往下查：
+        // CharacterUpgradeSave.GetDetails 碰到不存在的 id 会直接建一条并存盘，会污染存档。
+        return currentRarityCodes.Contains(current_code);
+    }
+
+    private bool LegendExchangeUsable(out string id)
+    {
+        id = $"{rality}{current_code}";
+        return LegendExchangeVisible() && CharacterUpgradeSave.DrawUpgradeAvailable(id);
+    }
+
+    private void SetLegendExchangeLabel(string text)
+    {
+        if (LegendExchange_text != null) LegendExchange_text.text = text;
+    }
+
+    /// <summary>
+    /// 三段文字都是异步取的，回来一个就重刷一次按钮（只改文字，不动二次确认状态）。
+    /// 表里没这条 id 时 LocalizationHelper 回 null，退回显示 id 本身，不报错。
+    /// </summary>
+    private void CacheLegendExchangeTexts()
+    {
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, LegendExchangeRedeemTextId, localized =>
+        {
+            if (this == null) return;
+            legendExchangeRedeemText = localized ?? LegendExchangeRedeemTextId;
+            ApplyLegendExchangeState();
+        });
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, LegendExchangeUnlockTextId, localized =>
+        {
+            if (this == null) return;
+            legendExchangeUnlockText = localized ?? LegendExchangeUnlockTextId;
+            ApplyLegendExchangeState();
+        });
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, LegendExchangePlusOneTextId, localized =>
+        {
+            if (this == null) return;
+            legendExchangePlusOneText = localized ?? LegendExchangePlusOneTextId;
+            ApplyLegendExchangeState();
+        });
     }
     #endregion
 
@@ -849,6 +1012,30 @@ public class CatIndexCanvas : UICanvasMain
         }
     }
 
+    #region Talent Operation
+    /// <summary>
+    /// 本能按钮什么时候能点：开了三阶 + 这角色确实做了 talent 资源 + 还没解锁过。
+    /// 45 级的门槛不在这里拦——按用户设定，那是本能进化展示框里要说明的事，
+    /// 按钮只负责「这角色有没有本能这条路可走」。
+    /// </summary>
+    private bool TalentUnlockAvailable(CharacterUpgradeSave.UpgradeDetails ud)
+    {
+        if (ud == null) return false;
+        if (ud.tire_unlocked == null || ud.tire_unlocked.Length < 3 || !ud.tire_unlocked[2]) return false;
+        if (ud.talent_unlocked) return false;
+        return TalentData.Exists($"{rality}{current_code}");
+    }
+
+    private void OnTalentClicked()
+    {
+        // TODO: 本能进化展示框还没做。这个面板要负责：展示本能会追加的属性/效果、
+        // 说明并校验 45 级门槛（不够级时给出提示而不是直接放行）、确认后调
+        // CharacterUpgradeSave.UnlockCharacterTalent($"{rality}{current_code}")，
+        // 回来再 ShowCertainCharInTire(current_tire, false) 刷新图鉴。
+        Debug.Log($"[Talent] TODO: 打开本能进化展示框 ({rality}{current_code})");
+    }
+    #endregion
+
     private void InitializeBackgroundSwitcher()
     {
         backgroundSwitcher = GetComponent<CatBackgroundSwitcher>();
@@ -865,6 +1052,10 @@ public class CatIndexCanvas : UICanvasMain
         if (TireUp_btn != null)
         {
             TireUp_btn.SetFrameColorPersistent(TireUp_btn.interactable ? UpgradeButtonEnabledColor : UpgradeButtonDisabledColor);
+        }
+        if (Talent_btn != null)
+        {
+            Talent_btn.SetFrameColorPersistent(Talent_btn.interactable ? UpgradeButtonEnabledColor : UpgradeButtonDisabledColor);
         }
     }
 
@@ -901,6 +1092,14 @@ public class CatIndexCanvas : UICanvasMain
 
         int catEyeRewardId = RewardingSystem.RewardNumMap[cateyeConsuming];
         if (!runtimeExtraCurrencyIds.Contains(catEyeRewardId)) runtimeExtraCurrencyIds.Add(catEyeRewardId);
+
+        // Uber Rare 页多挂一个传说票，和直接兑换按钮对应。这里不看票数，
+        // 免得刚好花完最后一张时货币条当场少一格。
+        if (rality == LegendExchangeRarity)
+        {
+            int legendTicketId = RewardingSystem.RewardNumMap[LegendExchangeTicket];
+            if (!runtimeExtraCurrencyIds.Contains(legendTicketId)) runtimeExtraCurrencyIds.Add(legendTicketId);
+        }
 
         if (FrameUI != null) FrameUI.SetCurrentExtraCurrencies(runtimeExtraCurrencyIds);
     }

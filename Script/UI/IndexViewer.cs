@@ -25,16 +25,60 @@ public class IndexViewer : MonoBehaviour
     [SerializeField] private Transform IconList;
     [SerializeField] private TMP_Text DetailsText;
     [SerializeField] private ScrollRect IconScrollRect;
+    /// <summary>被本能覆盖过的属性/图标会套上这个材质（Materials/Color/Shine.mat）。不填就只是没特效。</summary>
+    [SerializeField] private Material TalentShineMaterial;
     private int tresureCount = 0;
     private GameObject iconUnitPrefab;
+    /// <summary>本次展示里，哪些图标是本能给的。存的是 nameCode，和生成 payload 时用的完全一致。</summary>
+    private readonly HashSet<string> talentHighlights = new HashSet<string>();
 
-    public void ShowCharacterDetails(CharacterData cd, bool consider_treasure, int level)
+    public void ShowCharacterDetails(CharacterData cd, bool consider_treasure, int level, TalentData talent = null)
     {
         if (cd == null) return;
 
-        ApplyTraitGroups(cd);
+        CollectTalentHighlights(talent);
+        ApplyTraitGroups(cd, talent);
         SetDetailedText(cd, consider_treasure, level);
         ShowEAIcons(cd);
+    }
+
+    /// <summary>
+    /// 把本能里填了的条目折算成 nameCode 攒成一张表，供下面逐个图标查。
+    /// 只认本能资源自己写了什么，不比较原角色有没有——本能填了就算它覆盖过。
+    /// </summary>
+    private void CollectTalentHighlights(TalentData talent)
+    {
+        talentHighlights.Clear();
+        if (talent == null) return;
+
+        if (talent.DRE != null)
+        {
+            if (talent.DRE.massiveDamage) talentHighlights.Add("N:dre:m");
+            if (talent.DRE.insaneDamage) talentHighlights.Add("N:dre:i");
+            if (talent.DRE.tough) talentHighlights.Add("N:dre:t");
+            if (talent.DRE.aegis) talentHighlights.Add("N:dre:a");
+            if (talent.DRE.strongAgainst) talentHighlights.Add("N:dre:s");
+        }
+        if (talent.againstCareer != null)
+        {
+            if (talent.againstCareer.AggainstWarrior) talentHighlights.Add("N:ac:1");
+            if (talent.againstCareer.AggainstDeffender) talentHighlights.Add("N:ac:2");
+            if (talent.againstCareer.AggainstMagician) talentHighlights.Add("N:ac:3");
+            if (talent.againstCareer.AggainstSupporter) talentHighlights.Add("N:ac:4");
+            if (talent.againstCareer.AggainstPractician) talentHighlights.Add("N:ac:5");
+        }
+        if (talent.characterEffects != null)
+            foreach (var e in talent.characterEffects)
+                if (e != null) talentHighlights.Add($"N:e:{GetEnumNumericId(e.name)}");
+        if (talent.abilities != null)
+            foreach (var a in talent.abilities)
+                if (a != null) talentHighlights.Add($"N:a:{GetEnumNumericId(a.name)}");
+        if (talent.atkTypeResis != null)
+            foreach (var r in talent.atkTypeResis)
+                if (r != null) talentHighlights.Add($"N:ra:{GetEnumNumericId(r.type)}");
+        if (talent.effectResistances != null)
+            foreach (var r in talent.effectResistances)
+                if (r != null) talentHighlights.Add($"N:re:{GetEnumNumericId(r.name)}");
     }
 
     public void ShowEAIcons(CharacterData cd)
@@ -159,12 +203,19 @@ public class IndexViewer : MonoBehaviour
         }
 
         RebuildIconUnits(payloads.Count);
-        for (int i = 0; i < payloads.Count; i++)
+        // 预制体缺失时 RebuildIconUnits 会提前返回，槽位可能不够；不夹一下会直接 GetChild 越界。
+        int slots = IconList == null ? 0 : Mathf.Min(payloads.Count, IconList.childCount);
+        for (int i = 0; i < slots; i++)
         {
             var item = IconList.GetChild(i);
             var image = item.GetComponent<Image>();
             var iconButton = item.GetComponent<IconButton>();
-            if (image != null) image.sprite = payloads[i].Sprite;
+            if (image != null)
+            {
+                image.sprite = payloads[i].Sprite;
+                // 图标单位是复用的，每次都要显式设一遍，否则上一个角色的特效会留在槽位上
+                SetTalentShine(image, talentHighlights.Contains(payloads[i].NameCode));
+            }
             if (iconButton != null)
             {
                 iconButton.SetDescriptionInfo(
@@ -214,26 +265,37 @@ public class IndexViewer : MonoBehaviour
             $"CD:          <color=#75FF85>{cd.Cooldown}f</color>";
     }
 
-    private void ApplyTraitGroups(CharacterData cd)
+    private void ApplyTraitGroups(CharacterData cd, TalentData talent)
     {
         ApplyTraits(TraitsList, new[]
         {
             cd.traits.Red, cd.traits.Flt, cd.traits.Blk, cd.traits.Mtl, cd.traits.Ang,
             cd.traits.Aln, cd.traits.Z, cd.traits.Re, cd.traits.Aku, cd.traits.None
+        }, talent?.traits == null ? null : new[]
+        {
+            talent.traits.Red, talent.traits.Flt, talent.traits.Blk, talent.traits.Mtl, talent.traits.Ang,
+            talent.traits.Aln, talent.traits.Z, talent.traits.Re, talent.traits.Aku, talent.traits.None
         });
 
         ApplyTraits(SubTraitsList, new[]
         {
             cd.subtraits.Starred, cd.subtraits.Colossus, cd.subtraits.Behemoth, cd.subtraits.Sage
+        }, talent?.subtraits == null ? null : new[]
+        {
+            talent.subtraits.Starred, talent.subtraits.Colossus, talent.subtraits.Behemoth, talent.subtraits.Sage
         });
 
         ApplyTraits(CareerList, new[]
         {
             cd.career.Warrior, cd.career.Deffender, cd.career.Magician, cd.career.Supporter, cd.career.Practician
+        }, talent?.career == null ? null : new[]
+        {
+            talent.career.Warrior, talent.career.Deffender, talent.career.Magician,
+            talent.career.Supporter, talent.career.Practician
         });
     }
 
-    private void ApplyTraits(Transform listRoot, bool[] states)
+    private void ApplyTraits(Transform listRoot, bool[] states, bool[] fromTalent = null)
     {
         if (listRoot == null || states == null) return;
         int count = Mathf.Min(listRoot.childCount, states.Length);
@@ -241,7 +303,24 @@ public class IndexViewer : MonoBehaviour
         {
             var image = listRoot.GetChild(i).GetComponent<Image>();
             LightUpTrait(image, states[i]);
+            SetTalentShine(image, fromTalent != null && i < fromTalent.Length && fromTalent[i]);
         }
+    }
+
+    /// <summary>
+    /// 挂上或摘掉本能闪光。图标槽位是复用的，所以每次刷新都必须对每个可见槽位显式调一次，
+    /// 否则换到没有本能的角色时，上一个角色留下的材质会继续闪。
+    ///
+    /// 注意 Image.material 的 getter 在没设材质时返回的是 Canvas 默认材质，**不是 null**，
+    /// 所以不能拿 null 去比对。摘除时只认「当前确实挂着闪光材质」这一种情况：
+    /// 既避免了每帧刷新都把材质置脏，也不会误伤预制体上本来就配了别的材质的图标。
+    /// </summary>
+    private void SetTalentShine(Image image, bool shine)
+    {
+        if (image == null || TalentShineMaterial == null) return;
+        bool hasShine = image.material == TalentShineMaterial;
+        if (shine == hasShine) return;
+        image.material = shine ? TalentShineMaterial : null;
     }
 
     private IconPayload NewPayload(

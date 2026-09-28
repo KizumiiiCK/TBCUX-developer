@@ -7,11 +7,12 @@ public class CatCharacter : AnimatorCachedCharacter
 {
     public override void InitializeCharacter()
     {
-        SetPower(1);
         float real_power=(0.8f + 0.2f * level)*Power;
         maxHealth = Health * real_power;
         realHealth = maxHealth;
-        hardness = maxHealth / KB;
+        // KB 走 LoadCharacterData 时已归一到 ≥1；预制体里直接填的单位不经过那条路，
+        // 所以这里再兜一层，避免 hardness 变成 Infinity。
+        hardness = maxHealth / Mathf.Max(1, KB);
         //realDamage = new int[atkInfos.Length];
         for (int i = 0; i < atkInfos.Length; i++)
         {
@@ -78,12 +79,40 @@ public class CatCharacter : AnimatorCachedCharacter
         if (DRE.aegis) DMG = DMG / 6;
         if (DRE.strongAgainst) DMG = DMG / 2;
     }
+    private const int BehemothSlayerDodgeChance = 5;
+    private const float BehemothSlayerDodgeSeconds = 2f;
+
     public override void DMG_SubTraitsEffects(ref float DMG, SubTraits opponentSubtraits)
     {
         if (opponentSubtraits == null) return;
         if (subtraits.Starred && opponentSubtraits.Starred) DMG *= 0.75f;
         if (subtraits.Colossus && opponentSubtraits.Colossus) DMG *= 0.6f;
-        if (subtraits.Behemoth && opponentSubtraits.Behemoth) DMG *= 0.7f;
+        if (subtraits.Behemoth && opponentSubtraits.Behemoth)
+        {
+            DMG *= 0.4f;
+            if (TryProcBehemothSlayerDodge()) DMG = 0f;
+        }
+    }
+
+    private bool TryProcBehemothSlayerDodge()
+    {
+        if (UnityEngine.Random.Range(0, 100) >= BehemothSlayerDodgeChance) return false;
+        DodgePassive dodge = GetPassive<DodgePassive>();
+        if (dodge == null)
+        {
+            AbilityInstaller.Install(this, new CharacterAbility
+            {
+                name = AbilityName.dodge,
+                probability = 0,
+                duration = 0,
+                intensity = 0
+            });
+            dodge = GetPassive<DodgePassive>();
+        }
+        if (dodge == null) return false;
+        int frames = Mathf.Max(1, Mathf.RoundToInt(BehemothSlayerDodgeSeconds / Time.fixedDeltaTime));
+        dodge.ActivateInvulnerableWindow(this, frames);
+        return true;
     }
     public override void SetAttackRange(float near, float far)
     {
@@ -93,6 +122,7 @@ public class CatCharacter : AnimatorCachedCharacter
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        if (SkipDestroyCombatAccounting) return;
         if (levelController == null) { Debug.LogError("LC not found."); return; }
         //if (gameObject.CompareTag("Cat")) lc.RemoveACat();
         //else lc.RemoveAnEnemy();
@@ -119,8 +149,14 @@ public class CatCharacter : AnimatorCachedCharacter
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
         DMG_CarrerEffects(ref DMG, opponentAC);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
-        TakeDMG(DMG);
+        // 效果先挂、伤害后落。毒伤是 Toxic 组件挂载时递归调 ReceiveAttack 打出来的，
+        // 而 TakeDMG 可能就地把自己打进 KB（PerformKB 里的 onKB=true 是同步生效的），
+        // 那之后再进来的毒伤会被本方法开头的 onKB 早退整份吞掉。
+        // 挪到 TakeDMG 之前即可，且与 DMG_CarrerEffects 里 knockback 效果的时序一致。
+        // 注意不能再往前挪：DodgePassive 要在 Passive_OnBeforeTakeDamage 里读
+        // incomingTraitCorresponding，而嵌套进来的毒伤会把这个标志覆写成 false。
         if(DMG>0)TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
+        TakeDMG(DMG);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }

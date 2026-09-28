@@ -33,6 +33,9 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private Transform FullChapterContent;
     [SerializeField] private Transform SubChapterContent;
     [SerializeField] private TMP_Text welcomeBackText;
+    [Tooltip("The anniversary entry in the chapter list. Hidden unless a verified world date falls " +
+             "inside the activity window.")]
+    [SerializeField] private GameObject anniversaryChapter;
     //[SerializeField] private GameObject ChapterSelectionBtn;
     [Header("Prefab")]
     [SerializeField] private GameObject subChapter;
@@ -46,6 +49,8 @@ public class MainMenu : MonoBehaviour
     {
         ShowTagInOnce();
         Input.multiTouchEnabled = false;
+        // Hidden until proven otherwise, so a stale scene state can never leak the entry.
+        SetAnniversaryEntriesVisible(false);
         StartCoroutine(ApplyInitialLanguageRoutine());
     }
 
@@ -56,12 +61,17 @@ public class MainMenu : MonoBehaviour
         Application.targetFrameRate = 30;
         optionCanvas.SetActive(false);
         ButtonInitializer();
+        ApplyAnniversaryGate();
 #if UNITY_WEBGL && !UNITY_EDITOR
         // Volume is owned by the platform settings page. Keep the start button locked until
         // UserLoginCheckPage finishes boot, otherwise a fast tap can enter a chapter against
         // an empty save cache.
+        // Language is not ResetLanguage() here either: this branch picks the locale from the
+        // Builda host in ApplyInitialLanguageRoutine (Awake), so main's ResetLanguage() call
+        // would overwrite it with the stale PlayerPrefs value.
         operating = true;
 #else
+        ResetLanguage();
         SetBGMVolume();
         SetSEVolume();
 #endif
@@ -113,6 +123,30 @@ public class MainMenu : MonoBehaviour
 
         PlayerPrefs.SetInt(UXPref.LANG, index);
         LocalizationSettings.SelectedLocale = locales.Locales[index];
+    }
+
+    /// <summary>
+    /// Shows the anniversary entries only for a world date we actually trust.
+    /// <para>
+    /// The title screen runs ahead of the check-in flow, so it reads the trust rule out of
+    /// <see cref="CheckInSystem.GetVerifiedToday"/>. An unproven date leaves the entries hidden
+    /// rather than guessing, and the save is left untouched because deleting it needs the same
+    /// proof that we are outside the window.
+    /// </para>
+    /// </summary>
+    private void ApplyAnniversaryGate()
+    {
+        DateTime? today = CheckInSystem.GetVerifiedToday();
+        SetAnniversaryEntriesVisible(today.HasValue && FirstAnniversarySchedule.IsWithinWindow(today.Value));
+    }
+
+    /// <summary>
+    /// Both entries live or die together, so the gate is computed once and applied here. Either may
+    /// be left unset — a scene that only uses one of the two is fine.
+    /// </summary>
+    private void SetAnniversaryEntriesVisible(bool visible)
+    {
+        if (anniversaryChapter != null) anniversaryChapter.SetActive(visible);
     }
 
     private void ShowTagInOnce()

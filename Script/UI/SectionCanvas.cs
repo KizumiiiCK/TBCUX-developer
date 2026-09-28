@@ -9,7 +9,6 @@ public class SectionCanvas : UICanvasMain
     private const string DailyRemarkPrefabPath = "UI/FunctionalPanels/sectionDailyRemark";
     private const string DailyRemarkNodeName = "__SectionDailyRemark";
     private const string DailyTextId = "id:daily";
-    private const string DailyClearedTextId = "id:daily_cleared";
 
     [Header("Section UI")]
     [SerializeField] private RectTransform sectionRoot;
@@ -30,10 +29,12 @@ public class SectionCanvas : UICanvasMain
         ["World_I"] = new[]
         {
             "0_worldi",
+            "tutorial_1",
         },
         ["World_II"] = new[]
         {
             "0_worldii",
+            "tutorial_2",
         },
         ["World_III"] = new[]
         {
@@ -43,6 +44,7 @@ public class SectionCanvas : UICanvasMain
         ["Future_I"] = new[]
         {
             "0_futurei",
+            "tutorial_3",
             "1_f1_m3",
             "2_f1_cm",
         },
@@ -86,6 +88,10 @@ public class SectionCanvas : UICanvasMain
         ["Challenge"] = new[]
         {
             "0_boss0",
+        },
+        ["Anniversary"] = new[]
+        {
+            "1st",
         }
     };
 
@@ -294,7 +300,7 @@ public class SectionCanvas : UICanvasMain
         if (sectionItemRoot == null) return;
 
         Transform existing = sectionItemRoot.Find(DailyRemarkNodeName);
-        if (mapInfo == null || !mapInfo.oncePerDay)
+        if (mapInfo == null || !mapInfo.HasDailyTimesLimit)
         {
             if (existing != null) existing.gameObject.SetActive(false);
             return;
@@ -308,12 +314,12 @@ public class SectionCanvas : UICanvasMain
         TMP_Text remarkText = textRoot != null ? textRoot.GetComponent<TMP_Text>() : null;
         if (remarkText == null) return;
 
-        bool clearedToday = DailyMapChallengeSave.HasSectionClearRecordToday(
+        int used = DailyMapChallengeSave.GetSectionClearCountToday(
             CheckInSystem.GetCachedWorldDateToken(),
             mapInfo.sectionName);
-        string textId = clearedToday ? DailyClearedTextId : DailyTextId;
-        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, textId,
-            localizedText => remarkText.text = localizedText ?? textId);
+        int remaining = Mathf.Max(0, mapInfo.timesLimit - used);
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, DailyTextId,
+            localizedText => remarkText.text = string.Format(localizedText ?? DailyTextId, remaining));
     }
 
     private GameObject CreateDailyRemark(Transform parent)

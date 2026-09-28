@@ -116,21 +116,21 @@ public class CannonUnit : Character
             if (attackedTargets.Contains(target)) continue;
             float finalDamage = dmg;
             DamageRelatedEffect dreToApply = DRE;
-            if (cannon_type == 4 && target.traits != null && target.traits.Mtl)
-            {
-                finalDamage = target.GetMaxHealth() * 0.7f;
-                dreToApply = NeutralDre;
-            }
-            if (cannon_type == 5 && target.traits != null && target.traits.Z)
+            bool isType5Zombie = cannon_type == 5 && target.traits != null && target.traits.Z;
+            if (isType5Zombie)
             {
                 finalDamage = target.GetMaxHealth() * 0.15f;
                 // 百分比伤害应保持“固定百分比”，不再叠加 massive/insane 倍率。
                 dreToApply = NeutralDre;
             }
+            // cannon_type == 4 对钢铁单位的 70% 最大生命伤害已改为数据驱动：
+            // 由预制体 characterEffects 里的 toxic 效果（duration 70）结算，
+            // 其命中自带 AttackType.toxic 穿透 Metal 铁壁，此处不再写代码特例。
             target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, dreToApply, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
             hitCount++;
             if (cannon_type == 0) target.StartKBCoroutine(KB_Type.pushBack);
+            else if (isType5Zombie) EnsureZombiePushBack(target);
         }
 
         if (cannon_type == 5)
@@ -147,7 +147,7 @@ public class CannonUnit : Character
 
                 float damageToUndetectableZombie = target.GetMaxHealth() * 0.30f;
                 target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, NeutralDre, characterEffects.ToList(), ATKTypes);
-                target.StartKBCoroutine(KB_Type.pushBack);
+                EnsureZombiePushBack(target);
                 attackedTargets.Add(target);
                 hitCount++;
             }
@@ -159,5 +159,19 @@ public class CannonUnit : Character
         {
             Destroy(gameObject);
         }
+    }
+
+    // 挂在目标上：硬度 KB 播完再 pushBack；没触发则立刻 pushBack。炮销毁不影响后续击退。
+    private static void EnsureZombiePushBack(Character target)
+    {
+        if (target == null) return;
+        target.StartCoroutine(PushBackAfterCurrentKB(target));
+    }
+
+    private static IEnumerator PushBackAfterCurrentKB(Character target)
+    {
+        while (target != null && target.IsOnKB())
+            yield return new WaitForFixedUpdate();
+        if (target != null) target.StartKBCoroutine(KB_Type.pushBack);
     }
 }

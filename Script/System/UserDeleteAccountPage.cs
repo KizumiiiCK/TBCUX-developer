@@ -52,7 +52,7 @@ public class UserDeleteAccountPage : MonoBehaviour
     private void OnConfirmDeleteClicked()
     {
         if (isDeleting) return;
-        if (!UXPref.HasSupabaseConfig)
+        if (UserInfoLocalStore.HasOnlinePid(localUser) && !UXPref.HasSupabaseConfig)
         {
             Debug.LogWarning("[UserDeleteAccountPage] " + SupabaseSettings.MissingConfigHint);
             return;
@@ -75,12 +75,13 @@ public class UserDeleteAccountPage : MonoBehaviour
 
         bool done = false;
         bool success = false;
+        var tasks = new List<LoadingTask>();
+        if (UserInfoLocalStore.HasOnlinePid(localUser))
+            tasks.Add(new LoadingTask("Deleting account row from user_accounts...", ExecuteDeleteRemoteUserTask));
+        tasks.Add(new LoadingTask("Deleting all local save files...", ExecuteDeleteLocalTask));
+
         StartLoading(
-            new List<LoadingTask>
-            {
-                new LoadingTask("Deleting account row from user_accounts...", ExecuteDeleteRemoteUserTask),
-                new LoadingTask("Deleting all local save files...", ExecuteDeleteLocalTask),
-            },
+            tasks,
             ok =>
             {
                 success = ok;
@@ -111,10 +112,10 @@ public class UserDeleteAccountPage : MonoBehaviour
             yield break;
         }
 
-        if (localUser == null || string.IsNullOrWhiteSpace(localUser.pid))
+        if (localUser == null || !UserInfoLocalStore.HasOnlinePid(localUser))
         {
-            task.Success = false;
-            if (loadingPage != null) loadingPage.NotifyFailure("Local user ID is missing.");
+            task.Success = true;
+            if (loadingPage != null) loadingPage.SetDetail("No online account id; skipped remote delete.");
             yield break;
         }
 
@@ -122,8 +123,7 @@ public class UserDeleteAccountPage : MonoBehaviour
         using (UnityWebRequest request = new UnityWebRequest(url, "DELETE"))
         {
             request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=minimal");
 
             yield return request.SendWebRequest();

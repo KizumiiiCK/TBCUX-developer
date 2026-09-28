@@ -41,10 +41,12 @@ public class LevelController_Testificate : LevelController
         }
 
         int mapSize = LD.mapSize;
+        // 和正式流程一致：先解析限制条件，tl 会盖掉上面的 treasureCount_test。
+        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
+        treasureCount = LevelRestrictionHelper.GetTreasureCount(levelRestrictions, treasureCount);
         CalculateMoneyMultiplier();
         SetupMapAndBases(mapSize);
         SetupLevelInfo();
-        levelRestrictions = LevelRestrictionHelper.Parse(LD.Restriction);
         ApplyLevelRestrictionSettings();
         SetupCombatEffects();
         SetupCombatAura();

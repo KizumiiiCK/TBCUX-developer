@@ -110,7 +110,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to dodge the enemy''s attack for {1}f, avoiding
       all damage from them.
 
-      (Only affect enemies with matched traits for cats)'
+      (Only affect enemies with matched traits for
+      cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 7777754103808
@@ -125,8 +126,8 @@ MonoBehaviour:
     m_Localized: 'Has a {0}% chance to inflict death mark on enemies for {1}f , making
       all marked characters suffer the taken damage one more time.
 
-      (Only affect
-      enemies with matched traits for cats)'
+      (Only
+      affect enemies with matched traits for cats)'
     m_Metadata:
       m_Items: []
   - m_Id: 55728509632512
@@ -984,8 +985,18 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 113939134502223876
-    m_Localized: The money production speed of this stage is <color=#00FFFF> {0}%
+    m_Localized: The money production speed of this stage is<color=#00FFFF> {0}%
       </color> of the original.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 177100000000262144
+    m_Localized: The money accounted by killing enemies is multiplied by<color=#00FFFF>
+      {0}% </color> of the original.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126209170684067840
+    m_Localized: Your world treasure count is set as<color=#FF6060> {0} </color>/
+      150.
     m_Metadata:
       m_Items: []
   references:

@@ -12,6 +12,7 @@ public class UserRestoreAccountPage : MonoBehaviour
 {
     private const string UserTable = "user_accounts";
     private const string BontiquePurchaseTable = "bontique_purchases";
+    private const string AnniversaryBoardTable = "anniversary_board";
     private const string LoadingPagePath = "UI/Pages/loading";
     private const string LoginCheckPagePath = "UI/Pages/user/UserLoginCheckPage";
 
@@ -40,7 +41,11 @@ public class UserRestoreAccountPage : MonoBehaviour
     private string pendingTransferCode;
     private string pendingUserName;
     private string pendingDeviceCode;
+    private string pendingLastCheckIn;
+    private int pendingConsecutive;
     private DateTime utc8Now;
+
+    private static readonly TimeSpan Utc8Offset = TimeSpan.FromHours(8);
 
     private CachedRestoreData cache;
 
@@ -149,6 +154,8 @@ public class UserRestoreAccountPage : MonoBehaviour
         SetInfo("Restoring account data...");
         pendingDeviceCode = UserInfoLocalStore.GetDeviceCode();
         cache = new CachedRestoreData();
+        pendingLastCheckIn = string.Empty;
+        pendingConsecutive = 0;
 
         if (confirmPage != null) confirmPage.SetActive(false);
 
@@ -164,6 +171,7 @@ public class UserRestoreAccountPage : MonoBehaviour
                 new LoadingTask("Downloading team_selections...", ExecuteDownloadTeamSelectionsTask),
                 new LoadingTask("Downloading enemy_meet...", ExecuteDownloadEnemyMeetTask),
                 new LoadingTask("Downloading boutique purchases...", ExecuteDownloadBontiquePurchasesTask),
+                new LoadingTask("Downloading anniversary board...", ExecuteDownloadAnniversaryBoardTask),
                 new LoadingTask("Downloading user profile...", ExecuteFetchUserProfileForLocalTask),
                 new LoadingTask("Applying downloaded data to local save...", ExecuteApplyLocalCacheTask),
                 new LoadingTask("Writing local user profile...", ExecuteWriteLocalUserTask),
@@ -602,10 +610,44 @@ public class UserRestoreAccountPage : MonoBehaviour
         task.Success = true;
     }
 
+    /// <summary>
+    /// 周年庆棋盘。远端没有行时 cache 留 null，由 ExecuteApplyLocalCacheTask 决定怎么落地。
+    /// </summary>
+    private IEnumerator ExecuteDownloadAnniversaryBoardTask(LoadingTask task)
+    {
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{AnniversaryBoardTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}";
+        bool reqDone = false;
+        bool reqOk = false;
+        string body = "[]";
+
+        yield return GetRequest(url, r =>
+        {
+            reqOk = r.success;
+            body = r.body;
+            reqDone = true;
+        });
+        while (!reqDone) yield return null;
+
+        if (!reqOk)
+        {
+            task.Success = false;
+            if (loadingPage != null) loadingPage.NotifyFailure("Failed to download anniversary_board.");
+            yield break;
+        }
+
+        List<object> rows = ParseJsonArray(body);
+        if (rows.Count > 0 && rows[0] is Dictionary<string, object> first)
+        {
+            cache.anniversaryBoard = ToMaskArray(GetValue(first, "masks"));
+        }
+
+        task.Success = true;
+    }
+
     private IEnumerator ExecuteFetchUserProfileForLocalTask(LoadingTask task)
     {
         string encodedTransferCode = UnityWebRequest.EscapeURL(pendingTransferCode ?? string.Empty);
-        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&transfer_code=eq.{encodedTransferCode}&select=pid,user_name,transfer_code,device_code&limit=1";
+        string url = $"{UXPref.SupabaseUrl}/rest/v1/{UserTable}?pid=eq.{UnityWebRequest.EscapeURL(pendingPid)}&transfer_code=eq.{encodedTransferCode}&select=pid,user_name,transfer_code,device_code,last_checkin_date,consecutive_days&limit=1";
         bool reqDone = false;
         bool reqOk = false;
         string body = "[]";
@@ -657,6 +699,8 @@ public class UserRestoreAccountPage : MonoBehaviour
         }
 
         pendingUserName = GetString(row, "user_name");
+        pendingLastCheckIn = NormalizeCheckInDateToken(GetString(row, "last_checkin_date"));
+        pendingConsecutive = Mathf.Max(0, GetInt(row, "consecutive_days", 0));
         task.Success = true;
     }
 
@@ -671,6 +715,10 @@ public class UserRestoreAccountPage : MonoBehaviour
             GenericSaveSystem.SaveData(cache.teamNames ?? BuildDefaultTeamNames(), TeamNameSave.filename);
             GenericSaveSystem.SaveData(cache.enemyMeet ?? new bool[EnemyMeetSave.SIZE], EnemyMeetSave.filename);
             BontiquePurchaseSave.ReplaceAll(cache.bontiquePurchases);
+            // 远端没有棋盘行时传 null，等于写回一盘空棋盘。这是故意的：继承必须把本机上一个
+            // 账号的棋盘进度清掉，否则换号就能白拿一盘已点亮的格子。空棋盘和没有存档等价，
+            // 活动窗口外 FirstAnniversarySave.DeleteIfOutsideWindow 会把文件删掉。
+            FirstAnniversarySave.ReplaceAll(cache.anniversaryBoard);
         }
         catch (Exception e)
         {
@@ -690,7 +738,9 @@ public class UserRestoreAccountPage : MonoBehaviour
         {
             pid = pendingPid,
             user_name = pendingUserName ?? string.Empty,
-            device_code = pendingDeviceCode
+            device_code = pendingDeviceCode,
+            last_checkin_date = pendingLastCheckIn ?? string.Empty,
+            consecutive_days = pendingConsecutive
         });
         if (!ok)
         {
@@ -738,6 +788,7 @@ public class UserRestoreAccountPage : MonoBehaviour
             "team_selections",
             "enemy_meet",
             BontiquePurchaseTable,
+            AnniversaryBoardTable,
         };
 
         for (int i = 0; i < tables.Length; i++)
@@ -771,8 +822,7 @@ public class UserRestoreAccountPage : MonoBehaviour
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             request.timeout = 25;
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             yield return request.SendWebRequest();
 
             bool success = request.result == UnityWebRequest.Result.Success;
@@ -790,8 +840,7 @@ public class UserRestoreAccountPage : MonoBehaviour
             request.downloadHandler = new DownloadHandlerBuffer();
             request.timeout = 25;
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=minimal");
             yield return request.SendWebRequest();
 
@@ -807,8 +856,7 @@ public class UserRestoreAccountPage : MonoBehaviour
         {
             request.downloadHandler = new DownloadHandlerBuffer();
             request.timeout = 25;
-            request.SetRequestHeader("apikey", UXPref.SupabaseKey);
-            request.SetRequestHeader("Authorization", $"Bearer {UXPref.SupabaseKey}");
+            SupabaseSettings.ApplyRequestHeaders(request);
             request.SetRequestHeader("Prefer", "return=minimal");
             yield return request.SendWebRequest();
 
@@ -874,6 +922,27 @@ public class UserRestoreAccountPage : MonoBehaviour
         return default(DateTime);
     }
 
+    /// <summary>
+    /// 把远端 timestamptz 值归一化成 UTC+8 的 yyyy-MM-dd token。PostgREST 返回带偏移的
+    /// 时间串（如 2026-09-24T00:00:00+00:00），直接 DateTime.Parse 取的是串面时间，
+    /// 换区后会差一天。空/无法解析时返回空字符串，签到流程按「从未签到」处理。
+    /// </summary>
+    private static string NormalizeCheckInDateToken(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+        string trimmed = raw.Trim();
+        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal,
+            out DateTimeOffset dto))
+        {
+            return dto.ToOffset(Utc8Offset).DateTime.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+        if (DateTime.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
+        {
+            return dt.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+        return string.Empty;
+    }
+
     private static int[] ToIntArray(object obj, int fallbackLength)
     {
         if (obj is List<object> list)
@@ -909,6 +978,26 @@ public class UserRestoreAccountPage : MonoBehaviour
             return arr;
         }
         return fallbackLength > 0 ? new long[fallbackLength] : Array.Empty<long>();
+    }
+
+    /// <summary>
+    /// 位掩码专用的 long 解析。不能复用 <see cref="ToLongArray"/>：那个为了成长值把负数钳成 0，
+    /// 而棋盘第 64 格是 1L &lt;&lt; 63，本身就是负数，钳一下整盘进度就没了。
+    /// 没有数组时返回 null，表示「远端没有这份数据」，和「有一盘空棋盘」区分开。
+    /// </summary>
+    private static long[] ToMaskArray(object obj)
+    {
+        if (!(obj is List<object> list)) return null;
+        long[] arr = new long[list.Count];
+        for (int i = 0; i < list.Count; i++)
+        {
+            object v = list[i];
+            if (v is long l) arr[i] = l;
+            else if (v is int i32) arr[i] = i32;
+            else if (v is double d) arr[i] = (long)d;
+            else if (!long.TryParse(v?.ToString() ?? "0", out arr[i])) arr[i] = 0L;
+        }
+        return arr;
     }
 
     private static bool[] ToBoolArray(object obj, int fallbackLength)
@@ -1091,5 +1180,6 @@ public class UserRestoreAccountPage : MonoBehaviour
         public string[] teamNames;
         public bool[] enemyMeet;
         public List<BontiquePurchaseEntry> bontiquePurchases;
+        public long[] anniversaryBoard;
     }
 }

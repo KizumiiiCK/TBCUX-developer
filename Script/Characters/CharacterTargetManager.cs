@@ -56,69 +56,35 @@ public class CharacterTargetManager : MonoBehaviour
     private List<Character> tempTargets = new List<Character>();
     private readonly List<GameObject> tempTargetGameObjects = new List<GameObject>(16);
     // Emotion System
-    private const string EmotionEffectRoot = "emo";
-    private const string EmotionRuntimeMaanimName = "maanim";
-    private const int EmotionLifeFrames = 36;
-    private const float AttackEmotionImmediateChance = 0.15f;
-    private const float KbEmotionImmediateChance = 0.30f;
-    private const float TeamTickMinSeconds = 0.35f;
-    private const float TeamTickMaxSeconds = 0.85f;
+    private const string EmotionPrefabPath = "Effects/emotions/Emoji";
+    private const string EmotionSpriteRoot = "Effects/emotions/";
+    private const float EmotionLifeSeconds = 2f;
+    private const float AttackEmotionImmediateChance = 0.1f;
+    private const float KbEmotionImmediateChance = 0.20f;
+    private const float TeamTickMinSeconds = 0.2f;
+    private const float TeamTickMaxSeconds = 0.6f;
     private const float EmotionCooldownMinSeconds = 4f;
     private const float EmotionCooldownMaxSeconds = 11f;
     private const float EmotionLateBattleRampSeconds = 200f;
+    // 表情播放失败时的重试间隔：保证冷却闸门在资源缺失时依然拦住全场压力统计。
+    private const float EmotionSpawnFailRetrySeconds = 1f;
 
     private readonly Dictionary<Character, EmotionRuntimeState> emotionStates = new Dictionary<Character, EmotionRuntimeState>(256);
-    private readonly Dictionary<string, bool> emotionEffectAvailability = new Dictionary<string, bool>(32);
+    private readonly Queue<EmotionEmoji> emojiPool = new Queue<EmotionEmoji>(16);
+    private Sprite[][] emotionSpritesByState;
+    private GameObject emojiPrefab;
+    private bool emojiPrefabWarned;
     private TeamEmotionTickContext catEmotionTick = new TeamEmotionTickContext();
     private TeamEmotionTickContext enemyEmotionTick = new TeamEmotionTickContext();
     private float cumulativeCatSpawnPower;
     private float cumulativeEnemySpawnPower;
     private float battleStartTime;
+    // 全场压力按帧缓存：同一帧常有多个单位同时进入攻击态，共享一份没有语义损失。
+    private BattlefieldEmotionPressure catPressureCache;
+    private BattlefieldEmotionPressure enemyPressureCache;
+    private int catPressureFrame = -1;
+    private int enemyPressureFrame = -1;
 
-    private static readonly EmotionUX[] EmotionPool =
-    {
-        EmotionUX.flower1, EmotionUX.flower2,
-        EmotionUX.melody1, EmotionUX.melody2,
-        EmotionUX.pollen, EmotionUX.star,
-        EmotionUX.shy, EmotionUX.idea,
-        EmotionUX.silent, EmotionUX.sleepy,
-        EmotionUX.query, EmotionUX.call,
-        EmotionUX.impatient, EmotionUX.angry,
-        EmotionUX.sigh, EmotionUX.hurt,
-        EmotionUX.shock1, EmotionUX.shock2,
-        EmotionUX.great_shock, EmotionUX.startled,
-        EmotionUX.stun, EmotionUX.doomed, EmotionUX.putsu
-    };
-
-    // n x 5 static weights: emotion x (walk, idle, attack, kb, other)
-    private static readonly Dictionary<EmotionUX, int[]> EmotionStateWeightTable = new Dictionary<EmotionUX, int[]>
-    {
-        { EmotionUX.flower1,     new[] { 18, 15,  9,  1, 7 } },
-        { EmotionUX.flower2,     new[] { 16, 13,  8,  1, 6 } },
-        { EmotionUX.melody1,     new[] { 14, 16,  6,  1, 8 } },
-        { EmotionUX.melody2,     new[] { 12, 14,  6,  1, 7 } },
-        { EmotionUX.pollen,      new[] { 10, 12,  5,  1, 6 } },
-        { EmotionUX.star,        new[] {  9, 11,  9,  1, 5 } },
-        { EmotionUX.shy,         new[] {  8, 10,  4,  2, 7 } },
-        { EmotionUX.idea,        new[] {  7, 11,  5,  2, 9 } },
-        { EmotionUX.silent,      new[] {  7, 13,  3,  2,11 } },
-        { EmotionUX.sleepy,      new[] {  7, 12,  2,  1,10 } },
-        { EmotionUX.query,       new[] {  5,  9,  4,  3, 9 } },
-        { EmotionUX.call,        new[] {  4,  5, 12,  4, 6 } },
-        { EmotionUX.impatient,   new[] {  3,  3, 15,  7, 5 } },
-        { EmotionUX.angry,       new[] {  3,  3, 18,  8, 5 } },
-        { EmotionUX.sigh,        new[] {  3,  5,  5, 10,10 } },
-        { EmotionUX.hurt,        new[] {  1,  2,  4, 13, 7 } },
-        { EmotionUX.shock1,      new[] {  1,  2,  6, 18, 6 } },
-        { EmotionUX.shock2,      new[] {  1,  1,  4, 21, 6 } },
-        { EmotionUX.great_shock, new[] {  1,  1,  3, 28, 5 } },
-        { EmotionUX.startled,    new[] {  2,  2,  8, 17, 8 } },
-        { EmotionUX.stun,        new[] {  1,  1,  3, 23, 4 } },
-        { EmotionUX.doomed,      new[] {  1,  1,  3, 16,12 } },
-        { EmotionUX.putsu,       new[] {  2,  2, 14,  6, 7 } },
-    };
-    
-    // 更新频率控制（可选优化）
     private int updateFrameInterval = 2; // 每N帧更新一次
     private int frameCounter = 0;
 
@@ -207,6 +173,7 @@ public class CharacterTargetManager : MonoBehaviour
         undetectableCharacters.Remove(character);
         deathMarkedCharacters.Remove(character);
         emotionStates.Remove(character);
+        RecycleEmojisOn(character);
     }
 
     /// <summary>
@@ -266,10 +233,25 @@ public class CharacterTargetManager : MonoBehaviour
     /// 设置角色的攻击范围
     /// 注意：策划填写的范围是正数，但猫是左向的，实际范围是 (-far, -near) + position
     /// 这里直接根据IsCat计算并存储最终用于判定的相对范围
+    ///
+    /// 范围变了等于「目标集合的定义」变了，所以写完立刻为该角色重搜一次，不等下一次整表 tick：
+    /// 整表 tick 每 updateFrameInterval 帧才跑一轮，而攻击段推进后 Attack() 可能在下一轮之前就结算，
+    /// 靠 tick 补货会留下一段目标不同步的窗口。攻击流程里 Friendly 模式切换总是紧跟一次
+    /// SetAttackRange，所以这里同时也是模式变更的同步点（见 Character.Supporter_Target_Switch）。
     /// </summary>
     public void SetCharacterAttackRange(Character character, float nearRange, float farRange)
     {
-        if (character == null) return;
+        if (!WriteAttackRange(character, nearRange, farRange)) return;
+        RefreshTargetsForCharacter(character);
+    }
+
+    /// <summary>
+    /// 只写范围，不触发重搜。供本类内部在重搜途中补默认范围时使用，
+    /// 避免绕回 UpdateTargetsForCharacter 造成递归和 tempTargets 复用冲突。
+    /// </summary>
+    private bool WriteAttackRange(Character character, float nearRange, float farRange)
+    {
+        if (character == null) return false;
 
         float min = Mathf.Min(nearRange, farRange)/100f;
         float max = Mathf.Max(nearRange, farRange)/100f;
@@ -278,6 +260,7 @@ public class CharacterTargetManager : MonoBehaviour
         attackRanges[character] = character.IsCat()
             ? new Vector2(-max, -min)
             : new Vector2(min, max);
+        return true;
     }
     
     /// <summary>
@@ -653,6 +636,8 @@ public class CharacterTargetManager : MonoBehaviour
         // KB状态下不参与判定，直接清空Targets
         if (attacker.IsOnKB())
         {
+            // tempTargets 是复用缓冲，必须先清空，否则会把上一个角色的目标列表塞给被击退单位。
+            tempTargets.Clear();
             UpdateCharacterTargets(attacker, tempTargets, null);
             return;
         }
@@ -663,8 +648,8 @@ public class CharacterTargetManager : MonoBehaviour
         // 获取当前范围（SetCharacterAttackRange已写入方向后的相对范围）
         if (!attackRanges.TryGetValue(attacker, out Vector2 currentRange))
         {
-            // 确保有默认检测范围
-            SetCharacterAttackRange(attacker, 0, attacker.DetectionRange);
+            // 确保有默认检测范围（这里不能用 SetCharacterAttackRange，否则会递归回到本方法）
+            WriteAttackRange(attacker, 0, attacker.DetectionRange);
             currentRange = attackRanges[attacker];
         }
         float nearRange = currentRange.x;
@@ -775,26 +760,28 @@ public class CharacterTargetManager : MonoBehaviour
 
     /// <summary>
     /// 获取角色在指定范围内的所有目标（用于攻击范围判定）
+    /// 目前无调用者，保留备用。入参与 SetCharacterAttackRange 一致：策划填的正数，内部 /100 换算，
+    /// 方向由 IsCat 决定。过滤条件也与整表 tick 的 UpdateTargetsForCharacter 保持一致。
     /// </summary>
     public List<Character> GetTargetsInRange(Character attacker, float nearRange, float farRange)
     {
         if (attacker == null) return new List<Character>();
-        
+
         bool isCat = attacker.IsCat();
         bool isFriendly = friendlyModes.TryGetValue(attacker, out bool friendly) && friendly;
-        
+
         // 根据Friendly模式选择目标列表
-        List<Character> targets = isFriendly 
+        List<Character> targets = isFriendly
             ? (isCat ? allCats : allEnemies)  // Friendly模式：同阵营
             : (isCat ? allEnemies : allCats); // 非Friendly模式：敌对阵营
-        
+
         List<Character> result = new List<Character>();
-        
-        float near = nearRange / 10f;
-        float far = farRange / 10f;
+
+        float near = nearRange / 100f;
+        float far = farRange / 100f;
         float minRange = isCat ? -Mathf.Max(near, far) : Mathf.Min(near, far);
         float maxRange = isCat ? -Mathf.Min(near, far) : Mathf.Max(near, far);
-        
+
         float attackerX = attacker.transform.position.x;
         float worldMin = attackerX + minRange;
         float worldMax = attackerX + maxRange;
@@ -802,11 +789,12 @@ public class CharacterTargetManager : MonoBehaviour
         for (int i = startIndex; i < targets.Count; i++)
         {
             Character target = targets[i];
-            if (target == null || !target.gameObject.activeInHierarchy) continue;
+            if (target == null || target == attacker) continue;
+            if (!target.gameObject.activeInHierarchy) continue;
             float targetX = target.transform.position.x;
             if (targetX > worldMax) break;
             if (targetX < worldMin) continue;
-            // if (target.GetHealth() <= 0) continue;
+            if (target.IsOnKB()) continue; // KB状态不参与判定
             bool targetUndetectable = IsCharacterUndetectable(target);
             if (targetUndetectable && !attacker.CanTargetUndetectable()) continue;
             result.Add(target);
@@ -885,119 +873,104 @@ public class CharacterTargetManager : MonoBehaviour
 
     private bool TrySpawnEmotion(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
     {
-        EmotionUX selected = SelectEmotion(character, state, rt, pressure);
-        if (selected == EmotionUX.none) return false;
-        if (!PlayEmotionEffect(character, selected)) return false;
+        if (!PlayEmotionEffect(character, state))
+        {
+            // 播放失败（缺贴图/缺预制体）时也要推进冷却，否则冷却闸门永远不生效，
+            // 每次进入攻击态都会重新走一遍全场压力统计。
+            rt.nextAvailableAt = Time.time + EmotionSpawnFailRetrySeconds;
+            return false;
+        }
 
-        float cooldown = GetNextEmotionCooldownSeconds(character, state, rt, pressure);
+        float cooldown = GetNextEmotionCooldownSeconds(state, rt, pressure);
         rt.nextAvailableAt = Time.time + cooldown;
         rt.recentDamageRatio *= 0.45f;
         rt.stress *= 0.7f;
         return true;
     }
 
-    private bool PlayEmotionEffect(Character character, EmotionUX emotion)
+    private bool PlayEmotionEffect(Character character, EmotionBattleState state)
     {
-        if (character == null || character.EM == null || emotion == EmotionUX.none) return false;
-        Vector3 localOffset = new Vector3(0f, character.topPositionY + 1f, 1f);
-        Vector3 worldPos = character.transform.TransformPoint(localOffset);
+        if (character == null) return false;
+        Sprite icon = PickRandomEmotionSprite(state);
+        if (icon == null) return false;
 
-        string emotionName = emotion.ToString();
-        if (!HasEmotionEffect(emotionName)) return false;
+        EmotionEmoji emoji = RentEmoji();
+        if (emoji == null) return false;
 
-        string resourceRoot = $"Effects/{EmotionEffectRoot}/{emotionName}/";
-        AnimationDisplayer ad = character.EM.InstantiateRuntimeBattleObject(
-            resourceRoot,
-            new[] { EmotionRuntimeMaanimName },
-            worldPos,
-            null,
-            worldPositionStays: true);
-        if (ad == null) return false;
-
-        EmotionFollowAnchor follow = ad.GetComponent<EmotionFollowAnchor>();
-        if (follow == null) follow = ad.gameObject.AddComponent<EmotionFollowAnchor>();
-        follow.Bind(character, localOffset, character.EM, GetEmotionRuntimePoolKey(emotionName), EmotionLifeFrames);
-
-        // Enemy emotion visuals should be mirrored.
-        if (!character.IsCat())
-        {
-            Vector3 s = ad.transform.localScale;
-            s.x = -Mathf.Abs(s.x);
-            ad.transform.localScale = s;
-        }
+        Transform follow = character.transform;
+        emoji.transform.SetParent(follow, false);
+        emoji.transform.localPosition = Vector3.zero;
+        emoji.transform.localRotation = Quaternion.identity;
+        Vector3 scale = emoji.transform.localScale;
+        scale.x = character.IsCat() ? 1f : -1f;
+        emoji.transform.localScale = scale;
+        emoji.Show(icon, character.topPositionY + 3, EmotionLifeSeconds, RecycleEmoji);
         return true;
     }
 
-    private bool HasEmotionEffect(string effectName)
+    private Sprite PickRandomEmotionSprite(EmotionBattleState state)
     {
-        if (string.IsNullOrEmpty(effectName)) return false;
-        if (emotionEffectAvailability.TryGetValue(effectName, out bool cached)) return cached;
-        bool exists = Resources.Load<Texture2D>($"Effects/{EmotionEffectRoot}/{effectName}/sprite") != null;
-        emotionEffectAvailability[effectName] = exists;
-        return exists;
+        EnsureEmotionSprites();
+        int index = (int)state;
+        if (emotionSpritesByState == null || index < 0 || index >= emotionSpritesByState.Length)
+            index = (int)EmotionBattleState.other;
+        Sprite[] pack = emotionSpritesByState[index];
+        if (pack == null || pack.Length == 0) return null;
+        return pack[UnityEngine.Random.Range(0, pack.Length)];
     }
 
-    private static string GetEmotionRuntimePoolKey(string emotionName)
+    private void EnsureEmotionSprites()
     {
-        return $"runtime:Effects/{EmotionEffectRoot}/{emotionName}/|{EmotionRuntimeMaanimName}";
+        if (emotionSpritesByState != null) return;
+        int stateCount = 5;
+        emotionSpritesByState = new Sprite[stateCount][];
+        for (int i = 0; i < stateCount; i++)
+        {
+            Sprite[] loaded = Resources.LoadAll<Sprite>(EmotionSpriteRoot + i);
+            emotionSpritesByState[i] = loaded != null ? loaded : Array.Empty<Sprite>();
+        }
     }
 
-    private EmotionUX SelectEmotion(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    private EmotionEmoji RentEmoji()
     {
-        float allyVsEnemy = pressure.advantage;
-        int stateIndex = (int)state;
-        float total = 0f;
-        float[] rollWeights = new float[EmotionPool.Length];
-
-        for (int i = 0; i < EmotionPool.Length; i++)
+        while (emojiPool.Count > 0)
         {
-            EmotionUX emotion = EmotionPool[i];
-            if (!EmotionStateWeightTable.TryGetValue(emotion, out int[] w)) continue;
-            int baseW = w[stateIndex];
-            if (baseW <= 0) continue;
-
-            float mul = 1f;
-            if (IsPositiveEmotion(emotion))
-            {
-                mul *= 1f + Mathf.Max(0f, allyVsEnemy) * 0.9f;
-                if (state == EmotionBattleState.walk || state == EmotionBattleState.idle || state == EmotionBattleState.attack)
-                    mul *= 1.12f;
-                mul *= 1f + pressure.battleIntensity * 0.28f;
-            }
-            if (IsNegativeEmotion(emotion))
-            {
-                float disadvantage = Mathf.Max(0f, -allyVsEnemy);
-                mul *= 1f + disadvantage * 1.05f;
-                if (character.IsCat()) mul *= 1f + disadvantage * 0.45f;
-                mul *= 1f + rt.stress * 1.35f;
-                mul *= 1f + rt.recentDamageRatio * 1.6f;
-                mul *= 1f + pressure.battleIntensity * 0.42f;
-            }
-            if (emotion == EmotionUX.doomed || emotion == EmotionUX.shock2 || emotion == EmotionUX.great_shock)
-            {
-                float disadvantage = Mathf.Max(0f, -allyVsEnemy);
-                mul *= 1f + disadvantage * (character.IsCat() ? 2.25f : 1.55f);
-                mul *= 1f + pressure.battleIntensity * 0.5f;
-            }
-            if (emotion == character.BaseEmotion)
-            {
-                mul *= 2.8f;
-            }
-
-            float finalW = Mathf.Max(0f, baseW * mul);
-            rollWeights[i] = finalW;
-            total += finalW;
+            EmotionEmoji pooled = emojiPool.Dequeue();
+            if (pooled != null) return pooled;
         }
 
-        if (total <= 0f) return EmotionUX.none;
-        float roll = UnityEngine.Random.value * total;
-        float acc = 0f;
-        for (int i = 0; i < EmotionPool.Length; i++)
+        if (emojiPrefab == null) emojiPrefab = Resources.Load<GameObject>(EmotionPrefabPath);
+        if (emojiPrefab == null)
         {
-            acc += rollWeights[i];
-            if (roll <= acc) return EmotionPool[i];
+            if (!emojiPrefabWarned)
+            {
+                emojiPrefabWarned = true;
+                Debug.LogWarning($"[Emotion] Missing prefab Resources/{EmotionPrefabPath}");
+            }
+            return null;
         }
-        return EmotionPool[EmotionPool.Length - 1];
+
+        GameObject go = Instantiate(emojiPrefab, transform);
+        go.SetActive(false);
+        EmotionEmoji emoji = go.GetComponent<EmotionEmoji>();
+        if (emoji == null) emoji = go.AddComponent<EmotionEmoji>();
+        return emoji;
+    }
+
+    private void RecycleEmoji(EmotionEmoji emoji)
+    {
+        if (emoji == null) return;
+        if (emoji.transform.parent == transform && !emoji.gameObject.activeSelf) return;
+        emoji.RecycleNow();
+        emoji.transform.SetParent(transform, false);
+        emojiPool.Enqueue(emoji);
+    }
+
+    private void RecycleEmojisOn(Character character)
+    {
+        if (character == null) return;
+        EmotionEmoji[] emojis = character.GetComponentsInChildren<EmotionEmoji>(true);
+        for (int i = 0; i < emojis.Length; i++) RecycleEmoji(emojis[i]);
     }
 
     private float GetPeriodicTriggerChance(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
@@ -1032,14 +1005,13 @@ public class CharacterTargetManager : MonoBehaviour
         return Mathf.Clamp01(chance);
     }
 
-    private float GetNextEmotionCooldownSeconds(Character character, EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
+    private float GetNextEmotionCooldownSeconds(EmotionBattleState state, EmotionRuntimeState rt, BattlefieldEmotionPressure pressure)
     {
         float cd = UnityEngine.Random.Range(EmotionCooldownMinSeconds, EmotionCooldownMaxSeconds);
         cd *= Mathf.Lerp(1f, 0.65f, rt.stress);
         cd *= Mathf.Lerp(1f, 0.7f, rt.recentDamageRatio);
         if (state == EmotionBattleState.kb) cd *= 0.85f;
         if (state == EmotionBattleState.attack) cd *= 0.9f;
-        if (character.BaseEmotion != EmotionUX.none) cd *= 0.92f;
         cd *= Mathf.Lerp(1f, 0.55f, pressure.battleIntensity);
         return Mathf.Clamp(cd, 1.6f, 18f);
     }
@@ -1077,6 +1049,25 @@ public class CharacterTargetManager : MonoBehaviour
 
     private BattlefieldEmotionPressure BuildBattlefieldPressure(List<Character> allies, List<Character> enemies)
     {
+        // allies == allCats 是区分两支队伍的唯一依据（spawnAdv 的符号也靠它），缓存沿用同样的判定。
+        bool forCats = allies == allCats;
+        int frame = Time.frameCount;
+        if (forCats)
+        {
+            if (catPressureFrame == frame) return catPressureCache;
+            catPressureCache = ComputeBattlefieldPressure(allies, enemies, true);
+            catPressureFrame = frame;
+            return catPressureCache;
+        }
+
+        if (enemyPressureFrame == frame) return enemyPressureCache;
+        enemyPressureCache = ComputeBattlefieldPressure(allies, enemies, false);
+        enemyPressureFrame = frame;
+        return enemyPressureCache;
+    }
+
+    private BattlefieldEmotionPressure ComputeBattlefieldPressure(List<Character> allies, List<Character> enemies, bool forCats)
+    {
         CountAliveAndMaxHealth(allies, out int allyCount, out float allyMaxHealth);
         CountAliveAndMaxHealth(enemies, out int enemyCount, out float enemyMaxHealth);
 
@@ -1089,7 +1080,7 @@ public class CharacterTargetManager : MonoBehaviour
         float signedSpawnPower = cumulativeCatSpawnPower - cumulativeEnemySpawnPower;
         float spawnPowerNorm = Mathf.Max(1f, cumulativeCatSpawnPower + cumulativeEnemySpawnPower);
         float spawnAdvGlobal = Mathf.Clamp(signedSpawnPower / spawnPowerNorm, -1f, 1f);
-        float spawnAdv = allies == allCats ? spawnAdvGlobal : -spawnAdvGlobal;
+        float spawnAdv = forCats ? spawnAdvGlobal : -spawnAdvGlobal;
 
         float battleElapsed = Mathf.Max(0f, Time.time - battleStartTime);
         float battleIntensity = Mathf.Clamp01(battleElapsed / EmotionLateBattleRampSeconds);
@@ -1166,35 +1157,6 @@ public class CharacterTargetManager : MonoBehaviour
         return rt;
     }
 
-    private static bool IsPositiveEmotion(EmotionUX emotion)
-    {
-        return emotion == EmotionUX.flower1
-               || emotion == EmotionUX.flower2
-               || emotion == EmotionUX.melody1
-               || emotion == EmotionUX.melody2
-               || emotion == EmotionUX.pollen
-               || emotion == EmotionUX.star
-               || emotion == EmotionUX.shy
-               || emotion == EmotionUX.idea
-               || emotion == EmotionUX.silent
-               || emotion == EmotionUX.sleepy;
-    }
-
-    private static bool IsNegativeEmotion(EmotionUX emotion)
-    {
-        return emotion == EmotionUX.impatient
-               || emotion == EmotionUX.angry
-               || emotion == EmotionUX.sigh
-               || emotion == EmotionUX.hurt
-               || emotion == EmotionUX.shock1
-               || emotion == EmotionUX.shock2
-               || emotion == EmotionUX.great_shock
-               || emotion == EmotionUX.startled
-               || emotion == EmotionUX.stun
-               || emotion == EmotionUX.doomed
-               || emotion == EmotionUX.putsu;
-    }
-
     /// <summary>
     /// 设置更新频率（性能调优）
     /// </summary>
@@ -1208,7 +1170,8 @@ public class CharacterTargetManager : MonoBehaviour
         if (attacker == null || target == null) return false;
         if (!attackRanges.TryGetValue(attacker, out Vector2 currentRange))
         {
-            SetCharacterAttackRange(attacker, 0, attacker.DetectionRange);
+            // 纯查询，不该有重搜副作用，所以走 WriteAttackRange。
+            WriteAttackRange(attacker, 0, attacker.DetectionRange);
             currentRange = attackRanges[attacker];
         }
         float minRange = Mathf.Min(currentRange.x, currentRange.y);
@@ -1254,63 +1217,6 @@ public class CharacterTargetManager : MonoBehaviour
     private struct TeamEmotionTickContext
     {
         public float nextTickAt;
-    }
-
-    private sealed class EmotionFollowAnchor : MonoBehaviour
-    {
-        private Character target;
-        private Vector3 localOffset;
-        private EffectManager manager;
-        private AnimationDisplayer display;
-        private string poolKey;
-        private int remainingFrames;
-
-        public void Bind(Character followTarget, Vector3 offset, EffectManager effectManager, string key, int lifeFrames)
-        {
-            target = followTarget;
-            localOffset = offset;
-            manager = effectManager;
-            poolKey = key;
-            display = GetComponent<AnimationDisplayer>();
-            remainingFrames = Mathf.Max(1, lifeFrames);
-            enabled = true;
-            UpdatePosition();
-        }
-
-        private void FixedUpdate()
-        {
-            if (!UpdatePosition())
-            {
-                RecycleNow();
-                return;
-            }
-
-            remainingFrames--;
-            if (remainingFrames <= 0)
-            {
-                RecycleNow();
-            }
-        }
-
-        private bool UpdatePosition()
-        {
-            if (target == null || !target.gameObject.activeInHierarchy) return false;
-            transform.position = target.transform.TransformPoint(localOffset);
-            return true;
-        }
-
-        private void RecycleNow()
-        {
-            enabled = false;
-            if (manager != null && display != null && !string.IsNullOrEmpty(poolKey))
-            {
-                manager.RecycleDisplay(display, poolKey);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
-        }
     }
 
     /// <summary>

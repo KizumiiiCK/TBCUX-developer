@@ -3,7 +3,12 @@ using System.Collections.Generic;
 public abstract partial class Character
 {
     private readonly List<PassiveNode> passiveEffects = new List<PassiveNode>();
-    private readonly List<PassiveNode> passiveSnapshot = new List<PassiveNode>();
+    // 分发用的快照。注意它是「换新对象」而不是「原地 Clear + 重填」：
+    // 被动钩子里可能先改动本角色的被动列表（置 dirty），再触发同一角色上的嵌套分发，
+    // 那次嵌套分发会重建快照——如果原地改写，外层正在遍历的就是同一个 List，
+    // 被动会被静默跳过或重复执行。换新对象后外层手里那份已脱钩，能安全遍历完。
+    // 分配只发生在被动列表真的变化时（出场、装载、移除），不是每帧。
+    private List<PassiveNode> passiveSnapshot = new List<PassiveNode>();
     private bool passiveSnapshotDirty = true;
     // Union of the hooks overridden by all installed passives. Lets each dispatcher
     // bail with a single bitmask test when nothing listens to that hook.
@@ -32,14 +37,16 @@ public abstract partial class Character
     private void BuildPassiveSnapshotIfNeeded()
     {
         if (!passiveSnapshotDirty) return;
-        passiveSnapshot.Clear();
-        aggregateHooks = PassiveHooks.None;
+        List<PassiveNode> rebuilt = new List<PassiveNode>(passiveEffects.Count);
+        PassiveHooks hooks = PassiveHooks.None;
         for (int i = 0; i < passiveEffects.Count; i++)
         {
             PassiveNode node = passiveEffects[i];
-            passiveSnapshot.Add(node);
-            if (node != null) aggregateHooks |= node.Hooks;
+            rebuilt.Add(node);
+            if (node != null) hooks |= node.Hooks;
         }
+        passiveSnapshot = rebuilt;
+        aggregateHooks = hooks;
         passiveSnapshotDirty = false;
     }
 
@@ -52,98 +59,122 @@ public abstract partial class Character
     protected void Passive_OnDeployUnit()
     {
         if (!HasPassiveHook(PassiveHooks.OnDeployUnit)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnDeployUnit(this);
+            snap[i]?.OnDeployUnit(this);
         }
     }
     protected void Passive_OnBeforeTakeDamage(ref float dmg, List<AttackType> types)
     {
         if (!HasPassiveHook(PassiveHooks.OnBeforeTakeDamage)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        // 负数 DMG 是治疗。约定：所有被动都照常收到通知（很多被动靠这个钩子重置内部状态），
+        // 但只有 CanModifyHealing 的被动能真的改写治疗量，其余的写入落在副本上被丢弃。
+        // 判定用进入时的符号，避免链条中途有人翻号导致后半段被动被区别对待。
+        bool healing = dmg < 0f;
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnBeforeTakeDamage(this, ref dmg, types);
+            PassiveNode node = snap[i];
+            if (node == null) continue;
+            if (healing && !node.CanModifyHealing)
+            {
+                float observed = dmg;
+                node.OnBeforeTakeDamage(this, ref observed, types);
+                continue;
+            }
+            node.OnBeforeTakeDamage(this, ref dmg, types);
         }
     }
     protected void Passive_OnMatchedTraits(List<AttackType> types)
     {
         if (!HasPassiveHook(PassiveHooks.OnMatchedTraits)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnMatchedTraits(this, types);
+            snap[i]?.OnMatchedTraits(this, types);
         }
     }
     protected void Passive_OnAfterTakeDamage()
     {
         if (!HasPassiveHook(PassiveHooks.OnAfterTakeDamage)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnAfterTakeDamage(this);
+            snap[i]?.OnAfterTakeDamage(this);
         }
     }
     protected void Passive_OnStartAttack()
     {
         if (!HasPassiveHook(PassiveHooks.OnStartAttack)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnStartAttack(this);
+            snap[i]?.OnStartAttack(this);
         }
     }
     protected void Passive_OnExitAttack()
     {
         if (!HasPassiveHook(PassiveHooks.OnFinishAttack)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnFinishAttack(this);
+            snap[i]?.OnFinishAttack(this);
         }
     }
     protected int Passive_OnAfterSwitchingAnim(int index)
     {
         if (!HasPassiveHook(PassiveHooks.OnAfterSwitchingAnim)) return index;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnAfterSwitchingAnim(this, ref index);
+            snap[i]?.OnAfterSwitchingAnim(this, ref index);
         }
         return index;
     }
     protected void Passive_OnAttacking(ref float dmg, ref List<AttackType> types)
     {
         if (!HasPassiveHook(PassiveHooks.OnAttacking)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnAttacking(this, ref dmg, ref types);
+            snap[i]?.OnAttacking(this, ref dmg, ref types);
         }
     }
     protected void Passive_OnAfterAttack(float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
         if (!HasPassiveHook(PassiveHooks.OnAfterAttack)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnAfterAttack(this, dmg, ces, types);
+            snap[i]?.OnAfterAttack(this, dmg, ces, types);
         }
     }
     protected void Passive_OnBeforeKB()
     {
         if (!HasPassiveHook(PassiveHooks.OnBeforeKB)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnBeforeKB(this);
+            snap[i]?.OnBeforeKB(this);
         }
     }
     protected void Passive_OnAfterKB()
     {
         if (!HasPassiveHook(PassiveHooks.OnAfterKB)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnAfterKB(this);
+            snap[i]?.OnAfterKB(this);
         }
     }
     protected void Passive_OnDead()
     {
         if (!HasPassiveHook(PassiveHooks.OnDead)) return;
-        for (int i = 0; i < passiveSnapshot.Count; i++)
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
         {
-            passiveSnapshot[i]?.OnDead(this);
+            snap[i]?.OnDead(this);
         }
     }
 

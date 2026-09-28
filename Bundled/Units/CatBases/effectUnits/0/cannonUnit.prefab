@@ -82,7 +82,6 @@ MonoBehaviour:
   UNITYAnimated: 0
   SPINEAnimated: 0
   levelController: {fileID: 0}
-  BlockAnimationSwitch: 0
   Health: 0
   KB: 0
   Speed: 0
@@ -94,7 +93,6 @@ MonoBehaviour:
   atkInfos: []
   areaATK: 0
   atkDuration: 0
-  one_off: 0
   traits:
     Red: 0
     Flt: 0
@@ -121,7 +119,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -129,11 +127,7 @@ MonoBehaviour:
     tough: 0
     aegis: 0
     strongAgainst: 0
-  characterEffects:
-  - name: 4
-    probability: 0
-    duration: 0
-    intensity: 0
+  characterEffects: []
   characterAbilities: []
   atkTypeResis: []
   effectResistances: []
@@ -141,7 +135,7 @@ MonoBehaviour:
   EM: {fileID: 0}
   cannon_type: 0
   max_times: -1
-  damage_multiplier: 2
+  damage_multiplier: 5
   cannon_patterns:
   - eff_flow_num: 0
     eff_flow_time: 15

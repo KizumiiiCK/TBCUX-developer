@@ -68,7 +68,7 @@ MonoBehaviour:
   m_text: "\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
-  m_sharedMaterial: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+  m_sharedMaterial: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -279,7 +279,7 @@ MonoBehaviour:
   m_text: Please input your player nickname.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
-  m_sharedMaterial: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+  m_sharedMaterial: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -474,7 +474,7 @@ MonoBehaviour:
   m_text: 'Your user ID: xxxxxxxx'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
-  m_sharedMaterial: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+  m_sharedMaterial: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -608,7 +608,7 @@ MonoBehaviour:
   m_text: This is a test xxxxxxxxxxxxx notification message.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
-  m_sharedMaterial: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+  m_sharedMaterial: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -743,7 +743,7 @@ MonoBehaviour:
   m_text: '- Your name here -'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
-  m_sharedMaterial: {fileID: 8048364787071468174, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
+  m_sharedMaterial: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1521,6 +1521,10 @@ PrefabInstance:
       propertyPath: m_fontSizeBase
       value: 48
       objectReference: {fileID: 0}
+    - target: {fileID: 8046641149306222314, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
     - target: {fileID: 8186091144504962728, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -2760,6 +2764,10 @@ PrefabInstance:
       propertyPath: m_fontSizeBase
       value: 48
       objectReference: {fileID: 0}
+    - target: {fileID: 8046641149306222314, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
     - target: {fileID: 8186091144504962728, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -3463,6 +3471,10 @@ PrefabInstance:
       propertyPath: m_fontSizeBase
       value: 36
       objectReference: {fileID: 0}
+    - target: {fileID: 8046641149306222314, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 7106576937315514907, guid: 5b3f6cbdf7765f74d81df7ba0b6d7932, type: 2}
     - target: {fileID: 8186091144504962728, guid: 178c1daaaf61d7741b52d1b6dac8308c, type: 3}
       propertyPath: m_Sprite
       value: 

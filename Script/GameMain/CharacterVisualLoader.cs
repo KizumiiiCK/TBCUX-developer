@@ -15,6 +15,7 @@ public static class CharacterVisualLoader
         public const string In = "in";
         public const string Dive = "dive";
         public const string Out = "out";
+        public const string Phase = "phase";
     }
 
     private readonly struct ExtraAnimEntry
@@ -38,6 +39,7 @@ public static class CharacterVisualLoader
         new ExtraAnimEntry(ExtraAnim.In, AbilityName.ZombieDive),
         new ExtraAnimEntry(ExtraAnim.Dive, AbilityName.ZombieDive),
         new ExtraAnimEntry(ExtraAnim.Out, AbilityName.ZombieDive),
+        new ExtraAnimEntry(ExtraAnim.Phase, AbilityName.ChangePhase),
     };
 
     public static CharacterData LoadCharacterData(bool cat, string characterCode)
@@ -192,16 +194,42 @@ public static class CharacterVisualLoader
 
     public static string GetCharacterLoadPath(bool cat, string characterCode)
     {
-        return cat
-            ? $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/"
-            : $"Units/Enemy Units/{characterCode}/";
+        if (cat)
+        {
+            SplitPhaseSuffix(characterCode, out string baseCode, out string phaseSuffix);
+            return $"Units/Cat Units/{baseCode[0]}/{baseCode.Substring(1, 3)}/{baseCode[4]}{phaseSuffix}/";
+        }
+        return $"Units/Enemy Units/{characterCode}/";
     }
 
     public static string GetUaUnitPath(bool cat, string characterCode)
     {
-        return cat
-            ? $"Units/Cat Units/{characterCode[0]}/{characterCode.Substring(1, 3)}/{characterCode[4]}/uaunit"
-            : $"Units/Enemy Units/{characterCode}/uaunit";
+        if (cat)
+        {
+            SplitPhaseSuffix(characterCode, out string baseCode, out string phaseSuffix);
+            return $"Units/Cat Units/{baseCode[0]}/{baseCode.Substring(1, 3)}/{baseCode[4]}{phaseSuffix}/uaunit";
+        }
+        return $"Units/Enemy Units/{characterCode}/uaunit";
+    }
+
+    public static string BuildPhaseCharacterCode(string currentCode, int phase)
+    {
+        SplitPhaseSuffix(currentCode, out string baseCode, out _);
+        return $"{baseCode}-p{Mathf.Max(1, phase)}";
+    }
+
+    public static void SplitPhaseSuffix(string characterCode, out string baseCode, out string phaseSuffix)
+    {
+        baseCode = characterCode ?? string.Empty;
+        phaseSuffix = string.Empty;
+        int idx = baseCode.LastIndexOf("-p");
+        if (idx <= 0 || idx + 2 >= baseCode.Length) return;
+        for (int i = idx + 2; i < baseCode.Length; i++)
+        {
+            if (!char.IsDigit(baseCode[i])) return;
+        }
+        phaseSuffix = baseCode.Substring(idx);
+        baseCode = baseCode.Substring(0, idx);
     }
 
     public static GameObject LoadPrefab(string address)
