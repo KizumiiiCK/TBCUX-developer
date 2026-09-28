@@ -18,9 +18,9 @@ public class AnniversaryBoardCanvas : UICanvasMain
 
     public static readonly Color DrawTextScrambleColor = new Color(0.55f, 0.55f, 0.55f);
 
-    public static readonly Color SlotReadyColor = new Color(1.00f, 0.85f, 0.35f);
-    public static readonly Color SlotLockedColor = Color.white;
-    public static readonly Color SlotClaimedColor = new Color(0.45f, 0.45f, 0.45f);
+    public static readonly Color SlotReadyColor = new Color(1.000f, 0.569f, 0.984f, 1.000f);
+    public static readonly Color SlotLockedColor = new Color(0.204f, 0.243f, 0.337f, 1.000f);
+    public static readonly Color SlotClaimedColor = new Color(0.000f, 1.000f, 0.298f, 1.000f);
 
     /// <summary>Select tickets needed to light one chosen cell.</summary>
     public const int SelectTicketCost = 10;
@@ -624,7 +624,8 @@ public class AnniversaryBoardCanvas : UICanvasMain
             // Lost the race against another write: refund so the tickets are never silently eaten.
             // Nothing was deducted in test mode, so there is nothing to give back.
             // The armed pick survives, since it never actually landed.
-            if (!testMode) RewardingSystem.GainReward(RewardName.Anniversary_Select, SelectTicketCost);
+            //if (!testMode) 
+            RewardingSystem.GainReward(RewardName.Anniversary_Select, SelectTicketCost);
             Refresh();
             return;
         }

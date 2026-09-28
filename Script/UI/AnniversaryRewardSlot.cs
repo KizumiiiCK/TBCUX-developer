@@ -32,6 +32,10 @@ public class AnniversaryRewardSlot : MonoBehaviour
 
     private System.Action onClaim;
     private bool listenerBound;
+    private Vector2 iconBaseSize;
+    private bool iconBaseSizeCached;
+
+    private const float CharacterPortraitAspect = 85f / 110f;
 
     /// <param name="unlocked">Condition met; the reward may or may not be taken yet.</param>
     /// <param name="claimed">Reward already taken.</param>
@@ -52,10 +56,12 @@ public class AnniversaryRewardSlot : MonoBehaviour
         if (claimedMark != null) claimedMark.SetActive(claimed);
         if (icon != null)
         {
-            icon.sprite = kind == RewardType.item
-                ? StorageImageHelper.GetItemImageByOrder(gainId)
-                : BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetCatDeployIconPath(gainId.ToString("0000"), 0));
+            bool isCharacterPortrait = kind != RewardType.item;
+            icon.sprite = isCharacterPortrait
+                ? BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetCatDeployIconPath(gainId.ToString("0000"), 0))
+                : StorageImageHelper.GetItemImageByOrder(gainId);
             icon.enabled = icon.sprite != null;
+            ApplyIconFrame(isCharacterPortrait);
         }
         if (colorTarget != null)
         {
@@ -71,6 +77,19 @@ public class AnniversaryRewardSlot : MonoBehaviour
             listenerBound = true;
         }
         claimButton.interactable = unlocked && !claimed && claimEnabled;
+    }
+
+    private void ApplyIconFrame(bool isCharacterPortrait)
+    {
+        RectTransform rt = icon.rectTransform;
+        if (!iconBaseSizeCached)
+        {
+            iconBaseSize = rt.sizeDelta;
+            iconBaseSizeCached = true;
+        }
+        Vector2 size = iconBaseSize;
+        if (isCharacterPortrait) size.y = size.x * CharacterPortraitAspect;
+        rt.sizeDelta = size;
     }
 
     private void HandleClaim() => onClaim?.Invoke();

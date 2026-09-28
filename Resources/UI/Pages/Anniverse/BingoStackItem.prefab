@@ -437,7 +437,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7408ff968d8c50246a24e6fdccc311e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  claimButton: {fileID: 4329954535933103141}
+  claimButton: {fileID: 667103198471990312}
   colorTarget: {fileID: 6571766585689954657}
   icon: {fileID: 2320719361464466965}
   amountText: {fileID: 6362321924338962203}
@@ -633,6 +633,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f5a278fcdfcc2344d8f623c4cbc172f5, type: 3}
+--- !u!114 &667103198471990312 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8835216578688750979, guid: f5a278fcdfcc2344d8f623c4cbc172f5, type: 3}
+  m_PrefabInstance: {fileID: 8349383961038928299}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1754368811397124707 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7747947667091106760, guid: f5a278fcdfcc2344d8f623c4cbc172f5, type: 3}
@@ -647,17 +658,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4329954535933103141 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5749388960681162126, guid: f5a278fcdfcc2344d8f623c4cbc172f5, type: 3}
-  m_PrefabInstance: {fileID: 8349383961038928299}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &6362321924338962203 stripped
