@@ -2,9 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
 
 public class FrameUIDisplayer : MonoBehaviour
@@ -31,7 +28,6 @@ public class FrameUIDisplayer : MonoBehaviour
     private readonly List<int> displayedIds = new List<int>();
     private readonly Stack<UICanvasMain> pageStack = new Stack<UICanvasMain>();
     private readonly Stack<List<int>> extraCurrencyStack = new Stack<List<int>>();
-    private readonly List<AsyncOperationHandle<Sprite>> doorSpriteHandles = new List<AsyncOperationHandle<Sprite>>();
     private List<int> currentExtraIds = new List<int>();
     private Coroutine navigationRoutine;
     private Coroutine appearanceRoutine;
@@ -75,55 +71,19 @@ public class FrameUIDisplayer : MonoBehaviour
         if (string.IsNullOrWhiteSpace(cptname)) yield break;
 
         string baseAddress = $"Background/Doors/door_{cptname}";
-        string[] candidateKeys =
-        {
-            baseAddress,
-            baseAddress + ".png",
-            baseAddress + ".PNG",
-            baseAddress + ".jpg",
-            baseAddress + ".jpeg",
-            baseAddress + ".tga"
-        };
 
-        List<Sprite> sprites = null;
-        for (int keyIndex = 0; keyIndex < candidateKeys.Length; keyIndex++)
-        {
-            AsyncOperationHandle<IList<IResourceLocation>> locHandle =
-                Addressables.LoadResourceLocationsAsync(candidateKeys[keyIndex], typeof(Sprite));
-            yield return locHandle;
+        // 走 BundledAddressables 的预热 + 缓存读，而不是直接 LoadAssetAsync：
+        // spriteSheetCache 是静态的，活过场景切换，所以每场战斗打完回基地都是缓存命中，不再重新
+        // 解一次表。句柄也归 BundledAddressables 持有，这边不需要自己释放。
+        var prewarm = new BundledAddressables.PrewarmList();
+        prewarm.AddSpriteSheet(baseAddress);
+        yield return BundledAddressables.PrewarmRoutine(prewarm);
 
-            if (locHandle.Status != AsyncOperationStatus.Succeeded ||
-                locHandle.Result == null ||
-                locHandle.Result.Count == 0)
-            {
-                if (locHandle.IsValid()) Addressables.Release(locHandle);
-                continue;
-            }
+        Sprite[] sheet = BundledAddressables.LoadSpriteSheetSync(baseAddress);
+        if (sheet == null || sheet.Length < 2) yield break;
 
-            sprites = new List<Sprite>(locHandle.Result.Count);
-            for (int i = 0; i < locHandle.Result.Count; i++)
-            {
-                AsyncOperationHandle<Sprite> spriteHandle = Addressables.LoadAssetAsync<Sprite>(locHandle.Result[i]);
-                yield return spriteHandle;
-
-                if (spriteHandle.Status == AsyncOperationStatus.Succeeded && spriteHandle.Result != null)
-                {
-                    sprites.Add(spriteHandle.Result);
-                    doorSpriteHandles.Add(spriteHandle);
-                }
-                else if (spriteHandle.IsValid())
-                {
-                    Addressables.Release(spriteHandle);
-                }
-            }
-
-            if (locHandle.IsValid()) Addressables.Release(locHandle);
-            if (sprites.Count > 0) break;
-        }
-
-        if (sprites == null || sprites.Count < 2) yield break;
-        sprites.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
-        doorAnimator.SetDoorSprites(sprites[0], sprites[1]);
+        // LoadSpriteSheetSync 已按名字排好序（door_x_0, door_x_1, ...），前两张就是左右门。
+        doorAnimator.SetDoorSprites(sheet[0], sheet[1]);
     }
 
     private void OnDestroy()
@@ -133,12 +93,6 @@ public class FrameUIDisplayer : MonoBehaviour
             StopCoroutine(appearanceRoutine);
             appearanceRoutine = null;
         }
-
-        for (int i = 0; i < doorSpriteHandles.Count; i++)
-        {
-            if (doorSpriteHandles[i].IsValid()) Addressables.Release(doorSpriteHandles[i]);
-        }
-        doorSpriteHandles.Clear();
     }
     public void SetBaseCurrencies(List<int> ids)
     {

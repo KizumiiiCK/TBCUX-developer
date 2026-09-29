@@ -12,9 +12,6 @@ public class BaseMessage : MonoBehaviour
     [SerializeField] private RectTransform Box;
     [SerializeField] private Image character_img;
     [SerializeField] private Button SwitchMessage_Btn;
-    [SerializeField] private FrameUIAnimations frameUIAnimations;
-    // Backward-compatible fallback for old prefabs
-    [SerializeField] private RectTransform Doors;
 
     private bool onChanging = false;
     private int ml = 20;
@@ -26,14 +23,17 @@ public class BaseMessage : MonoBehaviour
     }
 
     /// <summary>
-    /// 立绘目录与章节门图需要先异步拉取，之后再读取显示。
+    /// 立绘目录要先异步拉取，之后再读取显示。
+    ///
+    /// 章节门图不在这里：main 把它整个收归 <see cref="FrameUIDisplayer"/>，这边曾经有过一份
+    /// 重复实现（prewarm + LoadSpriteSheetSync），两份一起跑会把同一张图加载两次、各持一个
+    /// 句柄。唯一的所有者现在是 FrameUIDisplayer.SetAppearanceAsync。
     /// </summary>
     private IEnumerator StartRoutine()
     {
         yield return DialoguePortraitCatalog.EnsureLoadedRoutine();
         LoadRandomCharacter();
         LoadRandomMessage();
-        yield return ChangeDoorsRoutine();
     }
     private void LoadRandomCharacter()
     {
@@ -69,32 +69,5 @@ public class BaseMessage : MonoBehaviour
             localizedText => message.text = localizedText ?? "???");
         yield return new WaitForFixedUpdate();
         onChanging = false;
-    }
-    private IEnumerator ChangeDoorsRoutine()
-    {
-        string cpt_name = PlayerPrefs.GetString(UXPref.ChapterName);
-        if (string.IsNullOrEmpty(cpt_name)) yield break;
-
-        string address = $"Background/Doors/door_{cpt_name}";
-        var list = new BundledAddressables.PrewarmList();
-        list.AddSpriteSheet(address);
-        yield return BundledAddressables.PrewarmRoutine(list);
-
-        Sprite[] ds = BundledAddressables.LoadSpriteSheetSync(address);
-        if (ds == null || ds.Length <= 1)
-        {
-            Debug.Log("No Image");
-            yield break;
-        }
-
-        if (frameUIAnimations != null)
-        {
-            frameUIAnimations.SetDoorSprites(ds[0], ds[1]);
-        }
-        else if (Doors != null && Doors.childCount > 1)
-        {
-            Doors.GetChild(0).GetComponent<Image>().sprite = ds[0];
-            Doors.GetChild(1).GetComponent<Image>().sprite = ds[1];
-        }
     }
 }

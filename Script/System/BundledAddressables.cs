@@ -522,6 +522,34 @@ public static class BundledAddressables
         }
         if (locHandle.IsValid()) Addressables.Release(locHandle);
 
+        if (sprites.Count <= 1)
+        {
+            // 多图表（Sprite Mode: Multiple）在目录里只是**一个** location，按 Sprite 请求永远
+            // 只能拿回第一张子图 —— 上面那圈循环对门图这类资源必然只得到 1 张，于是
+            // LoadSpriteSheetSync 的 Length > 1 判断永远不成立。IList<Sprite> 会解包到元素类型，
+            // 把整张表拉出来，相当于运行时版的 Resources.LoadAll<Sprite>。
+            AsyncOperationHandle<IList<Sprite>> sheetHandle =
+                Addressables.LoadAssetAsync<IList<Sprite>>(resolved);
+            yield return AwaitWithHeartbeat(sheetHandle, heartbeat);
+
+            if (sheetHandle.Status == AsyncOperationStatus.Succeeded
+                && sheetHandle.Result != null
+                && sheetHandle.Result.Count > sprites.Count)
+            {
+                // 句柄不释放：解出来的 Sprite 归它持有，一放就全失效。和 handleCache 里的其他
+                // 条目一样，生命周期就是进程生命周期。
+                sprites.Clear();
+                for (int i = 0; i < sheetHandle.Result.Count; i++)
+                {
+                    if (sheetHandle.Result[i] != null) sprites.Add(sheetHandle.Result[i]);
+                }
+            }
+            else if (sheetHandle.IsValid())
+            {
+                Addressables.Release(sheetHandle);
+            }
+        }
+
         if (sprites.Count == 0)
         {
             // Single-sprite texture: fall back to the plain asset load.
@@ -730,6 +758,13 @@ public static class BundledAddressables
                 return candidate;
             }
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // 目录还没就绪就不要把「找不到」记成结论：负缓存是永久的，一次过早的调用会让这个地址
+        // 在整个会话里都解析失败。WebGL 上没法阻塞等目录（见类头的 WebGL contract），所以只能
+        // 答「这一次没找到」，把重试的机会留给调用方。就绪之后行为和其他平台完全一致。
+        if (!initialized) return null;
+#endif
 
         resolvedAddressCache[cacheKey] = string.Empty;
         return null;
@@ -1024,6 +1059,36 @@ public static class BundledAddressables
             catch (Exception e)
             {
                 Debug.LogWarning($"BundledAddressables sprite sheet load failed for '{address}': {e.Message}");
+            }
+        }
+
+        if (resolved != null && sprites.Count <= 1)
+        {
+            // A sprite sheet is one catalog location, not one per sub-sprite, so the query above
+            // can only ever hand back the first sprite. IList<Sprite> unwraps to the element type
+            // and pulls the whole sheet out — the runtime counterpart of Resources.LoadAll<Sprite>.
+            try
+            {
+                AsyncOperationHandle<IList<Sprite>> sheetHandle =
+                    Addressables.LoadAssetAsync<IList<Sprite>>(resolved);
+                IList<Sprite> sheet = sheetHandle.WaitForCompletion();
+
+                if (sheetHandle.Status == AsyncOperationStatus.Succeeded && sheet != null && sheet.Count > sprites.Count)
+                {
+                    sprites.Clear();
+                    for (int i = 0; i < sheet.Count; i++)
+                    {
+                        if (sheet[i] != null) sprites.Add(sheet[i]);
+                    }
+                }
+                else if (sheetHandle.IsValid())
+                {
+                    Addressables.Release(sheetHandle);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"BundledAddressables.LoadSpriteSheetSync sub-assets failed for '{address}': {e.Message}");
             }
         }
 
