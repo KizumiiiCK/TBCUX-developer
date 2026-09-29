@@ -42,7 +42,11 @@ public class CheckInSystem : MonoBehaviour
     /// </summary>
     private readonly RewardName[] activeRewardNames = (RewardName[])rewardNames.Clone();
 
-    public const string LastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
+    /// <summary>
+    /// 旧的日期缓存键。只留着用来擦除历史值——数据本身已经废弃，见
+    /// <see cref="ReadCachedWorldDateToken"/>。
+    /// </summary>
+    private const string LegacyLastWorldDateCacheKey = "CHECKIN_LAST_WORLD_DATE";
     private static readonly TimeSpan Utc8Offset = TimeSpan.FromHours(8);
 
     /// <summary>
@@ -85,7 +89,7 @@ public class CheckInSystem : MonoBehaviour
     {
         if (VerifiedToday.HasValue) return VerifiedToday;
 
-        string token = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
+        string token = ReadCachedWorldDateToken();
         if (string.IsNullOrEmpty(token)) return null;
         if (token != GetUtc8TodayToken()) return null;
         return DateTime.TryParseExact(token, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime cached)
@@ -207,7 +211,7 @@ public class CheckInSystem : MonoBehaviour
 
     private bool ShouldSkipByLocalDate()
     {
-        string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
+        string cachedDate = ReadCachedWorldDateToken();
         string today = GetUtc8TodayToken();
         if (string.IsNullOrEmpty(cachedDate))
         {
@@ -338,19 +342,61 @@ public class CheckInSystem : MonoBehaviour
 
     private int CalculateRewardAmount(int origin, float bonus) => Mathf.FloorToInt(origin * bonus);
 
-    private static string GetUtc8TodayToken() => DateTime.UtcNow.Add(Utc8Offset).Date.ToString("yyyy-MM-dd");
+    private static string GetUtc8TodayToken() => ToDateToken(DateTime.UtcNow.Add(Utc8Offset));
 
-    public static string GetCachedWorldDateToken()
+    /// <summary>
+    /// 日期令牌的唯一写法。固定 InvariantCulture：<see cref="GetVerifiedToday"/> 用
+    /// <c>TryParseExact</c> 配 InvariantCulture 读回来，而 "yyyy" 在非公历日历的区域下会输出
+    /// 佛历之类的年份，两边不一致就再也对不上。
+    /// </summary>
+    private static string ToDateToken(DateTime date) =>
+        date.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// 读取宿主记录的「最后一次被平台时钟确认的日期」，从未确认过时返回空串。
+    /// <para>
+    /// 住在 privateKV 而不是 PlayerPrefs：WebGL 上的 PlayerPrefs 就是浏览器存储，玩家清一次
+    /// 站点数据就能把它抹掉，改一次就能把它写成任意一天。privateKV 只有宿主能写，玩家碰不到。
+    /// </para>
+    /// <para>
+    /// 缓存没水合时同样返回空串，而不是去读设备时钟——没水合就等于「这台机器现在证明不了今天
+    /// 是哪天」，和从未确认过是同一种状态。这里绕开 <see cref="BuildaSaveBackend.Get"/> 的
+    /// 未水合报错，是因为标题画面的日期门禁本来就会在开机拉取完成之前问一次。
+    /// </para>
+    /// </summary>
+    private static string ReadCachedWorldDateToken()
     {
-        string cachedDate = PlayerPrefs.GetString(LastWorldDateCacheKey, string.Empty);
-        return string.IsNullOrEmpty(cachedDate) ? GetUtc8TodayToken() : cachedDate;
+        if (!BuildaSaveBackend.IsLoaded) return string.Empty;
+        return SaveCodec.DecodeWorldDate(BuildaSaveBackend.Get(SaveKeys.WorldDate)) ?? string.Empty;
     }
 
+    /// <summary>
+    /// 每日次数限制用的「今天」。没有可信日期时返回空串，调用方必须把它当成「今天是哪天未知」
+    /// 而不是「今天」——旧实现在这里退回设备时钟，于是清掉站点数据就能把当日次数刷回零。
+    /// </summary>
+    public static string GetCachedWorldDateToken() => ReadCachedWorldDateToken();
+
+    /// <summary>
+    /// 记下平台时钟确认的日期。<see cref="currentServerDate"/> 未确立时什么都不写：这份记录现在
+    /// 是反作弊凭据，往里塞一个设备时钟的日期等于把玩家能改的值洗成可信值。
+    /// </summary>
     private void SaveCachedWorldDate()
     {
-        DateTime date = currentServerDate != DateTime.MinValue ? currentServerDate.Date : DateTime.UtcNow.Add(Utc8Offset).Date;
-        PlayerPrefs.SetString(LastWorldDateCacheKey, date.ToString("yyyy-MM-dd"));
-        PlayerPrefs.Save();
+        if (currentServerDate == DateTime.MinValue)
+        {
+            Debug.LogWarning("[CheckInSystem] No verified date; world-date record left untouched.");
+            return;
+        }
+        BuildaSaveBackend.Set(
+            SaveKeys.WorldDate,
+            SaveCodec.EncodeWorldDate(ToDateToken(currentServerDate)));
+
+        // 旧的 PlayerPrefs 值不迁移、只清除：它是玩家可写的，搬过来等于把漏洞一起搬过来。
+        if (PlayerPrefs.HasKey(LegacyLastWorldDateCacheKey))
+        {
+            PlayerPrefs.DeleteKey(LegacyLastWorldDateCacheKey);
+            PlayerPrefs.Save();
+        }
     }
 
     public void CloseBtnEvent() { SwitchAnimation(); UpdateCurrency(); }

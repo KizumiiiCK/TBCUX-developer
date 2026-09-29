@@ -235,7 +235,24 @@ public static class DailyMapChallengeSave
     public static bool HasReachedDailyLimit(string currentDateToken, string sectionName, int timesLimit)
     {
         if (timesLimit < 1) return false;
-        return GetSectionClearCountToday(currentDateToken, sectionName) >= timesLimit;
+        return GetRemainingToday(currentDateToken, sectionName, timesLimit) <= 0;
+    }
+
+    /// <summary>
+    /// 今天这一关还能打几次。
+    /// <para>
+    /// <paramref name="currentDateToken"/> 为空表示「今天是哪天还没有被平台时钟确认」，一律按
+    /// 0 次处理，也就是锁住。这和签到、周年庆的口径一致：拿不到可信日期就不放行任何按日期结算
+    /// 的内容。反过来放行才是漏洞——玩家只要让 getServerTime 失败（断网、清站点数据），次数就
+    /// 会变成无限，而 <see cref="ResetIfNewDay"/> 在空 token 下本来就不清计数，所以「锁住」不会
+    /// 误伤已经攒下的次数，联网成功后立刻恢复。
+    /// </para>
+    /// </summary>
+    public static int GetRemainingToday(string currentDateToken, string sectionName, int timesLimit)
+    {
+        if (timesLimit < 1) return timesLimit;
+        if (string.IsNullOrEmpty(currentDateToken)) return 0;
+        return Mathf.Max(0, timesLimit - GetSectionClearCountToday(currentDateToken, sectionName));
     }
 
     public static void RecordSectionClear(string currentDateToken, string sectionName)

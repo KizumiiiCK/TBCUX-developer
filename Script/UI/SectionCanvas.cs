@@ -314,10 +314,10 @@ public class SectionCanvas : UICanvasMain
         TMP_Text remarkText = textRoot != null ? textRoot.GetComponent<TMP_Text>() : null;
         if (remarkText == null) return;
 
-        int used = DailyMapChallengeSave.GetSectionClearCountToday(
+        int remaining = DailyMapChallengeSave.GetRemainingToday(
             CheckInSystem.GetCachedWorldDateToken(),
-            mapInfo.sectionName);
-        int remaining = Mathf.Max(0, mapInfo.timesLimit - used);
+            mapInfo.sectionName,
+            mapInfo.timesLimit);
         LocalizationHelper.GetLocalizedText(UXPref.Localized_UI, DailyTextId,
             localizedText => remarkText.text = string.Format(localizedText ?? DailyTextId, remaining));
     }

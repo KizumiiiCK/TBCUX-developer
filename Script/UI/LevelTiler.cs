@@ -682,9 +682,9 @@ public class LevelTiler : UICanvasMain
         }
 
         string currentDateToken = CheckInSystem.GetCachedWorldDateToken();
-        int used = DailyMapChallengeSave.GetSectionClearCountToday(currentDateToken, MI.sectionName);
+        int remaining = DailyMapChallengeSave.GetRemainingToday(currentDateToken, MI.sectionName, MI.timesLimit);
         isDailyMapLocked = DailyMapChallengeSave.HasReachedDailyLimit(currentDateToken, MI.sectionName, MI.timesLimit);
-        RefreshDailyRemark(Mathf.Max(0, MI.timesLimit - used));
+        RefreshDailyRemark(remaining);
     }
 
     private void RefreshDailyRemark(int remaining)

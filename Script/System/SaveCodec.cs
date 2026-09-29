@@ -509,6 +509,36 @@ public static class SaveCodec
         }
     }
 
+    // ---- verified world date ----
+
+    /// <summary>
+    /// The last UTC+8 date the platform clock confirmed, as the same <c>yyyy-MM-dd</c> token the
+    /// callers compare against. Stored as the token rather than ticks because nothing reads it as a
+    /// point in time - it is only ever compared for equality with another day's token.
+    /// </summary>
+    public static byte[] EncodeWorldDate(string token)
+    {
+        return ToBytes(w =>
+        {
+            WriteHeader(w);
+            WriteNullableString(w, token);
+        });
+    }
+
+    /// <summary>
+    /// Reads the recorded world date, or null when none has ever been written. Null means "no day
+    /// has been proven for this player yet", which every caller has to treat as unproven rather
+    /// than as today.
+    /// </summary>
+    public static string DecodeWorldDate(byte[] bytes)
+    {
+        return FromBytes(bytes, r =>
+        {
+            ReadHeader(r, "world date");
+            return ReadNullableString(r);
+        });
+    }
+
     public static byte[] EncodeBontiquePurchases(BontiquePurchaseData data)
     {
         return ToBytes(w =>

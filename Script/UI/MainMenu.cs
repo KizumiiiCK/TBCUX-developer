@@ -51,8 +51,19 @@ public class MainMenu : MonoBehaviour
         Input.multiTouchEnabled = false;
         // Hidden until proven otherwise, so a stale scene state can never leak the entry.
         SetAnniversaryEntriesVisible(false);
+        // 可信日期现在住在 privateKV，Start 跑在开机拉取之前，只可能读到「未证明」。签到流程一旦
+        // 确立今天是哪天就会发这个事件，届时再判一次。编辑器里没有 NotifyPlatformBootComplete，
+        // 靠的就是这条路径。
+        CheckInSystem.VerifiedTodayResolved += OnVerifiedTodayResolved;
         StartCoroutine(ApplyInitialLanguageRoutine());
     }
+
+    private void OnDestroy()
+    {
+        CheckInSystem.VerifiedTodayResolved -= OnVerifiedTodayResolved;
+    }
+
+    private void OnVerifiedTodayResolved(DateTime today) => ApplyAnniversaryGate();
 
     private void Start()
     {
@@ -80,10 +91,16 @@ public class MainMenu : MonoBehaviour
 
     /// <summary>
     /// Called once the boot gate has hydrated saves and read <c>whoami</c>. Unlocks the main menu.
+    /// <para>
+    /// The gate is re-applied here because the trusted world date now lives in privateKV: the
+    /// <see cref="Start"/> pass runs before hydration, so it can only ever read "unproven" and
+    /// hide the entries. This is the first moment the record is actually readable.
+    /// </para>
     /// </summary>
     public void NotifyPlatformBootComplete()
     {
         operating = false;
+        ApplyAnniversaryGate();
     }
 
     /// <summary>

@@ -15,9 +15,9 @@ using System.Collections.Generic;
 /// <list type="bullet">
 /// <item>7 chapter progress shards - one per playable chapter under Resources/LevelData/Chapters</item>
 /// <item>7 character-upgrade shards - one per rarity digit 0..6</item>
-/// <item>11 single-value payloads</item>
+/// <item>12 single-value payloads</item>
 /// </list>
-/// 25 keys total, which also fits in one 32-key <c>getMany</c>, so the boot pull is a single
+/// 26 keys total, which also fits in one 32-key <c>getMany</c>, so the boot pull is a single
 /// round-trip.
 /// </summary>
 public static class SaveKeys
@@ -96,12 +96,22 @@ public static class SaveKeys
     public const string AnniversaryTest = "tbcx-anniversary-test";
 
     /// <summary>
+    /// The last world date the platform clock confirmed, as <c>yyyy-MM-dd</c> in UTC+8.
+    ///
+    /// Lives here rather than in PlayerPrefs because it is an anti-tamper record, not a
+    /// convenience cache. PlayerPrefs is browser storage on WebGL, so the player can clear or edit
+    /// it; anything that decides whether a daily reward or a dated activity is available has to sit
+    /// where only the host can write it.
+    /// </summary>
+    public const string WorldDate = "tbcx-world-date";
+
+    /// <summary>
     /// Every key the boot pull should fetch. Order is irrelevant; count matters, because staying
     /// at or below 32 keeps the boot pull to one <c>getMany</c>.
     /// </summary>
     public static List<string> AllKeys()
     {
-        var keys = new List<string>(Chapters.Length + RarityCount + 11);
+        var keys = new List<string>(Chapters.Length + RarityCount + 12);
 
         for (int i = 0; i < Chapters.Length; i++) keys.Add(Progress(Chapters[i]));
         for (int r = 0; r < RarityCount; r++) keys.Add(Upgrades(r));
@@ -117,6 +127,7 @@ public static class SaveKeys
         keys.Add(PayOrders);
         keys.Add(Anniversary);
         keys.Add(AnniversaryTest);
+        keys.Add(WorldDate);
 
         return keys;
     }
