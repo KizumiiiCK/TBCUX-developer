@@ -4,7 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
 
 public class FrameUIDisplayer : MonoBehaviour
@@ -31,7 +30,7 @@ public class FrameUIDisplayer : MonoBehaviour
     private readonly List<int> displayedIds = new List<int>();
     private readonly Stack<UICanvasMain> pageStack = new Stack<UICanvasMain>();
     private readonly Stack<List<int>> extraCurrencyStack = new Stack<List<int>>();
-    private readonly List<AsyncOperationHandle<Sprite>> doorSpriteHandles = new List<AsyncOperationHandle<Sprite>>();
+    private AsyncOperationHandle<IList<Sprite>> doorSheetHandle;
     private List<int> currentExtraIds = new List<int>();
     private Coroutine navigationRoutine;
     private Coroutine appearanceRoutine;
@@ -75,53 +74,36 @@ public class FrameUIDisplayer : MonoBehaviour
         if (string.IsNullOrWhiteSpace(cptname)) yield break;
 
         string baseAddress = $"Background/Doors/door_{cptname}";
-        string[] candidateKeys =
+        string resolved = BundledAddressables.ResolveAddress(baseAddress, typeof(Sprite))
+            ?? BundledAddressables.ResolveAddress(baseAddress, typeof(Texture2D));
+        if (resolved == null) yield break;
+
+        // The door art is one multi-sprite sheet, and a sheet is a single catalog location:
+        // asking for Sprite returns only its first sub-sprite. IList<Sprite> unwraps to the
+        // element type so the provider loads every sub-sprite, in a build as well as in play mode.
+        AsyncOperationHandle<IList<Sprite>> sheetHandle =
+            Addressables.LoadAssetAsync<IList<Sprite>>(resolved);
+        yield return sheetHandle;
+
+        if (sheetHandle.Status != AsyncOperationStatus.Succeeded || sheetHandle.Result == null)
         {
-            baseAddress,
-            baseAddress + ".png",
-            baseAddress + ".PNG",
-            baseAddress + ".jpg",
-            baseAddress + ".jpeg",
-            baseAddress + ".tga"
-        };
-
-        List<Sprite> sprites = null;
-        for (int keyIndex = 0; keyIndex < candidateKeys.Length; keyIndex++)
-        {
-            AsyncOperationHandle<IList<IResourceLocation>> locHandle =
-                Addressables.LoadResourceLocationsAsync(candidateKeys[keyIndex], typeof(Sprite));
-            yield return locHandle;
-
-            if (locHandle.Status != AsyncOperationStatus.Succeeded ||
-                locHandle.Result == null ||
-                locHandle.Result.Count == 0)
-            {
-                if (locHandle.IsValid()) Addressables.Release(locHandle);
-                continue;
-            }
-
-            sprites = new List<Sprite>(locHandle.Result.Count);
-            for (int i = 0; i < locHandle.Result.Count; i++)
-            {
-                AsyncOperationHandle<Sprite> spriteHandle = Addressables.LoadAssetAsync<Sprite>(locHandle.Result[i]);
-                yield return spriteHandle;
-
-                if (spriteHandle.Status == AsyncOperationStatus.Succeeded && spriteHandle.Result != null)
-                {
-                    sprites.Add(spriteHandle.Result);
-                    doorSpriteHandles.Add(spriteHandle);
-                }
-                else if (spriteHandle.IsValid())
-                {
-                    Addressables.Release(spriteHandle);
-                }
-            }
-
-            if (locHandle.IsValid()) Addressables.Release(locHandle);
-            if (sprites.Count > 0) break;
+            if (sheetHandle.IsValid()) Addressables.Release(sheetHandle);
+            yield break;
         }
 
-        if (sprites == null || sprites.Count < 2) yield break;
+        var sprites = new List<Sprite>(sheetHandle.Result.Count);
+        for (int i = 0; i < sheetHandle.Result.Count; i++)
+        {
+            if (sheetHandle.Result[i] != null) sprites.Add(sheetHandle.Result[i]);
+        }
+
+        if (sprites.Count < 2)
+        {
+            Addressables.Release(sheetHandle);
+            yield break;
+        }
+
+        doorSheetHandle = sheetHandle;
         sprites.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
         doorAnimator.SetDoorSprites(sprites[0], sprites[1]);
     }
@@ -134,11 +116,8 @@ public class FrameUIDisplayer : MonoBehaviour
             appearanceRoutine = null;
         }
 
-        for (int i = 0; i < doorSpriteHandles.Count; i++)
-        {
-            if (doorSpriteHandles[i].IsValid()) Addressables.Release(doorSpriteHandles[i]);
-        }
-        doorSpriteHandles.Clear();
+        if (doorSheetHandle.IsValid()) Addressables.Release(doorSheetHandle);
+        doorSheetHandle = default;
     }
     public void SetBaseCurrencies(List<int> ids)
     {

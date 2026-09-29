@@ -12,9 +12,6 @@ public class BaseMessage : MonoBehaviour
     [SerializeField] private RectTransform Box;
     [SerializeField] private Image character_img;
     [SerializeField] private Button SwitchMessage_Btn;
-    [SerializeField] private FrameUIAnimations frameUIAnimations;
-    // Backward-compatible fallback for old prefabs
-    [SerializeField] private RectTransform Doors;
 
     private bool onChanging = false;
     private int ml = 20;
@@ -23,7 +20,6 @@ public class BaseMessage : MonoBehaviour
     {
         LoadRandomCharacter();
         LoadRandomMessage();
-        ChangeDoors();
         SwitchMessage_Btn.onClick.AddListener(LoadRandomMessage);
     }
     private void LoadRandomCharacter()
@@ -60,26 +56,5 @@ public class BaseMessage : MonoBehaviour
             localizedText => message.text = localizedText ?? "???");
         yield return new WaitForFixedUpdate();
         onChanging = false;
-    }
-    private void ChangeDoors()
-    {
-        string cpt_name = PlayerPrefs.GetString(UXPref.ChapterName);
-        if (cpt_name != null)
-        {
-            Sprite[] ds = BundledAddressables.LoadSpriteSheetSync($"Background/Doors/door_{cpt_name}");
-            if (ds != null) if(ds.Length>1)
-            {
-                if (frameUIAnimations != null)
-                {
-                    frameUIAnimations.SetDoorSprites(ds[0], ds[1]);
-                }
-                else if (Doors != null && Doors.childCount > 1)
-                {
-                    Doors.GetChild(0).GetComponent<Image>().sprite = ds[0];
-                    Doors.GetChild(1).GetComponent<Image>().sprite = ds[1];
-                }
-            }
-            else Debug.Log("No Image");
-        }
     }
 }

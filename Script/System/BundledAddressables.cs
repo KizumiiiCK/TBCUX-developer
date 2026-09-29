@@ -384,6 +384,36 @@ public static class BundledAddressables
             }
         }
 
+        if (resolved != null && sprites.Count <= 1)
+        {
+            // A sprite sheet is one catalog location, not one per sub-sprite, so the query above
+            // can only ever hand back the first sprite. IList<Sprite> unwraps to the element type
+            // and pulls the whole sheet out — the runtime counterpart of Resources.LoadAll<Sprite>.
+            try
+            {
+                AsyncOperationHandle<IList<Sprite>> sheetHandle =
+                    Addressables.LoadAssetAsync<IList<Sprite>>(resolved);
+                IList<Sprite> sheet = sheetHandle.WaitForCompletion();
+
+                if (sheetHandle.Status == AsyncOperationStatus.Succeeded && sheet != null && sheet.Count > sprites.Count)
+                {
+                    sprites.Clear();
+                    for (int i = 0; i < sheet.Count; i++)
+                    {
+                        if (sheet[i] != null) sprites.Add(sheet[i]);
+                    }
+                }
+                else if (sheetHandle.IsValid())
+                {
+                    Addressables.Release(sheetHandle);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"BundledAddressables.LoadSpriteSheetSync sub-assets failed for '{address}': {e.Message}");
+            }
+        }
+
 #if UNITY_EDITOR
         if (sprites.Count <= 1)
         {
