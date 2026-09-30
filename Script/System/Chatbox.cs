@@ -182,12 +182,24 @@ public class Chatbox : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Speaker name for plot lines tagged <c>user</c>. On the Builda player this is the host
+    /// nickname from boot <c>whoami</c> (<see cref="PrewarmGate.PlayerDisplayName"/>), not the
+    /// local account file the mainline chatbox reads. Editor play mode still uses that file
+    /// because there is no host session.
+    /// </summary>
     private static string GetSavedPlayerName()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        if (!string.IsNullOrWhiteSpace(PrewarmGate.PlayerDisplayName))
+            return PrewarmGate.PlayerDisplayName;
+        return UserDialoguerName;
+#else
         if (UserInfoLocalStore.TryLoad(out UserInfoLocalData data)
             && !string.IsNullOrWhiteSpace(data.user_name))
             return data.user_name;
         return UserDialoguerName;
+#endif
     }
     private void SetDialogueImage(Dialogue dd)
     {
