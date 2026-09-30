@@ -17,11 +17,11 @@ MonoBehaviour:
   ATKType: 
   atkInfos:
   - ATK: 2500
-    frame: 1
+    frame: 13
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 120}
+    ATKRange: {x: 0, y: 120}
   areaATK: 0
   atkDuration: 19
   Health: 2500
@@ -50,9 +50,9 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 0
+    Warrior: 1
     Deffender: 0
-    Magician: 1
+    Magician: 0
     Supporter: 0
     Practician: 0
   againstCareer:

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: 0
   m_EditorClassIdentifier: 
   levelName: d-bv:0
-  gainXP: 114514
-  BaseHealth: 600000
+  gainXP: 24365
+  BaseHealth: 400000
   mapSize: 3500
   maxEmenyCount: 15
   BackgroundID: 8
@@ -93,7 +93,7 @@ MonoBehaviour:
       ratio: 10000
       bossShock: 0
       repeat: 1
-      firstAppear: 4000
+      firstAppear: 4500
       repeatMin: 2
       repeatMax: 2
       previewSprite: {fileID: 21300000, guid: 814ffec8c29a1504eb3fb0e41088d928, type: 3}

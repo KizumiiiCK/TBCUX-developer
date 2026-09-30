@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 3
   m_EditorClassIdentifier: 
   levelName: d-bf:3
-  gainXP: 346500
+  gainXP: 66666
   BaseHealth: 1000000
   mapSize: 4000
   maxEmenyCount: 20
@@ -27,16 +27,16 @@ MonoBehaviour:
     enter_rate: 0
     mapName: 
   rewardlist:
+  - type: 0
+    id: 2102
+    drawtimes: 1
+    droprate: 100
+    onlyOnce: 1
   - type: 1
     id: 12
     drawtimes: 300
     droprate: 100
     onlyOnce: 1
-  - type: 0
-    id: 2102
-    drawtimes: 1
-    droprate: 100
-    onlyOnce: 0
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: 148
@@ -62,8 +62,8 @@ MonoBehaviour:
       bossShock: 0
       repeat: -1
       firstAppear: 300
-      repeatMin: 300
-      repeatMax: 500
+      repeatMin: 500
+      repeatMax: 600
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
   - HealthPercentageOnBreak: 99
     bgm: 148
@@ -95,24 +95,16 @@ MonoBehaviour:
     - enemyID: e029
       ratio: 400
       bossShock: 0
-      repeat: -1
+      repeat: 3
       firstAppear: 200
-      repeatMin: 600
-      repeatMax: 700
+      repeatMin: 50
+      repeatMax: 50
       previewSprite: {fileID: 21300000, guid: f18651c17219cc645b2a8554ed170b66, type: 3}
     - enemyID: e029
       ratio: 400
       bossShock: 0
-      repeat: -1
-      firstAppear: 250
-      repeatMin: 600
-      repeatMax: 700
-      previewSprite: {fileID: 21300000, guid: f18651c17219cc645b2a8554ed170b66, type: 3}
-    - enemyID: e029
-      ratio: 400
-      bossShock: 0
-      repeat: -1
-      firstAppear: 300
-      repeatMin: 600
-      repeatMax: 700
+      repeat: 3
+      firstAppear: 1500
+      repeatMin: 50
+      repeatMax: 50
       previewSprite: {fileID: 21300000, guid: f18651c17219cc645b2a8554ed170b66, type: 3}

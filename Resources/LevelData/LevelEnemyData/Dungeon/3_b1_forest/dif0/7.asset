@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: 7
   m_EditorClassIdentifier: 
   levelName: d-bf:7
-  gainXP: 450000
+  gainXP: 100000
   BaseHealth: 1200000
-  mapSize: 3500
+  mapSize: 3800
   maxEmenyCount: 15
   BackgroundID: 181
   BaseImageID: 312
@@ -37,6 +37,11 @@ MonoBehaviour:
     drawtimes: 1
     droprate: 50
     onlyOnce: 0
+  - type: 1
+    id: 44
+    drawtimes: 3
+    droprate: 100
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: 148
@@ -50,23 +55,31 @@ MonoBehaviour:
       repeatMax: 300
       previewSprite: {fileID: 21300000, guid: 06323583c5c023e41800e95e49784786, type: 3}
     - enemyID: e094
-      ratio: 300
+      ratio: 250
       bossShock: 0
-      repeat: 2
+      repeat: 1
       firstAppear: 300
-      repeatMin: 2000
-      repeatMax: 2200
+      repeatMin: 2
+      repeatMax: 2
+      previewSprite: {fileID: 21300000, guid: e8b2b6c3513b3fb44bbadf1b3fc70b69, type: 3}
+    - enemyID: e006
+      ratio: 2000
+      bossShock: 0
+      repeat: 3
+      firstAppear: 2
+      repeatMin: 50
+      repeatMax: 50
       previewSprite: {fileID: 21300000, guid: e8b2b6c3513b3fb44bbadf1b3fc70b69, type: 3}
   - HealthPercentageOnBreak: 99
     bgm: 148
     enemySummonInfos:
     - enemyID: e135
-      ratio: 120
+      ratio: 100
       bossShock: 1
       repeat: 1
       firstAppear: 2
-      repeatMin: 2000
-      repeatMax: 2200
+      repeatMin: 2
+      repeatMax: 2
       previewSprite: {fileID: 21300000, guid: 193b83003d21dc84291d599453925670, type: 3}
     - enemyID: e055
       ratio: 100
@@ -79,7 +92,7 @@ MonoBehaviour:
     - enemyID: e092
       ratio: 300
       bossShock: 0
-      repeat: 20
+      repeat: 12
       firstAppear: 2
       repeatMin: 200
       repeatMax: 300
@@ -88,7 +101,7 @@ MonoBehaviour:
     bgm: 148
     enemySummonInfos:
     - enemyID: e094
-      ratio: 300
+      ratio: 250
       bossShock: 0
       repeat: 2
       firstAppear: 2

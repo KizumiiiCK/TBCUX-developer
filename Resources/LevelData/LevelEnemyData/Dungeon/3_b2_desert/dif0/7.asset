@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: d-bd:7
   gainXP: 100000
   BaseHealth: 1200000
-  mapSize: 5300
+  mapSize: 5000
   maxEmenyCount: 15
   BackgroundID: 4
   BaseImageID: 310
@@ -37,14 +37,19 @@ MonoBehaviour:
     drawtimes: 1
     droprate: 50
     onlyOnce: 0
+  - type: 1
+    id: 45
+    drawtimes: 3
+    droprate: 100
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: 032
     enemySummonInfos:
     - enemyID: e053
-      ratio: 120
+      ratio: 150
       bossShock: 0
-      repeat: 3
+      repeat: 2
       firstAppear: 300
       repeatMin: 600
       repeatMax: 700
@@ -77,12 +82,12 @@ MonoBehaviour:
       repeatMax: 1300
       previewSprite: {fileID: 0}
     - enemyID: e053
-      ratio: 120
+      ratio: 150
       bossShock: 0
-      repeat: 10
+      repeat: 6
       firstAppear: 2
-      repeatMin: 500
-      repeatMax: 700
+      repeatMin: 800
+      repeatMax: 1000
       previewSprite: {fileID: 0}
     - enemyID: e062
       ratio: 800

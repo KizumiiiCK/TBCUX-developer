@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 2
   m_EditorClassIdentifier: 
   levelName: d-bd:2
-  gainXP: 145000
+  gainXP: 55555
   BaseHealth: 800000
   mapSize: 4000
   maxEmenyCount: 12
@@ -57,8 +57,8 @@ MonoBehaviour:
     - enemyID: e053
       ratio: 100
       bossShock: 0
-      repeat: 5
-      firstAppear: 100
+      repeat: 3
+      firstAppear: 150
       repeatMin: 200
       repeatMax: 250
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
@@ -76,7 +76,7 @@ MonoBehaviour:
     - enemyID: e053
       ratio: 100
       bossShock: 0
-      repeat: 20
+      repeat: 15
       firstAppear: 2
       repeatMin: 300
       repeatMax: 500
@@ -84,7 +84,7 @@ MonoBehaviour:
     - enemyID: e053
       ratio: 100
       bossShock: 0
-      repeat: 50
+      repeat: 35
       firstAppear: 2
       repeatMin: 60
       repeatMax: 60

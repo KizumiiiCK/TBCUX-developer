@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 6
   m_EditorClassIdentifier: 
   levelName: d-bf:6
-  gainXP: 450000
+  gainXP: 100000
   BaseHealth: 1200000
   mapSize: 4500
   maxEmenyCount: 15
@@ -55,7 +55,7 @@ MonoBehaviour:
       repeat: -1
       firstAppear: 3000
       repeatMin: 2
-      repeatMax: 600
+      repeatMax: 1200
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
     - enemyID: e054
       ratio: 100
