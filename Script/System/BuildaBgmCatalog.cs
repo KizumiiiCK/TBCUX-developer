@@ -29,8 +29,12 @@ public static class BuildaBgmCatalog
     public const string AudioRoot = "audio/bgm/";
 
     // address|file-name-in-assets-zip
-    // Kept as one literal block rather than 52 dictionary lines so it stays diffable and it is
-    // obvious at a glance which tracks are ogg and which are mp3.
+    // Kept as one literal block rather than one dictionary line per track so it stays diffable and
+    // it is obvious at a glance which tracks are ogg and which are mp3.
+    //
+    // Every row must have a matching file under Assets/Bundled/Music/BGM, and every address in the
+    // BGM Addressables group must have a row here - a track missing from this table is staged into
+    // no assets.zip and is silent on device while playing fine in the editor.
     private const string Table = @"
 000|000.ogg
 001|001.ogg
@@ -45,6 +49,7 @@ public static class BuildaBgmCatalog
 034|034.ogg
 047|047.ogg
 048|048.ogg
+049|049.ogg
 058|058.ogg
 062|062.ogg
 148|148.ogg
@@ -53,6 +58,7 @@ public static class BuildaBgmCatalog
 300|300.ogg
 301|301.ogg
 302|302.ogg
+303|303.ogg
 304|304.ogg
 305|305.ogg
 victory|victory.ogg
@@ -75,7 +81,6 @@ HazeReverb-Nibiru|HazeReverb-Nibiru.mp3
 HazeReverb-Skoll|HazeReverb-Skoll.mp3
 HazeReverb-spooky|HazeReverb-spooky.mp3
 HazeReverb_Mayanow|HazeReverb_Mayanow.mp3
-KillingMeorKissingMe|KillingMeorKissingMe.mp3
 lilytales-desert|lilytales-desert.mp3
 lilytales-fight|lilytales-fight.mp3
 lilytales-relic|lilytales-relic.mp3
@@ -87,7 +92,6 @@ silent_love|silent_love.mp3
 snwt|snwt.mp3
 starry|starry.mp3
 The_Long_Goodbye|The_Long_Goodbye.mp3
-toihi|toihi.mp3
 UndertheMoonlight|UndertheMoonlight.mp3
 Pfeffermouse - Out Of Order|Pfeffermouse-OutOfOrder.mp3
 Who_am_I_extend|Who_am_I_extend.mp3
