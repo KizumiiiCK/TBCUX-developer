@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class Chatbox : MonoBehaviour
 {
     private const float CgFadeDuration = 0.5f;
+    private const string UserDialoguerName = "user";
     //private const string CgShaderName = "UI/DialogueCgFill";
 
     [SerializeField] GameObject ChatWindow;
@@ -166,6 +167,11 @@ public class Chatbox : MonoBehaviour
         if (dd.DialoguerName != string.Empty)
         {
             NameBox.SetActive(true);
+            if (dd.DialoguerName == UserDialoguerName)
+            {
+                name_text.text = GetSavedPlayerName();
+                return;
+            }
             string ns = $"char:{dd.DialoguerName}";
             LocalizationHelper.GetLocalizedText(UXPref.Localized_DialogueNames, ns,
                 localizedText => name_text.text = localizedText ?? ns);
@@ -174,6 +180,14 @@ public class Chatbox : MonoBehaviour
         {
             NameBox.SetActive(false);
         }
+    }
+
+    private static string GetSavedPlayerName()
+    {
+        if (UserInfoLocalStore.TryLoad(out UserInfoLocalData data)
+            && !string.IsNullOrWhiteSpace(data.user_name))
+            return data.user_name;
+        return UserDialoguerName;
     }
     private void SetDialogueImage(Dialogue dd)
     {

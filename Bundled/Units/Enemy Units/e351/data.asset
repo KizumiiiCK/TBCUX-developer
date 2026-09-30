@@ -21,14 +21,14 @@ MonoBehaviour:
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 300}
+    ATKRange: {x: 0, y: 350}
   areaATK: 1
   atkDuration: 31
   Health: 220000
   KB: 6
-  Speed: 14
-  Reload: 60
-  DetectionRange: 300
+  Speed: 18
+  Reload: 40
+  DetectionRange: 290
   Cost: 1998
   Cooldown: 0
   UNITYAnimated: 0
@@ -50,10 +50,10 @@ MonoBehaviour:
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 1
+    Warrior: 0
     Deffender: 0
     Magician: 0
-    Supporter: 0
+    Supporter: 1
     Practician: 0
   againstCareer:
     AggainstWarrior: 0
@@ -91,4 +91,3 @@ MonoBehaviour:
     probability: 50
     duration: 0
     intensity: 0
-  baseEmotion: 0

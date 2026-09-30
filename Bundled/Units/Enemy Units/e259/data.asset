@@ -17,11 +17,11 @@ MonoBehaviour:
   ATKType: 
   atkInfos:
   - ATK: 8000
-    frame: 1
+    frame: 17
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 150}
+    ATKRange: {x: 0, y: 150}
   areaATK: 0
   atkDuration: 41
   Health: 9500
@@ -75,4 +75,3 @@ MonoBehaviour:
     intensity: 800
   atkTypeResis: []
   effectResistances: []
-  baseEmotion: 0

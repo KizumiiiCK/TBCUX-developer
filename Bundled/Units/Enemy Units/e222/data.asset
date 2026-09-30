@@ -17,23 +17,23 @@ MonoBehaviour:
   ATKType: 
   atkInfos:
   - ATK: 44000
-    frame: 1
+    frame: 5
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 320}
+    ATKRange: {x: 0, y: 320}
   - ATK: 222
-    frame: 1
+    frame: 10
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 320}
+    ATKRange: {x: 0, y: 320}
   - ATK: 222
-    frame: 1
+    frame: 20
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 320}
+    ATKRange: {x: 0, y: 320}
   areaATK: 1
   atkDuration: 35
   Health: 1222222
@@ -83,4 +83,3 @@ MonoBehaviour:
   abilities: []
   atkTypeResis: []
   effectResistances: []
-  baseEmotion: 0

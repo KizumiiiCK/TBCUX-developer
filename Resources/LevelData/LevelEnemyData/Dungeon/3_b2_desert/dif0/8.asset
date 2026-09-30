@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: d-bd:8
   gainXP: 100000
   BaseHealth: 1200000
-  mapSize: 5300
+  mapSize: 4800
   maxEmenyCount: 15
   BackgroundID: 4
   BaseImageID: 310
@@ -60,23 +60,23 @@ MonoBehaviour:
     - enemyID: e048
       ratio: 400
       bossShock: 0
-      repeat: 15
-      firstAppear: 300
+      repeat: 4
+      firstAppear: 500
       repeatMin: 800
       repeatMax: 1000
       previewSprite: {fileID: 0}
     - enemyID: e053
-      ratio: 120
+      ratio: 150
       bossShock: 0
       repeat: -1
-      firstAppear: 5000
+      firstAppear: 4000
       repeatMin: 1000
       repeatMax: 1400
       previewSprite: {fileID: 0}
     - enemyID: e146
       ratio: 200
       bossShock: 0
-      repeat: 5
+      repeat: 3
       firstAppear: 1200
       repeatMin: 1400
       repeatMax: 1800
@@ -85,7 +85,7 @@ MonoBehaviour:
       ratio: 350
       bossShock: 0
       repeat: 1
-      firstAppear: 3000
+      firstAppear: 3500
       repeatMin: 2
       repeatMax: 2
       previewSprite: {fileID: 0}
@@ -93,15 +93,15 @@ MonoBehaviour:
       ratio: 2000
       bossShock: 0
       repeat: 3
-      firstAppear: 2200
-      repeatMin: 2600
-      repeatMax: 2800
+      firstAppear: 2
+      repeatMin: 2200
+      repeatMax: 2400
       previewSprite: {fileID: 0}
-    - enemyID: e010
-      ratio: 3000
+    - enemyID: e048
+      ratio: 400
       bossShock: 0
-      repeat: 3
-      firstAppear: 100
-      repeatMin: 50
-      repeatMax: 60
+      repeat: 5
+      firstAppear: 510
+      repeatMin: 5
+      repeatMax: 12
       previewSprite: {fileID: 0}

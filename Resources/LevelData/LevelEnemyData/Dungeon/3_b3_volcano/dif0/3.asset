@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: 3
   m_EditorClassIdentifier: 
   levelName: d-bv:3
-  gainXP: 156400
+  gainXP: 74510
   BaseHealth: 1000000
-  mapSize: 3500
+  mapSize: 4000
   maxEmenyCount: 15
   BackgroundID: 8
   BaseImageID: 306
@@ -46,14 +46,14 @@ MonoBehaviour:
       bossShock: 0
       repeat: 3
       firstAppear: 100
-      repeatMin: 300
+      repeatMin: 400
       repeatMax: 500
       previewSprite: {fileID: 21300000, guid: 753a75a48a6fdb24f848abd11bf77334, type: 3}
     - enemyID: e010
-      ratio: 2200
+      ratio: 2400
       bossShock: 0
       repeat: 3
-      firstAppear: 600
+      firstAppear: 400
       repeatMin: 20
       repeatMax: 30
       previewSprite: {fileID: 21300000, guid: 0e554634d2a647041815ee12faa0917c, type: 3}
@@ -88,20 +88,20 @@ MonoBehaviour:
       ratio: 2000
       bossShock: 0
       repeat: 1
-      firstAppear: 1500
+      firstAppear: 1800
       repeatMin: 2
       repeatMax: 2
       previewSprite: {fileID: 21300000, guid: 227e5b89fba085d4d8a4726a3e8d1416, type: 3}
     - enemyID: e106
       ratio: 100
       bossShock: 0
-      repeat: 2
+      repeat: 1
       firstAppear: 2
-      repeatMin: 1500
-      repeatMax: 1500
+      repeatMin: 2
+      repeatMax: 2
       previewSprite: {fileID: 21300000, guid: f1bf21462cb78c3459057befffe0a097, type: 3}
     - enemyID: e010
-      ratio: 2200
+      ratio: 2400
       bossShock: 0
       repeat: -1
       firstAppear: 500

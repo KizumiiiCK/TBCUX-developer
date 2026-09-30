@@ -17,15 +17,15 @@ MonoBehaviour:
   ATKType: 
   atkInfos:
   - ATK: 1400
-    frame: 1
+    frame: 71
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: -200, y: 760}
+    ATKRange: {x: 0, y: 760}
   areaATK: 1
   atkDuration: 145
   Health: 120000
-  KB: 3
+  KB: 8
   Speed: 3
   Reload: 240
   DetectionRange: 760

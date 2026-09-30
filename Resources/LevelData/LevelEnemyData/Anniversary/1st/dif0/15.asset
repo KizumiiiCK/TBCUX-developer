@@ -51,7 +51,7 @@ MonoBehaviour:
     onlyOnce: 0
   - type: 1
     id: 75
-    drawtimes: 2
+    drawtimes: 3
     droprate: 60
     onlyOnce: 0
   enemySummoners:
@@ -91,7 +91,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 0}
     - enemyID: e099
-      ratio: 400
+      ratio: 500
       bossShock: 1
       repeat: 1
       firstAppear: 2700

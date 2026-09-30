@@ -21,7 +21,7 @@ MonoBehaviour:
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 450}
+    ATKRange: {x: 0, y: 800}
   areaATK: 0
   atkDuration: 14
   Health: 5
@@ -68,7 +68,10 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects: []
-  abilities: []
+  abilities:
+  - name: 12
+    probability: 100
+    duration: 0
+    intensity: 0
   atkTypeResis: []
   effectResistances: []
-  baseEmotion: 0

@@ -62,6 +62,9 @@ public class SectionCanvas : UICanvasMain
             "9_L",
             "10_L",
             "11_L",
+            "12_L",
+            "13_L",
+            "14_L",
         },
         ["Dream_Pre"] = new[]
         {
