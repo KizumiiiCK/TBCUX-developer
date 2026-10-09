@@ -614,6 +614,31 @@ public class AnimationDisplayer : MonoBehaviour
             lastChildLink[i] = prev;
         }
     }
+    // 拓扑同时存在 int[] 链表與 ModelTree 三列兩份，遍歷方(ResetOpacity/ResetScaleTree)只讀 ModelTree。
+    // 所有改動都必須經由下面三個函式，確保兩份不會脫節。
+    void LinkParent(int node, int parent)
+    {
+        parentLink[node] = parent;
+        ModelTree[node, AnimDecryptPack.PARENT] = parent;
+    }
+    void LinkNext(int node, int nextSibling)
+    {
+        if (node == -1)
+        {
+            return;
+        }
+        nextSiblingLink[node] = nextSibling;
+        ModelTree[node, AnimDecryptPack.NEAR] = nextSibling;
+    }
+    void LinkFirstChild(int node, int firstChild)
+    {
+        if (node == -1)
+        {
+            return;
+        }
+        firstChildLink[node] = firstChild;
+        ModelTree[node, AnimDecryptPack.FIRST_CHILD] = firstChild;
+    }
     void SyncTreeHierarchyColumns()
     {
         if (ModelTree == null || parentLink == null)
@@ -809,11 +834,11 @@ public class AnimationDisplayer : MonoBehaviour
         int next = nextSiblingLink[ControllPart];
         if (prev != -1)
         {
-            nextSiblingLink[prev] = next;
+            LinkNext(prev, next);
         }
         else if (oldParent != -1)
         {
-            firstChildLink[oldParent] = next;
+            LinkFirstChild(oldParent, next);
         }
         if (next != -1)
         {
@@ -824,36 +849,21 @@ public class AnimationDisplayer : MonoBehaviour
             lastChildLink[oldParent] = prev;
         }
 
-        parentLink[ControllPart] = value;
+        LinkParent(ControllPart, value);
         previousSiblingLink[ControllPart] = -1;
-        nextSiblingLink[ControllPart] = -1;
+        LinkNext(ControllPart, -1);
 
         int tail = lastChildLink[value];
         if (tail == -1)
         {
-            firstChildLink[value] = ControllPart;
+            LinkFirstChild(value, ControllPart);
             lastChildLink[value] = ControllPart;
         }
         else
         {
-            nextSiblingLink[tail] = ControllPart;
+            LinkNext(tail, ControllPart);
             previousSiblingLink[ControllPart] = tail;
             lastChildLink[value] = ControllPart;
-        }
-        ModelTree[ControllPart, AnimDecryptPack.PARENT] = value;
-        ModelTree[ControllPart, AnimDecryptPack.NEAR] = nextSiblingLink[ControllPart];
-        if (oldParent != -1)
-        {
-            ModelTree[oldParent, AnimDecryptPack.FIRST_CHILD] = firstChildLink[oldParent];
-        }
-        ModelTree[value, AnimDecryptPack.FIRST_CHILD] = firstChildLink[value];
-        if (prev != -1)
-        {
-            ModelTree[prev, AnimDecryptPack.NEAR] = nextSiblingLink[prev];
-        }
-        if (next != -1)
-        {
-            ModelTree[next, AnimDecryptPack.NEAR] = nextSiblingLink[next];
         }
         parentTransforms[ControllPart].parent = parentTransforms[value];
         parentTransforms[ControllPart].localPosition = new Vector3(PositionRate * ModelData[ControllPart, 4] / PixelPerUnit, -PositionRate * ModelData[ControllPart, 5] / PixelPerUnit, 0);
