@@ -344,7 +344,9 @@ public class AnimationDisplayer : MonoBehaviour
         {
             if (i != 0)
             {
-                parentTransforms[i].parent = parentTransforms[ModelData[i, 0]];
+                // 同樣用 worldPositionStays:false：下面 position/pivot/scale/rotation 全都會無條件重寫，
+                // 不需要 Transform.parent 的世界座標倒算。
+                parentTransforms[i].SetParent(parentTransforms[ModelData[i, 0]], false);
             }
             ObjectList[i].sprite = SpritesList[ModelData[i, 2]];
 
@@ -832,11 +834,10 @@ public class AnimationDisplayer : MonoBehaviour
             previousSiblingLink[ControllPart] = tail;
             lastChildLink[value] = ControllPart;
         }
-        parentTransforms[ControllPart].parent = parentTransforms[value];
-        parentTransforms[ControllPart].localPosition = new Vector3(PositionRate * ModelData[ControllPart, 4] / PixelPerUnit, -PositionRate * ModelData[ControllPart, 5] / PixelPerUnit, 0);
-        childTransforms[ControllPart].localPosition = new Vector3(-PivotRate * ModelData[ControllPart, 6] / PixelPerUnit, PivotRate * ModelData[ControllPart, 7] / PixelPerUnit, 0);
-        parentTransforms[ControllPart].localScale = new Vector3(ScaleRate * ModelData[ControllPart, 8], ScaleRate * ModelData[ControllPart, 9], 1);
-        parentTransforms[ControllPart].localRotation = Quaternion.Euler(0, 0, GetParentRotationFlip(ControllPart) * ModelTree_Fixed[ControllPart, AnimDecryptPack.ROTATION]);
+        // worldPositionStays:false 不碰 local 三件套，當帧已套用的位移/pivot/縮放/翻轉得以保留
+        //（換父節點在 maanim 裡常排在位移節點之後，用 Transform.parent 會把當帧位移倒算回 mamodel 預設值）。
+        // 旋轉不必在此寫：後面 QueueScaleDirty → ResetScaleTree 會用新父級的 ROTATION_FLIP 重算整棵子樹。
+        parentTransforms[ControllPart].SetParent(parentTransforms[value], false);
         QueueOpacityDirty(ControllPart);
         QueueOpacityDirty(value);
         if (oldParent != -1)
