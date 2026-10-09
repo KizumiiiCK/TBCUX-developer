@@ -180,9 +180,10 @@ public class AnimationDisplayer : MonoBehaviour
     protected void ResetOpacity(int from)
     {
         bool IsVisited = false;
-        if (ModelTree[from, AnimDecryptPack.PARENT] != -1)
+        int fromParent = parentLink[from];
+        if (fromParent != -1)
         {
-            ModelTree[from, AnimDecryptPack.MULTIPLY] = ModelTree[(int)ModelTree[from, AnimDecryptPack.PARENT], AnimDecryptPack.MULTIPLY] * ModelTree[from, AnimDecryptPack.OPACITY] * OpacityRate;
+            ModelTree[from, AnimDecryptPack.MULTIPLY] = ModelTree[fromParent, AnimDecryptPack.MULTIPLY] * ModelTree[from, AnimDecryptPack.OPACITY] * OpacityRate;
         }
         else
         {
@@ -195,7 +196,7 @@ public class AnimationDisplayer : MonoBehaviour
             glow = GlowRate;
         }
         ObjectList[from].color = new Color(1, 1, 1, ModelTree[from, AnimDecryptPack.MULTIPLY] * glow);
-        int point = (int)ModelTree[from, AnimDecryptPack.FIRST_CHILD];
+        int point = firstChildLink[from];
         if (point == -1)
         {
             return;
@@ -213,21 +214,21 @@ public class AnimationDisplayer : MonoBehaviour
                 {
                     glow = 1;
                 }
-                ModelTree[point, AnimDecryptPack.MULTIPLY] = ModelTree[(int)ModelTree[point, AnimDecryptPack.PARENT], AnimDecryptPack.MULTIPLY] * ModelTree[point, AnimDecryptPack.OPACITY] * OpacityRate;
+                ModelTree[point, AnimDecryptPack.MULTIPLY] = ModelTree[parentLink[point], AnimDecryptPack.MULTIPLY] * ModelTree[point, AnimDecryptPack.OPACITY] * OpacityRate;
                 ObjectList[point].color = new Color(1, 1, 1, ModelTree[point, AnimDecryptPack.MULTIPLY] * glow);
-                if (ModelTree[point, AnimDecryptPack.FIRST_CHILD] != -1 && IsVisited == false)//down
+                if (firstChildLink[point] != -1 && IsVisited == false)//down
                 {
-                    point = (int)ModelTree[point, AnimDecryptPack.FIRST_CHILD];
+                    point = firstChildLink[point];
                 }
-                else if (ModelTree[point, AnimDecryptPack.NEAR] != -1)
+                else if (nextSiblingLink[point] != -1)
                 {
-                    point = (int)ModelTree[point, AnimDecryptPack.NEAR];
+                    point = nextSiblingLink[point];
                     IsVisited = false;
                 }
                 else//up
                 {
                     IsVisited = true;
-                    point = (int)ModelTree[point, AnimDecryptPack.PARENT];
+                    point = parentLink[point];
                 }
             }
         }
@@ -255,7 +256,7 @@ public class AnimationDisplayer : MonoBehaviour
         ModelTree[from, AnimDecryptPack.ROTATION_FLIP] = GetParentRotationFlip(from) * flip;
         parentTransforms[from].localEulerAngles = new Vector3(0, 0, ModelTree[from, AnimDecryptPack.HORIZONTAL_FLIP] * ModelTree[from, AnimDecryptPack.VERTICAL_FLIP] * GetParentRotationFlip(from) * ModelTree[from, AnimDecryptPack.ROTATION]);
 
-        int point = (int)ModelTree[from, AnimDecryptPack.FIRST_CHILD];
+        int point = firstChildLink[from];
         if (point == -1)
         {
             //  Debug.Log(p);
@@ -274,19 +275,19 @@ public class AnimationDisplayer : MonoBehaviour
                 ModelTree[point, AnimDecryptPack.ROTATION_FLIP] = GetParentRotationFlip(point) * flip;
                 parentTransforms[point].localRotation = Quaternion.Euler(0, 0, ModelTree[point, AnimDecryptPack.HORIZONTAL_FLIP] * ModelTree[point, AnimDecryptPack.VERTICAL_FLIP] * GetParentRotationFlip(point) * ModelTree[point, AnimDecryptPack.ROTATION]);
 
-                if (ModelTree[point, AnimDecryptPack.FIRST_CHILD] != -1 && IsVisited == false)//down
+                if (firstChildLink[point] != -1 && IsVisited == false)//down
                 {
-                    point = (int)ModelTree[point, AnimDecryptPack.FIRST_CHILD];
+                    point = firstChildLink[point];
                 }
-                else if (ModelTree[point, AnimDecryptPack.NEAR] != -1)//near
+                else if (nextSiblingLink[point] != -1)//near
                 {
-                    point = (int)ModelTree[point, AnimDecryptPack.NEAR];
+                    point = nextSiblingLink[point];
                     IsVisited = false;
                 }
                 else//up
                 {
                     IsVisited = true;
-                    point = (int)ModelTree[point, AnimDecryptPack.PARENT];
+                    point = parentLink[point];
                 }
             }
         }
@@ -317,9 +318,10 @@ public class AnimationDisplayer : MonoBehaviour
     protected int GetParentRotationFlip(int from)
     {
         int parent_rotation_flip = -1;
-        if (ModelTree[from, AnimDecryptPack.PARENT] != -1)
+        int parent = parentLink[from];
+        if (parent != -1)
         {
-            parent_rotation_flip = (int)ModelTree[(int)ModelTree[from, AnimDecryptPack.PARENT], AnimDecryptPack.ROTATION_FLIP];
+            parent_rotation_flip = (int)ModelTree[parent, AnimDecryptPack.ROTATION_FLIP];
         }
         return parent_rotation_flip;
     }
@@ -336,6 +338,8 @@ public class AnimationDisplayer : MonoBehaviour
         }
 
         EnsureTransformCache();
+        // 必須在迴圈之前：下面的 GetParentRotationFlip 已經要讀 parentLink 了
+        RebuildHierarchyLinks();
         for (int i = 0; i < ModelData.GetLength(0); i++)
         {
             if (i != 0)
@@ -371,7 +375,6 @@ public class AnimationDisplayer : MonoBehaviour
             parentTransforms[i].localRotation = Quaternion.Euler(0, 0, GetParentRotationFlip(i) * ModelTree_Fixed[i, AnimDecryptPack.ROTATION]);
         }
         //opacity 要在編排後才能設置
-        RebuildHierarchyLinksFromModelTree();
         dirtyOpacityRoots.Clear();
         dirtyScaleRoots.Clear();
         ResetOpacity(0);
@@ -578,13 +581,15 @@ public class AnimationDisplayer : MonoBehaviour
         }
         transformCacheDirty = false;
     }
-    void RebuildHierarchyLinksFromModelTree()
+    // 層級拓撲的唯一真實來源：parentLink/firstChildLink/nextSiblingLink(+previousSibling/lastChild 兩個加速索引)。
+    // 初始拓撲由解密器建在 ModelTree_Fixed 的 PARENT/NEAR/FIRST_CHILD 三列，之後只由 ExecuteParentChange 維護。
+    void RebuildHierarchyLinks()
     {
-        if (ModelTree == null)
+        if (animPack == null || ModelTree_Fixed == null)
         {
             return;
         }
-        int count = ModelTree.GetLength(0);
+        int count = ModelTree_Fixed.GetLength(0);
         if (parentLink == null || parentLink.Length != count)
         {
             parentLink = new int[count];
@@ -595,10 +600,10 @@ public class AnimationDisplayer : MonoBehaviour
         }
         for (int i = 0; i < count; i++)
         {
-            parentLink[i] = (int)ModelTree[i, AnimDecryptPack.PARENT];
-            firstChildLink[i] = (int)ModelTree[i, AnimDecryptPack.FIRST_CHILD];
+            parentLink[i] = (int)ModelTree_Fixed[i, AnimDecryptPack.PARENT];
+            firstChildLink[i] = (int)ModelTree_Fixed[i, AnimDecryptPack.FIRST_CHILD];
             lastChildLink[i] = -1;
-            nextSiblingLink[i] = (int)ModelTree[i, AnimDecryptPack.NEAR];
+            nextSiblingLink[i] = (int)ModelTree_Fixed[i, AnimDecryptPack.NEAR];
             previousSiblingLink[i] = -1;
         }
         for (int i = 0; i < count; i++)
@@ -612,44 +617,6 @@ public class AnimationDisplayer : MonoBehaviour
                 child = nextSiblingLink[child];
             }
             lastChildLink[i] = prev;
-        }
-    }
-    // 拓扑同时存在 int[] 链表與 ModelTree 三列兩份，遍歷方(ResetOpacity/ResetScaleTree)只讀 ModelTree。
-    // 所有改動都必須經由下面三個函式，確保兩份不會脫節。
-    void LinkParent(int node, int parent)
-    {
-        parentLink[node] = parent;
-        ModelTree[node, AnimDecryptPack.PARENT] = parent;
-    }
-    void LinkNext(int node, int nextSibling)
-    {
-        if (node == -1)
-        {
-            return;
-        }
-        nextSiblingLink[node] = nextSibling;
-        ModelTree[node, AnimDecryptPack.NEAR] = nextSibling;
-    }
-    void LinkFirstChild(int node, int firstChild)
-    {
-        if (node == -1)
-        {
-            return;
-        }
-        firstChildLink[node] = firstChild;
-        ModelTree[node, AnimDecryptPack.FIRST_CHILD] = firstChild;
-    }
-    void SyncTreeHierarchyColumns()
-    {
-        if (ModelTree == null || parentLink == null)
-        {
-            return;
-        }
-        for (int i = 0; i < parentLink.Length; i++)
-        {
-            ModelTree[i, AnimDecryptPack.PARENT] = parentLink[i];
-            ModelTree[i, AnimDecryptPack.FIRST_CHILD] = firstChildLink[i];
-            ModelTree[i, AnimDecryptPack.NEAR] = nextSiblingLink[i];
         }
     }
     void QueueOpacityDirty(int root)
@@ -686,7 +653,7 @@ public class AnimationDisplayer : MonoBehaviour
                     coveredByAncestor = true;
                     break;
                 }
-                parent = (int)ModelTree[parent, AnimDecryptPack.PARENT];
+                parent = parentLink[parent];
             }
             if (!coveredByAncestor)
             {
@@ -782,7 +749,7 @@ public class AnimationDisplayer : MonoBehaviour
                 sortingOrder = sr.sortingOrder,
                 enabled = sr.enabled,
                 spriteId = sr.sprite != null ? sr.sprite.GetInstanceID() : 0,
-                parentId = parentLink != null && i < parentLink.Length ? parentLink[i] : (int)ModelTree[i, AnimDecryptPack.PARENT]
+                parentId = parentLink[i]
             };
         }
         return snapshot;
@@ -823,7 +790,7 @@ public class AnimationDisplayer : MonoBehaviour
         }
         if (parentLink == null || parentLink.Length != ModelTree.GetLength(0))
         {
-            RebuildHierarchyLinksFromModelTree();
+            RebuildHierarchyLinks();
         }
         if (parentLink[ControllPart] == value)
         {
@@ -834,11 +801,11 @@ public class AnimationDisplayer : MonoBehaviour
         int next = nextSiblingLink[ControllPart];
         if (prev != -1)
         {
-            LinkNext(prev, next);
+            nextSiblingLink[prev] = next;
         }
         else if (oldParent != -1)
         {
-            LinkFirstChild(oldParent, next);
+            firstChildLink[oldParent] = next;
         }
         if (next != -1)
         {
@@ -849,19 +816,19 @@ public class AnimationDisplayer : MonoBehaviour
             lastChildLink[oldParent] = prev;
         }
 
-        LinkParent(ControllPart, value);
+        parentLink[ControllPart] = value;
         previousSiblingLink[ControllPart] = -1;
-        LinkNext(ControllPart, -1);
+        nextSiblingLink[ControllPart] = -1;
 
         int tail = lastChildLink[value];
         if (tail == -1)
         {
-            LinkFirstChild(value, ControllPart);
+            firstChildLink[value] = ControllPart;
             lastChildLink[value] = ControllPart;
         }
         else
         {
-            LinkNext(tail, ControllPart);
+            nextSiblingLink[tail] = ControllPart;
             previousSiblingLink[ControllPart] = tail;
             lastChildLink[value] = ControllPart;
         }
