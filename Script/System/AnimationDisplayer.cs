@@ -124,6 +124,13 @@ public class AnimationDisplayer : MonoBehaviour
     int[] pendingNodeValues = null;
     bool[] pendingNodeFlags = null;
     Dictionary<int, Dictionary<int, BakedFrameData>> bakedFrameCacheByClip = new Dictionary<int, Dictionary<int, BakedFrameData>>();
+    // 超出 AnimationTotalFrame 的帧用的可複用緩衝，不進緩存、不分配。
+    BakedFrameData scratchBakedFrame;
+    int scratchBakedNodeCount = -1;
+    // 每個片段「超出 total 之後狀態是否恆定」的惰性判定：0=未判定 1=恆定 2=含循環節點。
+    byte[] clipSteadyAfterTotal = null;
+    // 穩態條目在片段緩存裡的 key，取一個真實帧號不可能命中的值。
+    const int SteadyFrameCacheKey = int.MinValue;
     Transform[] parentTransforms = null;
     Transform[] childTransforms = null;
     bool transformCacheDirty = true;
@@ -1071,14 +1078,14 @@ public class AnimationDisplayer : MonoBehaviour
     }
     BakedFrameData GetOrBuildBakedFrame(int clipIndex, int frame)
     {
+        int totalFrame = GetClipTotalFrame(clipIndex);
         if (!bakedFrameCacheByClip.TryGetValue(clipIndex, out Dictionary<int, BakedFrameData> clipCache))
         {
             clipCache = new Dictionary<int, BakedFrameData>();
             bakedFrameCacheByClip[clipIndex] = clipCache;
             if (aggressiveBakePrewarm)
             {
-                int total = AnimationTotalFrame != null && clipIndex < AnimationTotalFrame.Length ? AnimationTotalFrame[clipIndex] : 0;
-                for (int f = 0; f <= total; f++)
+                for (int f = 0; f <= totalFrame; f++)
                 {
                     if (!clipCache.ContainsKey(f))
                     {
@@ -1087,12 +1094,90 @@ public class AnimationDisplayer : MonoBehaviour
                 }
             }
         }
-        if (!clipCache.TryGetValue(frame, out BakedFrameData data))
+        // 只有 [0, total] 這段才允許進緩存。CurrentFrame 在播放中永不回繞（只有 AnimationReset 會歸零），
+        // 以前按絕對帧號無上限地存，條目數隨單位存活時長線性增長且永不釋放，
+        // 而且 total 之後每帧必然 miss —— 等於每帧做一次全節點求值 + 兩次數組分配 + 一次字典插入。
+        if (frame >= 0 && frame <= totalFrame)
         {
-            data = BuildBakedFrameData(clipIndex, frame);
-            clipCache[frame] = data;
+            if (!clipCache.TryGetValue(frame, out BakedFrameData cached))
+            {
+                cached = BuildBakedFrameData(clipIndex, frame);
+                clipCache[frame] = cached;
+            }
+            return cached;
         }
-        return data;
+        // total 之後：沒有 Loop==-1 節點的片段，所有節點都停在最後一個點，狀態對所有後續帧恆定，
+        // 存一條穩態就能永久命中（全部片段裡約佔一半）。
+        if (frame > totalFrame && IsClipSteadyAfterTotal(clipIndex))
+        {
+            if (!clipCache.TryGetValue(SteadyFrameCacheKey, out BakedFrameData steady))
+            {
+                steady = BuildBakedFrameData(clipIndex, totalFrame + 1);
+                clipCache[SteadyFrameCacheKey] = steady;
+            }
+            return steady;
+        }
+        // 含循環節點：各節點按自己的 TotalFrame 回繞，合成周期是 lcm，實測有兩成片段會大到沒有緩存價值
+        //（最壞 total=50 而 lcm=91650），所以不緩存，寫進可複用緩衝，保證零分配。
+        return BuildScratchBakedFrame(clipIndex, frame);
+    }
+    int GetClipTotalFrame(int clipIndex)
+    {
+        return AnimationTotalFrame != null && clipIndex >= 0 && clipIndex < AnimationTotalFrame.Length
+            ? AnimationTotalFrame[clipIndex]
+            : 0;
+    }
+    bool IsClipSteadyAfterTotal(int clipIndex)
+    {
+        int clipCount = MaanimData.Length;
+        if (clipSteadyAfterTotal == null || clipSteadyAfterTotal.Length != clipCount)
+        {
+            clipSteadyAfterTotal = new byte[clipCount];
+        }
+        if (clipSteadyAfterTotal[clipIndex] != 0)
+        {
+            return clipSteadyAfterTotal[clipIndex] == 1;
+        }
+        MaanimNode[] nodes = MaanimData[clipIndex];
+        bool steady = true;
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            // 只有 Loop==-1 會在 AdjustFrame 裡回繞；其餘取值方式在 total 之後都與帧號無關
+            //（Loop==1 停在末點，其他 Loop 值求值失敗、永久跳過）。
+            if (nodes[i].Loop == -1)
+            {
+                steady = false;
+                break;
+            }
+        }
+        clipSteadyAfterTotal[clipIndex] = steady ? (byte)1 : (byte)2;
+        return steady;
+    }
+    BakedFrameData BuildScratchBakedFrame(int clipIndex, int frame)
+    {
+        MaanimNode[] nodes = MaanimData[clipIndex];
+        if (scratchBakedNodeCount != nodes.Length)
+        {
+            scratchBakedFrame = new BakedFrameData
+            {
+                values = new int[nodes.Length],
+                hasValue = new bool[nodes.Length]
+            };
+            scratchBakedNodeCount = nodes.Length;
+        }
+        int[] values = scratchBakedFrame.values;
+        bool[] hasValue = scratchBakedFrame.hasValue;
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            hasValue[i] = TryEvaluateNodeValue(nodes[i], frame, false, out int value);
+            values[i] = value;
+        }
+        return scratchBakedFrame;
+    }
+    void ResetBakedState()
+    {
+        bakedFrameCacheByClip.Clear();
+        clipSteadyAfterTotal = null;
     }
     BakedFrameData BuildBakedFrameData(int clipIndex, int frame)
     {
@@ -1375,7 +1460,7 @@ public class AnimationDisplayer : MonoBehaviour
         isInitialzed = true;
         animPack = decryptPack;
         ModelSummon();
-        bakedFrameCacheByClip.Clear();
+        ResetBakedState();
         maxDiffLogCount = 0;
         if (runtimeExecutionMode == RuntimeExecutionMode.Baked || runtimeExecutionMode == RuntimeExecutionMode.Job)
         {
@@ -1388,7 +1473,7 @@ public class AnimationDisplayer : MonoBehaviour
         isInitialzed = true;
         DecryptAllFile();
         ModelSummon();
-        bakedFrameCacheByClip.Clear();
+        ResetBakedState();
         maxDiffLogCount = 0;
         if (runtimeExecutionMode == RuntimeExecutionMode.Baked || runtimeExecutionMode == RuntimeExecutionMode.Job)
         {
