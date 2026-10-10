@@ -124,6 +124,16 @@ public class AnimationDisplayer : MonoBehaviour
     // 超出 AnimationTotalFrame 且含循環節點的帧用的可複用緩衝，不進緩存、不分配。
     // 這塊是逐帧覆寫的臨時值，不能共享，所以留在實例上（烘焙緩存本身在 animPack 上）。
     int[] scratchBakedValues = null;
+    // 角色內部的渲染層序改由部件 z 表達，整個角色只佔一個 sortingOrder。
+    // 原先每個部件按 ORDER_LAYER 各佔一個 sortingOrder，單角色實測中位數要佔 29 個、p90 要 102 個，
+    // 而部署器給相鄰角色的 order 間距只有 50 —— 過半角色必然和鄰居交錯渲染，跨度 50000 的那幾個
+    // 還會頂爆 Unity 的 32767 上限。z 用的是 ORDER_LAYER 在 animPack 取值表裡的名次（最多 394），
+    // 不是原始值，所以最壞只佔 3.94 個世界單位。
+    // 相機是正交投影（BaseScene 的 orthographic size 10，位於 z=-10，近裁 0.3 遠裁 1000），
+    // z 位移不產生任何透視縮放。GraphicsSettings 的 m_TransparencySortMode=3(CustomAxis)、
+    // 軸 (0,0,-1)：排序鍵 = dot(pos, axis) = -z，遠到近渲染即按鍵值降序，所以 z 越大越晚畫、越靠前。
+    // 於是名次乘正步長，方向和原先「ORDER_LAYER 越大 sortingOrder 越大越靠前」一致。
+    const float OrderLayerZStep = 0.01f;
     Transform[] parentTransforms = null;
     Transform[] childTransforms = null;
     bool transformCacheDirty = true;
@@ -359,7 +369,8 @@ public class AnimationDisplayer : MonoBehaviour
                 ObjectList[i].enabled = true;
             }
 
-            ObjectList[i].sortingOrder = (int)ModelTree[i, AnimDecryptPack.ORDER_LAYER] + OrderLayerStart;
+            // 整個角色共用一個 sortingOrder，部件之間的先後由下面 pivot 的 z 決定。
+            ObjectList[i].sortingOrder = OrderLayerStart;
             //position
             if (i == 0)
             {
@@ -370,7 +381,7 @@ public class AnimationDisplayer : MonoBehaviour
                 parentTransforms[i].localPosition = new Vector3(PositionRate * ModelData[i, 4] / PixelPerUnit, -PositionRate * ModelData[i, 5] / PixelPerUnit, 0);
             }
             //pivot
-            childTransforms[i].localPosition = new Vector3(-PivotRate * ModelData[i, 6] / PixelPerUnit, PivotRate * ModelData[i, 7] / PixelPerUnit, 0);
+            childTransforms[i].localPosition = new Vector3(-PivotRate * ModelData[i, 6] / PixelPerUnit, PivotRate * ModelData[i, 7] / PixelPerUnit, GetOrderLayerZ((int)ModelTree[i, AnimDecryptPack.ORDER_LAYER]));
             //scale
             parentTransforms[i].localScale = new Vector3(ScaleRate * ModelData[i, 8], ScaleRate * ModelData[i, 9], 1);
             //rotation
@@ -383,6 +394,17 @@ public class AnimationDisplayer : MonoBehaviour
         ResetScaleTree(0);
         opacityTreeDirty = false;
         scaleTreeDirty = false;
+    }
+    /// <summary>
+    /// ORDER_LAYER 原始值 → 子節點的局部 z。取的是名次而非原始值，詳見 OrderLayerZStep。
+    /// z 只落在子節點（SpriteRenderer 所在的那層）：父節點會被 ExecuteParentChange 改掛，
+    /// 單個片段裡實測最多改掛 183 次，z 放父節點會隨換父漂移。
+    /// 全部 parentTransforms 的局部 z 恆為 0、z 向縮放恆為 1、且只繞 z 旋轉，
+    /// 所以子節點的世界 z 就等於它自己的局部 z，與掛載深度無關。
+    /// </summary>
+    float GetOrderLayerZ(int orderLayerValue)
+    {
+        return animPack != null ? animPack.GetOrderLayerRank(orderLayerValue) * OrderLayerZStep : 0f;
     }
     protected Vector3 GetFixedPosition()
     {
@@ -868,7 +890,10 @@ public class AnimationDisplayer : MonoBehaviour
     void ExecuteOrderLayer(int ControllPart, int value, float _)
     {
         ModelTree[ControllPart, AnimDecryptPack.ORDER_LAYER] = value;
-        ObjectList[ControllPart].sortingOrder = (int)ModelTree[ControllPart, AnimDecryptPack.ORDER_LAYER] + OrderLayerStart;
+        // 層序落在子節點的 z 上，sortingOrder 整個角色共用一個、不隨片段變動。
+        Vector3 pivot = childTransforms[ControllPart].localPosition;
+        pivot.z = GetOrderLayerZ(value);
+        childTransforms[ControllPart].localPosition = pivot;
     }
     void ExecutePositionX(int ControllPart, int value, float originalValue)
     {
@@ -880,11 +905,16 @@ public class AnimationDisplayer : MonoBehaviour
     }
     void ExecutePivotX(int ControllPart, int value, float originalValue)
     {
-        childTransforms[ControllPart].localPosition = new Vector3(-originalValue - PivotRate * value / PixelPerUnit, childTransforms[ControllPart].localPosition.y, 0);
+        // 回讀一次整個 localPosition：原本就要保住 y，現在順帶保住承載層序的 z，沒有額外開銷。
+        Vector3 pivot = childTransforms[ControllPart].localPosition;
+        pivot.x = -originalValue - PivotRate * value / PixelPerUnit;
+        childTransforms[ControllPart].localPosition = pivot;
     }
     void ExecutePivotY(int ControllPart, int value, float originalValue)
     {
-        childTransforms[ControllPart].localPosition = new Vector3(childTransforms[ControllPart].localPosition.x, originalValue + PivotRate * value / PixelPerUnit, 0);
+        Vector3 pivot = childTransforms[ControllPart].localPosition;
+        pivot.y = originalValue + PivotRate * value / PixelPerUnit;
+        childTransforms[ControllPart].localPosition = pivot;
     }
     void ExecuteScaleBoth(int ControllPart, int value, float _)
     {
@@ -1518,9 +1548,10 @@ public class AnimationDisplayer : MonoBehaviour
     }
     public void ResetModelOrderLayer()
     {
+        // 部件之間的先後由子節點的 z 承載，和 OrderLayerStart 無關，所以這裡只要刷整體層。
         for (int i = 0; i < ModelData.GetLength(0); i++)
         {
-            ObjectList[i].sortingOrder = OrderLayerStart + (int)ModelTree[i, AnimDecryptPack.ORDER_LAYER];
+            ObjectList[i].sortingOrder = OrderLayerStart;
         }
     }
     //MODIFIED

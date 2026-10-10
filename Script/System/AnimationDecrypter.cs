@@ -272,6 +272,12 @@ public class AnimDecryptPack
     int[][][] bakedSlotsByClip;
     // 每個片段「超出 total 之後狀態是否恆定」的惰性判定：0=未判定 1=恆定 2=含循環節點。
     byte[] clipSteadyAfterTotal;
+    // 這個 pack 可能出現的全部 ORDER_LAYER 取值，去重升序。渲染層序改由部件 z 表達之後，
+    // 用的是「在這張表裡的名次」而不是原始值：原始跨度最壞 50000（×0.01 就是 500 個世界單位，
+    // 離譜），而去重後最多 394 項（實測 866 個單位，中位數 29），×0.01 不到 4 個單位。
+    // 來源是靜態 mamodel 第 3 列 ∪ 所有片段 modificationID==3 的關鍵帧值 —— 兩者都在本 pack 內，
+    // 和烘焙緩存同樣是 (pack) 的純函數，所以同一單位的所有實例共用一份。
+    int[] orderLayerRanks;
 
     public string[,] ImgcutData { get => imgcutData; }
     public Sprite[] SpritesList { get => spritesList; }
@@ -330,6 +336,29 @@ public class AnimDecryptPack
         clipSteadyAfterTotal[clipIndex] = steady ? (byte)1 : (byte)2;
         return steady;
     }
+    /// <summary>
+    /// 把 ORDER_LAYER 原始值換成它在本 pack 取值表裡的名次。表外的值（只有約 2.5% 的
+    /// modificationID==3 節點會在兩個不同值之間插值，插值結果可能落在表外）就近歸檔到下界名次 ——
+    /// 中間值本身就是過渡態，沒有可感知差異。
+    /// </summary>
+    public int GetOrderLayerRank(int orderLayerValue)
+    {
+        int[] ranks = orderLayerRanks;
+        if (ranks == null || ranks.Length == 0)
+        {
+            return 0;
+        }
+        int index = Array.BinarySearch(ranks, orderLayerValue);
+        if (index >= 0)
+        {
+            return index;
+        }
+        // BinarySearch 未命中時返回 ~insertionPoint；insertionPoint-1 就是最接近的下界。
+        int insertionPoint = ~index;
+        return insertionPoint > 0 ? insertionPoint - 1 : 0;
+    }
+    /// <summary>名次總數，調用方據此知道 z 要佔多少空間。</summary>
+    public int OrderLayerRankCount { get => orderLayerRanks != null ? orderLayerRanks.Length : 0; }
     public AnimDecryptPack(string[,] imgcutData_, Sprite[] spritesList_, int[,] modelData_, string[] modelNameData_, RegulateRateData rateData_, int[,] modelPositionFixedData_, MaanimNode[][] maanimData_)
     {
         imgcutData = imgcutData_;
@@ -344,6 +373,7 @@ public class AnimDecryptPack
 
         maanimData = maanimData_;
         animationTotalFrame = SetAnimationTotalFrame(maanimData);
+        orderLayerRanks = SetOrderLayerRanks(modelData, maanimData);
 
     }
     public string PrintMaanimData(int animIndex)
@@ -454,6 +484,47 @@ public class AnimDecryptPack
             maxOrderLayer = Math.Max(maxOrderLayer, modelData_[i, 3]);
         }
         return maxOrderLayer;
+    }
+
+    /// <summary>
+    /// 收集本 pack 可能出現的全部 ORDER_LAYER 取值並去重升序，供 GetOrderLayerRank 二分。
+    /// 靜態值（mamodel 第 3 列）必須全收，因為 ModelReset 要靠它們恢復；動態值取
+    /// modificationID==3 節點的全部關鍵帧值，實測 97.5% 的這類節點只做階躍/保持，
+    /// 所以關鍵帧集合幾乎就是運行時的完整取值集合。
+    /// </summary>
+    int[] SetOrderLayerRanks(int[,] modelData_, MaanimNode[][] maanimData_)
+    {
+        SortedSet<int> values = new SortedSet<int>();
+        for (int i = 0; i < modelData_.GetLength(0); i++)
+        {
+            values.Add(modelData_[i, 3]);
+        }
+        if (maanimData_ != null)
+        {
+            for (int clip = 0; clip < maanimData_.Length; clip++)
+            {
+                MaanimNode[] nodes = maanimData_[clip];
+                if (nodes == null)
+                {
+                    continue;
+                }
+                for (int n = 0; n < nodes.Length; n++)
+                {
+                    MaanimNode node = nodes[n];
+                    if (node == null || node.ModificationID != 3 || node.PointList == null)
+                    {
+                        continue;
+                    }
+                    for (int p = 0; p < node.PointList.Length; p++)
+                    {
+                        values.Add(node.PointList[p].Value);
+                    }
+                }
+            }
+        }
+        int[] ranks = new int[values.Count];
+        values.CopyTo(ranks);
+        return ranks;
     }
 
 }
