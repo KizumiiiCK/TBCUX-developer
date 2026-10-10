@@ -22,12 +22,10 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private Button StartgameBtn;
     [SerializeField] private Button OptionBtn;
     [SerializeField] private Button DevBtn;
-    [SerializeField] private Button OptReturnBtn;
     [SerializeField] private Button DevReturnBtn;
     [SerializeField] private Button FullCptReturnBtn;
     [SerializeField] private Button SubCptReturnBtn;
     [Header("Canvas")]
-    [SerializeField] private GameObject optionCanvas;
     [SerializeField] private GameObject devCanvas;
     [SerializeField] private GameObject fullCptCanvas;
     [SerializeField] private GameObject subCptCanvas;
@@ -44,6 +42,8 @@ public class MainMenu : MonoBehaviour
 
     private bool operating = false;
     private bool tagInShown;
+    private GameObject optionInstance;
+    private const string OptionPagePath = "UI/Pages/Options";
     private readonly List<GameObject> pooledSubChapterButtons = new List<GameObject>();
     private readonly Dictionary<string, Sprite> chapterCoverCache = new Dictionary<string, Sprite>();
     // Start is called before the first frame update
@@ -52,7 +52,6 @@ public class MainMenu : MonoBehaviour
         ShowTagInOnce();
 
         Application.targetFrameRate = 30;
-        optionCanvas.SetActive(false);
         ButtonInitializer();
         ApplyAnniversaryGate();
         ResetLanguage();
@@ -105,7 +104,6 @@ public class MainMenu : MonoBehaviour
     {
         TopBtns.localPosition = Vector2.zero;
         OptionBtn.onClick.AddListener(ShowOption);
-        OptReturnBtn.onClick.AddListener(CloseOption);
         DevBtn.onClick.AddListener(ShowDeveloper);
         DevReturnBtn.onClick.AddListener(CloseDeveloper);
         StartgameBtn.onClick.AddListener(delegate { if (operating) return; ShowFullCpts(); });
@@ -118,11 +116,16 @@ public class MainMenu : MonoBehaviour
     }
     private void ShowOption()
     {
-        optionCanvas.SetActive(true);
-    }
-    private void CloseOption()
-    {
-        optionCanvas.SetActive(false);
+        // 设置页已经是独立预制体，自己带返回按钮销毁自己，这里只负责生成。
+        // optionInstance 判空防连点生成两个（MMOption 会写 PlayerPrefs，重开两份会互相覆盖）。
+        if (optionInstance != null) return;
+        GameObject prefab = Resources.Load<GameObject>(OptionPagePath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[MainMenu] Missing page prefab: {OptionPagePath}");
+            return;
+        }
+        optionInstance = Instantiate(prefab);
     }
     private void ShowDeveloper()
     {

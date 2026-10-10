@@ -5,7 +5,6 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Android;
-using UnityEngine.Audio;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
@@ -53,9 +52,8 @@ public class LevelController : MonoBehaviour
     public const int VisualLayerCount = 11;
     public const int VisualLayerStride = 1000;
 
-    // Sound Voluume Settings
-    private const float MIN_VOLUME_DB = -80f;
-    private const float VOLUME_LOG_MULTIPLIER = 20f;
+    // Option page
+    private const string OptionPagePath = "UI/Pages/Options";
 
     // Accounter
     private const float XP_TREASURE_MULTIPLIER = 1.5f;
@@ -134,6 +132,7 @@ public class LevelController : MonoBehaviour
     [Header("Game Control UI")]
     [SerializeField] protected Button Pause_btn;
     [SerializeField] protected Button GiveUp_btn;
+    [SerializeField] protected Button Option_btn;
     [SerializeField] protected Button Speed_btn;
     [SerializeField] protected Button Skip_btn;
     [SerializeField] protected GameObject pause_black_shade;
@@ -148,13 +147,6 @@ public class LevelController : MonoBehaviour
     [SerializeField] protected Transform Deployers;
     [SerializeField] protected Transform GuestDeployers;
     [SerializeField] protected GameObject MaxDeployed;
-
-    [Header("Audio Mixer")]
-    [SerializeField] protected AudioMixer mixer;
-
-    [Header("UI Sliders")]
-    [SerializeField] protected Slider bgmSlider;
-    [SerializeField] protected Slider seSlider;
 
     #endregion
 
@@ -171,6 +163,7 @@ public class LevelController : MonoBehaviour
     private int cachedUpgradeLevel = -1;
     private bool cachedUpgradeButtonState = true;
     private bool upgradeUiDirty = true;
+    private GameObject optionInstance;
     public Character PausedSelectedCharacter => pauseInspector != null ? pauseInspector.SelectedCharacter : null;
 
     #endregion
@@ -219,6 +212,7 @@ public class LevelController : MonoBehaviour
     private void Start()
     {
         Application.targetFrameRate = DEFAULT_TARGET_FPS;
+        GameOptions.Refresh();
 
         // 加载入场UI
         try
@@ -239,6 +233,7 @@ public class LevelController : MonoBehaviour
         {
             SetupCatDeployers();
             SetupEnemySummoner();
+            ApplyDefaultSpeed();
         }
     }
 
@@ -283,7 +278,9 @@ public class LevelController : MonoBehaviour
 
         GiveUp_btn.onClick.AddListener(() =>
         {
-            Pause(false);
+            // 这里必须用 SpeedUp(false) 而不是 Pause(false)：Time.timeScale 是跨场景保留的，
+            // 而 Pause(false) 现在会按「默认二倍速」恢复，放弃关卡就会把 2 倍速带进 BaseScene。
+            SpeedUp(false);
             Pause_btn.interactable = false;
             Speed_btn.interactable = false;
             GetComponent<SceneSwitcher>().TagOutToDirectly("BaseScene");
@@ -299,8 +296,7 @@ public class LevelController : MonoBehaviour
             Skip_btn.gameObject.SetActive(false);
 #endif
 
-        bgmSlider.onValueChanged.AddListener(SetBGMVolume);
-        seSlider.onValueChanged.AddListener(SetSEVolume);
+        Option_btn.onClick.AddListener(ShowOption);
 
         pause_table.SetActive(false);
     }
@@ -539,6 +535,8 @@ public class LevelController : MonoBehaviour
     /// </summary>
     private void LoadPlot()
     {
+        if (ShouldSkipRepeatPlot()) return;
+
         string plotLoadPath = $"LevelData/LevelEnemyData/{chapterName}/{sectionName}/dif{diff}/plots/{levelNum}";
         GamePlot gamePlot = Resources.Load<GamePlot>(plotLoadPath);
 
@@ -553,6 +551,23 @@ public class LevelController : MonoBehaviour
     }
 
     /// <summary>
+    /// 设置页勾了「重复挑战直接跳过剧情」且本关已通关过时为 true。
+    /// </summary>
+    private bool ShouldSkipRepeatPlot()
+    {
+        if (!GameOptions.SkipRepeatPlot) return false;
+        if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(sectionName)) return false;
+
+        GameProgressSave.SectionClearList sec = GameProgressSave.LoadSectionProgress(chapterName, sectionName);
+        int[,] times = sec?.clear_times;
+        // 章节改过关卡数时旧存档会比现在短，越界就当没通关过，照常播剧情。
+        if (times == null) return false;
+        if (diff < 0 || diff >= times.GetLength(0)) return false;
+        if (levelNum < 0 || levelNum >= times.GetLength(1)) return false;
+        return times[diff, levelNum] > 0;
+    }
+
+    /// <summary>
     /// 退出剧�?    /// </summary>
         public void ExitPlot()
     {
@@ -560,6 +575,7 @@ public class LevelController : MonoBehaviour
         disable_controll = false;
         SetupCatDeployers();
         SetupEnemySummoner();
+        ApplyDefaultSpeed();
     }
 
     #endregion
@@ -699,13 +715,9 @@ public class LevelController : MonoBehaviour
         }
         else
         {
-            ShowPauseTable(false);
-            Time.timeScale = NORMAL_TIME_SCALE;
-            Application.targetFrameRate = DEFAULT_TARGET_FPS;
-            Pause_btn.GetComponent<Image>().color = Color.white;
-            Speed_btn.GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
-            speed_up = false;
-            pauseInspector?.ClearSelection();
+            // 恢复时的倍速、按钮高亮、表情面板清理全交给 SpeedUp，它两种分支都写全了。
+            // 设置页勾了「关卡默认二倍速」就直接回到二倍速，否则照旧一倍速。
+            SpeedUp(GameOptions.DefaultDoubleSpeed);
         }
 
         game_paused = pause;
@@ -741,6 +753,16 @@ public class LevelController : MonoBehaviour
     }
 
     /// <summary>
+    /// 开局（或剧情结束真正开打）时按设置页的「关卡默认二倍速」定一次倍速。
+    /// 不勾也要走一遍 SpeedUp(false)：Speed_btn 的高亮要初始化，而且 Time.timeScale
+    /// 是跨场景保留的，上一关留下的二倍速必须在这里被压回来。
+    /// </summary>
+    private void ApplyDefaultSpeed()
+    {
+        SpeedUp(GameOptions.DefaultDoubleSpeed);
+    }
+
+    /// <summary>
     /// 跳过游戏（仅编辑器测试；导出包不会绑定按钮也不会生效）
     /// </summary>
     public void SkipGame()
@@ -755,36 +777,21 @@ public class LevelController : MonoBehaviour
     #region Audio Methods - 音频方法
 
     /// <summary>
-    /// 设置BGM音量
+    /// 暂停菜单里的设置入口。音量调节已经整体搬到 MMOption，这里只负责把那个页面生成出来；
+    /// 战斗中不允许上传/删除账号，所以生成后立刻禁掉账号操作。
     /// </summary>
-    public void SetBGMVolume(float linear)
+    private void ShowOption()
     {
-        float dB = linear <= 0 ? MIN_VOLUME_DB : VOLUME_LOG_MULTIPLIER * Mathf.Log10(linear);
-        Debug.Log(dB);
-        mixer.SetFloat(UXPref.BGM_PARAM, dB);
-        PlayerPrefs.SetFloat(UXPref.BGM_PARAM, linear);
-    }
-
-    /// <summary>
-    /// 设置SE音量
-    /// </summary>
-    public void SetSEVolume(float linear)
-    {
-        float dB = linear <= 0 ? MIN_VOLUME_DB : VOLUME_LOG_MULTIPLIER * Mathf.Log10(linear);
-        Debug.Log(dB);
-        mixer.SetFloat(UXPref.SE_PARAM, dB);
-        PlayerPrefs.SetFloat(UXPref.SE_PARAM, linear);
-    }
-
-    /// <summary>
-    /// 刷新暂停菜单
-    /// </summary>
-    private void RefreshPauseTable()
-    {
-        bgmSlider.value = PlayerPrefs.GetFloat(UXPref.BGM_PARAM, 1);
-        seSlider.value = PlayerPrefs.GetFloat(UXPref.SE_PARAM, 1);
-        SetBGMVolume(bgmSlider.value);
-        SetSEVolume(seSlider.value);
+        if (optionInstance != null) return;
+        GameObject prefab = Resources.Load<GameObject>(OptionPagePath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[LevelController] Missing page prefab: {OptionPagePath}");
+            return;
+        }
+        optionInstance = Instantiate(prefab);
+        MMOption option = optionInstance.GetComponent<MMOption>();
+        if (option != null) option.DisableAccountActions();
     }
 
     /// <summary>
@@ -794,7 +801,6 @@ public class LevelController : MonoBehaviour
     {
         if (show)
         {
-            RefreshPauseTable();
             pause_black_shade.SetActive(true);
             pause_table.SetActive(true);
             Speed_btn.gameObject.SetActive(false);

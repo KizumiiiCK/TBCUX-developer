@@ -31,6 +31,12 @@ public static class UXPref
     public const string BASE_DecorationNum = "BDN";
     public const string BASE_BaseNum = "BBN";
     public const string Login_Date= "LDate";
+    // 设置页的开关，0/1。只影响表现与手感，不进存档，所以留在 PlayerPrefs。
+    public const string OptSkipRepeatPlot = "OptSkipPlot";
+    public const string OptNoBattleEffects = "OptNoFX";
+    public const string OptNoBattleEmotion = "OptNoEmo";
+    public const string OptNoPauseInspect = "OptNoInspect";
+    public const string OptDefaultDoubleSpeed = "OptX2";
     //Localization Table
     public const string Localized_LevelNames = "LevelNames";
     public const string Localized_UI = "UI Elements";

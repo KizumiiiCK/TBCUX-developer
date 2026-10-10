@@ -89,6 +89,7 @@ public static class CharacterVisualLoader
             if (uaPrefab == null) return;
             GameObject uaunit = Object.Instantiate(uaPrefab, runtimeCharacter.transform.position, Quaternion.identity);
             uaunit.transform.SetParent(runtimeCharacter.transform);
+            PlatformAudio.BindToSEGroup(uaunit);
             if (data.SPINEAnimated) ResetSpineOrderLayer(uaunit, sortingLayer, uaOrder);
             else ResetAnimationOrderLayer(uaunit, sortingLayer, uaOrder);
             Animator animator = uaunit.GetComponent<Animator>();

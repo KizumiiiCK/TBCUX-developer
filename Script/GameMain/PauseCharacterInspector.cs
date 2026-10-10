@@ -39,6 +39,14 @@ public class PauseCharacterInspector : MonoBehaviour
 
     public void Tick()
     {
+        // 设置页勾了「禁用暂停查看单位数值」。这个开关可以在战斗中途（暂停时打开设置页）改，
+        // 所以不能只是 return：先把已经开着的描边和面板收掉，再彻底不响应点击。
+        if (GameOptions.NoPauseInspect)
+        {
+            if (selectedCharacter != null) ClearSelection();
+            return;
+        }
+
         if (selectedCharacter != null && (!selectedCharacter.gameObject || !selectedCharacter.gameObject.activeInHierarchy))
         {
             ClearOutlineAndPanel();

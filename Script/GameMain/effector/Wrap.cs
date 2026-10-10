@@ -150,7 +150,9 @@ public class Wrap : E
             character.transform,
             character.transform.position+new Vector3(0,6,0),
             animIndex,
-            worldPositionStays: true);
+            worldPositionStays: true,
+            // 捆绑是持续状态标记，开了「不生成战斗特效」也要留着。
+            essential: true);
     }
 
     private void CleanupWrapAnim()

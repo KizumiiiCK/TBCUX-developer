@@ -117,7 +117,9 @@ public class EffectInstaller : MonoBehaviour
             character.transform,
             worldPositionStays: true,
             playSound: true,
-            lifetimeFrames: lifetimeFrames);
+            lifetimeFrames: lifetimeFrames,
+            // 效果标记，开了「不生成战斗特效」也要留着，否则看不出谁被挡刀/治疗/强化。
+            essential: true);
     }
     //public void DisplayEffect(GameObject target, string effname)
     //{

@@ -825,6 +825,9 @@ public class CharacterTargetManager : MonoBehaviour
 
     private void UpdateEmotionSystem()
     {
+        // 关了表情系统就连每帧的队伍 tick 都不走，EnsureEmotionSprites 也就永不执行，
+        // 开局那几次 Resources.LoadAll<Sprite> 一并省掉。
+        if (GameOptions.NoBattleEmotion) return;
         float now = Time.time;
         ProcessTeamEmotionTick(allCats, allEnemies, ref catEmotionTick, now);
         ProcessTeamEmotionTick(allEnemies, allCats, ref enemyEmotionTick, now);
@@ -1133,7 +1136,8 @@ public class CharacterTargetManager : MonoBehaviour
 
     private bool CanDriveEmotion(Character character)
     {
-        return character != null
+        return !GameOptions.NoBattleEmotion
+               && character != null
                && character.gameObject != null
                && character.gameObject.activeInHierarchy
                && !(character is CatBase)

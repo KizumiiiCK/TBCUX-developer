@@ -81,7 +81,9 @@ public abstract class E : MonoBehaviour
                 etarget.transform,
                 worldPositionStays: true,
                 playSound: true,
-                lifetimeFrames: 0);
+                lifetimeFrames: 0,
+                // 持续状态标记（减速/停止/诅咒…），开了「不生成战斗特效」也要留着。
+                essential: true);
             if (ad != null)
             {
                 pooledEffectDisplay = ad;

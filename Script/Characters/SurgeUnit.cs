@@ -75,7 +75,8 @@ public class SurgeUnit : Character
         for (int j = 0; j < 12; j++) yield return new WaitForFixedUpdate();
         for (int i = 0; i < surge_level; i++)
         {
-            ads.SetMaanimPointer(1);
+            // 开了「不生成战斗特效」时 ads 为 null，只是没有美术，下面的判定节奏不变。
+            if (ads != null) ads.SetMaanimPointer(1);
             for (int j = 1; j < 21; j++)
             {
                 if (j % 10 == 0)
@@ -86,7 +87,7 @@ public class SurgeUnit : Character
                 yield return new WaitForFixedUpdate();
             }
         }
-        ads.SetMaanimPointer(2);
+        if (ads != null) ads.SetMaanimPointer(2);
         for (int j = 0; j < 30; j++) yield return new WaitForFixedUpdate();
         if (ads != null) EM.RecycleBattleObject(ads, surgeEffect.ToString());
         Destroy(gameObject);

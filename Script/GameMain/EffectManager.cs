@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Audio;
 
 public class EffectManager : MonoBehaviour
 {
@@ -12,10 +11,7 @@ public class EffectManager : MonoBehaviour
     private readonly Dictionary<string, AudioClip[]> effectSoundCache = new Dictionary<string, AudioClip[]>();
     private readonly Dictionary<string, AudioSource> effectSoundPlayers = new Dictionary<string, AudioSource>();
     private const string EffectSourceRoot = "Effects/source file/";
-    private const string AudioMixerResourcePath = "Music/AudioMixer";
-    private AudioMixerGroup seMixerGroup;
-    private bool seMixerResolved;
-    public AnimationDisplayer InstantiateBattleObject(SEnums sename,float posX, float posY, bool playSound=true)
+    public AnimationDisplayer InstantiateBattleObject(SEnums sename,float posX, float posY, bool playSound=true, bool essential = false)
     {
         string effectName = sename.ToString();
         float finalY = posY + Ydeviation[sename];
@@ -26,11 +22,12 @@ public class EffectManager : MonoBehaviour
             true,
             posY,
             playSound,
-            SEExistT[sename]);
+            SEExistT[sename],
+            essential);
         return ad;
     }
 
-    public AnimationDisplayer InstantiateBattleObject(string effectName, float posX, float posY, bool playSound = true, int lifetimeFrames = 0)
+    public AnimationDisplayer InstantiateBattleObject(string effectName, float posX, float posY, bool playSound = true, int lifetimeFrames = 0, bool essential = false)
     {
         return InstantiateNamedBattleObjectInternal(
             effectName,
@@ -39,7 +36,8 @@ public class EffectManager : MonoBehaviour
             true,
             posY,
             playSound,
-            lifetimeFrames);
+            lifetimeFrames,
+            essential);
     }
 
     public AnimationDisplayer InstantiateAttachedBattleObject(
@@ -48,7 +46,8 @@ public class EffectManager : MonoBehaviour
         Transform parent,
         bool worldPositionStays = true,
         bool playSound = true,
-        int lifetimeFrames = 0)
+        int lifetimeFrames = 0,
+        bool essential = false)
     {
         return InstantiateNamedBattleObjectInternal(
             effectName,
@@ -57,7 +56,8 @@ public class EffectManager : MonoBehaviour
             worldPositionStays,
             worldPosition.y,
             playSound,
-            lifetimeFrames);
+            lifetimeFrames,
+            essential);
     }
 
     public AnimationDisplayer PlayReusableAttachedEffect(
@@ -66,7 +66,8 @@ public class EffectManager : MonoBehaviour
         Transform parent,
         Vector3 worldPosition,
         int animIndex,
-        bool worldPositionStays = true)
+        bool worldPositionStays = true,
+        bool essential = false)
     {
         if (string.IsNullOrEmpty(effectName) || parent == null) return null;
         if (cachedDisplay == null)
@@ -77,7 +78,8 @@ public class EffectManager : MonoBehaviour
                 parent,
                 worldPositionStays,
                 playSound: false,
-                lifetimeFrames: 0);
+                lifetimeFrames: 0,
+                essential: essential);
         }
         if (cachedDisplay == null) return null;
         cachedDisplay.gameObject.SetActive(true);
@@ -100,9 +102,18 @@ public class EffectManager : MonoBehaviour
         bool worldPositionStays,
         float sortY,
         bool playSound,
-        int lifetimeFrames)
+        int lifetimeFrames,
+        bool essential)
     {
         if (string.IsNullOrEmpty(effectName)) return null;
+        // 低端机开关：只有 EffectInstaller 一脉的效果标记标了 essential，其余表现全部不生成。
+        // 但音效还是要给 —— 打击、暴击、灵魂这些是战况提示，全静音反而看不懂发生了什么。
+        // 这里返回 null，所以每个取用返回值的调用点都必须判空。
+        if (!essential && GameOptions.NoBattleEffects)
+        {
+            if (playSound) PlayEffectSound(effectName);
+            return null;
+        }
         string packKey = GetEffectPackKey(effectName);
         AnimDecryptPack pack = GetOrCreateEffectPack(effectName);
         if (pack == null) return null;
@@ -124,11 +135,16 @@ public class EffectManager : MonoBehaviour
             if (lifetime == null) lifetime = ad.gameObject.AddComponent<PooledEffectLifetime>();
             lifetime.Activate(this, packKey, lifetimeFrames, true);
         }
-        if (playSound) PlayEffectSound(effectName, 0);
+        if (playSound) PlayEffectSound(effectName);
         return ad;
     }
 
-    public void PlayEffectSound(string effectName, int animIndex = 0)
+    /// <summary>
+    /// animIndex 传 -1（默认）表示调用方没有指定动画段 —— 生成特效的路径永远从第 0 段播，
+    /// 这时文件夹里的多个音频是同一音效的随机变体（bite 的 0/1、soul 的 soul_0/soul_1）。
+    /// 传 >=0 表示按动画段取对应那条（护盾、捆绑那种 maanim_N 与 N.ogg 一一对应的效果）。
+    /// </summary>
+    public void PlayEffectSound(string effectName, int animIndex = -1)
     {
         string soundKey = GetEffectSoundKey(effectName);
         if (!effectSoundCache.TryGetValue(soundKey, out AudioClip[] clips))
@@ -141,7 +157,9 @@ public class EffectManager : MonoBehaviour
 
         AudioSource source = GetOrCreateEffectSoundPlayer(soundKey, effectName);
         if (source == null) return;
-        int clipIndex = Mathf.Clamp(animIndex, 0, clips.Length - 1);
+        int clipIndex = animIndex < 0
+            ? UnityEngine.Random.Range(0, clips.Length)
+            : Mathf.Clamp(animIndex, 0, clips.Length - 1);
         AudioClip clip = clips[clipIndex];
         source.Stop();
         source.clip = clip;
@@ -161,31 +179,11 @@ public class EffectManager : MonoBehaviour
         src.playOnAwake = false;
         src.loop = false;
         src.spatialBlend = 0f;
-        src.outputAudioMixerGroup = ResolveSEMixerGroup();
+        src.outputAudioMixerGroup = PlatformAudio.SEGroup;
         effectSoundPlayers[soundKey] = src;
         return src;
     }
 
-    private AudioMixerGroup ResolveSEMixerGroup()
-    {
-        if (seMixerResolved) return seMixerGroup;
-        seMixerResolved = true;
-
-        AudioMixer mixer = Resources.Load<AudioMixer>(AudioMixerResourcePath);
-        if (mixer == null)
-        {
-            Debug.LogWarning($"[EffectManager] AudioMixer not found at Resources/{AudioMixerResourcePath}");
-            return null;
-        }
-        AudioMixerGroup[] groups = mixer.FindMatchingGroups("SE");
-        if (groups == null || groups.Length == 0)
-        {
-            Debug.LogWarning("[EffectManager] SE mixer group not found.");
-            return null;
-        }
-        seMixerGroup = groups[0];
-        return seMixerGroup;
-    }
     private static Dictionary<SEnums, int> SEExistT = new Dictionary<SEnums, int>() {
         { SEnums.soul,         90 },
         { SEnums.bite,         30 },

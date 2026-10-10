@@ -66,8 +66,9 @@ public class CannonUnit : Character
             int effIndex = pattern.eff_flow_num;
             if (cannon_effects != null && effIndex >= 0 && effIndex < cannon_effects.Length)
             {
-                Instantiate(cannon_effects[effIndex], transform.position 
+                GameObject eff = Instantiate(cannon_effects[effIndex], transform.position
                     + new Vector3(-pattern.eff_flow_pos.x/100f, pattern.eff_flow_pos.y / 100f, 0), Quaternion.identity);
+                PlatformAudio.BindToSEGroup(eff);
             }
 
             Vector2 range = pattern.eff_dmg_range;

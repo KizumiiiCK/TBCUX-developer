@@ -66,7 +66,10 @@ public class WaveUnit : Character
             SEnums waveEffect = IsCat()
                 ? (Mini ? SEnums.miniwave : SEnums.wave)
                 : (Mini ? SEnums.miniwave_e : SEnums.wave_e);
-            currentWave = EM.InstantiateBattleObject(waveEffect, waveX, basePos.y).gameObject;
+            // 波的判定来自下面的 SetAttackRange + ApplyProjectileAttack，跟 currentWave 无关，
+            // 所以开了「不生成战斗特效」拿到 null 时只是没有美术，伤害照算。
+            AnimationDisplayer waveDisplay = EM.InstantiateBattleObject(waveEffect, waveX, basePos.y);
+            currentWave = waveDisplay != null ? waveDisplay.gameObject : null;
 
             // 单帧判定：范围(-100,100)，立刻攻击一次
             int minRange = -300;
