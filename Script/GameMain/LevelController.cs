@@ -47,6 +47,12 @@ public class LevelController : MonoBehaviour
     private const float BASE_POSITION_DIVISOR = 200f;
     private const float BASE_Y_POSITION = 1f;
 
+    // 角色渲染分层：11 条深度线，每条 1000 个席位。
+    // 部署器抽线、本控制器发席位号，order = line * VisualLayerStride + slot。
+    // 必须和两个部署器的 Random.Range(0, VisualLayerCount) 保持一致。
+    public const int VisualLayerCount = 11;
+    public const int VisualLayerStride = 1000;
+
     // Sound Voluume Settings
     private const float MIN_VOLUME_DB = -80f;
     private const float VOLUME_LOG_MULTIPLIER = 20f;
@@ -175,6 +181,13 @@ public class LevelController : MonoBehaviour
     public int maxCatDeploy = 50;
     protected int enemyDeployed = 0;
     protected int catDeployed = 0;
+    /// <summary>
+    /// 每条视觉深度线上已发出的席位号。下标就是部署器抽到的 so（0..10，即 Random.Range(0, 11)），
+    /// 敌我共用一套：两边的 y 都是 base.y - so/10f 且两个基地同为 BASE_Y_POSITION，
+    /// 所以同一个 so 在两队是同一条深度线，各自独立随机会让一猫一敌有 1/6 概率同序。
+    /// 跟着 LevelController 实例走，所以每场战斗自动从 0 开始，不需要额外归零。
+    /// </summary>
+    private readonly int[] visualLayerSlots = new int[VisualLayerCount];
 
     #endregion
 
@@ -1127,6 +1140,26 @@ public class LevelController : MonoBehaviour
     public bool CanDeployACat()
     {
         return catDeployed < maxCatDeploy;
+    }
+
+    /// <summary>
+    /// 为一条深度线发一个席位号，供部署器算 order = line * VisualLayerStride + 返回值。
+    /// 取代原先敌我各自 Random.Range(0, 6) * 50 的随机占位：随机在同一条线上有 1/6 撞号率，
+    /// 累加则保证同线不重号，且后来的角色一定在先来的上层，符合直觉。
+    ///
+    /// 取模而不是放任累加：第 1001 个角色若拿到 1000，就会和下一条线的首席同序 ——
+    /// 下一条线 y 更低、看着更靠前，order 却被看着更靠后的角色追平，正是这次要消灭的那类错位。
+    /// 再往上还会越过 20000（盖住护盾和弹道，两者都写死 20000）和 31000
+    /// （OrderLayerStart 的 setter 钳死，该线此后全部同序且整场不可恢复）。
+    /// 回绕的代价只是第 1001 个角色排到本线最底，而那时本线先来的近千个几乎已全部阵亡。
+    /// </summary>
+    public int NextVisualSlot(int layer)
+    {
+        if (layer < 0) layer = 0;
+        else if (layer >= VisualLayerCount) layer = VisualLayerCount - 1;
+        int slot = visualLayerSlots[layer] % VisualLayerStride;
+        visualLayerSlots[layer] = slot + 1;
+        return slot;
     }
 
     /// <summary>

@@ -122,9 +122,11 @@ public class LevelEnemySummoner : MonoBehaviour
     {
         if (!EnsureEnemyRuntimeInitialized(i)) return false;
 
-        int sortingOrder = Random.Range(0, 11);
-        int sr_samelayer = Random.Range(0, 6);
-        float deviationY = sortingOrder / 10f;
+        // 和 UnitDeployer 共用 LevelController 上的同一套席位计数器：两边的 y 都是
+        // base.y - so/10f 且两个基地同为 BASE_Y_POSITION，同一条线在两队就是同一个视觉深度。
+        int visualLayer = Random.Range(0, LevelController.VisualLayerCount);
+        int visualOrder = visualLayer * LevelController.VisualLayerStride + LC.NextVisualSlot(visualLayer);
+        float deviationY = visualLayer / 10f;
         GameObject enemy = CharacterPlacer.Place(
             identities[i],
             CD[i],
@@ -134,8 +136,8 @@ public class LevelEnemySummoner : MonoBehaviour
             1,
             0f,
             ESI[i].ratio / 100f,
-            sortingOrder * 1000 + sr_samelayer * 100,
-            sortingOrder * 1000 + sr_samelayer * 50);
+            visualOrder,
+            visualOrder);
         if (enemy == null) return false;
         if (ESI[i].bossShock)
         {

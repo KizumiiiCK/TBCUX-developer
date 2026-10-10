@@ -206,9 +206,10 @@ public class UnitDeployer : MonoBehaviour
             return;
         }
         ResetCoolDown();
-        int sortingOrder = Random.Range(0, 11);
-        int sr_samelayer = Random.Range(0, 6);
-        float deviationY = -sortingOrder / 10f;
+        // 抽一条深度线，席位号由 LevelController 累加发放（敌我共用一套），不再随机占位。
+        int visualLayer = Random.Range(0, LevelController.VisualLayerCount);
+        int visualOrder = visualLayer * LevelController.VisualLayerStride + LI.NextVisualSlot(visualLayer);
+        float deviationY = -visualLayer / 10f;
         GameObject spawned = CharacterPlacer.Place(
             identity,
             CD,
@@ -218,8 +219,8 @@ public class UnitDeployer : MonoBehaviour
             lvl,
             treasure_count,
             1f,
-            sortingOrder * 1000 + sr_samelayer * 100,
-            sortingOrder * 1000 + sr_samelayer * 50);
+            visualOrder,
+            visualOrder);
         // 本能是在 SetupDeployer 里就叠进 CD 的，这里只是把「叠过」这件事记到单位身上，
         // 变身的时候好照着给新形态补上，免得战斗中再去读一次存档。
         if (talentApplied && spawned != null)
