@@ -265,6 +265,13 @@ public class AnimDecryptPack
     float[,] modelTree_Fixed;
     int[] animationTotalFrame;
     int maxOrderLayer;
+    // 烘焙緩存。烘焙結果是 (pack, clip, frame) 的純函數 —— 求值只讀節點數據 / ModelTree_Fixed / ModelData
+    // 和三個 Rate，全在本 pack 內，不碰 displayer 的任何逐帧狀態 —— 所以同一 pack 的所有 displayer
+    // 共用一份就夠，不必各自烘一遍。求值代碼留在 AnimationDisplayer，這裡只負責存。
+    // [clip][frame] -> 該帧每個節點的值；null 表示該帧還沒烘。槽位數是 total+2，末槽放 total 之後的穩態。
+    int[][][] bakedSlotsByClip;
+    // 每個片段「超出 total 之後狀態是否恆定」的惰性判定：0=未判定 1=恆定 2=含循環節點。
+    byte[] clipSteadyAfterTotal;
 
     public string[,] ImgcutData { get => imgcutData; }
     public Sprite[] SpritesList { get => spritesList; }
@@ -277,6 +284,52 @@ public class AnimDecryptPack
     public int[] AnimationTotalFrame { get => animationTotalFrame; }
     public int MaxOrderLayer { get => maxOrderLayer; }
     public Dictionary<string, int> ExtraAnimIndices { get; set; }
+    // createdNow 讓調用方知道這是剛開的空槽，從而只在第一次預熱一遍整個片段 —— 這正是共享的收益所在：
+    // 同一單位的第 2 隻起不再付預熱的錢。槽位數 = total+2，調用方用 slots.Length-2 反推 total，
+    // 保證和開槽時用的 total 不可能對不上。
+    public int[][] GetOrCreateBakedSlots(int clipIndex, out bool createdNow)
+    {
+        if (bakedSlotsByClip == null)
+        {
+            bakedSlotsByClip = new int[maanimData.Length][][];
+        }
+        int[][] slots = bakedSlotsByClip[clipIndex];
+        if (slots != null)
+        {
+            createdNow = false;
+            return slots;
+        }
+        // total+2：[0, total] 各一槽，末尾再多一槽放穩態條目。
+        slots = new int[animationTotalFrame[clipIndex] + 2][];
+        bakedSlotsByClip[clipIndex] = slots;
+        createdNow = true;
+        return slots;
+    }
+    public bool IsClipSteadyAfterTotal(int clipIndex)
+    {
+        if (clipSteadyAfterTotal == null)
+        {
+            clipSteadyAfterTotal = new byte[maanimData.Length];
+        }
+        if (clipSteadyAfterTotal[clipIndex] != 0)
+        {
+            return clipSteadyAfterTotal[clipIndex] == 1;
+        }
+        MaanimNode[] nodes = maanimData[clipIndex];
+        bool steady = true;
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            // 只有 Loop==-1 會在 AnimationDisplayer.AdjustFrame 裡回繞；其餘取值方式在 total 之後都與帧號
+            // 無關（Loop==1 停在末點，其他 Loop 值求值失敗、永久跳過），所以狀態對所有後續帧恆定。
+            if (nodes[i].Loop == -1)
+            {
+                steady = false;
+                break;
+            }
+        }
+        clipSteadyAfterTotal[clipIndex] = steady ? (byte)1 : (byte)2;
+        return steady;
+    }
     public AnimDecryptPack(string[,] imgcutData_, Sprite[] spritesList_, int[,] modelData_, string[] modelNameData_, RegulateRateData rateData_, int[,] modelPositionFixedData_, MaanimNode[][] maanimData_)
     {
         imgcutData = imgcutData_;
