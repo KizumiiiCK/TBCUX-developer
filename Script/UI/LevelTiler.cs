@@ -23,6 +23,14 @@ public class LevelTiler : UICanvasMain
     /// 的 transition，预制体上如果是 None 就完全看不出禁用，所以颜色在代码里显式压下去。</summary>
     [SerializeField] private Color clearTeamDisabledColor = new Color(0.22f, 0.22f, 0.24f);
 
+    [Header("Props")]
+    /// <summary>「工作狂猫」（Prop_max）：带进关卡后开局就是满级钱包。普通 Button，选中态只靠 alpha 表示。</summary>
+    [SerializeField] private Button WorkerCatBtn;
+    [SerializeField] private TMP_Text workerCatCount_txt;
+    /// <summary>「狙击手猫」（Prop_Sniper）：带进关卡后开局生成一个狙击手，关卡内可随时开关。</summary>
+    [SerializeField] private Button SniperBtn;
+    [SerializeField] private TMP_Text sniperCount_txt;
+
     [Header("Battle Controls")]
     [SerializeField] private Button CombatBtn;
 
@@ -84,6 +92,12 @@ public class LevelTiler : UICanvasMain
     /// 所以按钮的外观刷新一律等到 Start（所有 Awake 都跑完了）之后才开始。
     /// </summary>
     private bool clearTeamBtnReady;
+    /// <summary>两个道具是否选中，以及进页面时读到的库存。库存为 0 时按钮不可点。</summary>
+    private bool useWorkerCat;
+    private bool useSniper;
+    private int workerCatStock;
+    private int sniperStock;
+    private const float PropUnselectedAlpha = 0.5f;
 
     public GameProgressSave.SectionClearList secClearList;
 
@@ -96,6 +110,8 @@ public class LevelTiler : UICanvasMain
         ShowteamBtn.onClick.AddListener(ToggleSelectionsPanel);
         CombatBtn.onClick.AddListener(LaunchAttack);
         if (ClearTeamBtn != null) ClearTeamBtn.onClick.AddListener(OnClearTeamBtnClicked);
+        if (WorkerCatBtn != null) WorkerCatBtn.onClick.AddListener(() => TogglePropSelection(true));
+        if (SniperBtn != null) SniperBtn.onClick.AddListener(() => TogglePropSelection(false));
         clearTeamBtnReady = true;
         RefreshClearTeamButton();
         CacheClearTeamTexts();
@@ -107,6 +123,8 @@ public class LevelTiler : UICanvasMain
     {
         // 每次回到选关页都回到「不选通关队伍」。
         ResetClearTeamSelection();
+        // 道具同理：回页面一律取消选择，并按当前库存重算能不能选。
+        RefreshProps();
         // 装备页可能换了队伍或改了队名，队名标签和格子都要重读存档。
         // 这里必须无条件刷：ResetClearTeamSelection 只在原本是选定态时才刷标签。
         RefreshTeamLabel();
@@ -206,6 +224,54 @@ public class LevelTiler : UICanvasMain
     {
         if (!clearedTeamAvailable) return;
         SetUseClearedTeam(!useClearedTeam);
+    }
+
+    /// <summary>
+    /// 读一次道具库存，写数量文本，两个按钮都回到未选中态。
+    /// 只在 OnEnable 调：RewardingSystem.GetAmount 每次都要读一遍存档文件，
+    /// 不能挂进 ChangeCurrentLevelNum 那条拖动选关的热路径（道具库存也跟关卡号无关）。
+    /// </summary>
+    private void RefreshProps()
+    {
+        workerCatStock = RewardingSystem.GetAmount(RewardName.Prop_max);
+        sniperStock = RewardingSystem.GetAmount(RewardName.Prop_Sniper);
+        useWorkerCat = false;
+        useSniper = false;
+        if (workerCatCount_txt != null) workerCatCount_txt.text = $"x {workerCatStock}";
+        if (sniperCount_txt != null) sniperCount_txt.text = $"x {sniperStock}";
+        ApplyPropVisual(WorkerCatBtn, false, workerCatStock > 0);
+        ApplyPropVisual(SniperBtn, false, sniperStock > 0);
+    }
+
+    private void TogglePropSelection(bool workerCat)
+    {
+        if (workerCat)
+        {
+            if (workerCatStock <= 0) return;
+            useWorkerCat = !useWorkerCat;
+            ApplyPropVisual(WorkerCatBtn, useWorkerCat, true);
+        }
+        else
+        {
+            if (sniperStock <= 0) return;
+            useSniper = !useSniper;
+            ApplyPropVisual(SniperBtn, useSniper, true);
+        }
+    }
+
+    /// <summary>
+    /// 选中态只用 alpha 表示（同关卡里的加速键）。按钮的 Transition 必须是 None，
+    /// 否则 Button 自己的 Color Tint 会在抬手时把这里写的 alpha 覆盖回去。
+    /// </summary>
+    private void ApplyPropVisual(Button btn, bool selected, bool available)
+    {
+        if (btn == null) return;
+        btn.interactable = available;
+        Image img = btn.GetComponent<Image>();
+        if (img == null) return;
+        Color c = img.color;
+        c.a = selected ? 1f : PropUnselectedAlpha;
+        img.color = c;
     }
 
     private void SetUseClearedTeam(bool use)
@@ -422,6 +488,12 @@ public class LevelTiler : UICanvasMain
         // 通关队伍标记由本页独占：每次出击都显式写或删，绝不留残值给下一关。
         if (useClearedTeam && HasClearedTeamForCurrentLevel()) PlayerPrefs.SetInt(UXPref.UseClearedTeam, 1);
         else PlayerPrefs.DeleteKey(UXPref.UseClearedTeam);
+        // 道具标记同样每次出击都显式写或删。这里不扣库存：使用数量在关卡胜利时才结算，
+        // 失败不结算，所以带着道具反复重打同一关只会在通关那一次扣。
+        if (useWorkerCat && workerCatStock > 0) PlayerPrefs.SetInt(UXPref.UseWorkerCat, 1);
+        else PlayerPrefs.DeleteKey(UXPref.UseWorkerCat);
+        if (useSniper && sniperStock > 0) PlayerPrefs.SetInt(UXPref.UseSniper, 1);
+        else PlayerPrefs.DeleteKey(UXPref.UseSniper);
         this.enabled = false;
     }
     private void ToggleSelectionsPanel()

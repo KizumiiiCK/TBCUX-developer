@@ -55,6 +55,12 @@ public class LevelController : MonoBehaviour
     // Option page
     private const string OptionPagePath = "UI/Pages/Options";
 
+    // Props
+    /// <summary>狙击手猫的单位编号。单位尚未导入，填上之后道具才会真的放人。</summary>
+    private const string SniperUnitCode = "";
+    /// <summary>狙击手的出场位置：同部署器放猫一样，落在猫咪基地右侧半格。</summary>
+    private const float SNIPER_SPAWN_X_OFFSET = 0.5f;
+
     // Accounter
     private const float XP_TREASURE_MULTIPLIER = 1.5f;
     private const float XP_RANDOM_RANGE = 0.05f;
@@ -145,6 +151,12 @@ public class LevelController : MonoBehaviour
     [Header("Level Info UI")]
     [SerializeField] protected TMP_Text levelName_txt;
 
+    [Header("Props UI")]
+    /// <summary>狙击手道具的开关键：随时把场上那只狙击手 SetActive 开关掉。没带道具时整个隐藏。</summary>
+    [SerializeField] protected Button Sniper_btn;
+    /// <summary>工作狂猫的纯展示图标，没带道具时隐藏。</summary>
+    [SerializeField] protected GameObject WorkerCat_icon;
+
     [Header("Deployment UI")]
     [SerializeField] protected Transform Deployers;
     [SerializeField] protected Transform GuestDeployers;
@@ -166,6 +178,13 @@ public class LevelController : MonoBehaviour
     private bool cachedUpgradeButtonState = true;
     private bool upgradeUiDirty = true;
     private GameObject optionInstance;
+    /// <summary>本关实际带上的道具（标记 + 库存双重确认后的结果），胜利时按这两个值结算。</summary>
+    private bool workerCatActive;
+    private bool sniperActive;
+    private GameObject sniperUnit;
+    private bool sniperDeployed = true;
+    /// <summary>狙击手键是否该出现：没带道具、单位没导入、单位已阵亡都为 false。</summary>
+    private bool sniperBtnAvailable;
     public Character PausedSelectedCharacter => pauseInspector != null ? pauseInspector.SelectedCharacter : null;
 
     #endregion
@@ -226,6 +245,8 @@ public class LevelController : MonoBehaviour
         InitializeButtons();
         SetUpgradeActive(false);
         InitializeLevelData();
+        // 必须在 ApplyInitialMoneyRestrictions 之前：工作狂猫要改的就是开局钱包等级。
+        ResolveProps();
         ApplyInitialMoneyRestrictions();
         BindCannonToBase();
         LoadPlot();
@@ -235,6 +256,7 @@ public class LevelController : MonoBehaviour
         {
             SetupCatDeployers();
             SetupEnemySummoner();
+            TrySpawnSniper();
             ApplyDefaultSpeed();
         }
     }
@@ -289,6 +311,7 @@ public class LevelController : MonoBehaviour
         });
 
         Speed_btn.onClick.AddListener(() => SpeedUp(!speed_up));
+        if (Sniper_btn != null) Sniper_btn.onClick.AddListener(ToggleSniper);
         Upgrade_btn.onClick.AddListener(UpgradeMoney);
 #if UNITY_EDITOR
         Skip_btn.gameObject.SetActive(true);
@@ -584,6 +607,7 @@ public class LevelController : MonoBehaviour
         disable_controll = false;
         SetupCatDeployers();
         SetupEnemySummoner();
+        TrySpawnSniper();
         ApplyDefaultSpeed();
     }
 
@@ -783,6 +807,118 @@ public class LevelController : MonoBehaviour
 
     #endregion
 
+    #region Props System - 道具系统
+
+    /// <summary>
+    /// 把选关页写下的道具标记落实成本关的实际状态。
+    /// 标记本身不由关卡删除（同 UseClearedTeam：删了重开本关就带不上道具了），
+    /// 所以这里必须拿库存复核一遍 —— 胜利时已经结算过、玩家又从结算页重开本关的话，
+    /// 标记还在但库存可能已经是 0，不复核就等于白送一次。
+    /// </summary>
+    private void ResolveProps()
+    {
+        workerCatActive = PlayerPrefs.GetInt(UXPref.UseWorkerCat, 0) == 1
+            && RewardingSystem.GetAmount(RewardName.Prop_max) > 0;
+        sniperActive = PlayerPrefs.GetInt(UXPref.UseSniper, 0) == 1
+            && RewardingSystem.GetAmount(RewardName.Prop_Sniper) > 0;
+
+        if (WorkerCat_icon != null) WorkerCat_icon.SetActive(workerCatActive);
+        sniperBtnAvailable = sniperActive;
+        sniperDeployed = true;
+        RefreshSniperButton();
+    }
+
+    /// <summary>
+    /// 开局生成狙击手。单位还没导入，SniperUnitCode 留空，这条路径现在只会走到「隐掉按钮」那一步；
+    /// 等编号填上就按部署器那套管线放人（TryParse → LoadData → Decrypt → Place）。
+    /// 不计入 catDeployed：它不是常规部署的单位，而且按钮会来回 SetActive，计数会被搞花。
+    /// </summary>
+    private void TrySpawnSniper()
+    {
+        if (!sniperActive || sniperUnit != null) return;
+
+        CharacterData data = null;
+        UnitIdentity identity = default;
+        if (!string.IsNullOrEmpty(SniperUnitCode)
+            && CharacterPlacer.TryParse(SniperUnitCode, true, out identity)
+            && identity.IsValid)
+        {
+            data = CharacterPlacer.LoadData(identity);
+        }
+
+        if (data == null)
+        {
+            // 单位缺失就降级成「道具不生效」：隐掉按钮，别留一个点了没反应的键。
+            // 这里连 sniperActive 一起清掉，于是胜利时也不会结算 —— 道具实际上什么都没给。
+            Debug.LogWarning($"[LevelController] Sniper unit not available: '{SniperUnitCode}'");
+            sniperActive = false;
+            sniperBtnAvailable = false;
+            RefreshSniperButton();
+            return;
+        }
+
+        int visualLayer = Random.Range(0, VisualLayerCount);
+        int visualOrder = visualLayer * VisualLayerStride + NextVisualSlot(visualLayer);
+        sniperUnit = CharacterPlacer.Place(
+            identity,
+            data,
+            CharacterPlacer.Decrypt(identity, data),
+            catBase.transform.position + new Vector3(SNIPER_SPAWN_X_OFFSET, -visualLayer / 10f, 0),
+            this,
+            1,
+            treasureCount,
+            1f,
+            visualOrder,
+            visualOrder);
+        sniperDeployed = sniperUnit != null;
+        sniperBtnAvailable = sniperUnit != null;
+        RefreshSniperButton();
+    }
+
+    /// <summary>
+    /// 狙击手开关。SetActive(false) 足够让它从战场上消失：CharacterTargetManager 的每条查询
+    /// 都过滤 activeInHierarchy，所以关掉之后既不会被索敌也不会参战。
+    /// 单位被打死后对象就销毁了，这时按钮自隐；道具的这一次使用照样算在头上（胜利仍结算）。
+    /// </summary>
+    private void ToggleSniper()
+    {
+        if (!sniperBtnAvailable) return;
+        if (sniperUnit == null)
+        {
+            sniperBtnAvailable = false;
+            RefreshSniperButton();
+            return;
+        }
+        sniperDeployed = !sniperDeployed;
+        sniperUnit.SetActive(sniperDeployed);
+        RefreshSniperButton();
+    }
+
+    /// <summary>
+    /// 没带道具（或单位已阵亡）就整个隐掉；带了就按「在场/收起」给 alpha，同加速键那套约定。
+    /// 按钮的 Transition 必须是 None，否则 Button 自己的 Color Tint 会把这里的 alpha 覆盖回去。
+    /// </summary>
+    private void RefreshSniperButton()
+    {
+        if (Sniper_btn == null) return;
+        Sniper_btn.gameObject.SetActive(sniperBtnAvailable);
+        if (!sniperBtnAvailable) return;
+        Image img = Sniper_btn.GetComponent<Image>();
+        if (img != null) img.color = new Color(1, 1, 1, sniperDeployed ? 1f : 0.5f);
+    }
+
+    /// <summary>
+    /// 道具使用数量只在胜利时结算一次，失败和放弃都不扣。
+    /// ConsumeItem 库存不足会原样返回 false 不扣，所以这里不用再判一次。
+    /// </summary>
+    private void ConsumeProps()
+    {
+        if (workerCatActive) RewardingSystem.ConsumeItem(RewardName.Prop_max, 1);
+        if (sniperActive) RewardingSystem.ConsumeItem(RewardName.Prop_Sniper, 1);
+    }
+
+    #endregion
+
     #region Audio Methods - 音频方法
 
     /// <summary>
@@ -813,12 +949,15 @@ public class LevelController : MonoBehaviour
             pause_black_shade.SetActive(true);
             pause_table.SetActive(true);
             Speed_btn.gameObject.SetActive(false);
+            // 狙击手键跟加速键并排，暂停面板盖上来时一起收掉；没带道具就一直是隐藏的。
+            if (Sniper_btn != null) Sniper_btn.gameObject.SetActive(false);
         }
         else
         {
             pause_black_shade.SetActive(false);
             pause_table.SetActive(false);
             Speed_btn.gameObject.SetActive(true);
+            if (Sniper_btn != null) Sniper_btn.gameObject.SetActive(sniperBtnAvailable);
         }
     }
 
@@ -847,6 +986,7 @@ public class LevelController : MonoBehaviour
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
         Speed_btn.gameObject.SetActive(false);
+        if (Sniper_btn != null) Sniper_btn.gameObject.SetActive(false);
 
         if (testificateMode) return;
 
@@ -860,6 +1000,9 @@ public class LevelController : MonoBehaviour
 
         // 处理奖励
         bool gainreward = ProcessRewards(clearCanvasComponent);
+
+        // 带进来的道具在这里结算，只扣这一次
+        ConsumeProps();
 
         // 处理经验�?        
         ProcessExperience(clearCanvas);
@@ -884,6 +1027,7 @@ public class LevelController : MonoBehaviour
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
         Speed_btn.gameObject.SetActive(false);
+        if (Sniper_btn != null) Sniper_btn.gameObject.SetActive(false);
 
         if (testificateMode) return;
 
@@ -1399,8 +1543,11 @@ public class LevelController : MonoBehaviour
 
     private void ApplyInitialMoneyRestrictions()
     {
+        // 工作狂猫只是把「没有特别规定时的开局等级」顶到满级：关卡自己写了 initialMoneyLevel 就按关卡来，
+        // 限制关是围着它那个钱包等级设计的，不能被一个可购买的道具破掉。
+        int baseLevel = workerCatActive ? MAX_MONEY_LEVEL : current_money_level;
         current_money_level = Mathf.Clamp(
-            LevelRestrictionHelper.GetInitialMoneyLevel(levelRestrictions, current_money_level),
+            LevelRestrictionHelper.GetInitialMoneyLevel(levelRestrictions, baseLevel),
             1,
             MAX_MONEY_LEVEL);
 
@@ -1413,11 +1560,15 @@ public class LevelController : MonoBehaviour
 
         bool canUpgrade = current_money_level < MAX_MONEY_LEVEL &&
             currentMoney > money_upgrade_cost * current_money_level * multiplier;
-        SetUpgradeActive(canUpgrade);
+        // 置脏要在刷 UI 之前：顺序反了的话这一帧写进去的缓存会被接着清掉。
         upgradeUiDirty = true;
         cachedUpgradeCost = -1;
         cachedUpgradeLevel = -1;
         cachedUpgradeButtonState = !canUpgrade;
+        // 开局就满级时必须走 MAX 那条：SetUpgradeActive 会印出「Level. 8 / Lvl UP: 2800」，
+        // 而 FixedUpdate 在满级时根本不再刷升级 UI，那行错文本会挂整场。
+        if (current_money_level >= MAX_MONEY_LEVEL) SetUpgradeMaxUI();
+        else SetUpgradeActive(canUpgrade);
     }
 
     #endregion

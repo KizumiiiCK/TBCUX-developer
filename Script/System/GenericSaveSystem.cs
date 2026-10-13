@@ -21,6 +21,10 @@ public static class UXPref
     public const string DirectMark = "DR";
     /// <summary>选关页勾了「使用通关的队伍」。由 LevelTiler 独占写入，进关卡时读。</summary>
     public const string UseClearedTeam = "UCT";
+    /// <summary>选关页带了「工作狂猫」道具（Prop_max）。写法同 UseClearedTeam：由选关页独占写或删。</summary>
+    public const string UseWorkerCat = "UWC";
+    /// <summary>选关页带了「狙击手猫」道具（Prop_Sniper）。</summary>
+    public const string UseSniper = "USP";
     public const string DefaultChapterName = "World_I";
     public const string LANG = "Lang";
     public const string TIREUPUNLOCKMARK = "TireUp_{0}";
@@ -624,7 +628,7 @@ public enum RewardName
     Ticket_Normal=6, Ticket_Gold=7, Ticket_Platinum=8, Ticket_PlatinumShard=9, Ticket_Legend=10,
     XP=11, CANs=12, NP=13,
     //Catamin_A=14, Catamin_B=15, Catamin_C=16,
-    //Prop_Treasure=17, Prop_max=18, Prop_Sniper=19,
+    Prop_Treasure=17, Prop_max=18, Prop_Sniper=19,
     Base_Atk=20, Base_Charge=21, Base_Worker=22, Base_Health=23, Base_Cooldown=24, Base_Accounting=25,
     Base_Study=26,
     CatfruitSeed_Purple=27, CatfruitSeed_Red=28, CatfruitSeed_Blue=29, CatfruitSeed_Green=30, CatfruitSeed_Yellow=31, CatfruitSeed_Rainbow=32, CatfruitSeed_Relic=33, CatfruitSeed_Gold=34, CatfruitSeed_Aku=35,
@@ -672,8 +676,8 @@ public static class RewardingSystem
         //{RewardName.Catamin_B,14 },
         //{RewardName.Catamin_C,15 },
         //{RewardName.Prop_Treasure,16},
-        //{RewardName.Prop_max,17},
-        //{RewardName.Prop_Sniper,18},
+        {RewardName.Prop_max,17},
+        {RewardName.Prop_Sniper,18},
         //{RewardName.Base_Atk,19},
         //{RewardName.Base_Charge,20},
         //{RewardName.Base_Worker,21},
