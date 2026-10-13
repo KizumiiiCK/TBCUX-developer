@@ -12,6 +12,8 @@ public abstract partial class Character
     protected static readonly List<AttackType> WaveInvalidHitTypes = new List<AttackType> { AttackType.wave_invalid };
     // 当本次攻击禁止触发效果时，职业克制也应失效（全false）。
     private static readonly AgainstCareer EmptyAgainstCareer = new AgainstCareer();
+    // 被诅咒时对外输出的 DRE 按全 false 算，见 EffectiveDre。
+    private static readonly DamageRelatedEffect EmptyDre = new DamageRelatedEffect();
     private bool incomingTraitCorresponding;
     protected string compareTagName = "";
     [SerializeField] public List<GameObject> Targets = new List<GameObject>();
@@ -92,7 +94,8 @@ public abstract partial class Character
         {
             List<CharacterEffect> decisionEff = new List<CharacterEffect>();
             List<AttackType> types = new List<AttackType>();
-            AgainstCareer effectiveAgainstCareer = doNotTrigger ? EmptyAgainstCareer : againstCareer;
+            AgainstCareer effectiveAgainstCareer = doNotTrigger ? EmptyAgainstCareer : EffectiveAgainstCareer;
+            DamageRelatedEffect effectiveDre = EffectiveDre;
             foreach (var at in ATKTypes) types.Add(at);
             //float dmg = realDamage[animateStep] * ATK_muiltipier;
             dmg *= ATK_muiltipier;
@@ -112,15 +115,17 @@ public abstract partial class Character
                 {
                     if (Target != null && Target.IsCat() == IsCat())
                         types.Add(AttackType.friendly);
-                    Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
+                    Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                     TryRecordHitTarget(Target);
                     if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                 }
             }
             else
             {
-                //if (!onCurse && !atkInfos[animateStep].DoNotTriggerEffects)
-                if (!onCurse && !doNotTrigger)
+                // 这里不再判 onCurse：诅咒只封「对属性」和「对职业」两类能力（上面的
+                // effectiveDre / effectiveAgainstCareer），附带 debuff 与受击方的 debuff
+                // 抗性都不在诅咒的管辖范围内。
+                if (!doNotTrigger)
                 {
                     decisionEff = DetermineSelfATKEffects();
                 }
@@ -132,7 +137,7 @@ public abstract partial class Character
                     {
                         if (Target != null && Target.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
+                        Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                         TryRecordHitTarget(Target);
                         if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                     }
@@ -147,7 +152,7 @@ public abstract partial class Character
                         if (!CanHitTargetNow(ec)) continue;
                         if (ec != null && ec.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        ec?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
+                        ec?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                         TryRecordHitTarget(ec);
                     }
                     if (baseTarget != null && !Targets.Contains(baseTarget))
@@ -157,7 +162,7 @@ public abstract partial class Character
                         {
                             if (bt != null && bt.IsCat() == IsCat())
                                 types.Add(AttackType.friendly);
-                            bt?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, DRE, decisionEff, types);
+                            bt?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                             TryRecordHitTarget(bt);
                         }
                     }
@@ -455,7 +460,7 @@ public abstract partial class Character
         if (wuPrefab == null) return;
         WaveUnit ww = Instantiate(wuPrefab, transform.position, Quaternion.identity).GetComponent<WaveUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ww);
-        ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes);
+        ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes);
     }
     /// <summary>
     /// 在身前 dis（1/100 世界单位）处放一发 Surge。
@@ -470,7 +475,7 @@ public abstract partial class Character
         if (suPrefab == null) return;
         SurgeUnit ss = Instantiate(suPrefab, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ss);
-        ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, againstCareer, DRE, enemyEffect, atkTypes, delayFrames);
+        ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes, delayFrames);
     }
     /// <summary>
     /// 这个单位一整套攻击的总强度：atkInfos 各段攻击力的<b>绝对值</b>之和，乘战斗数值倍率，再乘攻击力增益。
@@ -518,6 +523,18 @@ public abstract partial class Character
     public float TBCspeedTranslator(int spd) => spd / 10f;
     public void ChangeSpeed(int spd) => realSpeed = spd;
     public void SetCurseStatus(bool curse) => onCurse = curse;
+    public bool IsCursed() => onCurse;
+    /// <summary>
+    /// 诅咒封的是「对属性」和「对职业」两类能力：被诅咒期间这个单位打出去的攻击不带 DRE
+    /// 和 againstCareer，挨打时自己的 tough/aegis 也不生效（见 CatCharacter.DMG_DREeffects）。
+    /// <para>
+    /// 不受诅咒影响的：SubTraits、attack type 抗性（atkTypeResis）、附带 debuff（characterEffects）
+    /// 以及 debuff 抗性（effectResistances）。衍生攻击（波动/冲击/弹幕）要跟着用这两个属性，
+    /// 否则诅咒只对普攻生效。
+    /// </para>
+    /// </summary>
+    public AgainstCareer EffectiveAgainstCareer => onCurse ? EmptyAgainstCareer : againstCareer;
+    public DamageRelatedEffect EffectiveDre => onCurse ? EmptyDre : DRE;
     public float GetHealth() => realHealth;
     public float GetMaxHealth()=>maxHealth;
     public void SetMaxHealth(float mh) => maxHealth = mh;

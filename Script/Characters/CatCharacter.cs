@@ -75,6 +75,11 @@ public class CatCharacter : AnimatorCachedCharacter
     public override void DMG_DREeffects(ref float DMG, DamageRelatedEffect dre)
     {
         if (dre == null) return;
+        // 这一支读的是「自己的」DRE（tough/aegis 是守方减伤），所以诅咒要在这里拦：
+        // 被诅咒期间自己的属性减伤一律失效。攻方 DRE 由 Attack() 的 effectiveDre 清空，
+        // 不能在 EnemyCharacter 那一支加同样的判断——那支读的是参数 dre（攻方的超伤），
+        // 加了会变成「被诅咒的敌人免疫超伤」，正好反了。
+        if (onCurse) return;
         if (DRE.tough) DMG = DMG / 4;
         if (DRE.aegis) DMG = DMG / 6;
         if (DRE.strongAgainst) DMG = DMG / 2;

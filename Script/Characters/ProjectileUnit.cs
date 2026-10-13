@@ -41,8 +41,10 @@ public class ProjectileUnit : AnimatorCachedCharacter
         traits = JsonUtility.FromJson<Traits>(JsonUtility.ToJson(source.traits));
         subtraits = JsonUtility.FromJson<SubTraits>(JsonUtility.ToJson(source.subtraits));
         career = JsonUtility.FromJson<Careers>(JsonUtility.ToJson(source.career));
-        againstCareer = JsonUtility.FromJson<AgainstCareer>(JsonUtility.ToJson(source.againstCareer));
-        DRE = JsonUtility.FromJson<DamageRelatedEffect>(JsonUtility.ToJson(source.DRE));
+        // 取 Effective 版本：发射者处于诅咒状态时，弹幕也不该带上它的职业克制和 DRE。
+        // 诅咒解除后发射的弹幕会重新拿到完整值（这里是发射瞬间拷的快照）。
+        againstCareer = JsonUtility.FromJson<AgainstCareer>(JsonUtility.ToJson(source.EffectiveAgainstCareer));
+        DRE = JsonUtility.FromJson<DamageRelatedEffect>(JsonUtility.ToJson(source.EffectiveDre));
 
         ATKTypes = new List<AttackType>();
         if (attackTypes != null)
