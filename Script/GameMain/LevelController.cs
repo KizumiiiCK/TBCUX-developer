@@ -68,6 +68,8 @@ public class LevelController : MonoBehaviour
     // Cat Base Max Health
     private const int CAT_BASE_BASE_HEALTH = 1000;
     private const int CAT_BASE_TREASURE_MULTIPLIER = 235000;
+    private const int CAT_BASE_HEALTH_UPGRADE_MAX = 30;
+    private const int CAT_BASE_HEALTH_UPGRADE_PER = 6000;
 
     // Skip Game Damage
     private const int SKIP_GAME_DAMAGE = 99999999;
@@ -296,7 +298,7 @@ public class LevelController : MonoBehaviour
             Skip_btn.gameObject.SetActive(false);
 #endif
 
-        Option_btn.onClick.AddListener(ShowOption);
+        if (Option_btn != null) Option_btn.onClick.AddListener(ShowOption);
 
         pause_table.SetActive(false);
     }
@@ -408,6 +410,14 @@ public class LevelController : MonoBehaviour
         SetupCombatAura();
     }
 
+    private int ComputeCatBaseHealth()
+    {
+        int health = CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT;
+        if (treasureCount < MAX_TREASURE_COUNT) return health;
+        int n = Mathf.Clamp(RewardingSystem.GetAmount(RewardName.Base_Health), 0, CAT_BASE_HEALTH_UPGRADE_MAX);
+        return health + n * CAT_BASE_HEALTH_UPGRADE_PER;
+    }
+
     /// <summary>
     /// 计算金钱倍率
     /// </summary>
@@ -444,8 +454,7 @@ public class LevelController : MonoBehaviour
 
         // 设置基地生命值（同步到当前真实血量，避免Start执行顺序导致沿用预制体默认值）
         dogeBase.GetComponent<DogeBase>().ApplyLevelBaseHealth(LD.BaseHealth);
-        catBaseComponent?.ApplyLevelBaseHealth(
-            CAT_BASE_BASE_HEALTH + CAT_BASE_TREASURE_MULTIPLIER * treasureCount / MAX_TREASURE_COUNT);
+        catBaseComponent?.ApplyLevelBaseHealth(ComputeCatBaseHealth());
 
         // 设置狗基地外�?
         Sprite baseSprite = BundledAddressables.LoadSync<Sprite>($"Units/DogeBases/{LD.BaseImageID}");
@@ -1166,6 +1175,30 @@ public class LevelController : MonoBehaviour
         int slot = visualLayerSlots[layer] % VisualLayerStride;
         visualLayerSlots[layer] = slot + 1;
         return slot;
+    }
+
+    public UnitDeployer FindCatDeployer(Character character)
+    {
+        if (character == null) return null;
+        return FindCatDeployer(character.SpawnIdentity);
+    }
+
+    public UnitDeployer FindCatDeployer(UnitIdentity spawn)
+    {
+        UnitDeployer found = FindCatDeployerIn(Deployers, spawn);
+        if (found != null) return found;
+        return FindCatDeployerIn(GuestDeployers, spawn);
+    }
+
+    private static UnitDeployer FindCatDeployerIn(Transform root, UnitIdentity spawn)
+    {
+        if (root == null || !spawn.IsValid) return null;
+        for (int i = 0; i < root.childCount; i++)
+        {
+            UnitDeployer deployer = root.GetChild(i).GetComponent<UnitDeployer>();
+            if (deployer != null && deployer.MatchesSpawn(spawn)) return deployer;
+        }
+        return null;
     }
 
     /// <summary>

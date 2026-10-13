@@ -41,7 +41,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
             return;
         }
         if (onKB) return;
-        if (Targets.Count > 0 || BaseTarget != null)
+        if (HasAttackStancePresence())
         {
             if (realReload >= Reload) {
                 Passive_OnStartAttack();
@@ -89,12 +89,15 @@ public class EnemyCharacter : AnimatorCachedCharacter
         // 更新统一管理器中的攻击范围
         CharacterTargetManager.Instance.SetCharacterAttackRange(this, near, far);
     }
+    private float killMoneyMultiplier = 1f;
+    public void MarkDoubleKillMoney() => killMoneyMultiplier = 2f;
+
     protected override void OnDestroy()
     {
         base.OnDestroy();
         if (SkipDestroyCombatAccounting) return;
         if (levelController == null) { Debug.LogError("LC not found."); return; }
-        levelController.AddMoney(Cost * LevelRestrictionHelper.GetKillMoneyMultiplier(levelController.LevelRestrictions));
+        levelController.AddMoney(Cost * LevelRestrictionHelper.GetKillMoneyMultiplier(levelController.LevelRestrictions) * killMoneyMultiplier);
         levelController.RemoveAnEnemy();
     }
     public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)

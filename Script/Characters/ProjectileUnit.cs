@@ -121,6 +121,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
             if (ShouldResolveAttackFrame(atkInfos[animateStep].frame))
             {
                 CharacterTargetManager.Instance.RefreshTargetsForProjectile(this);
+                if (TryReflectByMirror()) return;
                 Attack(realDamage[animateStep], areaATK, atkInfos[animateStep].DoNotTriggerEffects, atkInfos[animateStep].DoNotTriggerAbilities);
             }
             if (animatedframes >= atkDuration)
@@ -151,6 +152,66 @@ public class ProjectileUnit : AnimatorCachedCharacter
     }
 
     public override float GetFactor() => 1f;
+
+    /// <summary>
+    /// 结算前若目标带 Mirror 且判定成功：本发不打出，就地改成镜子阵营并掉头。
+    /// 必须 return 出 UpdateAnimation，不能走 ExitAttack，否则 oneoff 会把弹毁掉。
+    /// </summary>
+    private bool TryReflectByMirror()
+    {
+        if (Targets == null) return false;
+        for (int i = 0; i < Targets.Count; i++)
+        {
+            GameObject go = Targets[i];
+            if (go == null) continue;
+            Character target = go.GetComponent<Character>();
+            if (target == null || target == this) continue;
+            Mirror mirror = target.GetPassive<Mirror>();
+            if (mirror == null) continue;
+            if (!mirror.RollReflect()) continue;
+            ApplyMirrorReflect(target, mirror);
+            return true;
+        }
+        return false;
+    }
+
+    private void ApplyMirrorReflect(Character mirrorOwner, Mirror mirror)
+    {
+        if (mirrorOwner == null) return;
+
+        mirror.PlayReflect(mirrorOwner);
+
+        CharacterTargetManager mgr = CharacterTargetManager.Instance;
+        if (mgr != null) mgr.UnregisterProjectile(this);
+
+        CharacterPlacer.FlipScaleX(gameObject);
+
+        float incomingDamage = (realDamage != null && realDamage.Length > 0) ? realDamage[0] : 1f;
+        float reflectedDamage = incomingDamage * Mathf.Max(0, mirror.DamagePercent) / 100f;
+        List<CharacterEffect> effects = CloneEffects(mirrorOwner);
+        List<AttackType> types = mirrorOwner.ATKTypes;
+        BeginProjectileAttack(mirrorOwner, reflectedDamage, projectileSpeed, effects, types, effects != null && effects.Count > 0);
+        realSpeed = projectileSpeed;
+
+        AbortCurrentAttackForControl();
+        RemoveAllTarget();
+        SwitchAnimation(0);
+        if (mgr != null) mgr.RegisterProjectile(this);
+    }
+
+    private static List<CharacterEffect> CloneEffects(Character source)
+    {
+        if (source == null || source.characterEffects == null || source.characterEffects.Length == 0)
+            return null;
+        List<CharacterEffect> list = new List<CharacterEffect>(source.characterEffects.Length);
+        for (int i = 0; i < source.characterEffects.Length; i++)
+        {
+            CharacterEffect e = source.characterEffects[i];
+            if (e == null) continue;
+            list.Add(JsonUtility.FromJson<CharacterEffect>(JsonUtility.ToJson(e)));
+        }
+        return list.Count > 0 ? list : null;
+    }
 
     public override void SetAttackRange(float near, float far)
     {

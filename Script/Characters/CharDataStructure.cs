@@ -265,7 +265,8 @@ public enum AbilityName
     ChangePhase=43,
     practician=30, oneoff=31, ATK_Buffer=32, XP_PUNCH=33, sacrifice=34, projectile=35, ZombieDive=36, ZombieRevive=37, dodge=38, clearDebuffs=39, 
     barrier=40, akuShield=41, barrierProvider = 42,
-    impatience=50, pressureLearn=51, targetHighestHp=52, deadSoul=53,
+    impatience=50, pressureLearn=51, targetHighestHp=52, deadSoul=53, ghost=54, mirror=55,
+    TimeWraper_Enemy=56, TimeWrapper_Cat=57,
     selfSlow =100, selfWeaken=101, selfLacerate=102, selfDeathmark=103,
     BaseCharacter = 500,
     [EditorBrowsable(EditorBrowsableState.Never)]

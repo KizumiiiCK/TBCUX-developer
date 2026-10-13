@@ -19,6 +19,11 @@ public abstract partial class Character : MonoBehaviour
     public bool HasTalent { get; private set; }
     protected float treasureBonus = 1f;
     public float topPositionY { get; private set; } = 0f;
+    /// <summary>
+    /// 进入攻击姿态所需的单位目标数。默认 1（即原来的 Targets.Count &gt; 0）。
+    /// 基地不计入；有基地时仍会开打。int.MaxValue 表示永不因单位开打。
+    /// </summary>
+    protected int attackStartMinTargets = 1;
 
     /* ====== ս������ ====== */
     [Header("Combat")]

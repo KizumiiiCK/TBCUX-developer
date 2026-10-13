@@ -41,7 +41,7 @@ public class EnemyIndexCanvas : UICanvasMain
     private BaseCanvas baseCanvas;
     //
 
-    private static bool indexShowAll = false;
+    private static bool indexShowAll = true;
     private readonly List<EnemyListEntry> enemyListEntries = new List<EnemyListEntry>();
     private VirtualizedScrollGrid<EnemyListEntry> headIconGrid;
 

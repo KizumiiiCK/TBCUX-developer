@@ -385,3 +385,21 @@ public class DodgePassive : PassiveSkill
         invulnRoutine = null;
     }
 }
+
+public class Mirror : PassiveSkill
+{
+    private const string ReflectEffectName = "mirror";
+
+    public bool RollReflect() => Triggered();
+    public int DamagePercent => intensity;
+
+    public void PlayReflect(Character character)
+    {
+        if (character == null || character.EM == null) return;
+        Vector3 pos = character.transform.position;
+        AnimationDisplayer ad = character.EM.InstantiateBattleObject(ReflectEffectName, pos.x, pos.y);
+        if (ad == null) return;
+        // int order = character.UNITYAnimated ? character.SpawnUaOrder : character.SpawnAdOrder;
+        CharacterVisualLoader.ResetAnimationOrderLayer(ad, 20000);
+    }
+}

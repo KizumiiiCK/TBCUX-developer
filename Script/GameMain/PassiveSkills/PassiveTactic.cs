@@ -98,6 +98,18 @@ public class AffectByStrategy : PassiveSkill
 public class Supporter : PassiveSkill
 {
 }
+
+public class Ghost : PassiveSkill
+{
+    public override void OnAddingAbility(Character character) => Apply(character);
+    public override void OnDeployUnit(Character character) => Apply(character);
+
+    private void Apply(Character character)
+    {
+        if (character == null) return;
+        character.SetAttackStartMinTargets(probability);
+    }
+}
 public class SelfSlowDebuff : SelfPermanentDebuffBase
 {
     protected override void ApplyDebuff(Character character, int durationFrames)
@@ -131,7 +143,58 @@ public class SelfDeathmarkDebuff : SelfPermanentDebuffBase
 }
 public class ExtraMoney : PassiveSkill
 {
-    //???????????????????????
+    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
+    {
+        IReadOnlyList<Character> hits = character.GetLastAttackHitTargets();
+        for (int i = 0; i < hits.Count; i++)
+        {
+            EnemyCharacter enemy = hits[i] as EnemyCharacter;
+            if (enemy != null && enemy.GetHealth() <= 0f) enemy.MarkDoubleKillMoney();
+        }
+    }
+}
+
+public class TimeWraper_Enemy : PassiveSkill
+{
+    private const string TimeWrapperEffectName = "timeWrapper";
+    private const float SageReductionScale = 0.3f;
+
+    public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
+    {
+        if (character == null || !Triggered()) return;
+        IReadOnlyList<Character> hitTargets = character.GetLastAttackHitTargets();
+        for (int i = 0; i < hitTargets.Count; i++)
+        {
+            Character target = hitTargets[i];
+            if (target == null || !target.IsCat()) continue;
+            UnitDeployer deployer = target.levelController != null
+                ? target.levelController.FindCatDeployer(target)
+                : null;
+            if (deployer == null) continue;
+            int reduce = deployer.CooldownFrames * duration / 100;
+            if (target.subtraits != null && target.subtraits.Sage)
+                reduce = Mathf.RoundToInt(reduce * SageReductionScale);
+            if (!deployer.ReduceRecovery(reduce)) continue;
+            PlayTimeWrapperEffect(target);
+        }
+    }
+
+    public static void PlayTimeWrapperEffect(Character character)
+    {
+        if (character == null || character.EM == null) return;
+        Vector3 pos = character.transform.position;
+        character.EM.InstantiateBattleObject(TimeWrapperEffectName, pos.x, pos.y);
+    }
+}
+
+public class TimeWrapper_Cat : PassiveSkill
+{
+    public void OnPlacedByDeployer(UnitDeployer deployer, Character character)
+    {
+        if (deployer == null || probability <= 0) return;
+        if (!deployer.ApplyCatTimeWrapperBonus(probability, duration)) return;
+        TimeWraper_Enemy.PlayTimeWrapperEffect(character);
+    }
 }
 public class ClearDebuffs : PassiveSkill
 {

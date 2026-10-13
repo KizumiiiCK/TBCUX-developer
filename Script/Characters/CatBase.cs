@@ -85,7 +85,9 @@ public class CatBase : CatCharacter
             for (int i = 0; i < count; i++)
             {
                 CatCharacter cc = teamDeadBuffer[i] as CatCharacter;
-                if (cc != null) cc.Dead();
+                if (cc == null) continue;
+                if (cc.HasAbility(AbilityName.BaseCharacter)) continue;
+                cc.Dead();
             }
             teamDeadBuffer.Clear();
         }

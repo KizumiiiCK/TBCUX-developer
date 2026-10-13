@@ -48,7 +48,7 @@ public class Practician : AnimationDrivingPassive
             t++;
             if (t == probability)
             {
-                c.Attack(atk * atkMuitipiler, true, intensity < 0, false);
+                c.Attack(atk * atkMuitipiler, true, false, intensity < 0);
             }
             yield return new WaitForFixedUpdate();
         }
@@ -123,9 +123,12 @@ public class Critical : PassiveSkill
 }
 public class ZombieKiller : PassiveSkill
 {
-    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    public override void OnAddingAbility(Character character)
     {
-        types.Add(AttackType.zombieKiller);
+        if (character == null) return;
+        if (character.ATKTypes == null) character.ATKTypes = new List<AttackType>();
+        if (!character.ATKTypes.Contains(AttackType.zombieKiller))
+            character.ATKTypes.Add(AttackType.zombieKiller);
     }
 }
 public class SoulStrike : PassiveSkill
@@ -486,5 +489,98 @@ public class ProjectileLauncher : PassiveSkill
             duration = source.duration,
             intensity = source.intensity
         };
+    }
+}
+
+public class Summoner : PassiveSkill
+{
+    public override void OnAttacking(Character character, ref float dmg, ref List<AttackType> types)
+    {
+        if (character == null || character.levelController == null) return;
+        if (!Triggered()) return;
+
+        bool hostIsCat = character.IsCat();
+        if (!TryReserveDeploySlot(character.levelController, hostIsCat)) return;
+
+        character.RemoveAllTarget();
+
+        Character summoned = SpawnSummonedUnit(character, hostIsCat);
+        if (summoned == null)
+        {
+            ReleaseDeploySlot(character.levelController, hostIsCat);
+            return;
+        }
+
+        Wrap.PlayAppear(summoned);
+    }
+
+    private Character SpawnSummonedUnit(Character source, bool hostIsCat)
+    {
+        string code = BuildSummonCode(hostIsCat, intensity);
+        UnitIdentity identity = new UnitIdentity(hostIsCat, hostIsCat, false, code);
+        CharacterData data = CharacterPlacer.LoadData(identity);
+        if (data == null)
+        {
+            Debug.LogWarning($"[Summoner] Missing unit data for {code}");
+            return null;
+        }
+
+        if (source.levelController != null)
+        {
+            if (hostIsCat)
+                LevelRestrictionHelper.ApplyCatCharacterDataRestrictions(source.levelController.LevelRestrictions, data);
+            else
+                LevelRestrictionHelper.ApplyEnemyCharacterDataRestrictions(source.levelController.LevelRestrictions, data);
+        }
+
+        AnimDecryptPack pack = CharacterPlacer.Decrypt(identity, data);
+        int visualLayer = UnityEngine.Random.Range(0, LevelController.VisualLayerCount);
+        int visualOrder = visualLayer * LevelController.VisualLayerStride + source.levelController.NextVisualSlot(visualLayer);
+        float span = duration / 100f;
+        float dx = span <= 0f ? 0f : UnityEngine.Random.Range(-span, span)-3.2f;
+        GameObject hostBase = GameObject.Find(hostIsCat ? "CatBase" : "DogeBase");
+        float baseY = hostBase != null ? hostBase.transform.position.y : 1f;
+        Vector3 pos = new Vector3(
+            source.transform.position.x + dx,
+            baseY - visualLayer / 10f,
+            source.transform.position.z);
+        float treasureCount = Mathf.Max(0f, (source.TreasureBonus - 1f) * 100f);
+
+        GameObject spawned = CharacterPlacer.Place(
+            identity,
+            data,
+            pack,
+            pos,
+            source.levelController,
+            source.CombatLevel,
+            treasureCount,
+            source.Power,
+            visualOrder,
+            visualOrder);
+        if (spawned == null) return null;
+
+        Character summoned = spawned.GetComponent<Character>();
+        if (summoned != null) summoned.RefreshStartPos();
+        return summoned;
+    }
+
+    private static string BuildSummonCode(bool hostIsCat, int intensityValue)
+    {
+        int id = Mathf.Clamp(Mathf.Abs(intensityValue), 0, 999);
+        if (hostIsCat) return $"0{id:000}0";
+        return intensityValue >= 0 ? $"e{id:000}" : $"s{id:000}";
+    }
+
+    private static bool TryReserveDeploySlot(LevelController lc, bool hostIsCat)
+    {
+        if (lc == null) return false;
+        return hostIsCat ? lc.DeployACat() : lc.DeployAnEnemy();
+    }
+
+    private static void ReleaseDeploySlot(LevelController lc, bool hostIsCat)
+    {
+        if (lc == null) return;
+        if (hostIsCat) lc.RemoveACat();
+        else lc.RemoveAnEnemy();
     }
 }

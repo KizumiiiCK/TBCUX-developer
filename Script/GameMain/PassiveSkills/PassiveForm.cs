@@ -404,14 +404,12 @@ public class BaseCharacter : PassiveSkill
     public override void OnAddingAbility(Character character)
     {
         if (character == null) return;
-        if (character.IsCat()) return; // 我方先预留空逻辑
         character.SetSkipTargetRegistration(true);
     }
 
     public override void OnDeployUnit(Character character)
     {
         if (character == null) return;
-        if (character.IsCat()) return; // 我方先预留空逻辑
 
         character.SetSkipTargetRegistration(true);
         character.Speed = 0;
@@ -420,19 +418,18 @@ public class BaseCharacter : PassiveSkill
         CharacterTargetManager manager = CharacterTargetManager.Instance;
         manager.UnregisterCharacter(character);
 
-        DogeBase dogeBase = UnityEngine.Object.FindObjectOfType<DogeBase>();
-        if (dogeBase == null) return;
+        Character hostBase = FindHostBase(character);
+        if (hostBase == null) return;
 
-        SnapToBaseWithFixedSorting(character, dogeBase.transform.position);
+        SnapToBaseWithFixedSorting(character, hostBase.transform.position);
         ApplyFixedSortingLayer(character);
-        if (dogeBase.transform.childCount > 0)
-        {
-            dogeBase.transform.GetChild(0).gameObject.SetActive(false);
-        }
+        // 敌塔把本体外观藏掉，改由替身当塔；猫塔本体继续显示，替身只挂在塔下。
+        if (!character.IsCat() && hostBase.transform.childCount > 0)
+            hostBase.transform.GetChild(0).gameObject.SetActive(false);
         manager.RefreshTargetsForCharacter(character);
 
         if (monitorBaseRoutine != null) character.StopCoroutine(monitorBaseRoutine);
-        monitorBaseRoutine = character.StartCoroutine(MonitorBaseDefeat(character, dogeBase, manager));
+        monitorBaseRoutine = character.StartCoroutine(MonitorBaseDefeat(character, hostBase, manager));
     }
 
     public override void OnDead(Character character)
@@ -450,11 +447,18 @@ public class BaseCharacter : PassiveSkill
         }
     }
 
-    private IEnumerator MonitorBaseDefeat(Character character, DogeBase dogeBase, CharacterTargetManager manager)
+    private static Character FindHostBase(Character character)
     {
-        while (character != null && dogeBase != null && dogeBase.GetHealthPercentage() > 0f)
+        if (character == null) return null;
+        if (character.IsCat()) return UnityEngine.Object.FindObjectOfType<CatBase>();
+        return UnityEngine.Object.FindObjectOfType<DogeBase>();
+    }
+
+    private IEnumerator MonitorBaseDefeat(Character character, Character hostBase, CharacterTargetManager manager)
+    {
+        while (character != null && hostBase != null && hostBase.GetHealth() > 0f)
         {
-            SnapToBaseWithFixedSorting(character, dogeBase.transform.position, refreshStartPos: false);
+            SnapToBaseWithFixedSorting(character, hostBase.transform.position, refreshStartPos: false);
             manager?.RefreshTargetsForCharacter(character);
             yield return new WaitForFixedUpdate();
         }
@@ -479,7 +483,8 @@ public class BaseCharacter : PassiveSkill
         const float height = 6f;
         while (character != null && character.EM != null)
         {
-            float dx = -UnityEngine.Random.Range(0f, width);
+            float outward = character.IsCat() ? 1f : -1f;
+            float dx = outward * UnityEngine.Random.Range(0f, width);
             float dy = UnityEngine.Random.Range(0f, height);
             character.EM.InstantiateBattleObject(SEnums.bite, character.transform.position.x + dx, character.transform.position.y + dy, false);
             yield return new WaitForFixedUpdate();

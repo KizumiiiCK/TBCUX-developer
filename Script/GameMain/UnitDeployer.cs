@@ -36,6 +36,8 @@ public class UnitDeployer : MonoBehaviour
     private bool cachedDeployAvailable;
     private int moneyCheckFrameCounter = 0;
     private const int MoneyCheckIntervalFrames = 2;
+    private int timeWrapperBoostsLeft;
+    private bool timeWrapperCycleStarted;
 
     // Start is called before the first frame update
     void Start()
@@ -84,6 +86,8 @@ public class UnitDeployer : MonoBehaviour
         isRuntimeInitialized = false;
         talentApplied = false;
         characterDecryptedFiles = null;
+        timeWrapperBoostsLeft = 0;
+        timeWrapperCycleStarted = false;
         if (!CharacterPlacer.TryParse(code, true, out identity) || !identity.IsValid)
         {
             Debug.LogWarning($"No such code for deploy: {code}");
@@ -177,6 +181,15 @@ public class UnitDeployer : MonoBehaviour
             Proficiency_Mark.sprite = StorageImageHelper.GetItemImageByOrder(lvl + 99);
         }
     }
+    public int CooldownFrames => Mathf.Max(0, cd);
+
+    public bool MatchesSpawn(UnitIdentity spawn)
+    {
+        return identity.IsValid && spawn.IsValid
+            && identity.CharacterCode == spawn.CharacterCode
+            && identity.IsOpposite == spawn.IsOpposite;
+    }
+
     public void ResetCoolDown()
     {
         t = 0;
@@ -184,6 +197,61 @@ public class UnitDeployer : MonoBehaviour
         cachedDeployAvailable = false;
         moneyCheckFrameCounter = 0;
         DeployAvailable(false);
+    }
+
+    public bool ReduceRecovery(int frames)
+    {
+        if (frames <= 0 || t <= 0) return false;
+        int next = Mathf.Max(0, t - frames);
+        if (next == t) return false;
+        t = next;
+        RefreshRecoveryVisual();
+        return true;
+    }
+
+    public bool AddRecovery(int frames)
+    {
+        if (frames <= 0 || cd <= 0) return false;
+        int next = Mathf.Min(cd, t + frames);
+        if (next == t) return false;
+        t = next;
+        RefreshRecoveryVisual();
+        return true;
+    }
+
+    public bool ApplyCatTimeWrapperBonus(int cycleLength, int bonusPercent)
+    {
+        if (cycleLength <= 0) return false;
+        if (!timeWrapperCycleStarted)
+        {
+            timeWrapperCycleStarted = true;
+            timeWrapperBoostsLeft = cycleLength;
+        }
+        if (timeWrapperBoostsLeft > 0)
+        {
+            bool changed = AddRecovery(CooldownFrames * Mathf.Max(0, bonusPercent) / 100);
+            timeWrapperBoostsLeft--;
+            return changed;
+        }
+        timeWrapperBoostsLeft = cycleLength;
+        return false;
+    }
+
+    private void RefreshRecoveryVisual()
+    {
+        if (cd > 0 && blackShade != null)
+        {
+            float fill = 1f - Mathf.Clamp01((float)t / cd);
+            blackShade.fillAmount = fill;
+            cachedShadeFill = fill;
+        }
+        bool enoughMoney = cachedEnoughMoney;
+        bool canDeploy = t >= cd && enoughMoney;
+        if (canDeploy != cachedDeployAvailable)
+        {
+            cachedDeployAvailable = canDeploy;
+            DeployAvailable(canDeploy);
+        }
     }
     public void GuestMark() => isGuest = true;
     public void LockByRestriction()
@@ -223,10 +291,15 @@ public class UnitDeployer : MonoBehaviour
             visualOrder);
         // 本能是在 SetupDeployer 里就叠进 CD 的，这里只是把「叠过」这件事记到单位身上，
         // 变身的时候好照着给新形态补上，免得战斗中再去读一次存档。
-        if (talentApplied && spawned != null)
+        if (spawned != null)
         {
             Character deployed = spawned.GetComponent<Character>();
-            if (deployed != null) deployed.MarkTalentApplied();
+            if (deployed != null)
+            {
+                if (talentApplied) deployed.MarkTalentApplied();
+                TimeWrapper_Cat wrapper = deployed.GetPassive<TimeWrapper_Cat>();
+                if (wrapper != null) wrapper.OnPlacedByDeployer(this, deployed);
+            }
         }
         DeployAvailable(false);
         if (isGuest) { gameObject.SetActive(false); }

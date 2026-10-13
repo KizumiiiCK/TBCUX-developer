@@ -231,6 +231,16 @@ public abstract partial class Character
     protected void SetIncomingTraitCorresponding(bool matched) => incomingTraitCorresponding = matched;
     public bool HasIncomingTraitCorresponding() => incomingTraitCorresponding;
     public void RemoveAllTarget() { Targets = new List<GameObject>(); BaseTarget = null; }
+    public void SetAttackStartMinTargets(int minTargets)
+    {
+        attackStartMinTargets = minTargets < 0 ? int.MaxValue : Mathf.Max(1, minTargets);
+    }
+    protected bool HasAttackStancePresence()
+    {
+        if (GetValidBaseTarget() != null) return true;
+        int count = Targets != null ? Targets.Count : 0;
+        return count >= attackStartMinTargets;
+    }
     public GameObject FindNearest()
     {
         GameObject baseTarget = GetValidBaseTarget();
