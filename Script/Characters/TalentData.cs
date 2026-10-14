@@ -67,6 +67,20 @@ public class TalentData : ScriptableObject
     }
 
     /// <summary>
+    /// 给 UI 预览用：返回一份「叠加了本能」的角色数据副本。
+    /// LoadSync 给的是 Addressables 缓存里的资源本体，绝不能就地改，所以先 Clone 再叠。
+    /// talent 为 null（没做本能/还没解锁）时原样返回，调用方不用额外判空。
+    /// 图鉴页和本能解锁页共用这一条路径，保证两处显示完全一致。
+    /// </summary>
+    public static CharacterData MergeForDisplay(CharacterData source, TalentData talent)
+    {
+        if (source == null || talent == null) return source;
+        CharacterData merged = source.Clone();
+        talent.ApplyTo(merged);
+        return merged;
+    }
+
+    /// <summary>
     /// 把本能叠加到一份角色数据上，就地修改。
     /// 传进来的必须是角色数据的副本（CharacterVisualLoader.LoadCharacterData 返回的已经是 Clone），
     /// 否则会污染 Addressables 缓存里的资源本体。

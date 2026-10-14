@@ -250,10 +250,11 @@ public enum EffectName
 public enum AttackType
 {
     none=0, wave=1, surge=2, explosion=3,
-    [EditorBrowsable(EditorBrowsableState.Never)] 
+    [EditorBrowsable(EditorBrowsableState.Never)]
     // 新增项一律追加在末尾：这些值会随 atkTypeResis / ATKType 序列化进 data.asset，
     // 插在中间会静默平移已填好的数据。
-    critical, savage, zombieKiller, barrierBreaker, shieldPiercing, wave_invalid, invalid, effectBlocked, heal, baseCannon, friendly, toxic
+    baseCannon = 4,
+    critical, savage, zombieKiller, barrierBreaker, shieldPiercing, wave_invalid, invalid, effectBlocked, heal, friendly, toxic,
 }
 public enum AbilityName
 {

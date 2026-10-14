@@ -34,6 +34,10 @@ public class CatIndexCanvas : UICanvasMain
     [SerializeField] private EvolveComfirm EvolveComfirmCanvas;
     //Talent
     [SerializeField] private KiButton Talent_btn;
+    /// <summary>没填就从 Resources/UI/FunctionalPanels/TalentUnlockBoard 兜底加载。</summary>
+    [SerializeField] private GameObject TalentUnlockBoardPrefab;
+    private const string TalentUnlockBoardPath = "UI/FunctionalPanels/TalentUnlockBoard";
+    private TalentUnlockBoard talentBoard;
     protected bool TireUp_itemNeeded = true;
     protected RewardName[] TireUp_consumeItems = new RewardName[6];
     protected int[] TireUp_consumeAmount = new int[6];
@@ -72,6 +76,8 @@ public class CatIndexCanvas : UICanvasMain
     int upgrade_cost = 0;
     private bool upgradeLock = true;
     private CharacterProficiency proficiency;
+    /// <summary>当前角色的 upgrade 资源。ShowCertainCharacter 已经加载过一份，别再 LoadSync 第二次。</summary>
+    private TotalUpgradeCost currentUpgradeCost;
     private readonly List<int> runtimeExtraCurrencyIds = new List<int>();
     private RectTransform headIconViewport;
     private readonly List<string> currentRarityCodes = new List<string>();
@@ -194,6 +200,7 @@ public class CatIndexCanvas : UICanvasMain
         else { upgradeLock = true; }
         bool enableTireButton = true;
         TotalUpgradeCost tuc= BundledAddressables.LoadSync<TotalUpgradeCost>($"Units/Cat Units/{rality}/{current_code}/upgrade");
+        currentUpgradeCost = tuc;
         for (int i = 0; i < 4; i++)
         {
             head_icons[i]= BundledAddressables.LoadSync<Sprite>($"Units/Cat Units/{rality}/{current_code}/{i}/icon_deploy");
@@ -267,15 +274,10 @@ public class CatIndexCanvas : UICanvasMain
 
     /// <summary>
     /// 已解锁本能的角色，图鉴要看到叠加后的样子。
-    /// LoadSync 给的是 Addressables 缓存里的资源本体，绝不能就地改，所以先 Clone 再叠。
+    /// 实现挪到了 TalentData.MergeForDisplay，和本能解锁面板共用同一条路径。
     /// </summary>
     private CharacterData ApplyTalentForDisplay(CharacterData source, TalentData talent)
-    {
-        if (source == null || talent == null) return source;
-        CharacterData merged = source.Clone();
-        talent.ApplyTo(merged);
-        return merged;
-    }
+        => TalentData.MergeForDisplay(source, talent);
     public void InitializeButtons()
     {
         Animation_switch_btn.onClick.AddListener(SwitchAnimation);
@@ -950,25 +952,53 @@ public class CatIndexCanvas : UICanvasMain
 
     #region Talent Operation
     /// <summary>
-    /// 本能按钮什么时候能点：开了三阶 + 这角色确实做了 talent 资源 + 还没解锁过。
-    /// 45 级的门槛不在这里拦——按用户设定，那是本能进化展示框里要说明的事，
-    /// 按钮只负责「这角色有没有本能这条路可走」。
+    /// 本能按钮什么时候能点：开了三阶 + upgrade 资源里勾了 talent_available + 做了 talent 资源 + 还没解锁过。
+    /// 等级和物品够不够一律不在这里拦——那是 TalentUnlockBoard 里标红 + 禁用解锁按钮的事，
+    /// 本按钮只负责「这角色有没有本能这条路可走、还没走完」。
     /// </summary>
     private bool TalentUnlockAvailable(CharacterUpgradeSave.UpgradeDetails ud)
     {
         if (ud == null) return false;
         if (ud.tire_unlocked == null || ud.tire_unlocked.Length < 3 || !ud.tire_unlocked[2]) return false;
         if (ud.talent_unlocked) return false;
+        if (currentUpgradeCost == null || !currentUpgradeCost.talent_available) return false;
         return TalentData.Exists($"{rality}{current_code}");
     }
 
     private void OnTalentClicked()
     {
-        // TODO: 本能进化展示框还没做。这个面板要负责：展示本能会追加的属性/效果、
-        // 说明并校验 45 级门槛（不够级时给出提示而不是直接放行）、确认后调
-        // CharacterUpgradeSave.UnlockCharacterTalent($"{rality}{current_code}")，
-        // 回来再 ShowCertainCharInTire(current_tire, false) 刷新图鉴。
-        Debug.Log($"[Talent] TODO: 打开本能进化展示框 ({rality}{current_code})");
+        // 面板是独占的：已经开着就别再叠一层
+        if (talentBoard != null) return;
+        GameObject prefab = TalentUnlockBoardPrefab != null
+            ? TalentUnlockBoardPrefab
+            : Resources.Load<GameObject>(TalentUnlockBoardPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[CatIndexCanvas] Missing talent unlock board prefab at Resources/{TalentUnlockBoardPath}");
+            return;
+        }
+
+        GameObject go = Instantiate(prefab);
+        go.transform.SetParent(transform, false);
+        go.transform.localScale = Vector3.one;
+        talentBoard = go.GetComponent<TalentUnlockBoard>();
+        if (talentBoard == null)
+        {
+            Debug.LogError("[CatIndexCanvas] Talent unlock board prefab has no TalentUnlockBoard component.");
+            Destroy(go);
+            return;
+        }
+        // SetPageInProgress 的加解锁由面板自己管（它销毁时会解锁），这里只管传上下文
+        talentBoard.Initialize(rality, current_code, this, OnTalentUnlockedFromBoard);
+    }
+
+    /// <summary>面板里真正解锁成功后的回调：刷货币条 + 让图鉴立刻显示叠加后的本能效果。</summary>
+    private void OnTalentUnlockedFromBoard()
+    {
+        baseCanvas.UpdateCurrencies();
+        if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
+        // 不重播动画，只更新数值面板与按钮状态（本能按钮会在这里变灰）
+        ShowCertainCharInTire(current_tire, false);
     }
     #endregion
 
