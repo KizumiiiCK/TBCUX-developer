@@ -21,9 +21,10 @@ public class SurgeUnit : Character
     private GameObject W;
     private AnimDecryptPack adp;
 
-    public void BeginSurgeAttack(int level, bool mini, int dis, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes, int delay = 0)
+    public void BeginSurgeAttack(Character owner, int level, bool mini, int dis, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes, int delay = 0)
     {
         CharacterTargetManager.Instance.RegisterProjectile(this);
+        SetAttackOwner(owner);
         surge_level = level;
         Mini = mini;
         distance = dis / 100f;
@@ -92,7 +93,7 @@ public class SurgeUnit : Character
         if (ads != null) EM.RecycleBattleObject(ads, surgeEffect.ToString());
         Destroy(gameObject);
     }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
 
     }
@@ -109,7 +110,7 @@ public class SurgeUnit : Character
             Character target = Targets[i].GetComponent<Character>();
             if (target == null) continue;
             if (target.GetHealth() <= 0) continue;
-            target.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            target.ReceiveAttack(AttackSource, dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
         }
     }
 

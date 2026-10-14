@@ -37,6 +37,7 @@ public class Toxic : E
                 c.transform.position.x,
                 c.transform.position.y);
         }
-        c.ReceiveAttack(c.GetMaxHealth() * duration / 100, null, null, null, null, null, ToxicHitTypes);
+        // attacker 传 null：毒是组件化的持续效果，施毒者没有被记下来（也可能早已死亡）。
+        c.ReceiveAttack(null, c.GetMaxHealth() * duration / 100, null, null, null, null, null, ToxicHitTypes);
     }
 }

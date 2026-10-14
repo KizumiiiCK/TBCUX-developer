@@ -32,7 +32,7 @@ public class Aux_SelfDamage : PassiveSkill
         if (dmg <= 0f) return; // 仅拦截正伤害攻击；治愈（负伤害）交给 Aux_HealDamage
         float selfDamage = dmg;
         dmg = 0f; // 该次攻击对其他目标造成 0 伤害
-        character.ReceiveAttack(selfDamage, null, null, null, null, null, null);
+        character.ReceiveAttack(character, selfDamage, null, null, null, null, null, null);
     }
 }
 
@@ -59,14 +59,14 @@ public class Aux_HealDamage : PassiveSkill
             {
                 Character t = targetBuffer[i];
                 if (t == null) continue;
-                t.ReceiveAttack(damage, null, null, null, null, null, null);
+                t.ReceiveAttack(character, damage, null, null, null, null, null, null);
             }
             targetBuffer.Clear();
         }
         else
         {
             Character front = mgr.GetFrontmostOpponent(character);
-            if (front != null) front.ReceiveAttack(damage, null, null, null, null, null, null);
+            if (front != null) front.ReceiveAttack(character, damage, null, null, null, null, null, null);
         }
     }
 }
@@ -118,7 +118,8 @@ public class Aux_DeathMark : PassiveSkill
                 Character target = shareTargetsBuffer[i];
                 if (target == null) continue;
                 // Use a neutral attack type to avoid spawning extra hit VFX/audio for each shared tick.
-                target.ReceiveAttack(sharedDamage, null, null, null, null, null, shareDamageTypes);
+                // attacker 传 null：分摊的那一击打在别人身上，这里拿不到它的来源。
+                target.ReceiveAttack(null, sharedDamage, null, null, null, null, null, shareDamageTypes);
             }
         }
         finally

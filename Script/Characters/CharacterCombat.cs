@@ -115,7 +115,7 @@ public abstract partial class Character
                 {
                     if (Target != null && Target.IsCat() == IsCat())
                         types.Add(AttackType.friendly);
-                    Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
+                    Target?.ReceiveAttack(AttackSource, dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                     TryRecordHitTarget(Target);
                     if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                 }
@@ -137,7 +137,7 @@ public abstract partial class Character
                     {
                         if (Target != null && Target.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        Target?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
+                        Target?.ReceiveAttack(AttackSource, dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                         TryRecordHitTarget(Target);
                         if (ShouldRecordProficiency()) levelController.RecordProficency_DamageDealt(NameCode, (int)dmg);
                     }
@@ -152,7 +152,7 @@ public abstract partial class Character
                         if (!CanHitTargetNow(ec)) continue;
                         if (ec != null && ec.IsCat() == IsCat())
                             types.Add(AttackType.friendly);
-                        ec?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
+                        ec?.ReceiveAttack(AttackSource, dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                         TryRecordHitTarget(ec);
                     }
                     if (baseTarget != null && !Targets.Contains(baseTarget))
@@ -162,7 +162,7 @@ public abstract partial class Character
                         {
                             if (bt != null && bt.IsCat() == IsCat())
                                 types.Add(AttackType.friendly);
-                            bt?.ReceiveAttack(dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
+                            bt?.ReceiveAttack(AttackSource, dmg, traits, subtraits, effectiveAgainstCareer, effectiveDre, decisionEff, types);
                             TryRecordHitTarget(bt);
                         }
                     }
@@ -304,7 +304,18 @@ public abstract partial class Character
             EffectInstaller.Inflict(gameObject, ee.name, real_duration, ee.intensity);
         }
     }
-    public abstract void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes);
+    /// <param name="attacker">
+    /// 这一击的来源单位。<b>可能为 null</b>：毒伤、亡语分摊、跳关伤害这类拿不到来源的伤害就是 null，
+    /// 所有消费方必须按「没有攻击者」处理，不能假设非空。自伤（裂伤反噬、献祭）传自己，
+    /// 所以消费方还要能接受 attacker == this。
+    /// <para>
+    /// 传进来的是发起者的 <see cref="AttackSource"/>，即波动/冲击/弹幕/基地炮会报告它们背后的
+    /// 那只单位，而不是自己——否则同一只猫的每一发都会被当成一个独立的攻击者。
+    /// </para>
+    /// 生命周期：攻击者可能在同一帧死亡或销毁，所以只能当帧使用。需要跨帧留存时存
+    /// instanceID + 帧号，不要留裸引用。
+    /// </param>
+    public abstract void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes);
     protected int duration_agnCarrer_stack = 0;
     protected void DMG_CarrerEffects(ref float DMG, AgainstCareer opponentAC)
     {
@@ -460,7 +471,7 @@ public abstract partial class Character
         if (wuPrefab == null) return;
         WaveUnit ww = Instantiate(wuPrefab, transform.position, Quaternion.identity).GetComponent<WaveUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ww);
-        ww.BeginWaveAttack(level, mini, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes);
+        ww.BeginWaveAttack(this, level, mini, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes);
     }
     /// <summary>
     /// 在身前 dis（1/100 世界单位）处放一发 Surge。
@@ -475,7 +486,7 @@ public abstract partial class Character
         if (suPrefab == null) return;
         SurgeUnit ss = Instantiate(suPrefab, transform.position, Quaternion.identity).GetComponent<SurgeUnit>();
         CharacterTargetManager.Instance.RegisterProjectile(ss);
-        ss.BeginSurgeAttack(level, mini, dis, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes, delayFrames);
+        ss.BeginSurgeAttack(this, level, mini, dis, DMG, traits, subtraits, EffectiveAgainstCareer, EffectiveDre, enemyEffect, atkTypes, delayFrames);
     }
     /// <summary>
     /// 这个单位一整套攻击的总强度：atkInfos 各段攻击力的<b>绝对值</b>之和，乘战斗数值倍率，再乘攻击力增益。
@@ -535,6 +546,18 @@ public abstract partial class Character
     /// </summary>
     public AgainstCareer EffectiveAgainstCareer => onCurse ? EmptyAgainstCareer : againstCareer;
     public DamageRelatedEffect EffectiveDre => onCurse ? EmptyDre : DRE;
+
+    /// <summary>
+    /// 这一击该算在谁头上。波动/冲击/弹幕这类「每次攻击新生成一个 Character」的衍生单位
+    /// 要把发起者记在 <see cref="attackOwner"/> 上，否则同一只猫的每一发都会被受击方当成
+    /// 一个独立的攻击者（按攻击者计数的机制会直接失真）。
+    /// <para>
+    /// 发起者先死的情况不用特殊处理：销毁后的引用 == null 成立，这里自动退回报告自身。
+    /// </para>
+    /// </summary>
+    protected Character attackOwner;
+    public Character AttackSource => attackOwner != null ? attackOwner : this;
+    public void SetAttackOwner(Character owner) => attackOwner = owner != null && owner != this ? owner : null;
     public float GetHealth() => realHealth;
     public float GetMaxHealth()=>maxHealth;
     public void SetMaxHealth(float mh) => maxHealth = mh;

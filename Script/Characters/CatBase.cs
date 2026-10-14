@@ -58,7 +58,7 @@ public class CatBase : CatCharacter
         SetCannonHead(cannon_type);
         BaseResist();
     }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkType)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkType)
     {
         if (realHealth <= 0) { realHealth = 0; return; }
         if (DMG < 0) return;

@@ -15,9 +15,10 @@ public class WaveUnit : Character
     private AnimDecryptPack adp;
     private GameObject currentWave;
 
-    public void BeginWaveAttack(int level, bool mini, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public void BeginWaveAttack(Character owner, int level, bool mini, float DMG, Traits _traits, SubTraits _subtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         CharacterTargetManager.Instance.RegisterProjectile(this);
+        SetAttackOwner(owner);
         attackedTargets.Clear();
         wave_level = level;
         Mini = mini;
@@ -80,7 +81,7 @@ public class WaveUnit : Character
         }
         Destroy(gameObject);
     }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
 
     }
@@ -111,7 +112,7 @@ public class WaveUnit : Character
             if (target == null) continue;
             if (attackedTargets.Contains(target)) continue;
             if (target.GetHealth() <= 0) continue;
-            target.ReceiveAttack(dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
+            target.ReceiveAttack(AttackSource, dmg, traits, subtraits, againstCareer, DRE, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
         }
         return false;

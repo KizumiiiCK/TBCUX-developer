@@ -34,6 +34,8 @@ public class CannonUnit : Character
     {
         attackedTargets.Clear();
         catBase = GameObject.Find("CatBase").GetComponent<CatBase>();
+        // 炮每次开火都是新生成的单位，归属记到基地上，受击方才能把连发看成同一个攻击者。
+        SetAttackOwner(catBase);
         transform.position = catBase.transform.position;
         realDamage = new int[1];
         realDamage[0] = (int)(catBase.Health * 0.005f);
@@ -45,7 +47,7 @@ public class CannonUnit : Character
 
     public override void UpdateAnimation() { }
     public override float GetFactor() { return 1f; }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes) { }
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes) { }
 
     public override void SetAttackRange(float near, float far)
     {
@@ -113,7 +115,7 @@ public class CannonUnit : Character
             // cannon_type == 4 对钢铁单位的 70% 最大生命伤害已改为数据驱动：
             // 由预制体 characterEffects 里的 toxic 效果（duration 70）结算，
             // 其命中自带 AttackType.toxic 穿透 Metal 铁壁，此处不再写代码特例。
-            target.ReceiveAttack(finalDamage, traits, subtraits, againstCareer, dreToApply, characterEffects.ToList(), ATKTypes);
+            target.ReceiveAttack(AttackSource, finalDamage, traits, subtraits, againstCareer, dreToApply, characterEffects.ToList(), ATKTypes);
             attackedTargets.Add(target);
             hitCount++;
             if (cannon_type == 0) target.StartKBCoroutine(KB_Type.pushBack);
@@ -133,7 +135,7 @@ public class CannonUnit : Character
                 if (!CharacterTargetManager.Instance.IsTargetInCurrentRange(this, target)) continue;
 
                 float damageToUndetectableZombie = target.GetMaxHealth() * 0.30f;
-                target.ReceiveAttack(damageToUndetectableZombie, traits, subtraits, againstCareer, NeutralDre, characterEffects.ToList(), ATKTypes);
+                target.ReceiveAttack(AttackSource, damageToUndetectableZombie, traits, subtraits, againstCareer, NeutralDre, characterEffects.ToList(), ATKTypes);
                 EnsureZombiePushBack(target);
                 attackedTargets.Add(target);
                 hitCount++;

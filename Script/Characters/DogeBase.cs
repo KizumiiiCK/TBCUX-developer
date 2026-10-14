@@ -33,7 +33,7 @@ public class DogeBase : EnemyCharacter
         //renderer_base.sprite = towerBase;
         BaseResist();
     }
-    public override void ReceiveAttack(float DMG, Traits opponentTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> opponentEffect, List<AttackType> atkType)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits opponentTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> opponentEffect, List<AttackType> atkType)
     {
         if (realHealth <= 0) { realHealth = 0; return; }
         if (DMG < 0) return;

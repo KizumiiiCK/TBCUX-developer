@@ -801,7 +801,7 @@ public class LevelController : MonoBehaviour
     public void SkipGame()
     {
 #if UNITY_EDITOR
-        dogeBase.GetComponent<DogeBase>().ReceiveAttack(SKIP_GAME_DAMAGE, null, null, null, null, null, null);
+        dogeBase.GetComponent<DogeBase>().ReceiveAttack(null, SKIP_GAME_DAMAGE, null, null, null, null, null, null);
 #endif
     }
 

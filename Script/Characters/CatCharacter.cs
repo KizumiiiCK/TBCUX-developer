@@ -80,8 +80,8 @@ public class CatCharacter : AnimatorCachedCharacter
         // 不能在 EnemyCharacter 那一支加同样的判断——那支读的是参数 dre（攻方的超伤），
         // 加了会变成「被诅咒的敌人免疫超伤」，正好反了。
         if (onCurse) return;
-        if (DRE.tough) DMG = DMG / 4;
-        if (DRE.aegis) DMG = DMG / 6;
+        if (DRE.tough) DMG = DMG / 5;
+        if (DRE.aegis) DMG = DMG / 7;
         if (DRE.strongAgainst) DMG = DMG / 2;
     }
     private const int BehemothSlayerDodgeChance = 5;
@@ -133,7 +133,7 @@ public class CatCharacter : AnimatorCachedCharacter
         //else lc.RemoveAnEnemy();
         levelController.RemoveACat();
     }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         if(onKB) return;
         bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);

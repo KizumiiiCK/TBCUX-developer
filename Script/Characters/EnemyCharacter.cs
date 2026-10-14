@@ -100,7 +100,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         levelController.AddMoney(Cost * LevelRestrictionHelper.GetKillMoneyMultiplier(levelController.LevelRestrictions) * killMoneyMultiplier);
         levelController.RemoveAnEnemy();
     }
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         if(onKB) return;
         bool matchedTraits = AreCorrespondingTraits(enemyTraits, atkTypes);

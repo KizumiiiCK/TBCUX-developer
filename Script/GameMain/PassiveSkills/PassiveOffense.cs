@@ -81,7 +81,7 @@ public class LaceratedEffect : PassiveSkill
 
     public override void OnAfterAttack(Character character, float dmg, List<CharacterEffect> ces, List<AttackType> types)
     {
-        character.ReceiveAttack(character.GetMaxHealth() * 0.05f, null, null, null, null, null, null);
+        character.ReceiveAttack(character, character.GetMaxHealth() * 0.05f, null, null, null, null, null, null);
         // 每次命中都会走到这里，Resources.Load 只做一次。
         if (bloodPrefab == null) bloodPrefab = Resources.Load<GameObject>(BloodEffectPath);
         if (bloodPrefab == null) return;
@@ -428,7 +428,7 @@ public class Sacrifice : PassiveSkill
 {
     public override void OnFinishAttack(Character character)
     {
-        if(Triggered())character.ReceiveAttack(character.GetMaxHealth() * intensity / 100, null, null, null, null, null, null);
+        if(Triggered())character.ReceiveAttack(character, character.GetMaxHealth() * intensity / 100, null, null, null, null, null, null);
     }
 }
 

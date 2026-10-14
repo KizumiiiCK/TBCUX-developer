@@ -21,6 +21,9 @@ public class ProjectileUnit : AnimatorCachedCharacter
         if (source == null) return;
 
         configured = true;
+        // 弹幕报告的攻击者是发射它的单位：否则一只猫连发 N 颗，受击方会看成 N 个攻击者。
+        // 镜子反弹走的也是 BeginProjectileAttack，所以反弹后的归属会自动改成镜子持有者。
+        SetAttackOwner(source);
         projectileSpeed = Mathf.Max(1, speed);
         triggerEffectThisAttack = notTriggerEffect;
         levelController = source.levelController;
@@ -220,7 +223,7 @@ public class ProjectileUnit : AnimatorCachedCharacter
         CharacterTargetManager.Instance.SetCharacterAttackRange(this, near, far);
     }
 
-    public override void ReceiveAttack(float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
+    public override void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentAC, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes)
     {
         // Projectile units are not intended to take regular damage.
     }
