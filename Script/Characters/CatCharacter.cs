@@ -152,7 +152,7 @@ public class CatCharacter : AnimatorCachedCharacter
         }
         if (matchedTraits) DMG_DREeffects(ref DMG, dre);
         DMG_SubTraitsEffects(ref DMG, opponentSubtraits);
-        DMG_CarrerEffects(ref DMG, opponentAC);
+        DMG_CarrerEffects(attacker, ref DMG, opponentAC);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         // 效果先挂、伤害后落。毒伤是 Toxic 组件挂载时递归调 ReceiveAttack 打出来的，
         // 而 TakeDMG 可能就地把自己打进 KB（PerformKB 里的 onKB=true 是同步生效的），

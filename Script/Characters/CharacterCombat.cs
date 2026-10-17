@@ -316,25 +316,17 @@ public abstract partial class Character
     /// instanceID + 帧号，不要留裸引用。
     /// </param>
     public abstract void ReceiveAttack(Character attacker, float DMG, Traits enemyTraits, SubTraits opponentSubtraits, AgainstCareer opponentCE, DamageRelatedEffect dre, List<CharacterEffect> enemyEffect, List<AttackType> atkTypes);
-    protected int duration_agnCarrer_stack = 0;
-    protected void DMG_CarrerEffects(ref float DMG, AgainstCareer opponentAC)
+    private CareerCounter careerCounter;
+    /// <summary>
+    /// 职业克制。机制与全部数值在 <see cref="CareerCounterConfig"/>，这里只负责「有没有构成克制」
+    /// 和状态机的懒创建——没被克制过的单位不会分配任何东西。
+    /// </summary>
+    protected void DMG_CarrerEffects(Character attacker, ref float DMG, AgainstCareer opponentAC)
     {
-        if (opponentAC == null) return;
-        List<EffectName> matchedEffect = new List<EffectName>();
-        int duration_stack = 0;
-        if (career.Warrior && opponentAC.AggainstWarrior) { duration_stack += 20; matchedEffect.Add(EffectName.weaken); }
-        if (career.Deffender && opponentAC.AggainstDeffender) { duration_stack += 20; matchedEffect.Add(EffectName.stop); }
-        if (career.Magician && opponentAC.AggainstMagician) { duration_stack += 20; matchedEffect.Add(EffectName.slow); }
-        if (career.Supporter && opponentAC.AggainstSupporter) { duration_stack += 40; matchedEffect.Add(EffectName.deathmark); EffectInstaller.Inflict(gameObject, EffectName.knockback, 1, 1); }
-        if (career.Practician && opponentAC.AggainstPractician) { duration_stack += 40; matchedEffect.Add(EffectName.lacerate); matchedEffect.Add(EffectName.slow); }
-
-        if (duration_stack > 0)
-        {
-            DMG *= 1.35f;
-            duration_agnCarrer_stack += duration_stack;
-            if(duration_agnCarrer_stack>400) duration_agnCarrer_stack = 400;
-            for (int i = 0; i < matchedEffect.Count; i++) EffectInstaller.Inflict(gameObject, matchedEffect[i], duration_agnCarrer_stack, 50);
-        }
+        int matchMask = CareerCounter.MatchMask(career, opponentAC);
+        if (matchMask == 0) return;
+        if (careerCounter == null) careerCounter = new CareerCounter();
+        careerCounter.Apply(this, attacker, matchMask, ref DMG);
     }
     protected void TakeDMG(float DMG)
     {
