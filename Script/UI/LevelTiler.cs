@@ -68,6 +68,17 @@ public class LevelTiler : UICanvasMain
     private const string DailyTextId = "id:daily";
     private static readonly Vector2 DailyRemarkAnchoredPosition = new Vector2(150f, 120f);
     private const float DailyRemarkScale = 1.6f;
+    /// <summary>
+    /// 节名 → 限定奖励印章图号（Resources/Reward/{id}）。要加印章只改这张表。
+    /// </summary>
+    private static readonly Dictionary<string, int> SectionRewardMarks = new Dictionary<string, int>
+    {
+        { "0_worldi", RewardingSystem.RewardNumMap[RewardName.WorldTreasures] },
+        { "0_worldii", RewardingSystem.RewardNumMap[RewardName.WorldTreasures] },
+        { "0_worldiii", RewardingSystem.RewardNumMap[RewardName.WorldTreasures] },
+        { "0_futureii", RewardingSystem.RewardNumMap[RewardName.Base_Health] },
+        { "1_futureii", RewardingSystem.RewardNumMap[RewardName.Base_Health] },
+    };
     private const string ClearTeamUseTextId = "id:clear_team_use";
     private const string ClearTeamConfirmTextId = "id:clear_team_confirm";
     private readonly List<GameObject> spawnedMapPoints = new List<GameObject>();
@@ -345,10 +356,7 @@ public class LevelTiler : UICanvasMain
         int sectionNum= PlayerPrefs.GetInt(UXPref.SectionNum, 0);
         int diff= PlayerPrefs.GetInt(UXPref.Difficulty, 0);
         mapSectionDifficulty = diff;
-        //
-        int mark_label = 0;
-        if(sectionName=="0_worldi"|| sectionName == "0_worldii" || sectionName == "0_worldiii") mark_label = 60;
-        //
+        int mark_label = GetSectionRewardMark(sectionName);
         string levelLoadPath = $"LevelData/LevelEnemyData/{chapter}/{sectionName}/dif{diff}/";
         secClearList = GameProgressSave.LoadSectionProgress(chapter, sectionName);
         enemyAppears = new string[MI.levelsOnMap.Length,20];
@@ -380,10 +388,6 @@ public class LevelTiler : UICanvasMain
             levelComponent.SetLevelInfo(MI.levelsOnMap[i]);
             levelComponent.SetLT(this);
             levelComponent.SetClearedInfo(secClearList.clear_times[diff, i], secClearList.level_score[diff, i]);
-            if (markLabel > 0 && secClearList.reward_gained[i])
-            {
-                levelComponent.SetMark(markLabel);
-            }
 
             LevelData levelData = GetCachedLevelData(levelLoadPath + i);
             if (levelData == null)
@@ -393,6 +397,10 @@ public class LevelTiler : UICanvasMain
                 SetLevelMapSize(validLastIndex);
                 MoveToLevel(directMark == 1 ? directLevel : validLastIndex);
                 break;
+            }
+            if (ShouldMarkLimitedReward(markLabel, i, levelData))
+            {
+                levelComponent.SetMark(markLabel);
             }
             SetEnemyAppears(i, levelData);
             AttachRestrictionWarningMarkIfNeeded(lvl, levelData);
@@ -417,6 +425,32 @@ public class LevelTiler : UICanvasMain
         // 列表建完（含中途 break）才知道最终停在哪一关，这时重算一次按钮可用性。
         ResetClearTeamSelection();
     }
+    /// <summary>节关卡的限定奖励印章图号。没有对应标记的节返回 0。</summary>
+    private static int GetSectionRewardMark(string sectionName)
+    {
+        if (string.IsNullOrEmpty(sectionName)) return 0;
+        return SectionRewardMarks.TryGetValue(sectionName, out int mark) ? mark : 0;
+    }
+
+    private bool ShouldMarkLimitedReward(int markLabel, int levelIndex, LevelData levelData)
+    {
+        if (markLabel <= 0 || levelData == null) return false;
+        if (secClearList.reward_gained == null || levelIndex < 0 || levelIndex >= secClearList.reward_gained.Length)
+            return false;
+        if (!secClearList.reward_gained[levelIndex]) return false;
+        return RewardListContains(levelData.rewardlist, markLabel);
+    }
+
+    private static bool RewardListContains(Reward[] rewards, int rewardId)
+    {
+        if (rewards == null) return false;
+        for (int i = 0; i < rewards.Length; i++)
+        {
+            if (rewards[i] != null && rewards[i].id == rewardId) return true;
+        }
+        return false;
+    }
+
     private LevelData GetCachedLevelData(string path)
     {
         if (levelDataCache.TryGetValue(path, out LevelData cached) && cached != null)
