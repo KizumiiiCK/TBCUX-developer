@@ -157,11 +157,10 @@ public class CatCharacter : AnimatorCachedCharacter
         // 效果先挂、伤害后落。毒伤是 Toxic 组件挂载时递归调 ReceiveAttack 打出来的，
         // 而 TakeDMG 可能就地把自己打进 KB（PerformKB 里的 onKB=true 是同步生效的），
         // 那之后再进来的毒伤会被本方法开头的 onKB 早退整份吞掉。
-        // 挪到 TakeDMG 之前即可，且与 DMG_CarrerEffects 里 knockback 效果的时序一致。
+        // 硬度 none 优先：克制击退延后到这里才 Flush，本击自带的 knockback/wrap 一并跳过。
         // 注意不能再往前挪：DodgePassive 要在 Passive_OnBeforeTakeDamage 里读
         // incomingTraitCorresponding，而嵌套进来的毒伤会把这个标志覆写成 false。
-        if(DMG>0)TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
-        TakeDMG(DMG);
+        ApplyOnHitEffectsThenTakeDamage(DMG, enemyEffect, subtraits.Sage, atkTypes, DMG > 0);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }

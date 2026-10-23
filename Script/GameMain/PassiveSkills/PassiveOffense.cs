@@ -456,7 +456,8 @@ public class ProjectileLauncher : PassiveSkill
             return;
         }
 
-        GameObject go = GameObject.Instantiate(prefab, character.transform.position+new Vector3(0, intensity/100f,0), Quaternion.identity);
+        float spawnY = intensity / 100f + UnityEngine.Random.Range(-10f, 10f) / 100f;
+        GameObject go = GameObject.Instantiate(prefab, character.transform.position + new Vector3(0, spawnY, 0), Quaternion.identity);
         CharacterVisualLoader.ResetAnimationOrderLayer(go, "Units", 20000);
         ProjectileUnit pu = go.GetComponent<ProjectileUnit>();
         if (pu == null) pu = go.AddComponent<ProjectileUnit>();

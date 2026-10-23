@@ -101,13 +101,12 @@ public class LevelControllerTestificateEditor : Editor
         EditorGUILayout.LabelField(title, labelBold);
         EditorGUILayout.BeginHorizontal();
 
-        if (icon != null)
-            GUILayout.Label(icon.texture, GUILayout.Width(64), GUILayout.Height(64));
-        else
-            GUILayout.Box(string.IsNullOrWhiteSpace(code) ? "(空)" : "(无头像)", GUILayout.Width(64), GUILayout.Height(64));
+        DrawFixedPreview(icon, 64f, string.IsNullOrWhiteSpace(code) ? "(空)" : "(无头像)");
 
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.PropertyField(codeProp, new GUIContent("角色编号"));
+        EditorGUI.BeginChangeCheck();
+        string editedCode = EditorGUILayout.DelayedTextField(new GUIContent("角色编号"), codeProp.stringValue);
+        if (EditorGUI.EndChangeCheck()) codeProp.stringValue = editedCode;
         EditorGUILayout.PropertyField(levelProp, new GUIContent("等级"));
         if (levelProp.intValue < 1) levelProp.intValue = 1;
 
@@ -118,9 +117,10 @@ public class LevelControllerTestificateEditor : Editor
             EditorGUILayout.LabelField($"HP: {hp}", labelSmall);
             EditorGUILayout.LabelField($"ATK: {BuildScaledAtkText(data, bonus)}", labelSmall);
         }
-        else if (!string.IsNullOrWhiteSpace(code))
+        else
         {
-            EditorGUILayout.LabelField("未找到角色数据", labelSmall);
+            EditorGUILayout.LabelField(string.IsNullOrWhiteSpace(code) ? " " : "未找到角色数据", labelSmall);
+            EditorGUILayout.LabelField(" ", labelSmall);
         }
 
         EditorGUILayout.EndVertical();
@@ -158,6 +158,17 @@ public class LevelControllerTestificateEditor : Editor
                 element.intValue = defaultValue is int intValue ? intValue : 1;
         }
         if (arrayProp.arraySize > size) arrayProp.arraySize = size;
+    }
+
+    private static void DrawFixedPreview(Sprite sprite, float size, string emptyText)
+    {
+        Rect rect = EditorGUILayout.GetControlRect(false, size, GUILayout.Width(size), GUILayout.Height(size));
+        if (Event.current.type != EventType.Repaint) return;
+        GUI.skin.box.Draw(rect, false, false, false, false);
+        if (sprite != null && sprite.texture != null)
+            GUI.DrawTexture(rect, sprite.texture, ScaleMode.ScaleToFit);
+        else
+            EditorStyles.centeredGreyMiniLabel.Draw(rect, emptyText, false, false, false, false);
     }
 
     private Sprite GetCatIcon(string code)

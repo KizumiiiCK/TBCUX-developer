@@ -122,8 +122,7 @@ public class EnemyCharacter : AnimatorCachedCharacter
         DMG_CarrerEffects(attacker, ref DMG, opponentAC);
         Passive_OnBeforeTakeDamage(ref DMG, atkTypes);
         // 效果先挂、伤害后落，理由见 CatCharacter.ReceiveAttack。
-        if (matchedTraits && DMG>0) TakeEffects(enemyEffect, subtraits.Sage, atkTypes);
-        TakeDMG(DMG);
+        ApplyOnHitEffectsThenTakeDamage(DMG, enemyEffect, subtraits.Sage, atkTypes, matchedTraits && DMG > 0);
         HitEffect(atkTypes);
         Passive_OnAfterTakeDamage();
     }
