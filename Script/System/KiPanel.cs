@@ -127,6 +127,7 @@ public class KiPanel : MonoBehaviour
         CacheRefs();
         int count = frameImages.Length;
         RectTransform[] rt = new RectTransform[count];
+        if (rt.Length < 9) return;
         for (int i = 0; i < count; i++) rt[i] = frameImages[i].GetComponent<RectTransform>();
         rt[0].anchoredPosition = new Vector2(-width, height);
         rt[1].anchoredPosition = new Vector2(0, height);

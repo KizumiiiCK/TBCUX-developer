@@ -18,7 +18,7 @@ public class FrameCurrencyItem : MonoBehaviour
         if (Application.isPlaying) return;
         CachePanels();
     }
-    public void SetData(int rewardId, int amount, Color? amountColor = null, string amountOverrideText = null)
+    public void SetData(int rewardId, int amount, Color? amountColor = null, int? textSize = 64, string amountOverrideText = null, bool noResetTextPosition = false)
     {
         CachePanels();
         if (currencyPanel != null)
@@ -28,9 +28,9 @@ public class FrameCurrencyItem : MonoBehaviour
         if (amountPanel != null)
         {
             string AL = string.IsNullOrEmpty(amountOverrideText) ? amount.ToString() : amountOverrideText;
-            amountPanel.SetText(AL, c: amountColor);
+            amountPanel.SetText(AL, textSize ?? 64, amountColor);
             amountPanel.SetSize(30*AL.Length, 10);
-            amountPanel.GetComponent<RectTransform>().anchoredPosition = 
+            if (!noResetTextPosition) amountPanel.GetComponent<RectTransform>().anchoredPosition = 
             new Vector2(90 + FIXED_DIGIT_LENGTH * (AL.Length - 1), 0) * (reverse_display ? -1 : 1);
         }
     }

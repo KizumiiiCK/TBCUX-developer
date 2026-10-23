@@ -124,7 +124,7 @@ public class BontiqueItems : MonoBehaviour
             {
                 costAndOwned = $"{Mathf.Max(0, item.CurrencyAmount)} / {Mathf.Max(0, currentCurrencyAmount)}";
             }
-            currencyDisplay.SetData(displayCurrencyId, currentCurrencyAmount, null, costAndOwned);
+            currencyDisplay.SetData(displayCurrencyId, currentCurrencyAmount, null, amountOverrideText: costAndOwned);
         }
         if (redeemButton != null)
         {
