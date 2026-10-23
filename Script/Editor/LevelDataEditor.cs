@@ -151,8 +151,14 @@ public class LevelDataEditor : Editor
         if (!LevelRestrictionHelper.TrySplitRestriction(raw, out string key, out string value))
             return InvalidRestrictionHint;
 
+        // 合法性只看 parser 是否注册，不看本地化表。以前拿「有没有写文案」当判据，
+        // 两边条目对不齐时会把能生效的 key 报成无效，也会把有文案但没 parser 的 key 当真。
+        if (!LevelRestrictionHelper.IsKnownRestrictionKey(key))
+            return $"{InvalidRestrictionHint}（未注册的 key：{key}）";
+
         string format = GetLocalizedTextCached(UXPref.Localized_Descriptions, key);
-        if (!HasLocalizedField(format, key)) return InvalidRestrictionHint;
+        // 能生效但缺文案：和「无效限制」分开说，免得把「该补翻译」误当成「写错了」。
+        if (!HasLocalizedField(format, key)) return $"{key}：缺本地化文案";
 
         if (NoneValueRestrictionKeys.Contains(key))
             return format.Contains("{0}") ? format.Replace("{0}", string.Empty).Trim() : format;

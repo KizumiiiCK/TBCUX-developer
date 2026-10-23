@@ -10,11 +10,13 @@ public static class LevelRestrictionHelper
     public const int ForcedSlotCount = 13;
     public const int GuestSlotStart = 10;
     public const int GuestSlotCount = 3;
-    private static readonly HashSet<string> CaseSensitiveRestrictionKeys =
-        new HashSet<string>(StringComparer.Ordinal)
-        {
-            "s+", "s-", "mm", "oh", "hd", "hD", "ht", "sd", "sD", "zr", "fs", "ap", "Ap", "tl"
-        };
+    /// <summary>
+    /// 限制 key 全部大小写敏感：字典用 Ordinal，key 不再做任何折叠。
+    /// 之前那套 ToUpperInvariant + 白名单的做法，唯一的作用是让「只存在大写形态」的 key
+    /// 写成小写时也能认（r+、cc、iv 之类）；代价是拼写手误会被静默洗成合法规则
+    /// （最危险的是 oh 与 OH 语义相反），而且每加一个带大小写变体的 key 都得记得同步白名单。
+    /// 现在写错就是写错，交给下面的未知 key 告警。
+    /// </summary>
     private static readonly Dictionary<string, RestrictionParser> ParserMap =
         new Dictionary<string, RestrictionParser>(StringComparer.Ordinal)
         {
@@ -90,7 +92,7 @@ public static class LevelRestrictionHelper
     public static void RegisterParser(string key, RestrictionParser parser)
     {
         if (string.IsNullOrWhiteSpace(key) || parser == null) return;
-        ParserMap[NormalizeRestrictionKey(key)] = parser;
+        ParserMap[key.Trim()] = parser;
     }
 
     public static RestrictionRules Parse(string[] restrictions)
@@ -107,9 +109,24 @@ public static class LevelRestrictionHelper
             {
                 parser(rules, value);
             }
+            else
+            {
+                // 没注册过 parser 的 key 从前是静默的：既不生效也不报错，规则安安静静躺在 rawValuesByKey 里。
+                // 关卡的错字必须能看见，否则只能等到实测才发现少了一条限制。
+                Debug.LogWarning($"[LevelRestrictionHelper] Unknown restriction key '{key}' in \"{restrictions[i]}\".");
+            }
         }
 
         return rules;
+    }
+
+    /// <summary>
+    /// key 是否注册过 parser，即「这条限制会不会真的生效」。
+    /// 本地化表只负责文案，不能拿来当合法性判据 —— 两边条目对不齐时会把能生效的 key 报成无效。
+    /// </summary>
+    public static bool IsKnownRestrictionKey(string key)
+    {
+        return !string.IsNullOrEmpty(key) && ParserMap.ContainsKey(key);
     }
 
     /// <summary>Returns true when the stage contains an IV restriction.</summary>
@@ -707,7 +724,7 @@ public static class LevelRestrictionHelper
         string[] parts = rule.Split(new[] { ':' }, 2);
         if (parts.Length != 2) return false;
 
-        key = NormalizeRestrictionKey(parts[0]);
+        key = parts[0].Trim();
         value = parts[1].Trim();
         return !string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value);
     }
@@ -1132,13 +1149,5 @@ public static class LevelRestrictionHelper
         {
             currentLimit = candidate;
         }
-    }
-
-    public static string NormalizeRestrictionKey(string rawKey)
-    {
-        if (string.IsNullOrWhiteSpace(rawKey)) return string.Empty;
-        string trimmed = rawKey.Trim();
-        if (CaseSensitiveRestrictionKeys.Contains(trimmed)) return trimmed;
-        return trimmed.ToUpperInvariant();
     }
 }
