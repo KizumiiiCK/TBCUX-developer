@@ -48,6 +48,13 @@ public class SectionCanvas : UICanvasMain
             "1_f1_m3",
             "2_f1_cm",
         },
+        ["Future_II"] = new[]
+        {
+            "0_futureii",
+            "1_futureii",
+            "2_futureii",
+            "3_futureii",
+        },
         ["LEGEND"] = new[]
         {
             "0_L",
@@ -91,6 +98,7 @@ public class SectionCanvas : UICanvasMain
         ["Challenge"] = new[]
         {
             "0_boss0",
+            "beak",
         },
         ["Anniversary"] = new[]
         {
