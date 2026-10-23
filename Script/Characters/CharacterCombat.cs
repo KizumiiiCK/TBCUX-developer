@@ -284,13 +284,15 @@ public abstract partial class Character
     #endregion
 
     #region Under Attack Functions
-    protected void TakeEffects(List<CharacterEffect> enemyEffect, bool sageBuff = false, List<AttackType> atkTypes = null)
+    protected void TakeEffects(List<CharacterEffect> enemyEffect, bool sageBuff = false, List<AttackType> atkTypes = null, bool skipDisplacement = false)
     {
         if (enemyEffect == null) return;
         bool friendlyAttack = atkTypes != null && atkTypes.Contains(AttackType.friendly);
         float sagemultiplier = (subtraits.Sage && !sageBuff) ? 0.3f : 1;
         foreach (var ee in enemyEffect)
         {
+            if (skipDisplacement && (ee.name == EffectName.knockback || ee.name == EffectName.wrap))
+                continue;
             int resisted = 0;
             foreach (var myer in effectResistances)
                 {
@@ -303,6 +305,26 @@ public abstract partial class Character
             float real_duration = ee.duration * sagemultiplier * CounterT(resisted);
             EffectInstaller.Inflict(gameObject, ee.name, real_duration, ee.intensity);
         }
+    }
+
+    /// <summary>
+    /// 与 TakeDMG 同一条硬度判定。最终伤害算完后、挂效果前调用：
+    /// 会打出 KB_Type.none 时丢掉克制击退，并跳过本击自带的 knockback / wrap。
+    /// </summary>
+    protected bool WouldTriggerHardnessKB(float dmg)
+    {
+        if (dmg == 0f || dmg < -1f) return false;
+        float afterhealth = realHealth - dmg;
+        return afterhealth <= 0f || afterhealth < maxHealth - (realKBtimes + 1) * hardness;
+    }
+
+    protected void ApplyOnHitEffectsThenTakeDamage(float DMG, List<CharacterEffect> enemyEffect, bool sageBuff, List<AttackType> atkTypes, bool applyAttackEffects)
+    {
+        bool hardnessKB = WouldTriggerHardnessKB(DMG);
+        if (hardnessKB) careerCounter?.DiscardPendingKnockback();
+        else careerCounter?.FlushPendingKnockback(this);
+        if (applyAttackEffects) TakeEffects(enemyEffect, sageBuff, atkTypes, skipDisplacement: hardnessKB);
+        TakeDMG(DMG);
     }
     /// <param name="attacker">
     /// 这一击的来源单位。<b>可能为 null</b>：毒伤、亡语分摊、跳关伤害这类拿不到来源的伤害就是 null，
@@ -505,6 +527,9 @@ public abstract partial class Character
     }
     public virtual void Dead()
     {
+        // 所有死法的唯一汇点：销毁前给被动最后一次通知。
+        // 注意和 Passive_OnDead 的区别：后者只在 KB 死亡路径里发、且可被复活/变身推翻。
+        Passive_OnFinalDead();
         EM.InstantiateBattleObject(SEnums.soul, transform.position.x, transform.position.y);
         Destroy(gameObject);
         if (coroutineKB != null) StopCoroutine(coroutineKB);

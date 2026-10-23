@@ -67,15 +67,8 @@ public class LevelDataEditor : Editor
         EditorGUILayout.LabelField("背景资料", labelBold);
         EditorGUILayout.Space(4);
         EditorGUILayout.BeginHorizontal();
-        if (backgroundSprite != null)
-            GUILayout.Label(backgroundSprite.texture, GUILayout.Width(160), GUILayout.Height(90));
-        else
-            GUILayout.Box("(无背景)", GUILayout.Width(160), GUILayout.Height(90));
-
-        if (baseImageSprite != null)
-            GUILayout.Label(baseImageSprite.texture, GUILayout.Width(160), GUILayout.Height(90));
-        else
-            GUILayout.Box("(无基地图)", GUILayout.Width(160), GUILayout.Height(90));
+        DrawFixedPreview(backgroundSprite, 160, 90, "(无背景)");
+        DrawFixedPreview(baseImageSprite, 160, 90, "(无基地图)");
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.Space(8);
@@ -197,6 +190,20 @@ public class LevelDataEditor : Editor
             LevelRestrictionHelper.TryParseZombieReviveRestrictionValue(value, out int times, out int hpPercent, out int intervalFrames))
         {
             return FormatSafe(format, times, hpPercent, intervalFrames);
+        }
+
+        if (key == "PU")
+        {
+            if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string puCode, out int puLevel, out int puFrames))
+                return InvalidRestrictionHint;
+
+            string puName = puCode;
+            if (puCode.Length == 5 && IsAllDigits(puCode))
+            {
+                string localizedName = GetLocalizedTextCached(UXPref.Localized_UnitNames, puCode);
+                if (HasLocalizedField(localizedName, puCode)) puName = localizedName;
+            }
+            return FormatSafe(format, puName, puLevel, puFrames);
         }
 
         return FormatSafe(format, value);
@@ -412,10 +419,7 @@ public class LevelDataEditor : Editor
         EditorGUILayout.Space(2);
 
         EditorGUILayout.BeginHorizontal();
-        if (icon != null)
-            GUILayout.Label(icon.texture, GUILayout.Width(72), GUILayout.Height(72));
-        else
-            GUILayout.Box("(无图像)", GUILayout.Width(72), GUILayout.Height(72));
+        DrawFixedPreview(icon, 72, 72, "(无图像)");
 
         EditorGUILayout.BeginVertical();
         EditorGUILayout.PropertyField(typeProp, new GUIContent("类型"));
@@ -591,14 +595,12 @@ public class LevelDataEditor : Editor
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        Sprite icon = GetEnemyIcon(enemyIdProp.stringValue);
-        if (icon != null)
-            GUILayout.Label(icon.texture, GUILayout.Width(64), GUILayout.Height(64));
-        else
-            GUILayout.Box("(无头像)", GUILayout.Width(64), GUILayout.Height(64));
+        DrawFixedPreview(GetEnemyIcon(enemyIdProp.stringValue), 64, 64, "(无头像)");
 
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.PropertyField(enemyIdProp, new GUIContent("单位 ID"));
+        EditorGUI.BeginChangeCheck();
+        string editedId = EditorGUILayout.DelayedTextField(new GUIContent("单位 ID"), enemyIdProp.stringValue);
+        if (EditorGUI.EndChangeCheck()) enemyIdProp.stringValue = editedId;
         EditorGUILayout.PropertyField(ratioProp, new GUIContent("倍率(%)"));
         EditorGUILayout.LabelField($"HP: {scaledHealth}", labelSmall);
         EditorGUILayout.LabelField($"ATK: {scaledAtkText}", labelSmall);
@@ -726,6 +728,21 @@ public class LevelDataEditor : Editor
         Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}/{fileName}.png");
         if (sprite == null) sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}/{fileName}.PNG");
         return sprite;
+    }
+
+    /// <summary>
+    /// 头像有无都会走同一个 GUILayout.Box。若有图用 Label、没图用 Box，
+    /// 后面「单位 ID」的控件 ID 会变，正在输入的光标就被 Unity 清掉。
+    /// </summary>
+    private static void DrawFixedPreview(Sprite sprite, float width, float height, string emptyText)
+    {
+        Rect rect = EditorGUILayout.GetControlRect(false, height, GUILayout.Width(width), GUILayout.Height(height));
+        if (Event.current.type != EventType.Repaint) return;
+        GUI.skin.box.Draw(rect, false, false, false, false);
+        if (sprite != null && sprite.texture != null)
+            GUI.DrawTexture(rect, sprite.texture, ScaleMode.ScaleToFit);
+        else
+            EditorStyles.centeredGreyMiniLabel.Draw(rect, emptyText, false, false, false, false);
     }
 
     private void InitStyles()

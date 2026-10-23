@@ -241,6 +241,8 @@ public class ChangePhase : PassiveSkill
             dstEnemy.strengthenRate = srcEnemy.strengthenRate;
 
         Aux_BossWave.TransferFrom(source, successor);
+        // PU 保护目标变身不算死：把「不许死」这条被动接到后继者身上。
+        Aux_ProtectUnitRule.TransferFrom(source, successor);
 
         successor.RefreshStartPos();
         return successor;

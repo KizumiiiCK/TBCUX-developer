@@ -121,16 +121,13 @@ public class GamePlotEditor : Editor
         }
 
         string trimmedCgName = (cgName ?? string.Empty).Trim();
+        EnsureStyles();
         if (HasCgAsset(trimmedCgName))
-        {
-            EnsureStyles();
             GUILayout.Label("[含CG]", cgMarkStyle, GUILayout.Width(PortraitSize));
-        }
         else if (!string.IsNullOrEmpty(trimmedCgName))
-        {
-            EnsureStyles();
             GUILayout.Label("[无效CG]", invalidCgMarkStyle, GUILayout.Width(PortraitSize));
-        }
+        else
+            GUILayout.Label(" ", GUILayout.Width(PortraitSize), GUILayout.Height(EditorGUIUtility.singleLineHeight));
         EditorGUILayout.EndVertical();
     }
 

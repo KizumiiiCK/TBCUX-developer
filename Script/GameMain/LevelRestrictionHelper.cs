@@ -48,7 +48,8 @@ public static class LevelRestrictionHelper
             { "fs", ParseForcedGuestSlots },
             { "ap", ParseMoneyProductionPercent },
             { "Ap", ParseKillMoneyPercent },
-            { "tl", ParseForcedTreasureCount }
+            { "tl", ParseForcedTreasureCount },
+            { "PU", ParseProtectUnitValue }
         };
 
     public class RestrictionRules
@@ -808,6 +809,56 @@ public static class LevelRestrictionHelper
         rules.forcedTreasureCount = count;
         rules.hasForcedTreasureCount = true;
     }
+
+    /// <summary>
+    /// PU:{角色码}/{等级}/{出场帧}。比如 PU:00000/30/450：第 450 帧（FixedUpdate 帧，起点同
+    /// 敌方 firstAppear）从猫咪基地放出 30 级的 00000，该单位整局不得死亡。
+    /// 多条 PU 各自生效，任一死亡即判负。等级按填写值走，不受 LC（maxCatLevel）压制
+    /// —— 和 FS 强制槽的等级一个口径。
+    /// <para>
+    /// 这条规则不是游戏的基本规则，所以<b>不在 RestrictionRules 里占字段</b>：原文本照旧
+    /// 落在 rawValuesByKey["PU"]，要用的人自己调 <see cref="TryParseProtectUnitValue"/>。
+    /// 解析阶段只做校验，让非法配置在编辑器/日志里就暂露出来。
+    /// </para>
+    /// </summary>
+    public static void ParseProtectUnitValue(RestrictionRules rules, string value)
+    {
+        if (TryParseProtectUnitValue(value, out _, out _, out _)) return;
+        Debug.LogWarning($"[LevelRestrictionHelper] Invalid PU rule: {value}");
+    }
+
+    /// <summary>
+    /// 只做格式校验，不加载任何资源 —— 限制展示板和编辑器拿它做文案，那两处不该去读角色包；
+    /// 角色是不是真的存在由局内的 <see cref="LevelProtectUnitSummoner"/> 自己去碰。
+    /// </summary>
+    public static bool TryParseProtectUnitValue(string value, out string code, out int level, out int deployFrames)
+    {
+        code = string.Empty;
+        level = 0;
+        deployFrames = 0;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        string[] parts = value.Split('/');
+        if (parts.Length != 3) return false;
+
+        string rawCode = parts[0].Trim();
+        if (string.IsNullOrEmpty(rawCode)) return false;
+        if (!int.TryParse(parts[1].Trim(), out level) || level < 1) return false;
+        if (!int.TryParse(parts[2].Trim(), out deployFrames) || deployFrames < 0) return false;
+
+        code = rawCode;
+        return true;
+    }
+
+    /// <summary>本关写下的 PU 原文本（未解析）；没有则返回空表而不是 null。</summary>
+    public static IReadOnlyList<string> GetProtectUnitValues(RestrictionRules rules)
+    {
+        if (rules == null) return EmptyRawValues;
+        if (!rules.rawValuesByKey.TryGetValue("PU", out List<string> values) || values == null) return EmptyRawValues;
+        return values;
+    }
+
+    private static readonly string[] EmptyRawValues = new string[0];
 
     //private static void ParseUnitCostMultiplier(RestrictionRules rules, string value)
     //{

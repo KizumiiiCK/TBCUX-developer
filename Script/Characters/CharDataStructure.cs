@@ -273,6 +273,7 @@ public enum AbilityName
     [EditorBrowsable(EditorBrowsableState.Never)]
     buff_defence = 23, buff_attack = 24, buff_speed = 25, buff_kb = 26, buff_costdown = 27, buff_recover = 28, buff_atkFreq = 29,
     Aux_MaxDMGBlock = 900, Aux_MinDMGBlock = 901, Aux_OneHit = 902, Aux_SelfDamage = 903, Aux_HealDamage = 904, Aux_BossWave = 905,
+    Aux_ProtectUnit = 906,
     invisible =999,
 }
 public enum KB_Type

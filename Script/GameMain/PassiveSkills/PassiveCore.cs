@@ -61,6 +61,7 @@ public static class AbilityInstaller
         { AbilityName.Aux_SelfDamage, typeof(Aux_SelfDamage)},
         { AbilityName.Aux_HealDamage, typeof(Aux_HealDamage)},
         { AbilityName.Aux_BossWave, typeof(Aux_BossWave)},
+        { AbilityName.Aux_ProtectUnit, typeof(Aux_ProtectUnitRule)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {
@@ -94,7 +95,10 @@ public enum PassiveHooks
     OnAfterSwitchingAnim = 1 << 10,
     OnBeforeKB        = 1 << 11,
     OnAfterKB         = 1 << 12,
-    OnDead            = 1 << 13,
+    OnDead             = 1 << 13,
+    // Dead() 里真正要销毁对象的那一刻。OnDead 不等于死：它只在 KB 死亡路径里发，
+    // 而且僵尸复活/变身都能在它之后把角色救回来。这一个钩子负责「确实死透了」的通知。
+    OnFinalDead        = 1 << 14,
 }
 
 public interface PassiveNode
@@ -119,6 +123,7 @@ public interface PassiveNode
     void OnBeforeKB(Character character);
     void OnAfterKB(Character character);
     void OnDead(Character character);
+    void OnFinalDead(Character character);
 }
 
 public abstract class PassiveSkill : PassiveNode
@@ -147,6 +152,7 @@ public abstract class PassiveSkill : PassiveNode
         (nameof(OnBeforeKB),           PassiveHooks.OnBeforeKB),
         (nameof(OnAfterKB),            PassiveHooks.OnAfterKB),
         (nameof(OnDead),               PassiveHooks.OnDead),
+        (nameof(OnFinalDead),          PassiveHooks.OnFinalDead),
     };
 
     private PassiveHooks cachedHooks = (PassiveHooks)(-1); // -1 = not computed yet
@@ -197,6 +203,12 @@ public abstract class PassiveSkill : PassiveNode
     public virtual void OnBeforeKB(Character character) { }
     public virtual void OnAfterKB(Character character) { }
     public virtual void OnDead(Character character) { }
+    /// <summary>
+    /// 角色真的走到 Dead()（即将 Destroy）时调一次，所有死法都走这里：
+    /// KB 死亡、Aux_OneHit、OneOff 自爆、基地被破时的连坐。
+    /// 反之，变身（ChangePhase 自己 Destroy）和僵尸复活（根本不进 Dead）都不会触发。
+    /// </summary>
+    public virtual void OnFinalDead(Character character) { }
     public void SetPassiveValues(object n, int p, int d, int i) { name = n; probability = p; duration = d; intensity = i; }
     public bool Triggered() { return UnityEngine.Random.Range(0, 100) < probability; }
     protected virtual void SummonPassiveEffect() { }
@@ -288,6 +300,8 @@ public abstract class StatusBarPassive : PassiveSkill
 ///  - 当驱动中时，OnAfterSwitchingAnim 把角色试图切换的动画号钉在当前阶段动画上（KB/死亡动画放行）。
 ///  - RunDrive 用 try/finally 包裹协程，保证无论如何退出（KB、角色销毁、异常）都会释放控制权，
 ///    从根本上消除"卡在自定义动画里出不来"的问题。
+///  - Stop / Wrap 等会把 frame_step 置 0：RunDrive 在此期间不推进 DriveRoutine，
+///    子类按帧 t++ 也会一起停住，不必各自再读 GetFrameStep。
 /// </summary>
 public abstract class AnimationDrivingPassive : StatusBarPassive
 {
@@ -332,6 +346,7 @@ public abstract class AnimationDrivingPassive : StatusBarPassive
     /// <summary>
     /// 用 try/finally 包裹实际驱动协程，保证结束时一定 EndDrive。
     /// 子类实现 DriveRoutine，正常按帧 yield 即可，无需手动清理控制标志。
+    /// frame_step 为 0 时（Stop / Wrap）只空等，不推进内部协程。
     /// </summary>
     protected IEnumerator RunDrive(Character character, int enterAnim)
     {
@@ -343,6 +358,12 @@ public abstract class AnimationDrivingPassive : StatusBarPassive
             {
                 // 角色被销毁或已被 KB 打断则提前结束。
                 if (character == null || character.IsOnKB()) break;
+                // Stop / Wrap 把 frame_step 置 0：视觉已冻，驱动时间轴也必须停。
+                if (character.GetFrameStep() <= 0)
+                {
+                    yield return new WaitForFixedUpdate();
+                    continue;
+                }
                 bool moveNext;
                 try { moveNext = inner.MoveNext(); }
                 catch (System.Exception e) { Debug.LogError($"[AnimationDrivingPassive] drive error: {e}"); break; }

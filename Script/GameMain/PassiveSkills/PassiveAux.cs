@@ -295,3 +295,54 @@ public class Aux_OneHit : PassiveSkill
         return sign * Mathf.Max(0f, Mathf.Abs(value) * multiplier);
     }
 }
+
+/// <summary>
+/// PU 关卡限制的本体：挂着这条被动的猫咪<b>整局不得死亡</b>，一旦真的死透，猫咪基地跟着一起爆，
+/// 关卡判负。<see cref="LevelProtectUnitSummoner"/> 只负责到点把单位放出来，保护逻辑全在这里。
+/// <para>
+/// 判死只认 <see cref="PassiveSkill.OnFinalDead"/>（Dead() 里即将 Destroy 的那一刻）：
+/// KB 阵亡、Aux_OneHit、OneOff 自爆、基地被破时的连坐都会走到；
+/// 僵尸复活（只回血不进 Dead）和变身（ChangePhase 自己 Destroy 旧对象）都不会误判，
+/// 后者由 <see cref="TransferFrom"/> 把本被动接到后继者身上。
+/// </para>
+/// </summary>
+public class Aux_ProtectUnitRule : PassiveSkill
+{
+    private const string CatBaseObjectName = "CatBase";
+
+    public static void EnsureOn(Character character)
+    {
+        if (character == null || character.GetPassive<Aux_ProtectUnitRule>() != null) return;
+        AbilityInstaller.Install(character, new CharacterAbility { name = AbilityName.Aux_ProtectUnit });
+    }
+
+    /// <summary>变身不算死：在旧对象被销毁之前把保护状态接到后继者身上。</summary>
+    public static void TransferFrom(Character source, Character target)
+    {
+        if (source == null || target == null) return;
+        if (source.GetPassive<Aux_ProtectUnitRule>() == null) return;
+        EnsureOn(target);
+    }
+
+    public override void OnFinalDead(Character character)
+    {
+        // 胜负已定之后闭嘴。基地先被打爆的那条路径会顺手杀光所有猫（含本单位），
+        // 那一下绝不能再倒回去碰基地；CatBase.ForceDefeat 自己也有 isBaseDefeated 早退兜底。
+        LevelController levelController = character != null ? character.levelController : null;
+        if (levelController != null && levelController.IsBattleConcluded) return;
+
+        CatBase catBase = FindCatBase();
+        if (catBase == null)
+        {
+            Debug.LogError("[Aux_ProtectUnitRule] CatBase not found; protect unit death cannot be linked.");
+            return;
+        }
+        catBase.ForceDefeat();
+    }
+
+    private static CatBase FindCatBase()
+    {
+        GameObject catBaseObject = GameObject.Find(CatBaseObjectName);
+        return catBaseObject != null ? catBaseObject.GetComponent<CatBase>() : null;
+    }
+}

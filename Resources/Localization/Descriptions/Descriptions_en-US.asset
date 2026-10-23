@@ -227,7 +227,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 69776097755158
-    m_Localized: Conjure
+    m_Localized: Summoner
     m_Metadata:
       m_Items: []
   - m_Id: 69776097755159
@@ -377,8 +377,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 69776101949445
-    m_Localized: This unit is a conjurer. Has a {0}% chance to conjure a spirit {2}
-      when triggered {1} .
+    m_Localized: The summoner has a {0}% chance to summon a unit when attacking.
     m_Metadata:
       m_Items: []
   - m_Id: 69776101949446
@@ -997,6 +996,38 @@ MonoBehaviour:
   - m_Id: 126209170684067840
     m_Localized: Your world treasure count is set as<color=#FF6060> {0} </color>/
       150.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 126209170684068999
+    m_Localized: Keep<color=#FF6060> {0} </color>(Lv. {1}) alive. It enters the battlefield
+      from the Cat Base at frame {2}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722501066752
+    m_Localized: Aku Soul Surge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722568175616
+    m_Localized: Ghost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722568175617
+    m_Localized: Mirror
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722572369920
+    m_Localized: '{0}% chance to summon a level {1} aku soul surge with a furthest
+      distance of {2}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722572369921
+    m_Localized: The character is not preparing for an attack when his target count
+      is less than {0}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 131949722572369922
+    m_Localized: When the character is going to be hit by a projectile, {0}% chance
+      to prevent it and reflect the projectile back with a damage multiplier of {2}%.
     m_Metadata:
       m_Items: []
   references:

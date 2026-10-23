@@ -78,20 +78,43 @@ public class CatBase : CatCharacter
         Passive_OnAfterTakeDamage();
         if (realHealth <= 0) 
         { 
-            Dead();
-            realHealth = 0; shakecoroutine = StartCoroutine(ShakeTower(atkType,true));
-            CharacterTargetManager manager = CharacterTargetManager.Instance;
-            int count = manager.FillTeamCharacters(true, teamDeadBuffer, this, includeUndetectable: true);
-            for (int i = 0; i < count; i++)
-            {
-                CatCharacter cc = teamDeadBuffer[i] as CatCharacter;
-                if (cc == null) continue;
-                if (cc.HasAbility(AbilityName.BaseCharacter)) continue;
-                cc.Dead();
-            }
-            teamDeadBuffer.Clear();
+            BreakBase(atkType);
         }
         else if (shakecoroutine == null) shakecoroutine = StartCoroutine(ShakeTower(atkType));
+        UpdateHealthInfo();
+    }
+
+    /// <summary>
+    /// 基地被打爆：清血、判负、持续摇晃，并且杀光场上所有非 BaseCharacter 的猫。
+    /// 从 ReceiveAttack 里抽出来是为了让 <see cref="ForceDefeat"/>（PU 保护目标阵亡）能走同一条路。
+    /// atkType 允许为 null，HitEffect 对空表有兼容分支。
+    /// </summary>
+    private void BreakBase(List<AttackType> atkType)
+    {
+        Dead();
+        realHealth = 0;
+        shakecoroutine = StartCoroutine(ShakeTower(atkType, true));
+        CharacterTargetManager manager = CharacterTargetManager.Instance;
+        int count = manager.FillTeamCharacters(true, teamDeadBuffer, this, includeUndetectable: true);
+        for (int i = 0; i < count; i++)
+        {
+            CatCharacter cc = teamDeadBuffer[i] as CatCharacter;
+            if (cc == null) continue;
+            if (cc.HasAbility(AbilityName.BaseCharacter)) continue;
+            cc.Dead();
+        }
+        teamDeadBuffer.Clear();
+    }
+
+    /// <summary>
+    /// PU 玩法专用：保护目标死亡时让基地跟着一起死。
+    /// 已经被打爆过就直接返回 —— 基地先死的那种情况会把所有猫（含保护目标）一起杀掉，
+    /// 那次回头调进来不能再判负一次（LevelProtectUnitSummoner 那边还有 IsBattleConcluded 双保险）。
+    /// </summary>
+    public void ForceDefeat()
+    {
+        if (isBaseDefeated || realHealth <= 0) return;
+        BreakBase(null);
         UpdateHealthInfo();
     }
     public void ApplyLevelBaseHealth(int health)

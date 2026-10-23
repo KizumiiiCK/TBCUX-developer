@@ -35,6 +35,9 @@ public class LevelController : MonoBehaviour
     private const float SPEED_UP_TIME_SCALE = 2f;
     private const float PAUSED_TIME_SCALE = 0f;
     private const int INITIAL_LEVEL_SCORE = 10000;
+    private const int MIN_LEVEL_SCORE = 1;
+    private const float SCORE_HALF_LIFE_SECONDS = 180f;
+    private static readonly float ScoreDecayTau = SCORE_HALF_LIFE_SECONDS / Mathf.Log(2f);
 
     // Deployers count
     protected const int MAIN_DEPLOYER_COUNT = 10;
@@ -170,6 +173,7 @@ public class LevelController : MonoBehaviour
     protected bool disable_controll = false;
     public bool isPloting = false;
     protected int level_score = INITIAL_LEVEL_SCORE;
+    private float levelScoreElapsed;
     protected int gain_XP = 0;
     private int cachedDisplayedMoney = -1;
     private int cachedDisplayedMoneyMax = -1;
@@ -183,6 +187,11 @@ public class LevelController : MonoBehaviour
     private bool sniperActive;
     private GameObject sniperUnit;
     private bool sniperDeployed = true;
+    /// <summary>胜负已定（Victory / Failed 走过）。PU 的死亡监视靠它停手：
+    /// 猫咪基地被打爆时会顺手杀光所有猫，那一下不能再倒过来触发一次基地死亡。
+    /// 不复用 disable_controll：它在剧情期间也是 true。</summary>
+    private bool battleConcluded;
+    public bool IsBattleConcluded => battleConcluded;
     /// <summary>狙击手键是否该出现：没带道具、单位没导入、单位已阵亡都为 false。</summary>
     private bool sniperBtnAvailable;
     public Character PausedSelectedCharacter => pauseInspector != null ? pauseInspector.SelectedCharacter : null;
@@ -256,6 +265,7 @@ public class LevelController : MonoBehaviour
         {
             SetupCatDeployers();
             SetupEnemySummoner();
+            SetupProtectUnits();
             TrySpawnSniper();
             ApplyDefaultSpeed();
         }
@@ -272,8 +282,9 @@ public class LevelController : MonoBehaviour
             * LevelRestrictionHelper.GetMoneyProductionMultiplier(levelRestrictions);
         AddMoney(moneyGain);
 
-        // 更新分数
-        level_score--;
+        // 更新分数：指数衰减，3 分钟常规通关约 5000，永远落在 1–10000。
+        levelScoreElapsed += Time.deltaTime;
+        level_score = ComputeLevelScore(levelScoreElapsed);
 
         // 检查升级条�?
         if (current_money_level < MAX_MONEY_LEVEL)
@@ -607,6 +618,7 @@ public class LevelController : MonoBehaviour
         disable_controll = false;
         SetupCatDeployers();
         SetupEnemySummoner();
+        SetupProtectUnits();
         TrySpawnSniper();
         ApplyDefaultSpeed();
     }
@@ -831,7 +843,9 @@ public class LevelController : MonoBehaviour
     /// <summary>
     /// 开局生成狙击手。单位还没导入，SniperUnitCode 留空，这条路径现在只会走到「隐掉按钮」那一步；
     /// 等编号填上就按部署器那套管线放人（TryParse → LoadData → Decrypt → Place）。
-    /// 不计入 catDeployed：它不是常规部署的单位，而且按钮会来回 SetActive，计数会被搞花。
+    /// 计入 catDeployed 但不受上限阻挡：它不是常规部署，不该被 CC 挡下；
+    /// 但 CatCharacter.OnDestroy 是无条件 RemoveACat 的，不记这一笔它一死就会把别人的名额凭空多让出一个。
+    /// 按钮来回 SetActive 不销毁对象，不影响计数。
     /// </summary>
     private void TrySpawnSniper()
     {
@@ -872,6 +886,7 @@ public class LevelController : MonoBehaviour
             visualOrder);
         sniperDeployed = sniperUnit != null;
         sniperBtnAvailable = sniperUnit != null;
+        if (sniperUnit != null) ForceCountCatDeploy();
         RefreshSniperButton();
     }
 
@@ -977,11 +992,18 @@ public class LevelController : MonoBehaviour
     #endregion
 
     #region Victory and Failure - 胜利与失�?
+    private static int ComputeLevelScore(float elapsedSeconds)
+    {
+        float score = INITIAL_LEVEL_SCORE * Mathf.Exp(-Mathf.Max(0f, elapsedSeconds) / ScoreDecayTau);
+        return Mathf.Clamp(Mathf.RoundToInt(score), MIN_LEVEL_SCORE, INITIAL_LEVEL_SCORE);
+    }
+
     /// <summary>
     /// 关卡胜利
     /// </summary>
     public virtual void Victory()
     {
+        battleConcluded = true;
         disable_controll = true;
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
@@ -1023,6 +1045,7 @@ public class LevelController : MonoBehaviour
     /// </summary>
     public virtual void Failed()
     {
+        battleConcluded = true;
         disable_controll = true;
         SpeedUp(false);
         Pause_btn.gameObject.SetActive(false);
@@ -1296,6 +1319,30 @@ public class LevelController : MonoBehaviour
         enemySummoner.SetupEnemyDeployer(healthPercentage, enemySummonInfos);
     }
 
+    /// <summary>
+    /// PU：一条规则一个 <see cref="LevelProtectUnitSummoner"/>，和敌方召唤器一样挂在本物体上。
+    /// 规则文本未经解析地存在 rawValuesByKey["PU"] 里（这条玩法不进 RestrictionRules 的字段），
+    /// 非法条目在这里跳过。调用点必须跟 SetupEnemySummoner 一致（开局 + 剧情结束），
+    /// 否则计时起点会和敌方错开。
+    /// </summary>
+    private void SetupProtectUnits()
+    {
+        var rawRules = LevelRestrictionHelper.GetProtectUnitValues(levelRestrictions);
+        if (rawRules.Count == 0) return;
+        if (catBaseComponent == null)
+        {
+            Debug.LogError("[LevelController] CatBase not found. Protect unit setup skipped.");
+            return;
+        }
+        for (int i = 0; i < rawRules.Count; i++)
+        {
+            if (!LevelRestrictionHelper.TryParseProtectUnitValue(rawRules[i], out string code, out int level, out int frames))
+                continue;
+            LevelProtectUnitSummoner summoner = gameObject.AddComponent<LevelProtectUnitSummoner>();
+            if (!summoner.Configure(this, catBaseComponent, code, level, frames, treasureCount)) Destroy(summoner);
+        }
+    }
+
     public bool CanDeployACat()
     {
         return catDeployed < maxCatDeploy;
@@ -1343,6 +1390,17 @@ public class LevelController : MonoBehaviour
             if (deployer != null && deployer.MatchesSpawn(spawn)) return deployer;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 剧本强制出场的单位（PU 保护目标、狙击手道具）计数用：无视 maxCatDeploy 上限自增。
+    /// 必须计，因为 CatCharacter.OnDestroy 会无条件 RemoveACat，不增就是白赚一个名额。
+    /// </summary>
+    public void ForceCountCatDeploy()
+    {
+        catDeployed++;
+        MaxDeployed.SetActive(catDeployed >= maxCatDeploy);
+        Debug.Log($"Current Cats: {catDeployed} / {maxCatDeploy}");
     }
 
     /// <summary>

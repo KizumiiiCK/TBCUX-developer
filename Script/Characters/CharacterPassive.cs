@@ -178,4 +178,17 @@ public abstract partial class Character
         }
     }
 
+    /// <summary>
+    /// Dead() 开头分发：对象即将被销毁，这是「真死」的唯一可靠时机。
+    /// </summary>
+    protected void Passive_OnFinalDead()
+    {
+        if (!HasPassiveHook(PassiveHooks.OnFinalDead)) return;
+        List<PassiveNode> snap = passiveSnapshot;
+        for (int i = 0; i < snap.Count; i++)
+        {
+            snap[i]?.OnFinalDead(this);
+        }
+    }
+
 }

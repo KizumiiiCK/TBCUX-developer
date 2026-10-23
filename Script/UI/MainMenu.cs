@@ -12,7 +12,7 @@ public class MainMenu : MonoBehaviour
     private static List<string[]> chapterNames = new List<string[]>()
     {
         new string[]{"World_I","World_II","World_III"},
-        new string[]{"Future_I"},
+        new string[]{"Future_I","Future_II"},
         new string[]{},
         new string[]{"LEGEND"},
         new string[]{"Dream_Pre"},

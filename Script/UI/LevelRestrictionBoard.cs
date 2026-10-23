@@ -43,6 +43,7 @@ public class LevelRestrictionBoard : MonoBehaviour
             { "s+", HandleSurgeDisplay },
             { "s-", HandleSurgeDisplay },
             { "zr", HandleZombieReviveDisplay },
+            { "PU", HandleProtectUnitDisplay },
         };
 
     #endregion
@@ -116,6 +117,13 @@ public class LevelRestrictionBoard : MonoBehaviour
 
             if (key == "zr" &&
                 !LevelRestrictionHelper.TryParseZombieReviveRestrictionValue(value, out _, out _, out _))
+            {
+                RecycleLatestRow(row);
+                continue;
+            }
+
+            if (key == "PU" &&
+                !LevelRestrictionHelper.TryParseProtectUnitValue(value, out _, out _, out _))
             {
                 RecycleLatestRow(row);
                 continue;
@@ -234,6 +242,32 @@ public class LevelRestrictionBoard : MonoBehaviour
         }
 
         ApplyFormatSafe(text, format, times, hpPercent, intervalFrames);
+    }
+
+    /// <summary>
+    /// PU 展开为单位名、等级、出场帧。单位名按 5 位角色码查，查不到就直接显示角色码。
+    /// </summary>
+    private static void HandleProtectUnitDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
+    {
+        if (!isStillValid() || text == null) return;
+        if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string code, out int level, out int frames))
+        {
+            ApplyFormatSafe(text, format, value);
+            return;
+        }
+
+        if (code.Length != 5 || !IsAllDigits(code))
+        {
+            ApplyFormatSafe(text, format, code, level, frames);
+            return;
+        }
+
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, code, nameLoc =>
+        {
+            if (!isStillValid() || text == null) return;
+            string detail = string.IsNullOrEmpty(nameLoc) ? code : nameLoc;
+            ApplyFormatSafe(text, format, detail, level, frames);
+        });
     }
 
     /// <summary>
