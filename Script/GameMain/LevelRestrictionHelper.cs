@@ -833,15 +833,72 @@ public static class LevelRestrictionHelper
     /// 多条 PU 各自生效，任一死亡即判负。等级按填写值走，不受 LC（maxCatLevel）压制
     /// —— 和 FS 强制槽的等级一个口径。
     /// <para>
-    /// 这条规则不是游戏的基本规则，所以<b>不在 RestrictionRules 里占字段</b>：原文本照旧
+    /// 这条规则不是游戏的基本规则，所以<b>不在 RestrictionRules 里另占字段</b>：原文本照旧
     /// 落在 rawValuesByKey["PU"]，要用的人自己调 <see cref="TryParseProtectUnitValue"/>。
-    /// 解析阶段只做校验，让非法配置在编辑器/日志里就暂露出来。
+    /// 解析成功后把猫的 4 位族码写入 denyUnits（和 U- 同一条禁用路径），系统已代选就不能再编进队。
     /// </para>
     /// </summary>
     public static void ParseProtectUnitValue(RestrictionRules rules, string value)
     {
-        if (TryParseProtectUnitValue(value, out _, out _, out _)) return;
-        Debug.LogWarning($"[LevelRestrictionHelper] Invalid PU rule: {value}");
+        if (!TryParseProtectUnitValue(value, out string code, out _, out _))
+        {
+            Debug.LogWarning($"[LevelRestrictionHelper] Invalid PU rule: {value}");
+            return;
+        }
+        if (rules == null) return;
+        if (!TryGetUnitNameLookupKey(code, out string nameKey) || nameKey.Length < 4) return;
+        string code4 = nameKey.Substring(0, 4);
+        if (!IsAllDigits(code4)) return;
+        rules.denyUnits.Add(code4);
+    }
+
+    /// <summary>
+    /// 把限制里的角色码收成 UnitNames 表的 key，给展示板 / 编辑器查名字，不读角色包。
+    /// U+ / U- 是 4 位族码，查 `{code}0`；PU 带形态位（5 位）或敌方码（e002 / -e002）。
+    /// </summary>
+    public static bool TryGetUnitNameLookupKey(string rawCode, out string unitKey)
+    {
+        unitKey = string.Empty;
+        if (string.IsNullOrWhiteSpace(rawCode)) return false;
+
+        string code = rawCode.Trim();
+        if (code[0] == CharacterPlacer.OppositePrefix)
+        {
+            if (code.Length < 2) return false;
+            code = code.Substring(1).Trim();
+            if (string.IsNullOrEmpty(code)) return false;
+        }
+
+        CharacterVisualLoader.SplitPhaseSuffix(code, out string baseCode, out _);
+        if (string.IsNullOrEmpty(baseCode)) return false;
+
+        if (IsAllDigits(baseCode))
+        {
+            if (baseCode.Length == 4)
+            {
+                unitKey = baseCode + "0";
+                return true;
+            }
+            if (baseCode.Length >= 5)
+            {
+                unitKey = baseCode.Substring(0, 5);
+                return true;
+            }
+            return false;
+        }
+
+        unitKey = baseCode;
+        return true;
+    }
+
+    private static bool IsAllDigits(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (!char.IsDigit(value[i])) return false;
+        }
+        return true;
     }
 
     /// <summary>

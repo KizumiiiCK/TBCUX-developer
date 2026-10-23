@@ -190,19 +190,7 @@ public class LevelRestrictionBoard : MonoBehaviour
     /// </summary>
     private static void HandleUnitDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
-        if (value.Length != 4 || !IsAllDigits(value))
-        {
-            ApplyFormatSafe(text, format, value);
-            return;
-        }
-
-        string unitKey = $"{value}0";
-        LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, unitKey, nameLoc =>
-        {
-            if (!isStillValid() || text == null) return;
-            string detail = string.IsNullOrEmpty(nameLoc) ? unitKey : nameLoc;
-            ApplyFormatSafe(text, format, detail);
-        });
+        ApplyUnitNameFormat(value, format, text, isStillValid, value);
     }
 
     /// <summary>
@@ -245,28 +233,33 @@ public class LevelRestrictionBoard : MonoBehaviour
     }
 
     /// <summary>
-    /// PU 展开为单位名、等级、出场帧。单位名按 5 位角色码查，查不到就直接显示角色码。
+    /// PU 文案只有单位名占位（{0}）。查名与 U+ / U- 同一条 UnitNames 规则。
     /// </summary>
     private static void HandleProtectUnitDisplay(string value, string format, TMP_Text text, Func<bool> isStillValid)
     {
         if (!isStillValid() || text == null) return;
-        if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string code, out int level, out int frames))
+        if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string code, out _, out _))
         {
             ApplyFormatSafe(text, format, value);
             return;
         }
 
-        if (code.Length != 5 || !IsAllDigits(code))
+        ApplyUnitNameFormat(code, format, text, isStillValid, code);
+    }
+
+    private static void ApplyUnitNameFormat(string rawCode, string format, TMP_Text text, Func<bool> isStillValid, string fallback)
+    {
+        if (!LevelRestrictionHelper.TryGetUnitNameLookupKey(rawCode, out string unitKey))
         {
-            ApplyFormatSafe(text, format, code, level, frames);
+            ApplyFormatSafe(text, format, fallback);
             return;
         }
 
-        LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, code, nameLoc =>
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_UnitNames, unitKey, nameLoc =>
         {
             if (!isStillValid() || text == null) return;
-            string detail = string.IsNullOrEmpty(nameLoc) ? code : nameLoc;
-            ApplyFormatSafe(text, format, detail, level, frames);
+            string detail = string.IsNullOrEmpty(nameLoc) ? fallback : nameLoc;
+            ApplyFormatSafe(text, format, detail);
         });
     }
 
@@ -282,15 +275,6 @@ public class LevelRestrictionBoard : MonoBehaviour
     #endregion
 
     #region Utilities
-
-    private static bool IsAllDigits(string str)
-    {
-        for (int i = 0; i < str.Length; i++)
-        {
-            if (!char.IsDigit(str[i])) return false;
-        }
-        return true;
-    }
 
     private static void ApplyFormatSafe(TMP_Text lineText, string format, object arg0)
     {
