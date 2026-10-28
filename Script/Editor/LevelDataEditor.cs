@@ -177,9 +177,8 @@ public class LevelDataEditor : Editor
         if (key == "U+" || key == "U-")
         {
             string detail = value;
-            if (value.Length == 4 && IsAllDigits(value))
+            if (LevelRestrictionHelper.TryGetUnitNameLookupKey(value, out string unitKey))
             {
-                string unitKey = value + "0";
                 string unitName = GetLocalizedTextCached(UXPref.Localized_UnitNames, unitKey);
                 if (HasLocalizedField(unitName, unitKey)) detail = unitName;
             }
@@ -200,16 +199,16 @@ public class LevelDataEditor : Editor
 
         if (key == "PU")
         {
-            if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string puCode, out int puLevel, out int puFrames))
+            if (!LevelRestrictionHelper.TryParseProtectUnitValue(value, out string puCode, out _, out _))
                 return InvalidRestrictionHint;
 
             string puName = puCode;
-            if (puCode.Length == 5 && IsAllDigits(puCode))
+            if (LevelRestrictionHelper.TryGetUnitNameLookupKey(puCode, out string puKey))
             {
-                string localizedName = GetLocalizedTextCached(UXPref.Localized_UnitNames, puCode);
-                if (HasLocalizedField(localizedName, puCode)) puName = localizedName;
+                string localizedName = GetLocalizedTextCached(UXPref.Localized_UnitNames, puKey);
+                if (HasLocalizedField(localizedName, puKey)) puName = localizedName;
             }
-            return FormatSafe(format, puName, puLevel, puFrames);
+            return FormatSafe(format, puName);
         }
 
         return FormatSafe(format, value);
@@ -218,16 +217,6 @@ public class LevelDataEditor : Editor
     private static bool HasLocalizedField(string localized, string key)
     {
         return !string.IsNullOrEmpty(localized) && localized != key;
-    }
-
-    private static bool IsAllDigits(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-        for (int i = 0; i < value.Length; i++)
-        {
-            if (!char.IsDigit(value[i])) return false;
-        }
-        return true;
     }
 
     private static string FormatSafe(string format, object arg0)
@@ -558,7 +547,7 @@ public class LevelDataEditor : Editor
         SerializedProperty repeatMaxProp = infoProp.FindPropertyRelative("repeatMax");
         CharacterData enemyData = GetEnemyData(enemyIdProp.stringValue);
         int ratio = Mathf.Max(0, ratioProp.intValue);
-        int scaledHealth = enemyData != null ? Mathf.RoundToInt(enemyData.Health * ratio / 100f) : 0;
+        int scaledHealth = enemyData != null ? Mathf.RoundToInt(enemyData.Health * (ratio / 100f)) : 0;
         string scaledAtkText = BuildScaledAtkText(enemyData, ratio);
 
         EditorGUILayout.BeginVertical(boxStyle);
@@ -810,7 +799,7 @@ public class LevelDataEditor : Editor
         for (int i = 0; i < data.atkInfos.Length; i++)
         {
             if (i > 0) sb.Append(" / ");
-            int scaledAtk = Mathf.RoundToInt(data.atkInfos[i].ATK * ratio / 100f);
+            int scaledAtk = Mathf.RoundToInt(data.atkInfos[i].ATK * (ratio / 100f));
             sb.Append(scaledAtk);
         }
         return sb.ToString();

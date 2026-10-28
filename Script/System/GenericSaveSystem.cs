@@ -48,6 +48,7 @@ public static class UXPref
     public const string Localized_DialogueNames = "DialogueNames";
     public const string Localized_Descriptions = "Descriptions";
     public const string Localized_UnitNames = "UnitNames";
+    public const string Localized_ItemNames = "ItemNames";
     public const string Localized_Bontiques = "BontiqueItems";
     public const string Localized_CS = "ChapterSections";
     public const string Localized_BM = "BaseMessages";
@@ -115,6 +116,11 @@ public static class FirstAnniversarySchedule
 
 public static class GenericSaveSystem
 {
+    /// <summary>
+    /// 测试用：打开后节列表无视 unlockRestriction，选关页建出读到的全部关卡（不写通关存档）。
+    /// </summary>
+    public static readonly bool test_ShowAllLevels = false;
+
     // 保存数据
     public static readonly string FirmFilePath = Application.persistentDataPath;
     public static readonly string FirmEnding = ".datux";

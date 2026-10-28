@@ -51,7 +51,12 @@ public class SectionButton : MonoBehaviour
         for (int i = 0; i < 5; i++) if (mi.hardness < i + 1) { Image crown = Crowns.GetChild(i).GetComponent<Image>(); crown.color = new Color(0, 0, 0, 0); }
 
         //Check if unlocked
-        if (mi != null && !string.IsNullOrEmpty(mi.unlockRestriction))
+        if (GenericSaveSystem.test_ShowAllLevels)
+        {
+            GetComponent<Button>().interactable = true;
+            LockStatement.gameObject.SetActive(false);
+        }
+        else if (mi != null && !string.IsNullOrEmpty(mi.unlockRestriction))
         {
             string[] s = mi.unlockRestriction.Split('+');
             try

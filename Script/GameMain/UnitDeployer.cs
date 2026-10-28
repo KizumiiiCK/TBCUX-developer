@@ -114,32 +114,36 @@ public class UnitDeployer : MonoBehaviour
         }
         Image icon=GetComponent<Image>();
         icon.sprite = CharacterPlacer.LoadIcon(identity);
-        bool talentUnlocked = false;
-        if (forceLevel >= 1) lvl = forceLevel;
-        else if (identity.IsOpposite) lvl = 1;
-        else try
+        // forceLevel 只覆盖等级（关卡限制/测试关总会传入 >= 1）。
+        // 本能必须单独读存档，否则那条「读等级」的 else 永远进不去，解锁了也叠不上。
+        CharacterUpgradeSave.UpgradeDetails ud = null;
+        if (!identity.IsOpposite && identity.AssetIsCat && identity.CharacterCode.Length >= 4)
         {
-            // 等级和本能都在同一条存档记录里，读一次就够——GetDetails 每次都会重新读盘。
-            CharacterUpgradeSave.UpgradeDetails ud = CharacterUpgradeSave.GetDetails(identity.CharacterCode.Substring(0, 4));
-            lvl = ud.TotalLevel(); if (lvl < 1) lvl = 1;
-            talentUnlocked = ud.talent_unlocked;
+            try { ud = CharacterUpgradeSave.GetDetails(identity.CharacterCode.Substring(0, 4)); }
+            catch { }
         }
-        catch { lvl = 1; }
+        if (forceLevel >= 1) lvl = forceLevel;
+        else if (ud != null)
+        {
+            lvl = ud.TotalLevel();
+            if (lvl < 1) lvl = 1;
+        }
+        else lvl = 1;
         SetLevelText(lvl);
         //treasure_bonus = 1 + 1.5f * (RewardingSystem.GetAmount(RewardName.WorldTreasures) / 150f);
         treasure_count = treasureCount;
-        unitCost = CD.Cost;
-        cd = (int)(CD.Cooldown * (2.5f - 1.5f*treasure_count / 150f));
-        t = cd;
         cachedShadeFill = -1f;
         int appliedProficiency = identity.IsOpposite ? 0 : proficency;
         SetProficiencyMark(appliedProficiency);
         if (appliedProficiency > 0) CD.Health = (int)(CD.Health * (1.05f + 0.02f * teambonus));
         if (appliedProficiency > 1) for(int i = 0; i < CD.atkInfos.Length; i++) CD.atkInfos[i].ATK *= 1.05f + 0.02f * teambonus;
-        if (appliedProficiency > 2) { CD.Cost = CD.Cost * 93 / 100; unitCost = CD.Cost; }
+        if (appliedProficiency > 2) CD.Cost = CD.Cost * 93 / 100;
+        // 本能放在熟练度之后，三阶段起才叠。数值类 buff 会改 Cost / Cooldown，所以花费和恢复要在叠完再读。
+        if (ud != null && ud.talent_unlocked) ApplyTalent();
+        unitCost = CD.Cost;
         CD.Cost = unitCost;
-        // 本能放在熟练度之后：熟练度只动血量/攻击/花费这些数值，本能只动属性和效果，互不重叠。
-        if (talentUnlocked) ApplyTalent();
+        cd = (int)(CD.Cooldown * (2.5f - 1.5f * treasure_count / 150f));
+        t = cd;
         cachedEnoughMoney = LI != null && LI.currentMoney >= unitCost;
         cachedDeployAvailable = t >= cd && cachedEnoughMoney;
         moneyCheckFrameCounter = 0;
@@ -152,10 +156,12 @@ public class UnitDeployer : MonoBehaviour
     /// <summary>
     /// 把本能叠到 CD 上。CD 是 CharacterVisualLoader.LoadCharacterData 给的副本，可以安全就地改。
     /// 本能资源在角色根目录（和 upgrade 同级），没做出来的角色读不到就当没有，不报错。
+    /// 一、二阶段直接返回：本能从三阶段才生效。
     /// </summary>
     private void ApplyTalent()
     {
         if (CD == null) return;
+        if (!TalentData.CanApplyToForm(identity.CharacterCode)) return;
         TalentData talent = TalentData.Load(identity.CharacterCode);
         if (talent == null) return;
         talent.ApplyTo(CD);

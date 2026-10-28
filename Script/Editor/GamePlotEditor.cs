@@ -15,6 +15,8 @@ public class GamePlotEditor : Editor
     private static readonly Dictionary<string, bool> CgExistCache = new Dictionary<string, bool>();
     private GUIStyle cgMarkStyle;
     private GUIStyle invalidCgMarkStyle;
+    private GUIStyle plotTextStyle;
+    private GUIStyle missingPlotStyle;
 
     public override void OnInspectorGUI()
     {
@@ -25,12 +27,12 @@ public class GamePlotEditor : Editor
 
         EditorGUILayout.PropertyField(contentIdProp);
         EditorGUILayout.Space(6f);
-        DrawDialogueList(dialoguesProp);
+        DrawDialogueList(contentIdProp.stringValue, dialoguesProp);
 
         serializedObject.ApplyModifiedProperties();
     }
 
-    private void DrawDialogueList(SerializedProperty dialoguesProp)
+    private void DrawDialogueList(string contentId, SerializedProperty dialoguesProp)
     {
         if (dialoguesProp == null) return;
 
@@ -52,11 +54,11 @@ public class GamePlotEditor : Editor
 
         for (int i = 0; i < dialoguesProp.arraySize; i++)
         {
-            if (DrawDialogueItem(dialoguesProp, i)) break;
+            if (DrawDialogueItem(contentId, dialoguesProp, i)) break;
         }
     }
 
-    private bool DrawDialogueItem(SerializedProperty dialoguesProp, int index)
+    private bool DrawDialogueItem(string contentId, SerializedProperty dialoguesProp, int index)
     {
         SerializedProperty item = dialoguesProp.GetArrayElementAtIndex(index);
         SerializedProperty nameProp = item.FindPropertyRelative("DialoguerName");
@@ -101,9 +103,31 @@ public class GamePlotEditor : Editor
         EditorGUILayout.PropertyField(cgProp, new GUIContent("CG"));
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
+
+        DrawDialoguePlotText(contentId, index);
         EditorGUILayout.EndVertical();
 
         return false;
+    }
+
+    private void DrawDialoguePlotText(string contentId, int index)
+    {
+        EnsureStyles();
+        EditorGUILayout.Space(4f);
+        string key = $"{contentId}:{index}";
+        string localized = CharacterAssetEditorGUI.GetLocalizedTextCached(UXPref.Localized_Dialogue, key);
+        if (!string.IsNullOrEmpty(contentId) && HasLocalizedPlotText(localized, key))
+        {
+            EditorGUILayout.LabelField(localized, plotTextStyle);
+            return;
+        }
+
+        EditorGUILayout.LabelField("[exceed content length]", missingPlotStyle);
+    }
+
+    private static bool HasLocalizedPlotText(string localized, string key)
+    {
+        return !string.IsNullOrEmpty(localized) && localized != key;
     }
 
     private void DrawDialoguePreview(string dialoguerImage, bool flipX, string cgName)
@@ -222,16 +246,33 @@ public class GamePlotEditor : Editor
 
     private void EnsureStyles()
     {
-        if (cgMarkStyle != null && invalidCgMarkStyle != null) return;
-        cgMarkStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+        if (cgMarkStyle == null)
         {
-            normal = { textColor = new Color(0.25f, 0.7f, 0.25f, 1f) },
-            alignment = TextAnchor.MiddleCenter
-        };
-        invalidCgMarkStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            cgMarkStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                normal = { textColor = new Color(0.25f, 0.7f, 0.25f, 1f) },
+                alignment = TextAnchor.MiddleCenter
+            };
+        }
+        if (invalidCgMarkStyle == null)
         {
-            normal = { textColor = new Color(0.85f, 0.2f, 0.2f, 1f) },
-            alignment = TextAnchor.MiddleCenter
-        };
+            invalidCgMarkStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                normal = { textColor = new Color(0.85f, 0.2f, 0.2f, 1f) },
+                alignment = TextAnchor.MiddleCenter
+            };
+        }
+        if (plotTextStyle == null)
+        {
+            plotTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel);
+        }
+        if (missingPlotStyle == null)
+        {
+            missingPlotStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+            {
+                normal = { textColor = new Color(0.85f, 0.2f, 0.2f, 1f) },
+                fontStyle = FontStyle.Bold
+            };
+        }
     }
 }

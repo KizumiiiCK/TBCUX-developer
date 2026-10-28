@@ -368,7 +368,7 @@ public class LevelTiler : UICanvasMain
             lp.transform.SetParent(mapt);
             spawnedMapPoints.Add(lp.gameObject);
             if (i > 0) lp.SetPathLine(MI.levelsOnMap[i - 1].levelPosition);
-            if (secClearList.clear_times[diff, i] > 0) lp.UnlockPoint();
+            if (GenericSaveSystem.test_ShowAllLevels || secClearList.clear_times[diff, i] > 0) lp.UnlockPoint();
         }
         if (buildLevelTilesRoutine != null) StopCoroutine(buildLevelTilesRoutine);
         buildLevelTilesRoutine = StartCoroutine(BuildLevelTilesRoutine(exact_maplength, diff, mark_label, levelLoadPath));
@@ -378,6 +378,8 @@ public class LevelTiler : UICanvasMain
         const int buildBatchSize = 8;
         int directMark = PlayerPrefs.GetInt(UXPref.DirectMark, 0);
         int directLevel = PlayerPrefs.GetInt(UXPref.LevelNum);
+        bool showAll = GenericSaveSystem.test_ShowAllLevels;
+        int firstUncleared = -1;
         for (int i = 0; i < mapLength; i++)
         {
             RectTransform lvl = Instantiate(LevelPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
@@ -395,7 +397,8 @@ public class LevelTiler : UICanvasMain
                 Debug.LogError($"Error Loading level {i}.");
                 int validLastIndex = Mathf.Max(0, i - 1);
                 SetLevelMapSize(validLastIndex);
-                MoveToLevel(directMark == 1 ? directLevel : validLastIndex);
+                int fallback = firstUncleared >= 0 ? firstUncleared : validLastIndex;
+                MoveToLevel(directMark == 1 ? directLevel : fallback);
                 break;
             }
             if (ShouldMarkLimitedReward(markLabel, i, levelData))
@@ -404,7 +407,9 @@ public class LevelTiler : UICanvasMain
             }
             SetEnemyAppears(i, levelData);
             AttachRestrictionWarningMarkIfNeeded(lvl, levelData);
-            if (secClearList.clear_times[diff, i] <= 0)
+            bool uncleared = secClearList.clear_times[diff, i] <= 0;
+            if (uncleared && firstUncleared < 0) firstUncleared = i;
+            if (uncleared && !showAll)
             {
                 SetLevelMapSize(i);
                 MoveToLevel(directMark == 1 ? directLevel : i);
@@ -413,7 +418,8 @@ public class LevelTiler : UICanvasMain
             if (i == mapLength - 1)
             {
                 SetLevelMapSize(mapLength - 1);
-                MoveToLevel(directMark == 1 ? directLevel : mapLength - 1);
+                int fallback = firstUncleared >= 0 ? firstUncleared : mapLength - 1;
+                MoveToLevel(directMark == 1 ? directLevel : fallback);
             }
             if ((i + 1) % buildBatchSize == 0)
             {

@@ -211,6 +211,8 @@ public class LevelController : MonoBehaviour
     /// 跟着 LevelController 实例走，所以每场战斗自动从 0 开始，不需要额外归零。
     /// </summary>
     private readonly int[] visualLayerSlots = new int[VisualLayerCount];
+    /// <summary>BaseCharacter 替身的 Units 层序号，每场从 0 起，后出场的盖住先出场的。</summary>
+    private int baseCharacterSortOrder;
 
     #endregion
 
@@ -1366,6 +1368,13 @@ public class LevelController : MonoBehaviour
         int slot = visualLayerSlots[layer] % VisualLayerStride;
         visualLayerSlots[layer] = slot + 1;
         return slot;
+    }
+
+    public int NextBaseCharacterSortOrder()
+    {
+        int order = baseCharacterSortOrder;
+        baseCharacterSortOrder++;
+        return order;
     }
 
     public UnitDeployer FindCatDeployer(Character character)
