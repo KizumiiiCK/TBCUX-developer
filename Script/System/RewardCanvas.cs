@@ -9,6 +9,7 @@ public class RewardCanvas : UICanvasMain
     [SerializeField] GameObject RewardingFrame;
     [SerializeField] Image reward_image;
     [SerializeField] Image character_image;
+    [SerializeField] TMP_Text reward_name;
     [SerializeField] TMP_Text reward_count;
     [SerializeField] TMP_Text reward_stack;
     [SerializeField] Button SkipBtn;
@@ -47,6 +48,7 @@ public class RewardCanvas : UICanvasMain
                 character_image.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetCatDeployIconPath(rewardcode.ToString("0000"), 0));
                 reward_count.text = "+1";
                 reward_stack.text = "";
+                SetRewardName(null);
                 break;
             case RewardType.UnlockTire:
                 reward_image.gameObject.SetActive(false);
@@ -54,6 +56,7 @@ public class RewardCanvas : UICanvasMain
                 character_image.sprite = BundledAddressables.LoadSync<Sprite>(RewardIconHelper.GetUnlockTireIconPath(rewardcode));
                 reward_count.text = "+1";
                 reward_stack.text = "";
+                SetRewardName(null);
                 break;
             case RewardType.item:
                 reward_image.gameObject.SetActive(true);
@@ -63,10 +66,28 @@ public class RewardCanvas : UICanvasMain
                 int cf = RewardingSystem.GetAmount(rewardcode);
                 if(rewardcode==60) reward_stack.text = $"{cf} / 150";
                 else reward_stack.text = $"{cf - count}   -->   {cf}";
+                SetRewardName($"id:{rewardcode}");
                 break;
             default: break;
         }
     }
+    /// <summary>显示获得物品的本地化名字。itemKey 为空则隐藏名字栏。</summary>
+    private void SetRewardName(string itemKey)
+    {
+        if (reward_name == null) return;
+        if (string.IsNullOrEmpty(itemKey))
+        {
+            reward_name.text = "";
+            return;
+        }
+        reward_name.text = "";
+        LocalizationHelper.GetLocalizedText(UXPref.Localized_ItemNames, itemKey,
+            localizedText =>
+            {
+                if (reward_name != null) reward_name.text = localizedText ?? "";
+            });
+    }
+
     public void PassThisPage()
     {
         onDisplaying = false;
