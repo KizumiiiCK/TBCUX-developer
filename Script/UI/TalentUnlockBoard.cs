@@ -178,7 +178,7 @@ public class TalentUnlockBoard : MonoBehaviour
             int need = costs[i].count;
             int held = RewardingSystem.GetAmount(rn);
             item.gameObject.SetActive(true);
-            item.SetData(GetRewardId(rn), need, held >= need ? CostEnoughColor : CostInsufficientColor, $"{held} / {need}");
+            item.SetData(GetRewardId(rn), need, held >= need ? CostEnoughColor : CostInsufficientColor, 56, $"{held} / {need}",true);
         }
 
         if (costs.Count > slots)

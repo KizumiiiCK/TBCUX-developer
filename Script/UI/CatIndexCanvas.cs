@@ -267,13 +267,17 @@ public class CatIndexCanvas : UICanvasMain
         }
         //
         CharacterUpgradeSave.UpgradeDetails ud = CharacterUpgradeSave.GetDetails($"{rality}{current_code}");
-        TalentData talent = ud.talent_unlocked ? TalentData.Load($"{rality}{current_code}") : null;
+        // 和出战一致：本能从三阶段才叠进数值/图标高亮。一、二阶段即使已经解锁也不带。
+        string formCode = $"{rality}{current_code}{tire}";
+        TalentData talent = ud.talent_unlocked && TalentData.CanApplyToForm(formCode)
+            ? TalentData.Load(formCode)
+            : null;
         IV.ShowCharacterDetails(ApplyTalentForDisplay(CD, talent), true, current_level, talent);
         CheckUpgradeAvailable(ud);
     }
 
     /// <summary>
-    /// 已解锁本能的角色，图鉴要看到叠加后的样子。
+    /// 已解锁本能、且当前正在看三阶段起的形态时，图鉴要看到叠加后的样子。
     /// 实现挪到了 TalentData.MergeForDisplay，和本能解锁面板共用同一条路径。
     /// </summary>
     private CharacterData ApplyTalentForDisplay(CharacterData source, TalentData talent)
@@ -999,6 +1003,7 @@ public class CatIndexCanvas : UICanvasMain
         if (FrameUI != null) FrameUI.RefreshCurrencyAmounts();
         // 不重播动画，只更新数值面板与按钮状态（本能按钮会在这里变灰）
         ShowCertainCharInTire(current_tire, false);
+        PlatformAudio.PlaySfx(GetComponent<AudioSource>());
     }
     #endregion
 

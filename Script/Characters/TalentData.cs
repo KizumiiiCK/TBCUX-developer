@@ -58,6 +58,18 @@ public class TalentData : ScriptableObject
         return address != null && BundledAddressables.Exists(address, typeof(TalentData));
     }
 
+    /// <summary>
+    /// 本能从第三阶段才生效：编号末位是阶段（0/1/2…），2 才是三阶。
+    /// 一、二阶段即使存档已经解锁本能也不叠、不显示。
+    /// </summary>
+    public const int MinFormIndex = 2;
+
+    public static bool CanApplyToForm(string characterCode)
+    {
+        if (string.IsNullOrEmpty(characterCode) || characterCode.Length < 5) return false;
+        return characterCode[4] - '0' >= MinFormIndex;
+    }
+
     /// <summary>和 CharacterData.Clone 一样，走 Json 深拷贝，免得运行时改到资源本体。</summary>
     public TalentData Clone()
     {
@@ -89,6 +101,7 @@ public class TalentData : ScriptableObject
     ///  - 属性类（traits/subtraits/career/againstCareer/DRE）逐位取「或」，两边有一个为 true 就是 true。
     ///  - 列表类（effects/abilities/抗性）按 name（抗性按 type）对齐：原本没有的直接加，
     ///    原本就有的用本能这条整体覆盖掉。
+    ///  - buff_* 常驻数值由 PassiveBuff 按 probability 叠到 CharacterData 上。
     /// 写进去的都是新对象，本能资源自身不会被后续的运行时改动碰到。
     /// </summary>
     public void ApplyTo(CharacterData data)
@@ -101,6 +114,7 @@ public class TalentData : ScriptableObject
         data.abilities = MergeAbilities(data.abilities, abilities);
         data.atkTypeResis = MergeAtkResistances(data.atkTypeResis, atkTypeResis);
         data.effectResistances = MergeEffects(data.effectResistances, effectResistances);
+        TalentStatBuff.ApplyAll(data, abilities);
     }
 
     private void ApplyTraits(CharacterData data)

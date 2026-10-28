@@ -202,7 +202,8 @@ public class ChangePhase : PassiveSkill
 
         // 本能挂在角色根目录，不随阶段和 -pN 变，所以变身只要沿用「上一形态叠过本能」这个结论重新叠一次即可。
         // 战斗中不去碰存档：解锁与否在出击时就已经定下来了。
-        bool inheritTalent = source.HasTalent;
+        // 后继者若是一、二阶段，即使源单位叠过本能也不传——本能从三阶段才生效。
+        bool inheritTalent = source.HasTalent && TalentData.CanApplyToForm(nextIdentity.CharacterCode);
         if (inheritTalent)
         {
             TalentData talent = TalentData.Load(nextIdentity.CharacterCode);
@@ -397,8 +398,6 @@ public class ZombieReviveAddon : PassiveSkill
 public class BaseCharacter : PassiveSkill
 {
     private const int IdleAnimIndex = 3;
-    private const int FixedSortingOrder = 2000;
-    private const float FixedSortingYOffset = FixedSortingOrder / 10000f;
     private Coroutine monitorBaseRoutine;
     private Coroutine breakdownRoutine;
     private bool baseDefeatHandled;
@@ -424,7 +423,10 @@ public class BaseCharacter : PassiveSkill
         if (hostBase == null) return;
 
         SnapToBaseWithFixedSorting(character, hostBase.transform.position);
-        ApplyFixedSortingLayer(character);
+        int sortOrder = character.levelController != null
+            ? character.levelController.NextBaseCharacterSortOrder()
+            : 0;
+        ApplyFixedSortingLayer(character, sortOrder);
         // 敌塔把本体外观藏掉，改由替身当塔；猫塔本体继续显示，替身只挂在塔下。
         if (!character.IsCat() && hostBase.transform.childCount > 0)
             hostBase.transform.GetChild(0).gameObject.SetActive(false);
@@ -495,23 +497,23 @@ public class BaseCharacter : PassiveSkill
 
     private static void SnapToBaseWithFixedSorting(Character character, Vector3 basePos, bool refreshStartPos = true)
     {
-        character.transform.position = new Vector3(basePos.x, basePos.y - FixedSortingYOffset, basePos.z);
+        character.transform.position = new Vector3(basePos.x, basePos.y, basePos.z);
         if (refreshStartPos) character.RefreshStartPos();
     }
 
-    private static void ApplyFixedSortingLayer(Character character)
+    private static void ApplyFixedSortingLayer(Character character, int sortOrder)
     {
         if (character == null) return;
         if (character.UNITYAnimated)
         {
             if (character.SPINEAnimated)
-                CharacterVisualLoader.ResetSpineOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+                CharacterVisualLoader.ResetSpineOrderLayer(character.gameObject, "Units", sortOrder);
             else
-                CharacterVisualLoader.ResetAnimationOrderLayer(character.gameObject, "Units", FixedSortingOrder);
+                CharacterVisualLoader.ResetAnimationOrderLayer(character.gameObject, "Units", sortOrder);
             return;
         }
 
         AnimationDisplayer ad = character.GetComponent<AnimationDisplayer>();
-        if (ad != null) CharacterVisualLoader.ResetAnimationOrderLayer(ad, FixedSortingOrder);
+        if (ad != null) CharacterVisualLoader.ResetAnimationOrderLayer(ad, sortOrder);
     }
 }

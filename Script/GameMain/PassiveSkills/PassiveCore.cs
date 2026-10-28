@@ -62,6 +62,13 @@ public static class AbilityInstaller
         { AbilityName.Aux_HealDamage, typeof(Aux_HealDamage)},
         { AbilityName.Aux_BossWave, typeof(Aux_BossWave)},
         { AbilityName.Aux_ProtectUnit, typeof(Aux_ProtectUnitRule)},
+        { AbilityName.buff_defence, typeof(BuffDefence)},
+        { AbilityName.buff_attack, typeof(BuffAttack)},
+        { AbilityName.buff_speed, typeof(BuffSpeed)},
+        { AbilityName.buff_kb, typeof(BuffKb)},
+        { AbilityName.buff_costdown, typeof(BuffCostDown)},
+        { AbilityName.buff_recover, typeof(BuffRecover)},
+        { AbilityName.buff_atkFreq, typeof(BuffAtkFreq)},
     };
     public static void Install(Character C, CharacterAbility ca)
     {

@@ -105,6 +105,7 @@ public class IndexViewerPause : MonoBehaviour
     private CharacterData ApplyTalentForDisplay(CharacterData baseData, Character character, string code)
     {
         if (baseData == null || character == null || !character.HasTalent) return baseData;
+        if (!TalentData.CanApplyToForm(code)) return baseData;
         TalentData talent = TalentData.Load(code);
         if (talent == null) return baseData;
         CharacterData merged = baseData.Clone();
