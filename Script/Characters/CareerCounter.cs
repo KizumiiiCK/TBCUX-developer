@@ -25,9 +25,10 @@ using UnityEngine;
 /// 所以必须成块释放；MinChunk 还跟攻击者的攻击周期挂钩，保证一段至少有半个攻击周期的意义。</item>
 /// </list>
 ///
-/// 参考稳态（默认参数，PressureGain=0.5 / ShareWindow=60 / Recover=150）：
-/// 1 人 P≈0.20 duty≈0.27；2 人 P≈0.60 duty≈0.51；3 人 P≈0.73 duty≈0.59；4 人 P≈0.80 duty≈0.63；
-/// 5 人以上封顶 duty→0.75。再乘各职业的 DutyScale（stop 只有 0.5，所以 4 人集火也只有约 31% 的时间被定住）。
+/// 参考稳态（每人至少每 2 秒打一发，PressureGain=0.5 / ShareWindow=60 / Recover=900）：
+/// 1 人 P≈0.87 duty≈0.76；2 人 P≈0.93 duty≈0.81；人再多也封顶 duty→0.85。
+/// 攻得更慢的人会在两击之间掉压力：约 6 秒一发的单人削弱约 71%，10 秒一发约 63%。
+/// 再乘各职业的 DutyScale（stop 只有 0.5，单人持续打也只有约 38% 的时间被定住）。
 /// </summary>
 public static class CareerCounterConfig
 {
@@ -36,22 +37,22 @@ public static class CareerCounterConfig
     public static float PressureGain = 0.5f;
     /// <summary>同一个攻击者的压力贡献冷却（帧）。大 = 攻速快的单打独斗更吃亏，人数的权重更高。30 帧 = 1 秒。</summary>
     public static int ShareWindowFrames = 60;
-    /// <summary>压力从 1 衰减到 0 所需帧数。大 = 集火的余温更长，短暂走开也还压得住。</summary>
-    public static float RecoverFrames = 150f;
+    /// <summary>压力从 1 衰减到 0 所需帧数。900 帧 = 30 秒。大 = 慢攻速的单人也能留住压力；脱战仍由 GapResetFrames 清空。</summary>
+    public static float RecoverFrames = 900f;
 
     /* ====== 占空比层（效果覆盖率） ====== */
-    /// <summary>P=0 时的效果覆盖率下限。单人持续打（P≈0.2）拿到的是 DutyMin + 0.2*(DutyMax-DutyMin)。</summary>
-    public static float DutyMin = 0.15f;
+    /// <summary>P=0 时的效果覆盖率下限。单人持续打（约每 2 秒一发，P≈0.87）拿到的是 DutyMin + 0.87*(DutyMax-DutyMin)。</summary>
+    public static float DutyMin = 0.2f;
     /// <summary>P=1 时的效果覆盖率上限，也就是<b>整套职业克制的硬天花板</b>（再乘职业 DutyScale）。</summary>
-    public static float DutyMax = 0.75f;
+    public static float DutyMax = 0.85f;
 
     /* ====== 计量与分块 ====== */
     /// <summary>单次命中计入预算的间隔下限（帧）。防止多段攻击/弹幕刷出一堆「零间隔」的免费预算。</summary>
     public static int IntervalMinFrames = 6;
-    /// <summary>单次命中计入预算的间隔上限（帧）。慢攻速单位一下给的预算不会超过这个数。</summary>
-    public static int IntervalMaxFrames = 120;
+    /// <summary>单次命中计入预算的间隔上限（帧）。300 帧 = 10 秒，覆盖约四分之三的猫的攻击周期；再慢的一击不再多给预算。</summary>
+    public static int IntervalMaxFrames = 300;
     /// <summary>超过这个帧数没再吃到职业克制，就视为脱战：压力、预算、攻击者表全部清空。</summary>
-    public static int GapResetFrames = 180;
+    public static int GapResetFrames = 450;
     /// <summary>MinChunk 取攻击者攻击周期（atkDuration + Reload）的这个比例。</summary>
     public static float MinChunkCycleRatio = 0.5f;
     /// <summary>MinChunk 的上限（帧）。攻击周期特别长的单位不会因此憋出一个超长块。</summary>
@@ -77,40 +78,40 @@ public static class CareerCounterConfig
     /// </summary>
     public static readonly CareerCounterEntry[] Entries =
     {
-        // Warrior：削弱攻击力，最温和，给满占空比。
+        // Warrior：削弱攻击力，最温和，给满占空比。单块按 10 秒一发的单人存款一次放完。
         new CareerCounterEntry
         {
             Effects = new[] { EffectName.weaken },
             DutyScale = 1.0f, Intensity = 50,
-            MinChunkFrames = 10, MaxChunkFrames = 60, BudgetCapFrames = 90,
+            MinChunkFrames = 10, MaxChunkFrames = 200, BudgetCapFrames = 200,
         },
-        // Deffender：停止。唯一的完全硬控，占空比打五折，单块也短，避免动画抽搐。
+        // Deffender：停止。唯一的完全硬控，占空比打五折，单块也按同样折扣缩短。
         new CareerCounterEntry
         {
             Effects = new[] { EffectName.stop },
             DutyScale = 0.5f, Intensity = 0,
-            MinChunkFrames = 15, MaxChunkFrames = 30, BudgetCapFrames = 45,
+            MinChunkFrames = 15, MaxChunkFrames = 100, BudgetCapFrames = 100,
         },
         // Magician：减速。
         new CareerCounterEntry
         {
             Effects = new[] { EffectName.slow },
             DutyScale = 0.9f, Intensity = 0,
-            MinChunkFrames = 10, MaxChunkFrames = 60, BudgetCapFrames = 90,
+            MinChunkFrames = 10, MaxChunkFrames = 180, BudgetCapFrames = 180,
         },
         // Supporter：死亡标记（伤害分摊），另见 SupporterKnockbackOnChunkOnly。
         new CareerCounterEntry
         {
             Effects = new[] { EffectName.deathmark },
             DutyScale = 1.0f, Intensity = 50,
-            MinChunkFrames = 12, MaxChunkFrames = 60, BudgetCapFrames = 90,
+            MinChunkFrames = 12, MaxChunkFrames = 200, BudgetCapFrames = 200,
         },
-        // Practician：裂伤 + 减速，两个效果共用同一块时长，所以占空比折一点。
+        // Practician：裂伤 + 减速，两个效果共用同一块时长，所以占空比和单块都折一点。
         new CareerCounterEntry
         {
             Effects = new[] { EffectName.lacerate, EffectName.slow },
             DutyScale = 0.8f, Intensity = 50,
-            MinChunkFrames = 12, MaxChunkFrames = 45, BudgetCapFrames = 70,
+            MinChunkFrames = 12, MaxChunkFrames = 160, BudgetCapFrames = 160,
         },
     };
 
@@ -132,10 +133,10 @@ public class CareerCounterEntry
     public int Intensity = 50;
     /// <summary>一块的最短帧数，低于它就继续攒，免得碎片化开关。</summary>
     public int MinChunkFrames = 10;
-    /// <summary>一块的最长帧数，预算再多也要分几次放。</summary>
-    public int MaxChunkFrames = 60;
-    /// <summary>预算上限，攒满就不再增长（溢出的压力直接浪费掉，这是天花板的一部分）。</summary>
-    public int BudgetCapFrames = 90;
+    /// <summary>一块的最长帧数，预算再多也要分几次放。Entries 里按职业覆盖。</summary>
+    public int MaxChunkFrames = 200;
+    /// <summary>预算上限，攒满就不再增长。和 MaxChunk 对齐，单次存款不会在放出前被截掉。</summary>
+    public int BudgetCapFrames = 200;
 }
 
 /// <summary>
@@ -158,6 +159,9 @@ public class CareerCounter
     private float pressure;
     private int lastHitFrame = int.MinValue;
     private int lastPressureFrame;
+    // 克制击退延后到最终伤害算完：若本击会打出硬度 KB_Type.none，就丢掉这次击退。
+    private bool pendingSupporterKnockback;
+    private float pendingKnockbackPower;
 
     /// <summary>当前压力，0~1。给调试/UI 看，逻辑里不要外部写。</summary>
     public float Pressure => pressure;
@@ -244,9 +248,25 @@ public class CareerCounter
                 EffectInstaller.Inflict(victim.gameObject, entry.Effects[i], chunk, entry.Intensity);
         }
         // Supporter（slot 3）的附带击退。旧版是每次命中都退，等于绕过占空比的硬控。
+        // 不在这里立刻 Inflict：最终伤害可能已经够打出 KB_Type.none，击退必须让路。
         if (slot == 3 && CareerCounterConfig.SupporterKnockbackOnChunkOnly)
-            EffectInstaller.Inflict(victim.gameObject, EffectName.knockback, CareerCounterConfig.SupporterKnockbackPower, 1);
+        {
+            pendingSupporterKnockback = true;
+            pendingKnockbackPower = CareerCounterConfig.SupporterKnockbackPower;
+        }
     }
+
+    /// <summary>本击不会打出硬度 none 时，把延后的克制击退真正挂上。</summary>
+    public void FlushPendingKnockback(Character victim)
+    {
+        if (!pendingSupporterKnockback) return;
+        pendingSupporterKnockback = false;
+        if (victim == null) return;
+        EffectInstaller.Inflict(victim.gameObject, EffectName.knockback, pendingKnockbackPower, 1);
+    }
+
+    /// <summary>本击会打出硬度 none：丢掉克制击退，避免先占 coroutineKB。</summary>
+    public void DiscardPendingKnockback() => pendingSupporterKnockback = false;
 
     /// <summary>每次命中都会调用：先按经过的帧数衰减，再看这个攻击者算不算一次新的人头。</summary>
     private void UpdatePressure(Character attacker, int now)
@@ -307,6 +327,7 @@ public class CareerCounter
     {
         pressure = 0f;
         lastPressureFrame = now;
+        pendingSupporterKnockback = false;
         for (int i = 0; i < AttackerSlots; i++)
         {
             attackerIds[i] = EmptySlot;
