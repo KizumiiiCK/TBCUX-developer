@@ -34,6 +34,7 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-zh-CN
+    - Preload
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2643ec79fdda200429183034bc1b5793
     m_Address: LevelNames_zh-CN
@@ -49,6 +50,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 342bf2a7876c9254ab0de212910481ff
     m_Address: BontiqueItems_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9359b9b2716c58149b527b7d653e4f81
+    m_Address: ItemNames_zh-CN
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-zh-CN

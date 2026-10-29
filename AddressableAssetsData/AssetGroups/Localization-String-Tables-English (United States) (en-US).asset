@@ -52,6 +52,7 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en-US
+    - Preload
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: af846ddd84a525946b991718d04c7cb6
     m_Address: UnitNames_en-US
@@ -68,6 +69,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b412cb54ac3c09e4f845a787f2ca00e8
     m_Address: ChapterSections_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2897aab2d341804ca7f975d8c10b7eb
+    m_Address: ItemNames_en-US
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en-US
