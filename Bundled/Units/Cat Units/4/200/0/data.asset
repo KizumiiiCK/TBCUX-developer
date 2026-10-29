@@ -86,13 +86,12 @@ MonoBehaviour:
     intensity: 0
   abilities:
   - name: 35
-    probability: 0
-    duration: 0
-    intensity: 0
+    probability: 10
+    duration: 150
+    intensity: 170
   atkTypeResis: []
   effectResistances:
   - name: 4
     probability: 100
     duration: 0
     intensity: 0
-  baseEmotion: 5

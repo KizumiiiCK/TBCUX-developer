@@ -25,3 +25,10 @@ MonoBehaviour:
       count: 50000
   - method: 1
     upgrade_consume: []
+  talent_available: 1
+  talent_required_level: 45
+  talent_consume:
+  - reward_name: 13
+    count: 30
+  - reward_name: 75
+    count: 2

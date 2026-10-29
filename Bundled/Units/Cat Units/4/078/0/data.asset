@@ -16,12 +16,12 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 750
+  - ATK: 900
     frame: 60
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 0
     Friendly: 0
-    ATKRange: {x: 0, y: 455}
+    ATKRange: {x: -100, y: 550}
   areaATK: 1
   atkDuration: 105
   Health: 2180
@@ -68,11 +68,6 @@ MonoBehaviour:
     aegis: 0
     strongAgainst: 0
   characterEffects: []
-  abilities:
-  - name: 6
-    probability: 0
-    duration: 0
-    intensity: 0
+  abilities: []
   atkTypeResis: []
   effectResistances: []
-  baseEmotion: 0

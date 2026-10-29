@@ -19,14 +19,20 @@ MonoBehaviour:
   - ATK: 5000
     frame: 5
     DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
+    Friendly: 0
     ATKRange: {x: 0, y: 200}
   - ATK: 200
     frame: 10
     DoNotTriggerEffects: 1
+    DoNotTriggerAbilities: 0
+    Friendly: 0
     ATKRange: {x: 0, y: 200}
   - ATK: 300
     frame: 20
     DoNotTriggerEffects: 1
+    DoNotTriggerAbilities: 0
+    Friendly: 0
     ATKRange: {x: 0, y: 200}
   areaATK: 1
   atkDuration: 93
@@ -38,6 +44,7 @@ MonoBehaviour:
   Cost: 4500
   Cooldown: 2936
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -49,12 +56,6 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
@@ -70,7 +71,7 @@ MonoBehaviour:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -81,4 +82,8 @@ MonoBehaviour:
   characterEffects: []
   abilities: []
   atkTypeResis: []
-  effectResistances: []
+  effectResistances:
+  - name: 1
+    probability: 100
+    duration: 0
+    intensity: 0

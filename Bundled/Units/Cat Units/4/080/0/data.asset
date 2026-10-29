@@ -16,13 +16,20 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 1850
-    frame: 53
+  - ATK: 925
+    frame: 13
     DoNotTriggerEffects: 0
-    ATKRange: {x: 0, y: 350}
+    DoNotTriggerAbilities: 0
+    Friendly: 0
+    ATKRange: {x: -400, y: 350}
+  - ATK: 925
+    frame: 55
+    DoNotTriggerEffects: 0
+    DoNotTriggerAbilities: 0
+    Friendly: 0
+    ATKRange: {x: 1, y: 500}
   areaATK: 1
-  atkDuration: 121
-  one_off: 0
+  atkDuration: 221
   Health: 2250
   KB: 5
   Speed: 30
@@ -31,6 +38,7 @@ MonoBehaviour:
   Cost: 3900
   Cooldown: 2536
   UNITYAnimated: 0
+  SPINEAnimated: 0
   traits:
     Red: 0
     Flt: 0
@@ -42,28 +50,22 @@ MonoBehaviour:
     Re: 0
     Aku: 0
     None: 0
-  traitSpecials:
-    barrierValue: 0
-    akuSheildValue: 0
-    zombieReviveTimes: 0
-    zombieDiveTime: 0
-    revivePercentage: 0
   subtraits:
     Starred: 0
     Colossus: 0
     Behemoth: 0
     Sage: 0
   career:
-    Warrior: 1
+    Warrior: 0
     Deffender: 0
-    Magician: 0
+    Magician: 1
     Supporter: 0
     Practician: 0
   againstCareer:
     AggainstWarrior: 0
     AggainstMagician: 0
     AggainstDeffender: 0
-    AggainstSuppoter: 0
+    AggainstSupporter: 0
     AggainstPractician: 0
   DRE:
     massiveDamage: 0
@@ -74,7 +76,7 @@ MonoBehaviour:
   characterEffects:
   - name: 2
     probability: 100
-    duration: 120
+    duration: 90
     intensity: 0
   abilities:
   - name: 6

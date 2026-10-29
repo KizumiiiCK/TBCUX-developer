@@ -86,11 +86,11 @@ MonoBehaviour:
   - name: 32
     probability: 100
     duration: 1
-    intensity: 125
+    intensity: 115
   - name: 30
     probability: 60
     duration: 135
-    intensity: 850
+    intensity: -850
   atkTypeResis:
   - type: 1
     intensity: 50
@@ -105,4 +105,3 @@ MonoBehaviour:
     probability: 100
     duration: 0
     intensity: 0
-  baseEmotion: 0
