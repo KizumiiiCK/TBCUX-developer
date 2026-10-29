@@ -557,43 +557,23 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039749
-    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Warrior type characters.
-      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Weaken</color>.
-      Each time that Warrior takes an against career damage, he/she gains +1 stack
-      of <color=#00FFFF>Weaken</color> for <color=#00FFFF>20</color>f, with a maximum
-      of 20 stacks.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to <color=#00FFFF>Warriors</color>. <color=#00FFFF>Weaken</color> ignores Sage and resistance. Duration changes with the <color=#00FFFF>assault</color> and the <color=#00FFFF>number of counters</color>, <color=#00FFFF>building up</color> and <color=#00FFFF>fading</color>.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039750
-    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Deffender type characters.
-      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Stop</color>.
-      Each time that Deffender takes an against career damage, he/she gains +1 stack
-      of <color=#00FFFF>Stop</color> for <color=#00FFFF>20</color>f, with a maximum
-      of 20 stacks.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to <color=#00FFFF>Deffenders</color>. <color=#00FFFF>Stop</color> ignores Sage and resistance. Duration changes with the <color=#00FFFF>assault</color> and the <color=#00FFFF>number of counters</color>, <color=#00FFFF>building up</color> and <color=#00FFFF>fading</color>.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039751
-    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Magician type characters.
-      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Slow</color>.
-      Each time that Magician takes an against career damage, he/she gains +1 stack
-      of <color=#00FFFF>Slow</color> for <color=#00FFFF>20</color>f, with a maximum
-      of 20 stacks.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to <color=#00FFFF>Magicians</color>. <color=#00FFFF>Slow</color> ignores Sage and resistance. Duration changes with the <color=#00FFFF>assault</color> and the <color=#00FFFF>number of counters</color>, <color=#00FFFF>building up</color> and <color=#00FFFF>fading</color>.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039752
-    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Supporter type characters. 
-      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Weaken</color>.
-      Each time that Supporter takes an against career damage, he/she gains <color=#00FFFF>Knockback</color>
-      and +2 stacks of <color=#00FFFF>Death Mark</color> for <color=#00FFFF>20</color>f,
-      with a maximum of 20 stacks.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to <color=#00FFFF>Supporters</color>. <color=#00FFFF>Death Mark</color> and <color=#00FFFF>Knockback</color> ignore Sage and resistance. Duration changes with the <color=#00FFFF>assault</color> and the <color=#00FFFF>number of counters</color>, <color=#00FFFF>building up</color> and <color=#00FFFF>fading</color>.
     m_Metadata:
       m_Items: []
   - m_Id: 9850967483039753
-    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to Practician type characters.
-      Also, ignoring all Sage and resistance effects, deals <color=#00FFFF>Slow</color>
-      and <color=#00FFFF>Lacerate</color>. Each time that Practician takes an against
-      career damage, he/she gains +2 stack of <color=#00FFFF>Slow</color> and <color=#00FFFF>Lacerate</color>
-      for <color=#00FFFF>20</color>f, with a maximum of 20 stacks.
+    m_Localized: Deals <color=#00FFFF>1.35x</color> damage to <color=#00FFFF>Practicians</color>. <color=#00FFFF>Slow</color> and <color=#00FFFF>Lacerate</color> ignore Sage and resistance. Duration changes with the <color=#00FFFF>assault</color> and the <color=#00FFFF>number of counters</color>, <color=#00FFFF>building up</color> and <color=#00FFFF>fading</color>.
     m_Metadata:
       m_Items: []
   - m_Id: 11635609110396928
@@ -998,9 +978,8 @@ MonoBehaviour:
       150.
     m_Metadata:
       m_Items: []
-  - m_Id: 126209170684068999
-    m_Localized: Keep<color=#FF6060> {0} </color>(Lv. {1}) alive. It enters the battlefield
-      from the Cat Base at frame {2}.
+  - m_Id: 136078663264448512
+    m_Localized: Protect <color=#00FFFF>[{0}]</color> from being defeated!
     m_Metadata:
       m_Items: []
   - m_Id: 131949722501066752
