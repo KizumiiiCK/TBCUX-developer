@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 2_futureii
+  m_EditorClassIdentifier: 
+  sectionName: 2_futureii
+  mapName: world_future
+  BGM: GF_EV6_90w_pt2
+  unlockRestriction: Future_II+1_futureii
+  timesLimit: 0
+  hardness: 1
+  difficulty: 000000000000010100000000
+  coverColor: {r: 0.4784314, g: 0.7725491, b: 0.8470589, a: 1}
+  titleColor: 2
+  levelsOnMap:
+  - levelNameID: id:brazil
+    levelPosition: {x: -45.5, y: -18.5}
+    tileType: 0
+  - levelNameID: f2-sub:30
+    levelPosition: {x: -76, y: -77}
+    tileType: 0
+  - levelNameID: f2-sub:31
+    levelPosition: {x: -88, y: -78}
+    tileType: 0
+  - levelNameID: f2-sub:32
+    levelPosition: {x: -92, y: -65.5}
+    tileType: 0
+  - levelNameID: f2-sub:33
+    levelPosition: {x: -99.5, y: -71}
+    tileType: 0
+  - levelNameID: f2-sub:34
+    levelPosition: {x: -97, y: -60}
+    tileType: 0
+  - levelNameID: f2-sub:35
+    levelPosition: {x: -88, y: -59}
+    tileType: 0
+  - levelNameID: f2-sub:36
+    levelPosition: {x: -72, y: -63}
+    tileType: 0
+  - levelNameID: f2-sub:37
+    levelPosition: {x: -64, y: -47}
+    tileType: 0
+  - levelNameID: f2-sub:38
+    levelPosition: {x: -68, y: -42}
+    tileType: 0
+  - levelNameID: f2-sub:39
+    levelPosition: {x: -72, y: -45}
+    tileType: 0

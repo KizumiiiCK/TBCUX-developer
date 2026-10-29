@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 0_futureii
+  m_EditorClassIdentifier: 
+  sectionName: 0_futureii
+  mapName: world_future
+  BGM: GF_EV6_90w_pt2
+  unlockRestriction: Future_I+0_futurei
+  timesLimit: 0
+  hardness: 1
+  difficulty: 000000000000010000000000
+  coverColor: {r: 0.4784314, g: 0.7725491, b: 0.8470589, a: 1}
+  titleColor: 2
+  levelsOnMap:
+  - levelNameID: f:continent
+    levelPosition: {x: -90, y: -24}
+    tileType: 0
+  - levelNameID: f2-sub:0
+    levelPosition: {x: -80, y: -20}
+    tileType: 0
+  - levelNameID: f2-sub:1
+    levelPosition: {x: -87, y: -13}
+    tileType: 0
+  - levelNameID: f2-sub:2
+    levelPosition: {x: -83, y: -4}
+    tileType: 0
+  - levelNameID: f2-sub:3
+    levelPosition: {x: -86, y: 6}
+    tileType: 0
+  - levelNameID: f2-sub:4
+    levelPosition: {x: -82, y: 9}
+    tileType: 0
+  - levelNameID: f2-sub:5
+    levelPosition: {x: -80, y: 8.5}
+    tileType: 0
+  - levelNameID: f2-sub:6
+    levelPosition: {x: -76, y: 7.5}
+    tileType: 0
+  - levelNameID: f2-sub:7
+    levelPosition: {x: -73.5, y: 5}
+    tileType: 0
+  - levelNameID: f2-sub:8
+    levelPosition: {x: -72.5, y: 1}
+    tileType: 0
+  - levelNameID: f2-sub:9
+    levelPosition: {x: -69, y: -3}
+    tileType: 0
+  - levelNameID: f2-sub:10
+    levelPosition: {x: -66, y: -2}
+    tileType: 0
+  - levelNameID: f2-sub:11
+    levelPosition: {x: -67.2, y: 2.5}
+    tileType: 0
+  - levelNameID: f2-sub:12
+    levelPosition: {x: -61, y: 3}
+    tileType: 0
+  - levelNameID: f2-sub:13
+    levelPosition: {x: -59.2, y: -0.7}
+    tileType: 0
+  - levelNameID: f2-sub:14
+    levelPosition: {x: -62.9, y: 0.6}
+    tileType: 0

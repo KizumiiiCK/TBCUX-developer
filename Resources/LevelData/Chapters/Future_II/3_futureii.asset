@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b1b505238d47544a315ac910f06853, type: 3}
+  m_Name: 3_futureii
+  m_EditorClassIdentifier: 
+  sectionName: 3_futureii
+  mapName: world_future
+  BGM: GF_EV6_90w_pt2
+  unlockRestriction: Future_II+2_futureii
+  timesLimit: 0
+  hardness: 1
+  difficulty: 000000000000000100000000
+  coverColor: {r: 0.4784314, g: 0.7725491, b: 0.8470589, a: 1}
+  titleColor: 2
+  levelsOnMap:
+  - levelNameID: id:moonlab
+    levelPosition: {x: 96, y: -7}
+    tileType: 6
+  - levelNameID: id:korea
+    levelPosition: {x: 29.5, y: -0.1}
+    tileType: 0
+  - levelNameID: id:mongolia
+    levelPosition: {x: 20.1, y: 3.6}
+    tileType: 0
+  - levelNameID: id:china
+    levelPosition: {x: 21.4, y: -1.5}
+    tileType: 0
+  - levelNameID: id:thailand
+    levelPosition: {x: 19.1, y: -8}
+    tileType: 0
+  - levelNameID: id:cambodia
+    levelPosition: {x: 20.1, y: -9.1}
+    tileType: 0
+  - levelNameID: id:philippines
+    levelPosition: {x: 27.2, y: -9.6}
+    tileType: 0
+  - levelNameID: id:japan
+    levelPosition: {x: 33.6, y: 0}
+    tileType: 0
+  - levelNameID: id:australia
+    levelPosition: {x: 33, y: -25}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
+  - levelNameID: id:singapore
+    levelPosition: {x: 20.2, y: -13.6}
+    tileType: 0
