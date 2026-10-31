@@ -76,7 +76,7 @@ MonoBehaviour:
     - enemyID: e705
       ratio: 200
       bossShock: 0
-      repeat: 10
+      repeat: 5
       firstAppear: 30
       repeatMin: 600
       repeatMax: 600
@@ -84,7 +84,7 @@ MonoBehaviour:
     - enemyID: e705
       ratio: 200
       bossShock: 0
-      repeat: 6
+      repeat: 4
       firstAppear: 300
       repeatMin: 150
       repeatMax: 210
@@ -92,7 +92,7 @@ MonoBehaviour:
     - enemyID: e705
       ratio: 200
       bossShock: 0
-      repeat: 4
+      repeat: 2
       firstAppear: 2100
       repeatMin: 120
       repeatMax: 180

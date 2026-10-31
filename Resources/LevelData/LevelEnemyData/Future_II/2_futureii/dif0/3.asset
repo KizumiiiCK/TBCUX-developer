@@ -15,7 +15,7 @@ MonoBehaviour:
   levelName: f2-sub:32
   gainXP: 233114
   BaseHealth: 1250000
-  mapSize: 4000
+  mapSize: 4500
   maxEmenyCount: 50
   BackgroundID: 606
   BaseImageID: 908
@@ -44,7 +44,7 @@ MonoBehaviour:
   - HealthPercentageOnBreak: 100
     bgm: The_Long_Goodbye
     enemySummonInfos:
-    - enemyID: b100
+    - enemyID: b101
       ratio: 100
       bossShock: 1
       repeat: 1

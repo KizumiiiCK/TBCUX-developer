@@ -53,7 +53,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e035
-      ratio: 400
+      ratio: 300
       bossShock: 0
       repeat: 1
       firstAppear: 600
@@ -61,7 +61,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e035
-      ratio: 400
+      ratio: 300
       bossShock: 0
       repeat: 4
       firstAppear: 985
@@ -69,7 +69,7 @@ MonoBehaviour:
       repeatMax: 90
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e068
-      ratio: 3600
+      ratio: 3300
       bossShock: 0
       repeat: -1
       firstAppear: 120
@@ -77,7 +77,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e069
-      ratio: 3600
+      ratio: 3300
       bossShock: 0
       repeat: -1
       firstAppear: 750
@@ -85,7 +85,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e071
-      ratio: 1800
+      ratio: 1600
       bossShock: 0
       repeat: 1
       firstAppear: 1360
@@ -96,7 +96,7 @@ MonoBehaviour:
     bgm: 047
     enemySummonInfos:
     - enemyID: e068
-      ratio: 3600
+      ratio: 3300
       bossShock: 0
       repeat: -1
       firstAppear: 6
@@ -104,7 +104,7 @@ MonoBehaviour:
       repeatMax: 600
       previewSprite: {fileID: 0}
     - enemyID: e069
-      ratio: 3600
+      ratio: 3300
       bossShock: 0
       repeat: 3
       firstAppear: 35
@@ -112,7 +112,7 @@ MonoBehaviour:
       repeatMax: 35
       previewSprite: {fileID: 0}
     - enemyID: e035
-      ratio: 400
+      ratio: 300
       bossShock: 0
       repeat: 8
       firstAppear: 3
@@ -120,7 +120,7 @@ MonoBehaviour:
       repeatMax: 450
       previewSprite: {fileID: 0}
     - enemyID: e035
-      ratio: 400
+      ratio: 300
       bossShock: 0
       repeat: -1
       firstAppear: 1400
@@ -128,7 +128,7 @@ MonoBehaviour:
       repeatMax: 1250
       previewSprite: {fileID: 0}
     - enemyID: e071
-      ratio: 1800
+      ratio: 1600
       bossShock: 0
       repeat: 2
       firstAppear: 2
