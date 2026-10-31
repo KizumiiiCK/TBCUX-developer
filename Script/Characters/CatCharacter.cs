@@ -7,7 +7,7 @@ public class CatCharacter : AnimatorCachedCharacter
 {
     public override void InitializeCharacter()
     {
-        float real_power=(0.8f + 0.2f * level)*Power;
+        float real_power = GetLevelStatMultiplier(level) * Power;
         maxHealth = Health * real_power;
         realHealth = maxHealth;
         // KB 走 LoadCharacterData 时已归一到 ≥1；预制体里直接填的单位不经过那条路，

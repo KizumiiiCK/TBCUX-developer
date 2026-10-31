@@ -209,7 +209,7 @@ public class LevelControllerTestificateEditor : Editor
     private static float GetCombatBonus(int treasureCount, int level)
     {
         float treasureBonus = 1f + treasureCount / 100f;
-        float levelBonus = 0.8f + 0.2f * Mathf.Max(1, level);
+        float levelBonus = Character.GetLevelStatMultiplier(level);
         return treasureBonus * levelBonus;
     }
 

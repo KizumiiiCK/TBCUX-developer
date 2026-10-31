@@ -95,7 +95,7 @@ public static class UXPref
 public static class FirstAnniversarySchedule
 {
     public static readonly DateTime StartDate = new DateTime(year: 2026, month: 10, day: 2);
-    public const int DurationDays = 30;
+    public const int DurationDays = 29;
 
     /// <summary>Last day the activity is still open (inclusive).</summary>
     public static DateTime EndDate => StartDate.AddDays(DurationDays - 1);

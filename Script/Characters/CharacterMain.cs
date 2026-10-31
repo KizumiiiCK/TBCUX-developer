@@ -93,11 +93,23 @@ public abstract partial class Character : MonoBehaviour
     public abstract float GetFactor();
 
     /// <summary>
-    /// 与生命/攻击相同的战斗数值倍率：猫咪为 WorldTreasure * (0.8 + 0.2 * 等级) * Power，敌人为 strengthenRate * Power（关卡百分比）。
+    /// 猫咪等级对生命/攻击的倍率。1 级为 1。50 级及以前每级 +0.2，与旧线性公式一致；
+    /// 50 级以后每级只 +0.05，接在 50 级的 10.8 后面。
+    /// </summary>
+    public static float GetLevelStatMultiplier(int level)
+    {
+        if (level < 1) level = 1;
+        const int fullGrowthLevel = 50;
+        if (level <= fullGrowthLevel) return 0.8f + 0.2f * level;
+        return 0.8f + 0.2f * fullGrowthLevel + 0.05f * (level - fullGrowthLevel);
+    }
+
+    /// <summary>
+    /// 与生命/攻击相同的战斗数值倍率：猫咪为宝物加成 * <see cref="GetLevelStatMultiplier"/> * Power，敌人为 strengthenRate * Power（关卡百分比）。
     /// </summary>
     public float GetCombatStatMultiplier()
     {
-        if (IsCat()) return treasureBonus * (0.8f + 0.2f * level) * Power;
+        if (IsCat()) return treasureBonus * GetLevelStatMultiplier(level) * Power;
         float strengthen = this is EnemyCharacter enemy ? enemy.strengthenRate : 1f;
         return strengthen * Power;
     }

@@ -46,7 +46,9 @@ public class Pool
 public static class PoolSystemTime
 {
     public static readonly DateTime openTime = new DateTime(year: 2026, month: 8, day: 18);
-    public static DateTime Now => PlatformTimeSystem.Now;
+    public static DateTime Now =>
+        CheckInSystem.GetVerifiedToday()
+        ?? openTime.AddDays(-(CapsulePreviewHorizonDays + 1));
 
     public static int DaysBetween(DateTime d1, DateTime d2) =>
         Math.Abs((d1.Date - d2.Date).Days);

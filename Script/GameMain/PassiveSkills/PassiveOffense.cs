@@ -538,7 +538,7 @@ public class Summoner : PassiveSkill
         int visualLayer = UnityEngine.Random.Range(0, LevelController.VisualLayerCount);
         int visualOrder = visualLayer * LevelController.VisualLayerStride + source.levelController.NextVisualSlot(visualLayer);
         float span = duration / 100f;
-        float dx = span <= 0f ? 0f : UnityEngine.Random.Range(-span, span)-3.2f;
+        float dx = span <= 0f ? 0f : UnityEngine.Random.Range(-span, span)-1.6f;
         GameObject hostBase = GameObject.Find(hostIsCat ? "CatBase" : "DogeBase");
         float baseY = hostBase != null ? hostBase.transform.position.y : 1f;
         Vector3 pos = new Vector3(
