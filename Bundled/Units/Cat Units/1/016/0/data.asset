@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce04c98959eb7043b64b41b2d30833f, type: 3}
   m_Name: data
   m_EditorClassIdentifier: 
-  Name: 10160
+  Name: 10161
   isEliteUnit: 0
   ATKType: 
   atkInfos:
@@ -69,6 +69,10 @@ MonoBehaviour:
     strongAgainst: 0
   characterEffects: []
   abilities:
+  - name: 14
+    probability: 100
+    duration: 16
+    intensity: 0
   - name: 5
     probability: 100
     duration: 0

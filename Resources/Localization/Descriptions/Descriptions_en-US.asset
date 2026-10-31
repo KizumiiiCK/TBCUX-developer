@@ -1009,6 +1009,24 @@ MonoBehaviour:
       to prevent it and reflect the projectile back with a damage multiplier of {2}%.
     m_Metadata:
       m_Items: []
+  - m_Id: 138259090288881664
+    m_Localized: Guarder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 138259090368573440
+    m_Localized: This character is counted as a base. His moving speed is 0 and does
+      not affected by normal attacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 138259090368573441
+    m_Localized: Resist-Base
+    m_Metadata:
+      m_Items: []
+  - m_Id: 138259090368573442
+    m_Localized: Damage taken from <color=#00FFFF>Bases</color> is reduced by {0}%
+      .
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

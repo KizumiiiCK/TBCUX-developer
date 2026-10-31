@@ -29,7 +29,12 @@ MonoBehaviour:
     exist: 0
     enter_rate: 0
     mapName: 
-  rewardlist: []
+  rewardlist:
+  - type: 1
+    id: 3
+    drawtimes: 5
+    droprate: 100
+    onlyOnce: 1
   enemySummoners:
   - HealthPercentageOnBreak: 100
     bgm: The_Long_Goodbye
@@ -43,7 +48,7 @@ MonoBehaviour:
       repeatMax: 0
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e120
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: -1
       firstAppear: 400
@@ -51,7 +56,7 @@ MonoBehaviour:
       repeatMax: 800
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e121
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: -1
       firstAppear: 550
@@ -59,7 +64,7 @@ MonoBehaviour:
       repeatMax: 900
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e123
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: 2
       firstAppear: 900
@@ -67,7 +72,7 @@ MonoBehaviour:
       repeatMax: 820
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e123
-      ratio: 250
+      ratio: 300
       bossShock: 0
       repeat: 2
       firstAppear: 1800
@@ -75,7 +80,7 @@ MonoBehaviour:
       repeatMax: 1800
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e124
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: 4
       firstAppear: 1100
@@ -83,7 +88,7 @@ MonoBehaviour:
       repeatMax: 750
       previewSprite: {fileID: 21300000, guid: 5e34f607b45f2a94c92fdc1d8f0f201e, type: 3}
     - enemyID: e126
-      ratio: 200
+      ratio: 300
       bossShock: 0
       repeat: 2
       firstAppear: 1700

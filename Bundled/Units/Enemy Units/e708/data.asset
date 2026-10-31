@@ -16,7 +16,7 @@ MonoBehaviour:
   isEliteUnit: 0
   ATKType: 
   atkInfos:
-  - ATK: 18888
+  - ATK: 19999
     frame: 28
     DoNotTriggerEffects: 0
     DoNotTriggerAbilities: 1
@@ -39,7 +39,7 @@ MonoBehaviour:
   Health: 1240000
   KB: 8
   Speed: 75
-  Reload: 445
+  Reload: 395
   DetectionRange: 320
   Cost: 6884
   Cooldown: 0
@@ -95,11 +95,15 @@ MonoBehaviour:
     intensity: -1320
   atkTypeResis:
   - type: 1
-    intensity: 50
+    intensity: 100
   - type: 2
-    intensity: 50
+    intensity: 100
   effectResistances:
   - name: 2
+    probability: 100
+    duration: 0
+    intensity: 0
+  - name: 9
     probability: 100
     duration: 0
     intensity: 0
