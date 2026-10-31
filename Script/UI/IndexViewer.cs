@@ -236,7 +236,7 @@ public class IndexViewer : MonoBehaviour
         if (DetailsText == null) return;
         if(level<1)level = 1;
         tresureCount = consider_treasure?RewardingSystem.GetAmount(RewardName.WorldTreasures):0;
-        float bonus = (1 + 1.5f * (tresureCount / 150f))*(0.8f + 0.2f * level);
+        float bonus = (1 + 1.5f * (tresureCount / 150f)) * Character.GetLevelStatMultiplier(level);
         int atk_length = cd.atkInfos != null ? cd.atkInfos.Length : 0;
         DetailsText.text = 
             $"HP:         <color=#00FFFF>{(int)(cd.Health*bonus)}</color>   " +
